@@ -24,7 +24,13 @@ void zero(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, "0");
 }
 
-void one(testcpplite::TestResult &result) { assertEqual(result, 1_cents, "1"); }
+void one(testcpplite::TestResult &result) {
+  assertEqual(result, 100_cents, "1");
+}
+
+void twoDecimalPlaces(testcpplite::TestResult &result) {
+  assertEqual(result, 123_cents, "1.23");
+}
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

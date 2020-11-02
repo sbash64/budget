@@ -5,7 +5,9 @@
 namespace sbash64 {
 namespace budget {
 int main() {
-  testcpplite::test({{parse::zero, "parse zero"}, {parse::one, "parse one"}},
+  testcpplite::test({{parse::zero, "parse zero"},
+                     {parse::one, "parse one"},
+                     {parse::twoDecimalPlaces, "parse two decimal places"}},
                     std::cout);
 }
 } // namespace budget
