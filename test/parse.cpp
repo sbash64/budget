@@ -43,6 +43,10 @@ void oneOneHundredth(testcpplite::TestResult &result) {
 void ten(testcpplite::TestResult &result) {
   assertEqual(result, 10_cents, "0.10");
 }
+
+void withoutLeadingZero(testcpplite::TestResult &result) {
+  assertEqual(result, 12_cents, ".12");
+}
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

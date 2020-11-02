@@ -8,8 +8,10 @@ namespace parse {
 auto usd(std::string_view s) -> USD {
   USD usd{};
   std::istringstream stream{s.data()};
-  stream >> usd.cents;
-  usd.cents *= 100;
+  if (stream.peek() != '.') {
+    stream >> usd.cents;
+    usd.cents *= 100;
+  }
   char possiblyDecimal{};
   stream >> possiblyDecimal;
   if (possiblyDecimal == '.') {
