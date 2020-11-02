@@ -13,6 +13,7 @@ void oneDecimalPlace(testcpplite::TestResult &);
 void oneOneHundredth(testcpplite::TestResult &);
 void oneTenth(testcpplite::TestResult &);
 void withoutLeadingZero(testcpplite::TestResult &);
+void threeDecimalPlaces(testcpplite::TestResult &);
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

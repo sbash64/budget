@@ -20,6 +20,8 @@ auto usd(std::string_view s) -> USD {
     stream >> cents;
     if (cents < 10 && peek != '0')
       cents *= 10;
+    if (cents > 100)
+      cents /= 10;
     usd.cents += cents;
   }
   return usd;

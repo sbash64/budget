@@ -47,6 +47,10 @@ void oneTenth(testcpplite::TestResult &result) {
 void withoutLeadingZero(testcpplite::TestResult &result) {
   assertEqual(result, 12_cents, ".12");
 }
+
+void threeDecimalPlaces(testcpplite::TestResult &result) {
+  assertEqual(result, 12_cents, ".126");
+}
 } // namespace parse
 } // namespace budget
 } // namespace sbash64
