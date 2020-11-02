@@ -13,12 +13,12 @@ auto usd(std::string_view s) -> USD {
     usd.cents *= 100;
   }
   if (stream.get() == '.') {
-    std::string remaining;
-    stream >> remaining;
-    remaining.resize(2, '0');
-    std::istringstream last{remaining};
+    std::string afterDecimal;
+    stream >> afterDecimal;
+    afterDecimal.resize(2, '0');
+    std::istringstream streamAfterDecimal{afterDecimal};
     int cents = 0;
-    last >> cents;
+    streamAfterDecimal >> cents;
     usd.cents += cents;
   }
   return usd;
