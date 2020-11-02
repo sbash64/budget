@@ -1,4 +1,3 @@
-
 #include "parse.hpp"
 #include <sbash64/budget/parse.hpp>
 
@@ -14,6 +13,7 @@ static void assertEqual(testcpplite::TestResult &result, USD expected,
   assertEqual(result, static_cast<unsigned long long>(expected.cents),
               static_cast<unsigned long long>(actual.cents));
 }
+
 void zero(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, usd("0"));
 }

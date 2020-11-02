@@ -2,7 +2,10 @@
 #include <iostream>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-int main() {
-  sbash64::testcpplite::test({{sbash64::budget::parse::zero, "parse zero"}},
-                             std::cout);
-}
+namespace sbash64 {
+namespace budget {
+int main() { testcpplite::test({{parse::zero, "parse zero"}}, std::cout); }
+} // namespace budget
+} // namespace sbash64
+
+int main() { return sbash64::budget::main(); }
