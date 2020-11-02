@@ -1,17 +1,18 @@
 #include "parse.hpp"
+#include <gsl/gsl>
 #include <sbash64/budget/parse.hpp>
 
 namespace sbash64 {
 namespace budget {
 namespace parse {
 constexpr static auto operator"" _cents(unsigned long long cents) -> USD {
-  return USD{static_cast<int_least64_t>(cents)};
+  return USD{gsl::narrow<int_least64_t>(cents)};
 }
 
 static void assertEqual(testcpplite::TestResult &result, USD expected,
                         USD actual) {
-  assertEqual(result, static_cast<unsigned long long>(expected.cents),
-              static_cast<unsigned long long>(actual.cents));
+  assertEqual(result, gsl::narrow<unsigned long long>(expected.cents),
+              gsl::narrow<unsigned long long>(actual.cents));
 }
 
 static void assertEqual(testcpplite::TestResult &result, USD expected,

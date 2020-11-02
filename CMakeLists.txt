@@ -1,8 +1,14 @@
+include(FetchContent)
+FetchContent_Declare(
+  GSL
+  GIT_REPOSITORY https://github.com/microsoft/GSL
+  GIT_TAG v3.1.0)
+FetchContent_MakeAvailable(GSL)
+
 add_subdirectory(lib)
 
 option(SBASH64_BUDGET_ENABLE_TESTS "Enable tests" OFF)
 if(${SBASH64_BUDGET_ENABLE_TESTS})
-  include(FetchContent)
   FetchContent_Declare(
     testcpplite
     GIT_REPOSITORY https://github.com/sbash64/testcpplite
