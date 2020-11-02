@@ -1,3 +1,4 @@
+#include "calculate.hpp"
 #include "parse.hpp"
 #include <iostream>
 #include <sbash64/testcpplite/testcpplite.hpp>
@@ -14,7 +15,9 @@ int main() {
        {parse::oneTenth, "parse one tenth"},
        {parse::withoutLeadingZero, "parse without leading zero"},
        {parse::threeDecimalPlaces, "parse three decimal places"},
-       {parse::twelveOneThousandths, "parse twelve one thousandths"}},
+       {parse::twelveOneThousandths, "parse twelve one thousandths"},
+       {calculate::differenceHavingNoIncomeNorExpenses,
+        "calculate difference having no income nor expenses"}},
       std::cout);
 }
 } // namespace budget
