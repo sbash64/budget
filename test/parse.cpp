@@ -39,6 +39,10 @@ void oneDecimalPlace(testcpplite::TestResult &result) {
 void oneOneHundredth(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, "0.01");
 }
+
+void ten(testcpplite::TestResult &result) {
+  assertEqual(result, 10_cents, "0.10");
+}
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

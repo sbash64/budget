@@ -9,7 +9,8 @@ int main() {
                      {parse::one, "parse one"},
                      {parse::twoDecimalPlaces, "parse two decimal places"},
                      {parse::oneDecimalPlace, "parse one decimal place"},
-                     {parse::oneOneHundredth, "parse one one-hundredth"}},
+                     {parse::oneOneHundredth, "parse one one-hundredth"},
+                     {parse::ten, "parse ten"}},
                     std::cout);
 }
 } // namespace budget
