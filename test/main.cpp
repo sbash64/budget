@@ -8,7 +8,8 @@ int main() {
   testcpplite::test({{parse::zero, "parse zero"},
                      {parse::one, "parse one"},
                      {parse::twoDecimalPlaces, "parse two decimal places"},
-                     {parse::oneDecimalPlace, "parse one decimal place"}},
+                     {parse::oneDecimalPlace, "parse one decimal place"},
+                     {parse::oneOneHundredth, "parse one one-hundredth"}},
                     std::cout);
 }
 } // namespace budget

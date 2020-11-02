@@ -14,8 +14,9 @@ auto usd(std::string_view s) -> USD {
   stream >> possiblyDecimal;
   if (possiblyDecimal == '.') {
     int cents = 0;
+    auto peek{stream.peek()};
     stream >> cents;
-    if (cents < 10)
+    if (cents < 10 && peek != '0')
       cents *= 10;
     usd.cents += cents;
   }
