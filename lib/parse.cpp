@@ -13,16 +13,17 @@ auto usd(std::string_view s) -> USD {
     usd.cents *= 100;
   }
   if (stream.get() == '.') {
+    std::string remaining;
+    stream >> remaining;
+    if (remaining.size() > 2) {
+      remaining.erase(remaining.begin() + 2, remaining.end());
+    }
+    while (remaining.size() < 2) {
+      remaining.push_back('0');
+    }
+    std::istringstream last{remaining};
     int cents = 0;
-    auto peek{stream.peek()};
-    stream >> cents;
-    if (peek == '0')
-      while (cents > 10)
-        cents /= 10;
-    else if (cents < 10)
-      cents *= 10;
-    while (cents > 100)
-      cents /= 10;
+    last >> cents;
     usd.cents += cents;
   }
   return usd;

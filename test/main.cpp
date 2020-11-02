@@ -11,7 +11,7 @@ int main() {
        {parse::twoDecimalPlaces, "parse two decimal places"},
        {parse::oneDecimalPlace, "parse one decimal place"},
        {parse::oneOneHundredth, "parse one one-hundredth"},
-       {parse::oneTenth, "parse ten"},
+       {parse::oneTenth, "parse one tenth"},
        {parse::withoutLeadingZero, "parse without leading zero"},
        {parse::threeDecimalPlaces, "parse three decimal places"},
        {parse::twelveOneThousandths, "parse twelve one thousandths"}},
