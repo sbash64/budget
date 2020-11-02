@@ -1,3 +1,5 @@
+add_subdirectory(lib)
+
 option(SBASH64_BUDGET_ENABLE_TESTS "Enable tests" OFF)
 if(${SBASH64_BUDGET_ENABLE_TESTS})
   include(FetchContent)

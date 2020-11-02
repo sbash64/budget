@@ -1,18 +1,6 @@
-#include <cstdint>
-#include <string_view>
-
-namespace sbash64 {
-namespace budget {
-struct USD {
-  std::int_least64_t cents;
-};
-namespace parse {
-auto usd(std::string_view) -> USD { return {}; }
-} // namespace parse
-} // namespace budget
-} // namespace sbash64
 
 #include "parse.hpp"
+#include <sbash64/budget/parse.hpp>
 
 namespace sbash64 {
 namespace budget {
