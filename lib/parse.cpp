@@ -15,6 +15,8 @@ auto usd(std::string_view s) -> USD {
   if (possiblyDecimal == '.') {
     int cents = 0;
     stream >> cents;
+    if (cents < 10)
+      cents *= 10;
     usd.cents += cents;
   }
   return usd;

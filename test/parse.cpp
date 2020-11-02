@@ -31,6 +31,10 @@ void one(testcpplite::TestResult &result) {
 void twoDecimalPlaces(testcpplite::TestResult &result) {
   assertEqual(result, 123_cents, "1.23");
 }
+
+void oneDecimalPlace(testcpplite::TestResult &result) {
+  assertEqual(result, 120_cents, "1.2");
+}
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

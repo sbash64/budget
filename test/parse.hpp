@@ -9,6 +9,7 @@ namespace parse {
 void zero(testcpplite::TestResult &);
 void one(testcpplite::TestResult &);
 void twoDecimalPlaces(testcpplite::TestResult &);
+void oneDecimalPlace(testcpplite::TestResult &);
 } // namespace parse
 } // namespace budget
 } // namespace sbash64
