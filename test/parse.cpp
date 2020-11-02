@@ -40,7 +40,7 @@ void oneOneHundredth(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, "0.01");
 }
 
-void ten(testcpplite::TestResult &result) {
+void oneTenth(testcpplite::TestResult &result) {
   assertEqual(result, 10_cents, "0.10");
 }
 
