@@ -6,7 +6,7 @@ namespace sbash64 {
 namespace budget {
 namespace parse {
 auto usd(std::string_view s) -> USD {
-  USD usd;
+  USD usd{};
   std::stringstream stream{s.data()};
   stream >> usd.cents;
   return usd;

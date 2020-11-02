@@ -14,13 +14,16 @@ static void assertEqual(testcpplite::TestResult &result, USD expected,
               static_cast<unsigned long long>(actual.cents));
 }
 
-void zero(testcpplite::TestResult &result) {
-  assertEqual(result, 0_cents, usd("0"));
+static void assertEqual(testcpplite::TestResult &result, USD expected,
+                        std::string_view s) {
+  assertEqual(result, expected, usd(s));
 }
 
-void one(testcpplite::TestResult &result) {
-  assertEqual(result, 1_cents, usd("1"));
+void zero(testcpplite::TestResult &result) {
+  assertEqual(result, 0_cents, "0");
 }
+
+void one(testcpplite::TestResult &result) { assertEqual(result, 1_cents, "1"); }
 } // namespace parse
 } // namespace budget
 } // namespace sbash64
