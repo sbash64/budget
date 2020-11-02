@@ -14,6 +14,7 @@ void oneOneHundredth(testcpplite::TestResult &);
 void oneTenth(testcpplite::TestResult &);
 void withoutLeadingZero(testcpplite::TestResult &);
 void threeDecimalPlaces(testcpplite::TestResult &);
+void twelveOneThousandths(testcpplite::TestResult &);
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

@@ -18,9 +18,12 @@ auto usd(std::string_view s) -> USD {
     int cents = 0;
     auto peek{stream.peek()};
     stream >> cents;
-    if (cents < 10 && peek != '0')
+    if (peek == '0')
+      while (cents > 10)
+        cents /= 10;
+    else if (cents < 10)
       cents *= 10;
-    if (cents > 100)
+    while (cents > 100)
       cents /= 10;
     usd.cents += cents;
   }
