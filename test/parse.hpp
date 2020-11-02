@@ -6,7 +6,8 @@
 namespace sbash64 {
 namespace budget {
 namespace parse {
-void zero(testcpplite::TestResult &result);
+void zero(testcpplite::TestResult &);
+void one(testcpplite::TestResult &);
 } // namespace parse
 } // namespace budget
 } // namespace sbash64

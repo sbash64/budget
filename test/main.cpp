@@ -4,7 +4,10 @@
 
 namespace sbash64 {
 namespace budget {
-int main() { testcpplite::test({{parse::zero, "parse zero"}}, std::cout); }
+int main() {
+  testcpplite::test({{parse::zero, "parse zero"}, {parse::one, "parse one"}},
+                    std::cout);
+}
 } // namespace budget
 } // namespace sbash64
 
