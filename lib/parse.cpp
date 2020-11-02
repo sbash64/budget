@@ -15,12 +15,7 @@ auto usd(std::string_view s) -> USD {
   if (stream.get() == '.') {
     std::string remaining;
     stream >> remaining;
-    if (remaining.size() > 2) {
-      remaining.erase(remaining.begin() + 2, remaining.end());
-    }
-    while (remaining.size() < 2) {
-      remaining.push_back('0');
-    }
+    remaining.resize(2, '0');
     std::istringstream last{remaining};
     int cents = 0;
     last >> cents;
