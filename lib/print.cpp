@@ -10,7 +10,8 @@ void pretty(std::ostream &stream, Income, const Expenses &) {
 }
 
 auto format(USD usd) -> std::string {
-  return "$" + std::to_string(usd.cents / 100) + ".00";
+  return "$" + std::to_string(usd.cents / 100) + ".0" +
+         std::to_string(usd.cents % 100);
 }
 } // namespace print
 } // namespace budget

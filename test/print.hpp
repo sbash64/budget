@@ -9,6 +9,7 @@ namespace print {
 void prettyBudgetHavingNoIncomeNorExpenses(testcpplite::TestResult &);
 void formatZeroDollars(testcpplite::TestResult &);
 void formatOneDollar(testcpplite::TestResult &);
+void formatOneCent(testcpplite::TestResult &);
 } // namespace print
 } // namespace budget
 } // namespace sbash64
