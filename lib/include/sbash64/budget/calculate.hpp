@@ -19,7 +19,7 @@ struct Expenses {
   std::vector<Expense> all;
 };
 
-auto difference(Income, Expenses) -> USD;
+auto difference(Income, const Expenses &) -> USD;
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

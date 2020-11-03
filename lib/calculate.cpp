@@ -8,12 +8,12 @@ constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
 constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 
-auto total(Expenses expenses) -> USD {
+auto total(const Expenses &expenses) -> USD {
   return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
-                         [](USD usd, Expense a) { return a.usd + usd; });
+                         [](USD usd, Expense a) -> USD { return a.usd + usd; });
 }
 
-auto difference(Income income, Expenses expenses) -> USD {
+auto difference(Income income, const Expenses &expenses) -> USD {
   return income.usd - total(expenses);
 }
 } // namespace calculate
