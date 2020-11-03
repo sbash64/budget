@@ -9,7 +9,9 @@ void pretty(std::ostream &stream, Income, const Expenses &) {
   stream << "Difference: $0.00";
 }
 
-auto format(USD) -> std::string { return "$0.00"; }
+auto format(USD usd) -> std::string {
+  return "$" + std::to_string(usd.cents / 100) + ".00";
+}
 } // namespace print
 } // namespace budget
 } // namespace sbash64

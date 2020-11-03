@@ -33,7 +33,8 @@ int main() {
         "calculate category total having one expense"},
        {print::prettyBudgetHavingNoIncomeNorExpenses,
         "print pretty budget having no income nor expenses"},
-       {print::formatZeroDollars, "format zero dollars"}},
+       {print::formatZeroDollars, "format zero dollars"},
+       {print::formatOneDollar, "format one dollar"}},
       std::cout);
 }
 } // namespace budget
