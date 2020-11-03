@@ -28,6 +28,15 @@ Difference: $0.00
 )");
 }
 
+void prettyBudgetHavingNoExpenses(testcpplite::TestResult &result) {
+  assertPrettyWithBoundedNewlinesYields(result, Income{100_cents}, Expenses{},
+                                        R"(
+Income: $1.00
+Expenses: $0.00
+Difference: $1.00
+)");
+}
+
 void formatZeroDollars(testcpplite::TestResult &result) {
   assertFormatYields(result, 0_cents, "$0.00");
 }
