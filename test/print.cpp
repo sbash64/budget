@@ -39,6 +39,10 @@ void formatOneDollar(testcpplite::TestResult &result) {
 void formatOneCent(testcpplite::TestResult &result) {
   assertFormatYields(result, 1_cents, "$0.01");
 }
+
+void formatTenCents(testcpplite::TestResult &result) {
+  assertFormatYields(result, 10_cents, "$0.10");
+}
 } // namespace print
 } // namespace budget
 } // namespace sbash64

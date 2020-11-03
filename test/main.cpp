@@ -35,7 +35,8 @@ int main() {
         "print pretty budget having no income nor expenses"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
-       {print::formatOneCent, "format one cent"}},
+       {print::formatOneCent, "format one cent"},
+       {print::formatTenCents, "format ten cents"}},
       std::cout);
 }
 } // namespace budget
