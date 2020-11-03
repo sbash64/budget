@@ -4,11 +4,10 @@
 
 namespace sbash64 {
 namespace budget {
-
 static auto operator<(const Category &a, const Category &b) -> bool {
   return a.name < b.name;
 }
-namespace calculate {
+
 constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
 constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
@@ -16,7 +15,7 @@ constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 static auto operator==(const Category &a, const Category &b) -> bool {
   return a.name == b.name;
 }
-
+namespace calculate {
 static auto total_(const Expenses &expenses) -> USD {
   return std::accumulate(
       expenses.all.begin(), expenses.all.end(), USD{0},
@@ -39,7 +38,6 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
 }
 
 auto categories(const Expenses &expenses) -> Categories {
-  Categories categories;
   std::set<Category> uniqueCategories;
   std::for_each(expenses.all.begin(), expenses.all.end(),
                 [&](const Expense &expense) {
