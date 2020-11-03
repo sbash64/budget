@@ -9,6 +9,8 @@ namespace calculate {
 auto difference(Income, const Expenses &) -> USD;
 
 auto total(const Category &, const Expenses &) -> USD;
+
+auto total(const Expenses &) -> USD;
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

@@ -12,6 +12,7 @@ void formatOneDollar(testcpplite::TestResult &);
 void formatOneCent(testcpplite::TestResult &);
 void formatTenCents(testcpplite::TestResult &);
 void prettyBudgetHavingNoExpenses(testcpplite::TestResult &);
+void prettyBudgetHavingOneExpense(testcpplite::TestResult &);
 } // namespace print
 } // namespace budget
 } // namespace sbash64

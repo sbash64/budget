@@ -1,4 +1,5 @@
 #include "print.hpp"
+#include "calculate.hpp"
 #include <cstdio>
 #include <string>
 
@@ -13,10 +14,10 @@ static auto format_(USD usd) -> std::string {
 
 auto format(USD usd) -> std::string { return format_(usd); }
 
-void pretty(std::ostream &stream, Income income, const Expenses &) {
+void pretty(std::ostream &stream, Income income, const Expenses &expenses) {
   stream << "Income: " << format_(income.usd) << "\n";
-  stream << "Expenses: $0.00\n";
-  stream << "Difference: " << format_(income.usd);
+  stream << "Expenses: " << format_(calculate::total(expenses)) << "\n";
+  stream << "Difference: " << format_(calculate::difference(income, expenses));
 }
 } // namespace print
 } // namespace budget
