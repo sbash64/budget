@@ -27,7 +27,7 @@ struct Expenses {
 
 auto difference(Income, const Expenses &) -> USD;
 
-auto total(Category, const Expenses &) -> USD;
+auto total(const Category &, const Expenses &) -> USD;
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

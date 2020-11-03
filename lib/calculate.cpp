@@ -13,18 +13,21 @@ static auto operator==(const Category &a, const Category &b) -> bool {
 }
 
 static auto total(const Expenses &expenses) -> USD {
-  return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
-                         [](USD usd, Expense a) -> USD { return a.usd + usd; });
+  return std::accumulate(
+      expenses.all.begin(), expenses.all.end(), USD{0},
+      [](USD usd, const Expense &expense) -> USD { return expense.usd + usd; });
 }
 
 auto difference(Income income, const Expenses &expenses) -> USD {
   return income.usd - total(expenses);
 }
 
-auto total(Category category, const Expenses &expenses) -> USD {
+auto total(const Category &category, const Expenses &expenses) -> USD {
   return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
-                         [=](USD usd, Expense a) -> USD {
-                           return category == a.category ? a.usd + usd : usd;
+                         [=](USD usd, const Expense &expense) -> USD {
+                           return category == expense.category
+                                      ? expense.usd + usd
+                                      : usd;
                          });
 }
 } // namespace calculate
