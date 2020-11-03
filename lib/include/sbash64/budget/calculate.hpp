@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_CALCULATE_HPP_
 
 #include "budget.hpp"
+#include <string>
 #include <vector>
 
 namespace sbash64 {
@@ -19,7 +20,13 @@ struct Expenses {
   std::vector<Expense> all;
 };
 
+struct Category {
+  std::string name;
+};
+
 auto difference(Income, const Expenses &) -> USD;
+
+auto total(Category, const Expenses &) -> USD;
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

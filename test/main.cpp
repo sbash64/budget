@@ -23,7 +23,9 @@ int main() {
        {calculate::differenceHavingOneExpense,
         "calculate difference having one expense"},
        {calculate::differenceHavingTwoExpenses,
-        "calculate difference having two expenses"}},
+        "calculate difference having two expenses"},
+       {calculate::categoryTotalHavingNoExpenses,
+        "calculate category total having no expenses"}},
       std::cout);
 }
 } // namespace budget

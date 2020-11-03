@@ -23,6 +23,10 @@ void differenceHavingTwoExpenses(testcpplite::TestResult &result) {
               difference(Income{11_cents},
                          Expenses{{Expense{2_cents}, Expense{3_cents}}}));
 }
+
+void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
+  assertEqual(result, 0_cents, total(Category{"miscellaneous"}, Expenses{}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

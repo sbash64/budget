@@ -16,6 +16,8 @@ static auto total(const Expenses &expenses) -> USD {
 auto difference(Income income, const Expenses &expenses) -> USD {
   return income.usd - total(expenses);
 }
+
+auto total(Category, const Expenses &) -> USD { return {}; }
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
