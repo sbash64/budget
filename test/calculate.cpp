@@ -55,6 +55,11 @@ static void assertEqual(testcpplite::TestResult &result,
 void categoriesFromNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, Categories{}, categories(Expenses{}));
 }
+
+void categoriesFromOneExpense(testcpplite::TestResult &result) {
+  assertEqual(result, Categories{{Category{"groceries"}}},
+              categories(Expenses{{Expense{0_cents, Category{"groceries"}}}}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

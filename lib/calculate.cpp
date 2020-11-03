@@ -33,7 +33,14 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
                          });
 }
 
-auto categories(const Expenses &) -> Categories { return {}; }
+auto categories(const Expenses &expenses) -> Categories {
+  Categories categories;
+  std::for_each(expenses.all.begin(), expenses.all.end(),
+                [&](const Expense &expense) {
+                  categories.each.push_back(expense.category);
+                });
+  return categories;
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
