@@ -8,7 +8,7 @@ constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
 constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 
-auto total(const Expenses &expenses) -> USD {
+static auto total(const Expenses &expenses) -> USD {
   return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
                          [](USD usd, Expense a) -> USD { return a.usd + usd; });
 }
