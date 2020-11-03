@@ -15,6 +15,7 @@ void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &);
 void categoryTotalHavingOneExpense(testcpplite::TestResult &);
 void categoriesFromNoExpenses(testcpplite::TestResult &);
 void categoriesFromOneExpense(testcpplite::TestResult &);
+void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &);
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

@@ -1,8 +1,13 @@
 #include "calculate.hpp"
 #include <numeric>
+#include <set>
 
 namespace sbash64 {
 namespace budget {
+
+static auto operator<(const Category &a, const Category &b) -> bool {
+  return a.name < b.name;
+}
 namespace calculate {
 constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
@@ -35,11 +40,12 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
 
 auto categories(const Expenses &expenses) -> Categories {
   Categories categories;
+  std::set<Category> uniqueCategories;
   std::for_each(expenses.all.begin(), expenses.all.end(),
                 [&](const Expense &expense) {
-                  categories.each.push_back(expense.category);
+                  uniqueCategories.insert(expense.category);
                 });
-  return categories;
+  return Categories{{uniqueCategories.begin(), uniqueCategories.end()}};
 }
 } // namespace calculate
 } // namespace budget

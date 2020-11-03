@@ -60,6 +60,12 @@ void categoriesFromOneExpense(testcpplite::TestResult &result) {
   assertEqual(result, Categories{{Category{"groceries"}}},
               categories(Expenses{{Expense{0_cents, Category{"groceries"}}}}));
 }
+
+void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &result) {
+  assertEqual(result, Categories{{Category{"groceries"}}},
+              categories(Expenses{{Expense{1_cents, Category{"groceries"}},
+                                   Expense{2_cents, Category{"groceries"}}}}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
