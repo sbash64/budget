@@ -49,6 +49,30 @@ Difference: $0.75
 )");
 }
 
+void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &result) {
+  assertPrettyWithBoundedNewlinesYields(
+      result, Income{25000_cents},
+      Expenses{{Expense{1234_cents, Category{"Groceries"}},
+                Expense{5678_cents, Category{"Groceries"}},
+                Expense{342_cents, Category{"Entertainment"}},
+                Expense{598_cents, Category{"Groceries"}},
+                Expense{2999_cents, Category{"Rent"}},
+                Expense{1266_cents, Category{"Giving"}},
+                Expense{3538_cents, Category{"Gas"}},
+                Expense{3242_cents, Category{"Rent"}},
+                Expense{5893_cents, Category{"Gas"}}}},
+      R"(
+Income: $250.00
+Expenses: $247.90
+    Entertainment: $3.42
+    Gas: $94.31
+    Giving: $12.66
+    Groceries: $75.10
+    Rent: $62.41
+Difference: $2.10
+)");
+}
+
 void formatZeroDollars(testcpplite::TestResult &result) {
   assertFormatYields(result, 0_cents, "$0.00");
 }

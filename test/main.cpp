@@ -43,6 +43,8 @@ int main() {
         "print pretty budget having no expenses"},
        {print::prettyBudgetHavingOneExpense,
         "print pretty budget having one expense"},
+       {print::prettyBudgetHavingMultipleExpenses,
+        "print pretty budget having multiple expenses"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
