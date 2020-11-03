@@ -8,6 +8,8 @@ void pretty(std::ostream &stream, Income, const Expenses &) {
   stream << "Expenses: $0.00\n";
   stream << "Difference: $0.00";
 }
+
+auto format(USD) -> std::string { return "$0.00"; }
 } // namespace print
 } // namespace budget
 } // namespace sbash64
