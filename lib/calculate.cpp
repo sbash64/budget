@@ -32,6 +32,8 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
                                       : usd;
                          });
 }
+
+auto categories(const Expenses &) -> Categories { return {}; }
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

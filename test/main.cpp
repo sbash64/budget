@@ -31,6 +31,8 @@ int main() {
         "calculate category total having one unrelated expense"},
        {calculate::categoryTotalHavingOneExpense,
         "calculate category total having one expense"},
+       {calculate::categoriesFromNoExpenses,
+        "calculate categories from no expenses"},
        {print::prettyBudgetHavingNoIncomeNorExpenses,
         "print pretty budget having no income nor expenses"},
        {print::prettyBudgetHavingNoExpenses,

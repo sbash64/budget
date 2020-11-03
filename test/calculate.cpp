@@ -1,9 +1,14 @@
 #include "calculate.hpp"
 #include "usd.hpp"
+#include <algorithm>
 #include <sbash64/budget/calculate.hpp>
 
 namespace sbash64 {
 namespace budget {
+static auto operator==(const Category &a, const Category &b) -> bool {
+  return a.name == b.name;
+}
+
 namespace calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, difference(Income{0_cents}, Expenses{}));
@@ -38,6 +43,17 @@ void categoryTotalHavingOneExpense(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents,
               total(Category{"miscellaneous"},
                     Expenses{{Expense{1_cents, Category{"miscellaneous"}}}}));
+}
+
+static void assertEqual(testcpplite::TestResult &result,
+                        const Categories &expected, const Categories &actual) {
+  assertEqual(result, expected.each.size(), actual.each.size());
+  assertTrue(result, std::equal(expected.each.begin(), expected.each.end(),
+                                actual.each.begin()));
+}
+
+void categoriesFromNoExpenses(testcpplite::TestResult &result) {
+  assertEqual(result, Categories{}, categories(Expenses{}));
 }
 } // namespace calculate
 } // namespace budget
