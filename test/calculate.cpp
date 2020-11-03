@@ -33,6 +33,12 @@ void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &result) {
               total(Category{"miscellaneous"},
                     Expenses{{Expense{1_cents, Category{"groceries"}}}}));
 }
+
+void categoryTotalHavingOneExpense(testcpplite::TestResult &result) {
+  assertEqual(result, 1_cents,
+              total(Category{"miscellaneous"},
+                    Expenses{{Expense{1_cents, Category{"miscellaneous"}}}}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

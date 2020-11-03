@@ -27,7 +27,9 @@ int main() {
        {calculate::categoryTotalHavingNoExpenses,
         "calculate category total having no expenses"},
        {calculate::categoryTotalHavingOneUnrelatedExpense,
-        "calculate category total having one unrelated expense"}},
+        "calculate category total having one unrelated expense"},
+       {calculate::categoryTotalHavingOneExpense,
+        "calculate category total having one expense"}},
       std::cout);
 }
 } // namespace budget
