@@ -17,7 +17,9 @@ int main() {
        {parse::threeDecimalPlaces, "parse three decimal places"},
        {parse::twelveOneThousandths, "parse twelve one thousandths"},
        {calculate::differenceHavingNoIncomeNorExpenses,
-        "calculate difference having no income nor expenses"}},
+        "calculate difference having no income nor expenses"},
+       {calculate::differenceHavingIncomeButNoExpenses,
+        "calculate difference having income but no expenses"}},
       std::cout);
 }
 } // namespace budget

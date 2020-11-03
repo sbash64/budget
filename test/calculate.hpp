@@ -7,6 +7,7 @@ namespace sbash64 {
 namespace budget {
 namespace calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &);
+void differenceHavingIncomeButNoExpenses(testcpplite::TestResult &);
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
