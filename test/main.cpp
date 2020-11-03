@@ -21,7 +21,9 @@ int main() {
        {calculate::differenceHavingIncomeButNoExpenses,
         "calculate difference having income but no expenses"},
        {calculate::differenceHavingOneExpense,
-        "calculate difference having one expense"}},
+        "calculate difference having one expense"},
+       {calculate::differenceHavingTwoExpenses,
+        "calculate difference having two expenses"}},
       std::cout);
 }
 } // namespace budget

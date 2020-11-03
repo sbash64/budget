@@ -17,6 +17,12 @@ void differenceHavingOneExpense(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents,
               difference(Income{3_cents}, Expenses{{Expense{2_cents}}}));
 }
+
+void differenceHavingTwoExpenses(testcpplite::TestResult &result) {
+  assertEqual(result, 6_cents,
+              difference(Income{11_cents},
+                         Expenses{{Expense{2_cents}, Expense{3_cents}}}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64

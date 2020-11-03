@@ -9,6 +9,7 @@ namespace calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &);
 void differenceHavingIncomeButNoExpenses(testcpplite::TestResult &);
 void differenceHavingOneExpense(testcpplite::TestResult &);
+void differenceHavingTwoExpenses(testcpplite::TestResult &);
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
