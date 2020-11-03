@@ -12,16 +12,17 @@ struct Income {
   USD usd;
 };
 
+struct Category {
+  std::string name;
+};
+
 struct Expense {
-  USD usd;
+  USD usd{};
+  Category category;
 };
 
 struct Expenses {
   std::vector<Expense> all;
-};
-
-struct Category {
-  std::string name;
 };
 
 auto difference(Income, const Expenses &) -> USD;

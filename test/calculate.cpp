@@ -27,6 +27,12 @@ void differenceHavingTwoExpenses(testcpplite::TestResult &result) {
 void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, total(Category{"miscellaneous"}, Expenses{}));
 }
+
+void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &result) {
+  assertEqual(result, 0_cents,
+              total(Category{"miscellaneous"},
+                    Expenses{{Expense{1_cents, Category{"groceries"}}}}));
+}
 } // namespace calculate
 } // namespace budget
 } // namespace sbash64
