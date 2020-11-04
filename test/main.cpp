@@ -47,7 +47,9 @@ int main() {
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
-       {print::formatTenCents, "format ten cents"}},
+       {print::formatTenCents, "format ten cents"},
+       {print::prettyBudgetHavingMultipleExpenses2,
+        "print pretty budget having multiple expenses 2"}},
       std::cout);
 }
 } // namespace sbash64::budget

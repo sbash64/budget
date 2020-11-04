@@ -13,6 +13,14 @@ assertPrettyWithBoundedNewlinesYields(testcpplite::TestResult &result,
   assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
 }
 
+static void assertPrettyWithBoundedNewlinesYields(
+    testcpplite::TestResult &result, Income income, const ExpenseTrie &expenses,
+    std::string_view expected) {
+  std::stringstream stream;
+  pretty(stream, income, expenses);
+  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+}
+
 static void assertFormatYields(testcpplite::TestResult &result, USD usd,
                                std::string_view expected) {
   assertEqual(result, expected.data(), format(usd));
@@ -68,6 +76,49 @@ Expenses: $247.90
     Groceries: $75.10
     Rent: $62.41
 Difference: $2.10
+)");
+}
+
+void prettyBudgetHavingMultipleExpenses2(testcpplite::TestResult &result) {
+  assertPrettyWithBoundedNewlinesYields(
+      result, Income{10000_cents},
+      ExpenseTrie{
+          {{Category{"Food"},
+            ExpenseTrie{{{Category{"Dining Out"}, 200_cents},
+                         {Category{"Groceries"}, 300_cents}}}},
+           {Category{"Phone"}, ExpenseTrie{{{Category{"Verizon"}, 400_cents},
+                                            {Category{"Light"}, 500_cents}}}},
+           {Category{"Health"}, ExpenseTrie{{{Category{"Gym"}, 600_cents},
+                                             {Category{"Other"}, 700_cents}}}},
+           {Category{"Gifts"},
+            ExpenseTrie{{{Category{"Christmas"}, 800_cents},
+                         {Category{"Birthdays"}, 900_cents},
+                         {Category{"Anniversary"}, 1000_cents}}}},
+           {Category{"Entertainment"}, 1100_cents},
+           {Category{"Car Loans"},
+            ExpenseTrie{{{Category{"Honda"}, 1200_cents},
+                         {Category{"Ford"}, 1300_cents}}}}}},
+      R"(
+Income: $100.00
+Expenses: $90.00
+    Car Loans: $25.00
+        Ford: $13.00
+        Honda: $12.00
+    Entertainment: $11.00
+    Food: $5.00
+        Dining Out: $2.00
+        Groceries: $3.00
+    Gifts: $27.00
+        Anniversary: $10.00
+        Birthdays: $9.00
+        Christmas: $8.00
+    Health: $13.00
+        Gym: $6.00
+        Other: $7.00
+    Phone: $9.00
+        Light: $5.00
+        Verizon: $4.00
+Difference: $10.00
 )");
 }
 

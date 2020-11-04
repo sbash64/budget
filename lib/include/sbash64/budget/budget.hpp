@@ -18,6 +18,10 @@ struct Category {
   std::string name;
 };
 
+inline auto operator<(const Category &a, const Category &b) -> bool {
+  return a.name < b.name;
+}
+
 struct Expense {
   USD usd{};
   Category category;
