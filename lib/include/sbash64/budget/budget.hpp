@@ -2,7 +2,9 @@
 #define SBASH64_BUDGET_BUDGET_HPP_
 
 #include <cstdint>
+#include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace sbash64::budget {
@@ -37,6 +39,11 @@ struct Expense {
 
 struct Expenses {
   std::vector<Expense> all;
+};
+
+struct ExpenseTree {
+  std::map<Category, std::variant<ExpenseTree, USD>>
+      categorizedExpenseTreesOrCosts;
 };
 } // namespace sbash64::budget
 
