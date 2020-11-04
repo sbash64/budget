@@ -8,12 +8,12 @@
 #include <variant>
 
 namespace sbash64::budget::print {
-struct ExpenseTrie {
-  std::map<Category, std::variant<ExpenseTrie, USD>> trie;
+struct ExpenseTree {
+  std::map<Category, std::variant<ExpenseTree, USD>> categorizedExpensesOrCost;
 };
 
 void pretty(std::ostream &, Income, const Expenses &);
-void pretty(std::ostream &, Income, const ExpenseTrie &);
+void pretty(std::ostream &, Income, const ExpenseTree &);
 auto format(USD) -> std::string;
 } // namespace sbash64::budget::print
 

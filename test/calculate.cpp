@@ -4,10 +4,6 @@
 #include <sbash64/budget/calculate.hpp>
 
 namespace sbash64::budget {
-static auto operator==(const Category &a, const Category &b) -> bool {
-  return a.name == b.name;
-}
-
 namespace calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, difference(Income{0_cents}, Expenses{}));

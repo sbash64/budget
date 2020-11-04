@@ -10,6 +10,10 @@ struct USD {
   std::int_least64_t cents;
 };
 
+inline auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
+
+inline auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
+
 struct Income {
   USD usd;
 };
@@ -20,6 +24,10 @@ struct Category {
 
 inline auto operator<(const Category &a, const Category &b) -> bool {
   return a.name < b.name;
+}
+
+inline auto operator==(const Category &a, const Category &b) -> bool {
+  return a.name == b.name;
 }
 
 struct Expense {

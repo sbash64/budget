@@ -3,13 +3,6 @@
 #include <set>
 
 namespace sbash64::budget {
-constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
-
-constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
-
-static auto operator==(const Category &a, const Category &b) -> bool {
-  return a.name == b.name;
-}
 namespace calculate {
 static auto total_(const Expenses &expenses) -> USD {
   return std::accumulate(
