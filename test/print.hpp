@@ -12,7 +12,7 @@ void formatTenCents(testcpplite::TestResult &);
 void prettyBudgetHavingNoExpenses(testcpplite::TestResult &);
 void prettyBudgetHavingOneExpense(testcpplite::TestResult &);
 void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &);
-void prettyBudgetHavingMultipleExpenses2(testcpplite::TestResult &);
+void prettyBudgetHavingMultipleExpenseTrees(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif

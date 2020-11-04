@@ -44,12 +44,12 @@ int main() {
         "print pretty budget having one expense"},
        {print::prettyBudgetHavingMultipleExpenses,
         "print pretty budget having multiple expenses"},
+       {print::prettyBudgetHavingMultipleExpenseTrees,
+        "print pretty budget having multiple expenses trees"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
-       {print::formatTenCents, "format ten cents"},
-       {print::prettyBudgetHavingMultipleExpenses2,
-        "print pretty budget having multiple expenses 2"}},
+       {print::formatTenCents, "format ten cents"}},
       std::cout);
 }
 } // namespace sbash64::budget

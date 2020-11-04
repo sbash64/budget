@@ -79,7 +79,7 @@ Difference: $2.10
 )");
 }
 
-void prettyBudgetHavingMultipleExpenses2(testcpplite::TestResult &result) {
+void prettyBudgetHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{10000_cents},
       ExpenseTree{
