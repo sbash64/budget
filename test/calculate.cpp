@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <sbash64/budget/calculate.hpp>
 
-namespace sbash64::budget {
-namespace calculate {
+namespace sbash64::budget::calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, difference(Income{0_cents}, Expenses{}));
 }
@@ -61,5 +60,4 @@ void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &result) {
               categories(Expenses{{Expense{1_cents, Category{"groceries"}},
                                    Expense{2_cents, Category{"groceries"}}}}));
 }
-} // namespace calculate
-} // namespace sbash64::budget
+} // namespace sbash64::budget::calculate

@@ -9,7 +9,8 @@
 
 namespace sbash64::budget::print {
 struct ExpenseTree {
-  std::map<Category, std::variant<ExpenseTree, USD>> categorizedExpensesOrCost;
+  std::map<Category, std::variant<ExpenseTree, USD>>
+      categorizedExpenseTreesOrCosts;
 };
 
 void pretty(std::ostream &, Income, const Expenses &);

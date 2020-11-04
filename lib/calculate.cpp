@@ -2,8 +2,7 @@
 #include <numeric>
 #include <set>
 
-namespace sbash64::budget {
-namespace calculate {
+namespace sbash64::budget::calculate {
 static auto total_(const Expenses &expenses) -> USD {
   return std::accumulate(
       expenses.all.begin(), expenses.all.end(), USD{0},
@@ -33,5 +32,4 @@ auto categories(const Expenses &expenses) -> Categories {
                 });
   return Categories{{uniqueCategories.begin(), uniqueCategories.end()}};
 }
-} // namespace calculate
-} // namespace sbash64::budget
+} // namespace sbash64::budget::calculate
