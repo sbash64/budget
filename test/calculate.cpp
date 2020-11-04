@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <sbash64/budget/calculate.hpp>
 
-namespace sbash64 {
-namespace budget {
+namespace sbash64::budget {
 static auto operator==(const Category &a, const Category &b) -> bool {
   return a.name == b.name;
 }
@@ -67,5 +66,4 @@ void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &result) {
                                    Expense{2_cents, Category{"groceries"}}}}));
 }
 } // namespace calculate
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget

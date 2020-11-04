@@ -3,9 +3,7 @@
 #include <sbash64/budget/print.hpp>
 #include <sstream>
 
-namespace sbash64 {
-namespace budget {
-namespace print {
+namespace sbash64::budget::print {
 static void
 assertPrettyWithBoundedNewlinesYields(testcpplite::TestResult &result,
                                       Income income, const Expenses &expenses,
@@ -88,6 +86,4 @@ void formatOneCent(testcpplite::TestResult &result) {
 void formatTenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, 10_cents, "$0.10");
 }
-} // namespace print
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::print

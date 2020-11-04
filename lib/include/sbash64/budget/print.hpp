@@ -5,13 +5,9 @@
 #include <ostream>
 #include <string>
 
-namespace sbash64 {
-namespace budget {
-namespace print {
+namespace sbash64::budget::print {
 void pretty(std::ostream &, Income, const Expenses &);
 auto format(USD) -> std::string;
-} // namespace print
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::print
 
 #endif

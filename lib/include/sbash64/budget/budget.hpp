@@ -5,8 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace sbash64 {
-namespace budget {
+namespace sbash64::budget {
 struct USD {
   std::int_least64_t cents;
 };
@@ -27,7 +26,6 @@ struct Expense {
 struct Expenses {
   std::vector<Expense> all;
 };
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget
 
 #endif

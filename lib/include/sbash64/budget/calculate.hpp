@@ -4,9 +4,7 @@
 #include "budget.hpp"
 #include <vector>
 
-namespace sbash64 {
-namespace budget {
-namespace calculate {
+namespace sbash64::budget::calculate {
 auto difference(Income, const Expenses &) -> USD;
 
 auto total(const Category &, const Expenses &) -> USD;
@@ -18,8 +16,6 @@ struct Categories {
 };
 
 auto categories(const Expenses &) -> Categories;
-} // namespace calculate
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::calculate
 
 #endif

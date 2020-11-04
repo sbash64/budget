@@ -2,8 +2,7 @@
 #include <numeric>
 #include <set>
 
-namespace sbash64 {
-namespace budget {
+namespace sbash64::budget {
 static auto operator<(const Category &a, const Category &b) -> bool {
   return a.name < b.name;
 }
@@ -46,5 +45,4 @@ auto categories(const Expenses &expenses) -> Categories {
   return Categories{{uniqueCategories.begin(), uniqueCategories.end()}};
 }
 } // namespace calculate
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget

@@ -2,9 +2,7 @@
 #include "usd.hpp"
 #include <sbash64/budget/parse.hpp>
 
-namespace sbash64 {
-namespace budget {
-namespace parse {
+namespace sbash64::budget::parse {
 static void assertEqual(testcpplite::TestResult &result, USD expected,
                         std::string_view s) {
   assertEqual(result, expected, usd(s));
@@ -45,6 +43,4 @@ void threeDecimalPlaces(testcpplite::TestResult &result) {
 void twelveOneThousandths(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, ".012");
 }
-} // namespace parse
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::parse

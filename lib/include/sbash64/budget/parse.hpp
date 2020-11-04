@@ -4,12 +4,8 @@
 #include "budget.hpp"
 #include <string_view>
 
-namespace sbash64 {
-namespace budget {
-namespace parse {
+namespace sbash64::budget::parse {
 auto usd(std::string_view) -> USD;
-} // namespace parse
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::parse
 
 #endif

@@ -3,9 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64 {
-namespace budget {
-namespace parse {
+namespace sbash64::budget::parse {
 void zero(testcpplite::TestResult &);
 void one(testcpplite::TestResult &);
 void twoDecimalPlaces(testcpplite::TestResult &);
@@ -15,8 +13,6 @@ void oneTenth(testcpplite::TestResult &);
 void withoutLeadingZero(testcpplite::TestResult &);
 void threeDecimalPlaces(testcpplite::TestResult &);
 void twelveOneThousandths(testcpplite::TestResult &);
-} // namespace parse
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::parse
 
 #endif

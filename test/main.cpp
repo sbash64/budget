@@ -4,8 +4,7 @@
 #include <iostream>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64 {
-namespace budget {
+namespace sbash64::budget {
 int main() {
   return testcpplite::test(
       {{parse::zero, "parse zero"},
@@ -51,7 +50,6 @@ int main() {
        {print::formatTenCents, "format ten cents"}},
       std::cout);
 }
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget
 
 int main() { return sbash64::budget::main(); }

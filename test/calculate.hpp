@@ -3,9 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64 {
-namespace budget {
-namespace calculate {
+namespace sbash64::budget::calculate {
 void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &);
 void differenceHavingIncomeButNoExpenses(testcpplite::TestResult &);
 void differenceHavingOneExpense(testcpplite::TestResult &);
@@ -16,8 +14,6 @@ void categoryTotalHavingOneExpense(testcpplite::TestResult &);
 void categoriesFromNoExpenses(testcpplite::TestResult &);
 void categoriesFromOneExpense(testcpplite::TestResult &);
 void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &);
-} // namespace calculate
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::calculate
 
 #endif

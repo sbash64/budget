@@ -2,9 +2,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace sbash64 {
-namespace budget {
-namespace parse {
+namespace sbash64::budget::parse {
 auto usd(std::string_view s) -> USD {
   USD usd{};
   std::istringstream stream{s.data()};
@@ -23,6 +21,4 @@ auto usd(std::string_view s) -> USD {
   }
   return usd;
 }
-} // namespace parse
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::parse

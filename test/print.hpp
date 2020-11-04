@@ -3,9 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64 {
-namespace budget {
-namespace print {
+namespace sbash64::budget::print {
 void prettyBudgetHavingNoIncomeNorExpenses(testcpplite::TestResult &);
 void formatZeroDollars(testcpplite::TestResult &);
 void formatOneDollar(testcpplite::TestResult &);
@@ -14,8 +12,6 @@ void formatTenCents(testcpplite::TestResult &);
 void prettyBudgetHavingNoExpenses(testcpplite::TestResult &);
 void prettyBudgetHavingOneExpense(testcpplite::TestResult &);
 void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &);
-} // namespace print
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::print
 
 #endif

@@ -3,9 +3,7 @@
 #include <cstdio>
 #include <string>
 
-namespace sbash64 {
-namespace budget {
-namespace print {
+namespace sbash64::budget::print {
 static auto format_(USD usd) -> std::string {
   char cents[3];
   std::snprintf(cents, sizeof cents, "%.2lld", usd.cents % 100);
@@ -23,6 +21,4 @@ void pretty(std::ostream &stream, Income income, const Expenses &expenses) {
   }
   stream << "Difference: " << format_(calculate::difference(income, expenses));
 }
-} // namespace print
-} // namespace budget
-} // namespace sbash64
+} // namespace sbash64::budget::print
