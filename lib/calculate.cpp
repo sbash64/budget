@@ -48,12 +48,16 @@ static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
 }
 
 auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
-  ExpenseTreeWithTotals expenseTreeWithTotals;
-  recursivePopulate(
-      expenseTreeWithTotals,
-      std::get<ExpenseTree>(
-          expenseTree.categorizedExpenseTreesOrCosts.at(category)));
-  return expenseTreeWithTotals.totalUsd;
+  if (std::holds_alternative<ExpenseTree>(
+          expenseTree.categorizedExpenseTreesOrCosts.at(category))) {
+    ExpenseTreeWithTotals expenseTreeWithTotals;
+    recursivePopulate(
+        expenseTreeWithTotals,
+        std::get<ExpenseTree>(
+            expenseTree.categorizedExpenseTreesOrCosts.at(category)));
+    return expenseTreeWithTotals.totalUsd;
+  }
+  return std::get<USD>(expenseTree.categorizedExpenseTreesOrCosts.at(category));
 }
 
 auto categories(const Expenses &expenses) -> Categories {
