@@ -30,6 +30,8 @@ int main() {
         "calculate category total having one unrelated expense"},
        {calculate::categoryTotalHavingOneExpense,
         "calculate category total having one expense"},
+       {calculate::categoryTotalHavingMultipleExpenseTrees,
+        "calculate category total having multiple expense trees"},
        {calculate::categoriesFromNoExpenses,
         "calculate categories from no expenses"},
        {calculate::categoriesFromOneExpense,

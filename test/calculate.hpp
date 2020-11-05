@@ -14,6 +14,7 @@ void categoryTotalHavingOneExpense(testcpplite::TestResult &);
 void categoriesFromNoExpenses(testcpplite::TestResult &);
 void categoriesFromOneExpense(testcpplite::TestResult &);
 void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &);
+void categoryTotalHavingMultipleExpenseTrees(testcpplite::TestResult &);
 } // namespace sbash64::budget::calculate
 
 #endif

@@ -24,6 +24,36 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
                          });
 }
 
+struct ExpenseTreeWithTotals {
+  std::map<Category, ExpenseTreeWithTotals> categorizedExpenseTreesWithTotals;
+  USD totalUsd{};
+};
+
+static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
+                              const ExpenseTree &expenseTree) {
+  USD totalUsd{0};
+  for (const auto &[category, expenseTreeOrCost] :
+       expenseTree.categorizedExpenseTreesOrCosts) {
+    ExpenseTreeWithTotals nextExpenseTreeWithTotals;
+    if (std::holds_alternative<ExpenseTree>(expenseTreeOrCost))
+      recursivePopulate(nextExpenseTreeWithTotals,
+                        std::get<ExpenseTree>(expenseTreeOrCost));
+    else
+      nextExpenseTreeWithTotals.totalUsd = std::get<USD>(expenseTreeOrCost);
+    totalUsd = totalUsd + nextExpenseTreeWithTotals.totalUsd;
+    expenseTreeWithTotals.categorizedExpenseTreesWithTotals[category] =
+        nextExpenseTreeWithTotals;
+  }
+  expenseTreeWithTotals.totalUsd = totalUsd;
+}
+
+auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
+  ExpenseTreeWithTotals expenseTreeWithTotals;
+  recursivePopulate(expenseTreeWithTotals, expenseTree);
+  return expenseTreeWithTotals.categorizedExpenseTreesWithTotals.at(category)
+      .totalUsd;
+}
+
 auto categories(const Expenses &expenses) -> Categories {
   std::set<Category> uniqueCategories;
   std::for_each(expenses.all.begin(), expenses.all.end(),

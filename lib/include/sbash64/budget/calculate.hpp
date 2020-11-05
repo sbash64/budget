@@ -9,6 +9,8 @@ auto difference(Income, const Expenses &) -> USD;
 
 auto total(const Category &, const Expenses &) -> USD;
 
+auto total(const ExpenseTree &, const Category &) -> USD;
+
 auto total(const Expenses &) -> USD;
 
 struct Categories {
