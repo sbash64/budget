@@ -35,6 +35,10 @@ static auto total_(const ExpenseTree &expenseTree) -> USD {
   return totalUsd;
 }
 
+auto difference(Income income, const ExpenseTree &expenseTree) -> USD {
+  return income.usd - total_(expenseTree);
+}
+
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
     -> USD {
   return std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)

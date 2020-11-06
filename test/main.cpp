@@ -5,7 +5,7 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
-int main() {
+static auto runAllTests() -> int {
   return testcpplite::test(
       {{parse::zero, "parse zero"},
        {parse::one, "parse one"},
@@ -24,6 +24,8 @@ int main() {
         "calculate difference having one expense"},
        {calculate::differenceHavingTwoExpenses,
         "calculate difference having two expenses"},
+       {calculate::differenceHavingMultipleExpenses,
+        "calculate difference having having expenses"},
        {calculate::categoryTotalHavingNoExpenses,
         "calculate category total having no expenses"},
        {calculate::categoryTotalHavingOneUnrelatedExpense,
@@ -68,4 +70,4 @@ int main() {
 }
 } // namespace sbash64::budget
 
-int main() { return sbash64::budget::main(); }
+int main() { return sbash64::budget::runAllTests(); }
