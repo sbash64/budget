@@ -36,6 +36,8 @@ int main() {
         "calculate category total having multiple expense trees 2"},
        {calculate::categoryTotalHavingMultipleExpenseTrees3,
         "calculate category total having multiple expense trees 3"},
+       {calculate::categoryTotalHavingMultipleExpenseTrees4,
+        "calculate category total having multiple expense trees 4"},
        {calculate::categoriesFromNoExpenses,
         "calculate categories from no expenses"},
        {calculate::categoriesFromOneExpense,

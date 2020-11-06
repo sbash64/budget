@@ -48,6 +48,8 @@ static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
 }
 
 auto total_(const ExpenseTree &expenseTree, const Category &category) -> USD {
+  if (expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0)
+    return USD{0};
   if (std::holds_alternative<ExpenseTree>(
           expenseTree.categorizedExpenseTreesOrCosts.at(category))) {
     ExpenseTreeWithTotals expenseTreeWithTotals;
@@ -64,19 +66,20 @@ auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
   return total_(expenseTree, category);
 }
 
-auto total_(const ExpenseTree &expenseTree, const RecursiveCategory &category)
-    -> USD {
-  return category.maybeSubcategory.has_value()
-             ? total_(
-                   std::get<ExpenseTree>(
-                       expenseTree.categorizedExpenseTreesOrCosts.at(category)),
-                   category.maybeSubcategory.value())
-             : total_(expenseTree, static_cast<const Category &>(category));
+auto total_(const ExpenseTree &expenseTree,
+            const RecursiveCategory &recursiveCategory) -> USD {
+  return recursiveCategory.maybeSubcategory.has_value()
+             ? total_(std::get<ExpenseTree>(
+                          expenseTree.categorizedExpenseTreesOrCosts.at(
+                              recursiveCategory)),
+                      recursiveCategory.maybeSubcategory.value())
+             : total_(expenseTree,
+                      static_cast<const Category &>(recursiveCategory));
 }
 
-auto total(const ExpenseTree &expenseTree, const RecursiveCategory &category)
-    -> USD {
-  return total_(expenseTree, category);
+auto total(const ExpenseTree &expenseTree,
+           const RecursiveCategory &recursiveCategory) -> USD {
+  return total_(expenseTree, recursiveCategory);
 }
 
 auto categories(const Expenses &expenses) -> Categories {

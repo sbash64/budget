@@ -109,6 +109,30 @@ void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
                               Subcategory{RecursiveCategory{"Verizon"}}}));
 }
 
+void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
+  assertEqual(
+      result, 0_cents,
+      total(ExpenseTree{{{Category{"Food"},
+                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
+                                       {Category{"Groceries"}, 300_cents}}}},
+                         {Category{"Phone"},
+                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
+                                       {Category{"Light"}, 500_cents}}}},
+                         {Category{"Health"},
+                          ExpenseTree{{{Category{"Gym"}, 600_cents},
+                                       {Category{"Other"}, 700_cents}}}},
+                         {Category{"Gifts"},
+                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
+                                       {Category{"Birthdays"}, 900_cents},
+                                       {Category{"Anniversary"}, 1000_cents}}}},
+                         {Category{"Entertainment"}, 1100_cents},
+                         {Category{"Car Loans"},
+                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
+                                       {Category{"Ford"}, 1300_cents}}}}}},
+            RecursiveCategory{"Health",
+                              Subcategory{RecursiveCategory{"Vitamins"}}}));
+}
+
 static void assertEqual(testcpplite::TestResult &result,
                         const Categories &expected, const Categories &actual) {
   assertEqual(result, expected.each.size(), actual.each.size());
