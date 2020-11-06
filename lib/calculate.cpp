@@ -47,28 +47,32 @@ static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
   expenseTreeWithTotals.totalUsd = totalUsd;
 }
 
-auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd) -> USD {
-  if (std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)) {
-    ExpenseTreeWithTotals expenseTreeWithTotals;
-    recursivePopulate(expenseTreeWithTotals,
-                      std::get<ExpenseTree>(expenseTreeOrUsd));
-    return expenseTreeWithTotals.totalUsd;
-  }
-  return std::get<USD>(expenseTreeOrUsd);
+static auto total_(const ExpenseTree &expenseTree) -> USD {
+  ExpenseTreeWithTotals expenseTreeWithTotals;
+  recursivePopulate(expenseTreeWithTotals, expenseTree);
+  return expenseTreeWithTotals.totalUsd;
 }
 
-auto total_(const ExpenseTree &expenseTree, const Category &category) -> USD {
-  if (expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0)
-    return USD{0};
-  return total_(expenseTree.categorizedExpenseTreesOrCosts.at(category));
+static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
+    -> USD {
+  return std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)
+             ? total_(std::get<ExpenseTree>(expenseTreeOrUsd))
+             : std::get<USD>(expenseTreeOrUsd);
+}
+
+static auto total_(const ExpenseTree &expenseTree, const Category &category)
+    -> USD {
+  return expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0
+             ? USD{0}
+             : total_(expenseTree.categorizedExpenseTreesOrCosts.at(category));
 }
 
 auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
   return total_(expenseTree, category);
 }
 
-auto total_(const ExpenseTree &expenseTree,
-            const RecursiveCategory &recursiveCategory) -> USD {
+static auto total_(const ExpenseTree &expenseTree,
+                   const RecursiveCategory &recursiveCategory) -> USD {
   return recursiveCategory.maybeSubcategory.has_value() &&
                  expenseTree.categorizedExpenseTreesOrCosts.count(
                      recursiveCategory) != 0
