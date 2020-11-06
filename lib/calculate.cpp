@@ -47,19 +47,20 @@ static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
   expenseTreeWithTotals.totalUsd = totalUsd;
 }
 
+auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd) -> USD {
+  if (std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)) {
+    ExpenseTreeWithTotals expenseTreeWithTotals;
+    recursivePopulate(expenseTreeWithTotals,
+                      std::get<ExpenseTree>(expenseTreeOrUsd));
+    return expenseTreeWithTotals.totalUsd;
+  }
+  return std::get<USD>(expenseTreeOrUsd);
+}
+
 auto total_(const ExpenseTree &expenseTree, const Category &category) -> USD {
   if (expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0)
     return USD{0};
-  if (std::holds_alternative<ExpenseTree>(
-          expenseTree.categorizedExpenseTreesOrCosts.at(category))) {
-    ExpenseTreeWithTotals expenseTreeWithTotals;
-    recursivePopulate(
-        expenseTreeWithTotals,
-        std::get<ExpenseTree>(
-            expenseTree.categorizedExpenseTreesOrCosts.at(category)));
-    return expenseTreeWithTotals.totalUsd;
-  }
-  return std::get<USD>(expenseTree.categorizedExpenseTreesOrCosts.at(category));
+  return total_(expenseTree.categorizedExpenseTreesOrCosts.at(category));
 }
 
 auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
