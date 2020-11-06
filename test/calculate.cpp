@@ -105,7 +105,9 @@ void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
                          {Category{"Car Loans"},
                           ExpenseTree{{{Category{"Honda"}, 1200_cents},
                                        {Category{"Ford"}, 1300_cents}}}}}},
-            {Category{"Phone"}, Category{"Verizon"}}));
+            RecursiveCategory{Category{"Phone"},
+                              rvalue_reference_wrapper<RecursiveCategory>{
+                                  RecursiveCategory{Category{"Verizon"}}}}));
 }
 
 static void assertEqual(testcpplite::TestResult &result,

@@ -45,6 +45,14 @@ struct ExpenseTree {
   std::map<Category, std::variant<ExpenseTree, USD>>
       categorizedExpenseTreesOrCosts;
 };
+
+template <typename T> struct rvalue_reference_wrapper { const T &rvalue; };
+
+struct RecursiveCategory {
+  Category category;
+  std::optional<rvalue_reference_wrapper<RecursiveCategory>>
+      maybeRecursiveCategory{};
+};
 } // namespace sbash64::budget
 
 #endif
