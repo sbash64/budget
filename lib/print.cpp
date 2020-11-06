@@ -22,29 +22,6 @@ void pretty(std::ostream &stream, Income income, const Expenses &expenses) {
   stream << "Difference: " << format_(calculate::difference(income, expenses));
 }
 
-struct ExpenseTreeWithTotals {
-  std::map<Category, ExpenseTreeWithTotals> categorizedExpenseTreesWithTotals;
-  USD totalUsd{};
-};
-
-static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
-                              const ExpenseTree &expenseTree) {
-  USD totalUsd{0};
-  for (const auto &[category, expenseTreeOrCost] :
-       expenseTree.categorizedExpenseTreesOrCosts) {
-    ExpenseTreeWithTotals nextExpenseTreeWithTotals;
-    if (std::holds_alternative<ExpenseTree>(expenseTreeOrCost))
-      recursivePopulate(nextExpenseTreeWithTotals,
-                        std::get<ExpenseTree>(expenseTreeOrCost));
-    else
-      nextExpenseTreeWithTotals.totalUsd = std::get<USD>(expenseTreeOrCost);
-    totalUsd = totalUsd + nextExpenseTreeWithTotals.totalUsd;
-    expenseTreeWithTotals.categorizedExpenseTreesWithTotals[category] =
-        nextExpenseTreeWithTotals;
-  }
-  expenseTreeWithTotals.totalUsd = totalUsd;
-}
-
 static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
                       int &indentation) {
   stream << format_(calculate::total(expenseTree)) << '\n';
@@ -63,8 +40,6 @@ static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
 
 void pretty(std::ostream &stream, Income income,
             const ExpenseTree &expenseTree) {
-  ExpenseTreeWithTotals expenseTreeWithTotals;
-  recursivePopulate(expenseTreeWithTotals, expenseTree);
   stream << "Income: " << format_(income.usd) << "\n";
   stream << "Expenses: ";
   int indentation{};
