@@ -64,19 +64,19 @@ auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
   return total_(expenseTree, category);
 }
 
-auto total_(const ExpenseTree &expenseTree, const RecursiveCategory &categories)
+auto total_(const ExpenseTree &expenseTree, const RecursiveCategory &category)
     -> USD {
-  return categories.maybeRecursiveCategory.has_value()
-             ? total_(std::get<ExpenseTree>(
-                          expenseTree.categorizedExpenseTreesOrCosts.at(
-                              categories.category)),
-                      categories.maybeRecursiveCategory.value())
-             : total_(expenseTree, categories.category);
+  return category.maybeRecursiveCategory.has_value()
+             ? total_(
+                   std::get<ExpenseTree>(
+                       expenseTree.categorizedExpenseTreesOrCosts.at(category)),
+                   category.maybeRecursiveCategory.value())
+             : total_(expenseTree, static_cast<const Category &>(category));
 }
 
-auto total(const ExpenseTree &expenseTree, const RecursiveCategory &categories)
+auto total(const ExpenseTree &expenseTree, const RecursiveCategory &category)
     -> USD {
-  return total_(expenseTree, categories);
+  return total_(expenseTree, category);
 }
 
 auto categories(const Expenses &expenses) -> Categories {

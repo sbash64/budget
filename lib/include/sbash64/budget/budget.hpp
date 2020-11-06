@@ -52,10 +52,14 @@ template <typename T> struct rvalue_reference_wrapper {
   const T &rvalue;
 };
 
-struct RecursiveCategory {
-  Category category;
+struct RecursiveCategory : Category {
+  RecursiveCategory(std::string name,
+                    std::optional<rvalue_reference_wrapper<RecursiveCategory>>
+                        maybeRecursiveCategory = {})
+      : Category{std::move(name)}, maybeRecursiveCategory{
+                                       std::move(maybeRecursiveCategory)} {}
   std::optional<rvalue_reference_wrapper<RecursiveCategory>>
-      maybeRecursiveCategory{};
+      maybeRecursiveCategory;
 };
 } // namespace sbash64::budget
 
