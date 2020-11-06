@@ -26,13 +26,12 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
 
 static auto total_(const ExpenseTree &expenseTree) -> USD {
   USD totalUsd{0};
-  for (const auto &[category, expenseTreeOrCost] :
-       expenseTree.categorizedExpenseTreesOrCosts) {
-    if (std::holds_alternative<ExpenseTree>(expenseTreeOrCost))
-      totalUsd = totalUsd + total_(std::get<ExpenseTree>(expenseTreeOrCost));
-    else
-      totalUsd = totalUsd + std::get<USD>(expenseTreeOrCost);
-  }
+  for (const auto &[category, expenseTreeOrTotalUsd] :
+       expenseTree.categorizedExpenseTreesOrCosts)
+    totalUsd =
+        totalUsd + (std::holds_alternative<ExpenseTree>(expenseTreeOrTotalUsd)
+                        ? total_(std::get<ExpenseTree>(expenseTreeOrTotalUsd))
+                        : std::get<USD>(expenseTreeOrTotalUsd));
   return totalUsd;
 }
 
