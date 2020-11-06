@@ -70,7 +70,7 @@ auto total_(const ExpenseTree &expenseTree, const RecursiveCategory &categories)
              ? total_(std::get<ExpenseTree>(
                           expenseTree.categorizedExpenseTreesOrCosts.at(
                               categories.category)),
-                      categories.maybeRecursiveCategory.value().rvalue)
+                      categories.maybeRecursiveCategory.value())
              : total_(expenseTree, categories.category);
 }
 

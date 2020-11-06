@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -46,7 +47,10 @@ struct ExpenseTree {
       categorizedExpenseTreesOrCosts;
 };
 
-template <typename T> struct rvalue_reference_wrapper { const T &rvalue; };
+template <typename T> struct rvalue_reference_wrapper {
+  operator T() const { return rvalue; }
+  const T &rvalue;
+};
 
 struct RecursiveCategory {
   Category category;
