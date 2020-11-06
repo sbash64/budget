@@ -45,15 +45,18 @@ static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
   expenseTreeWithTotals.totalUsd = totalUsd;
 }
 
-static void recursive(std::ostream &stream,
-                      const ExpenseTreeWithTotals &expenseTreeWithTotals,
+static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
                       int &indentation) {
-  stream << format_(expenseTreeWithTotals.totalUsd) << '\n';
+  stream << format_(calculate::total(expenseTree)) << '\n';
   indentation += 4;
-  for (const auto &[category, nextExpenseTreeWithTotals] :
-       expenseTreeWithTotals.categorizedExpenseTreesWithTotals) {
+  for (const auto &[category, nextExpenseTreeOrCost] :
+       expenseTree.categorizedExpenseTreesOrCosts) {
     stream << std::string(indentation, ' ') << category.name << ": ";
-    recursive(stream, nextExpenseTreeWithTotals, indentation);
+    if (std::holds_alternative<ExpenseTree>(nextExpenseTreeOrCost))
+      recursive(stream, std::get<ExpenseTree>(nextExpenseTreeOrCost),
+                indentation);
+    else
+      stream << format_(std::get<USD>(nextExpenseTreeOrCost)) << '\n';
   }
   indentation -= 4;
 }
@@ -65,8 +68,8 @@ void pretty(std::ostream &stream, Income income,
   stream << "Income: " << format_(income.usd) << "\n";
   stream << "Expenses: ";
   int indentation{};
-  recursive(stream, expenseTreeWithTotals, indentation);
+  recursive(stream, expenseTree, indentation);
   stream << "Difference: "
-         << format_(income.usd - expenseTreeWithTotals.totalUsd);
+         << format_(income.usd - calculate::total(expenseTree));
 }
 } // namespace sbash64::budget::print
