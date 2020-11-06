@@ -68,7 +68,9 @@ auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
 
 auto total_(const ExpenseTree &expenseTree,
             const RecursiveCategory &recursiveCategory) -> USD {
-  return recursiveCategory.maybeSubcategory.has_value()
+  return recursiveCategory.maybeSubcategory.has_value() &&
+                 expenseTree.categorizedExpenseTreesOrCosts.count(
+                     recursiveCategory) != 0
              ? total_(std::get<ExpenseTree>(
                           expenseTree.categorizedExpenseTreesOrCosts.at(
                               recursiveCategory)),
