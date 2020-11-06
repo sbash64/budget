@@ -52,14 +52,16 @@ template <typename T> struct rvalue_reference_wrapper {
   const T &rvalue;
 };
 
+struct RecursiveCategory;
+
+using Subcategory = rvalue_reference_wrapper<RecursiveCategory>;
+
 struct RecursiveCategory : Category {
   RecursiveCategory(std::string name,
-                    std::optional<rvalue_reference_wrapper<RecursiveCategory>>
-                        maybeRecursiveCategory = {})
-      : Category{std::move(name)}, maybeRecursiveCategory{
-                                       std::move(maybeRecursiveCategory)} {}
-  std::optional<rvalue_reference_wrapper<RecursiveCategory>>
-      maybeRecursiveCategory;
+                    std::optional<Subcategory> maybeSubcategory = {})
+      : Category{std::move(name)}, maybeSubcategory{
+                                       std::move(maybeSubcategory)} {}
+  std::optional<Subcategory> maybeSubcategory;
 };
 } // namespace sbash64::budget
 
