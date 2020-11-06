@@ -26,31 +26,29 @@ auto total(const Category &category, const Expenses &expenses) -> USD {
 
 struct ExpenseTreeWithTotals {
   std::map<Category, ExpenseTreeWithTotals> categorizedExpenseTreesWithTotals;
-  USD totalUsd{};
 };
 
-static void recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
-                              const ExpenseTree &expenseTree) {
+static auto recursivePopulate(ExpenseTreeWithTotals &expenseTreeWithTotals,
+                              const ExpenseTree &expenseTree) -> USD {
   USD totalUsd{0};
   for (const auto &[category, expenseTreeOrCost] :
        expenseTree.categorizedExpenseTreesOrCosts) {
     ExpenseTreeWithTotals nextExpenseTreeWithTotals;
     if (std::holds_alternative<ExpenseTree>(expenseTreeOrCost))
-      recursivePopulate(nextExpenseTreeWithTotals,
-                        std::get<ExpenseTree>(expenseTreeOrCost));
+      totalUsd = totalUsd +
+                 recursivePopulate(nextExpenseTreeWithTotals,
+                                   std::get<ExpenseTree>(expenseTreeOrCost));
     else
-      nextExpenseTreeWithTotals.totalUsd = std::get<USD>(expenseTreeOrCost);
-    totalUsd = totalUsd + nextExpenseTreeWithTotals.totalUsd;
+      totalUsd = totalUsd + std::get<USD>(expenseTreeOrCost);
     expenseTreeWithTotals.categorizedExpenseTreesWithTotals[category] =
         nextExpenseTreeWithTotals;
   }
-  expenseTreeWithTotals.totalUsd = totalUsd;
+  return totalUsd;
 }
 
 static auto total_(const ExpenseTree &expenseTree) -> USD {
   ExpenseTreeWithTotals expenseTreeWithTotals;
-  recursivePopulate(expenseTreeWithTotals, expenseTree);
-  return expenseTreeWithTotals.totalUsd;
+  return recursivePopulate(expenseTreeWithTotals, expenseTree);
 }
 
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
