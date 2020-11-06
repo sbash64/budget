@@ -9,6 +9,8 @@ auto difference(Income, const Expenses &) -> USD;
 
 auto total(const Category &, const Expenses &) -> USD;
 
+auto total(const ExpenseTree &) -> USD;
+
 auto total(const ExpenseTree &, const Category &) -> USD;
 
 auto total(const ExpenseTree &, const RecursiveCategory &) -> USD;

@@ -20,6 +20,7 @@ void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &);
 void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &);
 void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &);
 void categoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &);
+void totalHavingMultipleExpenseTrees(testcpplite::TestResult &);
 } // namespace sbash64::budget::calculate
 
 #endif

@@ -99,6 +99,10 @@ auto total(const ExpenseTree &expenseTree,
   return total_(expenseTree, recursiveCategory);
 }
 
+auto total(const ExpenseTree &expenseTree) -> USD {
+  return total_(expenseTree);
+}
+
 auto categories(const Expenses &expenses) -> Categories {
   std::set<Category> uniqueCategories;
   std::for_each(expenses.all.begin(), expenses.all.end(),
