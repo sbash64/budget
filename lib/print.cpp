@@ -45,6 +45,6 @@ void pretty(std::ostream &stream, Income income,
   int indentation{};
   recursive(stream, expenseTree, indentation);
   stream << "Difference: "
-         << format_(income.usd - calculate::total(expenseTree));
+         << format_(calculate::difference(income, expenseTree));
 }
 } // namespace sbash64::budget::print
