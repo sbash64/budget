@@ -1,4 +1,5 @@
 #include "calculate.hpp"
+#include <algorithm>
 #include <numeric>
 #include <set>
 
