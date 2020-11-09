@@ -63,6 +63,15 @@ struct RecursiveCategory : Category {
                                        std::move(maybeSubcategory)} {}
   std::optional<Subcategory> maybeSubcategory;
 };
+
+struct RecursiveExpense;
+
+using Subexpense = rvalue_reference_wrapper<RecursiveExpense>;
+
+struct RecursiveExpense {
+  Category category;
+  std::variant<USD, Subexpense> subexpenseOrUsd;
+};
 } // namespace sbash64::budget
 
 #endif

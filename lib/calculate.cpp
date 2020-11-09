@@ -40,6 +40,33 @@ auto difference(Income income, const ExpenseTree &expenseTree) -> USD {
   return income.usd - total_(expenseTree);
 }
 
+static auto recursiveCategory(const RecursiveExpense &recursiveExpense)
+    -> RecursiveCategory {
+  return RecursiveCategory{
+      recursiveExpense.category.name,
+      std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
+          ? Subcategory{recursiveCategory(
+                std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))}
+          : std::optional<Subcategory>{}};
+}
+
+static auto usd(const RecursiveExpense &recursiveExpense) -> USD {
+  return std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
+             ? usd(std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))
+             : std::get<USD>(recursiveExpense.subexpenseOrUsd);
+}
+
+static auto total_(const ExpenseTree &expenseTree,
+                   const RecursiveCategory &recursiveCategory) -> USD;
+
+auto difference(Income income, const ExpenseTree &expenseTree,
+                const RecursiveExpense &recursiveExpense) -> USD {
+  return income.usd -
+         (total_(expenseTree) -
+          total_(expenseTree, recursiveCategory(recursiveExpense)) +
+          usd(recursiveExpense));
+}
+
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
     -> USD {
   return std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)

@@ -47,6 +47,33 @@ void differenceHavingMultipleExpenses(testcpplite::TestResult &result) {
                                      {Category{"Ford"}, 1300_cents}}}}}}));
 }
 
+void differenceAfterUpdate(testcpplite::TestResult &result) {
+  assertEqual(
+      result, 800_cents,
+      difference(
+          Income{10000_cents},
+          ExpenseTree{{{Category{"Food"},
+                        ExpenseTree{{{Category{"Dining Out"}, 200_cents},
+                                     {Category{"Groceries"}, 300_cents}}}},
+                       {Category{"Phone"},
+                        ExpenseTree{{{Category{"Verizon"}, 400_cents},
+                                     {Category{"Light"}, 500_cents}}}},
+                       {Category{"Health"},
+                        ExpenseTree{{{Category{"Gym"}, 600_cents},
+                                     {Category{"Other"}, 700_cents}}}},
+                       {Category{"Gifts"},
+                        ExpenseTree{{{Category{"Christmas"}, 800_cents},
+                                     {Category{"Birthdays"}, 900_cents},
+                                     {Category{"Anniversary"}, 1000_cents}}}},
+                       {Category{"Entertainment"}, 1100_cents},
+                       {Category{"Car Loans"},
+                        ExpenseTree{{{Category{"Honda"}, 1200_cents},
+                                     {Category{"Ford"}, 1300_cents}}}}}},
+          RecursiveExpense{Category{"Gifts"},
+                           Subexpense{RecursiveExpense{Category{"Birthdays"},
+                                                       1100_cents}}}));
+}
+
 void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, total(Category{"miscellaneous"}, Expenses{}));
 }

@@ -9,6 +9,7 @@ void differenceHavingIncomeButNoExpenses(testcpplite::TestResult &);
 void differenceHavingOneExpense(testcpplite::TestResult &);
 void differenceHavingTwoExpenses(testcpplite::TestResult &);
 void differenceHavingMultipleExpenses(testcpplite::TestResult &);
+void differenceAfterUpdate(testcpplite::TestResult &);
 void categoryTotalHavingNoExpenses(testcpplite::TestResult &);
 void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &);
 void categoryTotalHavingOneExpense(testcpplite::TestResult &);
