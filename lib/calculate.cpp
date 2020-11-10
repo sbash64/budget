@@ -100,12 +100,12 @@ static auto total_(const ExpenseTree &expenseTree,
                    const RecursiveCategory &recursiveCategory) -> USD {
   if (recursiveCategory.maybeSubcategory.has_value())
     return expenseTree.categorizedExpenseTreesOrCosts.count(
-               recursiveCategory) != 0
+               recursiveCategory.category) != 0
                ? total_(expenseTree.categorizedExpenseTreesOrCosts.at(
-                            recursiveCategory),
+                            recursiveCategory.category),
                         recursiveCategory.maybeSubcategory.value())
                : USD{0};
-  return total_(expenseTree, static_cast<const Category &>(recursiveCategory));
+  return total_(expenseTree, recursiveCategory.category);
 }
 
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd,

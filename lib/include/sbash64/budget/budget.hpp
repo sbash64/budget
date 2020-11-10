@@ -56,12 +56,9 @@ struct RecursiveCategory;
 
 using Subcategory = rvalue_reference_wrapper<RecursiveCategory>;
 
-struct RecursiveCategory : Category {
-  RecursiveCategory(std::string name,
-                    std::optional<Subcategory> maybeSubcategory = {})
-      : Category{std::move(name)}, maybeSubcategory{
-                                       std::move(maybeSubcategory)} {}
-  std::optional<Subcategory> maybeSubcategory;
+struct RecursiveCategory {
+  Category category;
+  std::optional<Subcategory> maybeSubcategory{};
 };
 
 struct RecursiveExpense;
