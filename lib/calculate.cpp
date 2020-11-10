@@ -40,6 +40,12 @@ auto difference(Income income, const ExpenseTree &expenseTree) -> USD {
   return income.usd - total_(expenseTree);
 }
 
+static auto usd(const RecursiveExpense &recursiveExpense) -> USD {
+  return std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
+             ? usd(std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))
+             : std::get<USD>(recursiveExpense.subexpenseOrUsd);
+}
+
 static auto recursiveCategory(const RecursiveExpense &recursiveExpense)
     -> RecursiveCategory {
   return RecursiveCategory{
@@ -50,20 +56,21 @@ static auto recursiveCategory(const RecursiveExpense &recursiveExpense)
           : std::optional<Subcategory>{}};
 }
 
-static auto usd(const RecursiveExpense &recursiveExpense) -> USD {
-  return std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
-             ? usd(std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))
-             : std::get<USD>(recursiveExpense.subexpenseOrUsd);
-}
-
 static auto total_(const ExpenseTree &expenseTree,
-                   const RecursiveCategory &recursiveCategory) -> USD;
+                   const RecursiveExpense &recursiveExpense) -> USD {
+  if (std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd))
+    return total_(
+        std::get<ExpenseTree>(expenseTree.categorizedExpenseTreesOrCosts.at(
+            recursiveExpense.category)),
+        std::get<Subexpense>(recursiveExpense.subexpenseOrUsd));
+  return std::get<USD>(
+      expenseTree.categorizedExpenseTreesOrCosts.at(recursiveExpense.category));
+}
 
 auto difference(Income income, const ExpenseTree &expenseTree,
                 const RecursiveExpense &recursiveExpense) -> USD {
   return income.usd -
-         (total_(expenseTree) -
-          total_(expenseTree, recursiveCategory(recursiveExpense)) +
+         (total_(expenseTree) - total_(expenseTree, recursiveExpense) +
           usd(recursiveExpense));
 }
 
