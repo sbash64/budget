@@ -47,8 +47,13 @@ struct ExpenseTree {
       categorizedExpenseTreesOrCosts;
 };
 
-template <typename T> struct rvalue_reference_wrapper {
+template <typename T> class rvalue_reference_wrapper {
+public:
+  rvalue_reference_wrapper<T>(const T &rvalue) : rvalue{rvalue} {}
+
   operator T() const { return rvalue; }
+
+private:
   const T &rvalue;
 };
 
