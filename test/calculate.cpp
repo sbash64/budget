@@ -156,8 +156,8 @@ void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
                          {Category{"Car Loans"},
                           ExpenseTree{{{Category{"Honda"}, 1200_cents},
                                        {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{"Phone",
-                              Subcategory{RecursiveCategory{"Verizon"}}}));
+            RecursiveCategory{Category{"Phone"}, Subcategory{RecursiveCategory{
+                                                     Category{"Verizon"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
@@ -180,8 +180,8 @@ void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
                          {Category{"Car Loans"},
                           ExpenseTree{{{Category{"Honda"}, 1200_cents},
                                        {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{"Health",
-                              Subcategory{RecursiveCategory{"Vitamins"}}}));
+            RecursiveCategory{Category{"Health"}, Subcategory{RecursiveCategory{
+                                                      Category{"Vitamins"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &result) {
@@ -204,8 +204,9 @@ void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &result) {
                          {Category{"Car Loans"},
                           ExpenseTree{{{Category{"Honda"}, 1200_cents},
                                        {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{"Vacation",
-                              Subcategory{RecursiveCategory{"Car Rental"}}}));
+            RecursiveCategory{
+                Category{"Vacation"},
+                Subcategory{RecursiveCategory{Category{"Car Rental"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &result) {
@@ -229,9 +230,10 @@ void categoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &result) {
                           ExpenseTree{{{Category{"Honda"}, 1200_cents},
                                        {Category{"Ford"}, 1300_cents}}}}}},
             RecursiveCategory{
-                "Food", Subcategory{RecursiveCategory{
-                            "Dining Out",
-                            Subcategory{RecursiveCategory{"Chipotle"}}}}}));
+                Category{"Food"},
+                Subcategory{RecursiveCategory{
+                    Category{"Dining Out"},
+                    Subcategory{RecursiveCategory{Category{"Chipotle"}}}}}}));
 }
 
 void totalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
