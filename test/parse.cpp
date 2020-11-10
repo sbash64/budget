@@ -8,39 +8,39 @@ static void assertEqual(testcpplite::TestResult &result, USD expected,
   assertEqual(result, expected, usd(s));
 }
 
-void zero(testcpplite::TestResult &result) {
+void zeroAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, "0");
 }
 
-void one(testcpplite::TestResult &result) {
+void oneAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 100_cents, "1");
 }
 
-void twoDecimalPlaces(testcpplite::TestResult &result) {
+void twoDecimalPlacesAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 123_cents, "1.23");
 }
 
-void oneDecimalPlace(testcpplite::TestResult &result) {
+void oneDecimalPlaceAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 120_cents, "1.2");
 }
 
-void oneOneHundredth(testcpplite::TestResult &result) {
+void oneOneHundredthAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, "0.01");
 }
 
-void oneTenth(testcpplite::TestResult &result) {
+void oneTenthAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 10_cents, "0.10");
 }
 
-void withoutLeadingZero(testcpplite::TestResult &result) {
+void withoutLeadingZeroAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 12_cents, ".12");
 }
 
-void threeDecimalPlaces(testcpplite::TestResult &result) {
+void threeDecimalPlacesAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 12_cents, ".126");
 }
 
-void twelveOneThousandths(testcpplite::TestResult &result) {
+void twelveOneThousandthsAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, ".012");
 }
 } // namespace sbash64::budget::parse

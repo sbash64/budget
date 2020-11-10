@@ -4,15 +4,15 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::parse {
-void zero(testcpplite::TestResult &);
-void one(testcpplite::TestResult &);
-void twoDecimalPlaces(testcpplite::TestResult &);
-void oneDecimalPlace(testcpplite::TestResult &);
-void oneOneHundredth(testcpplite::TestResult &);
-void oneTenth(testcpplite::TestResult &);
-void withoutLeadingZero(testcpplite::TestResult &);
-void threeDecimalPlaces(testcpplite::TestResult &);
-void twelveOneThousandths(testcpplite::TestResult &);
+void zeroAsUsd(testcpplite::TestResult &);
+void oneAsUsd(testcpplite::TestResult &);
+void twoDecimalPlacesAsUsd(testcpplite::TestResult &);
+void oneDecimalPlaceAsUsd(testcpplite::TestResult &);
+void oneOneHundredthAsUsd(testcpplite::TestResult &);
+void oneTenthAsUsd(testcpplite::TestResult &);
+void withoutLeadingZeroAsUsd(testcpplite::TestResult &);
+void threeDecimalPlacesAsUsd(testcpplite::TestResult &);
+void twelveOneThousandthsAsUsd(testcpplite::TestResult &);
 } // namespace sbash64::budget::parse
 
 #endif
