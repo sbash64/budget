@@ -81,21 +81,23 @@ void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
               total(ExpenseCategory{"miscellaneous"}, Expenses{}));
 }
 
-void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingOneUnrelatedExpense(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
       total(ExpenseCategory{"miscellaneous"},
             Expenses{{Expense{1_cents, ExpenseCategory{"groceries"}}}}));
 }
 
-void categoryTotalHavingOneExpense(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &result) {
   assertEqual(
       result, 1_cents,
       total(ExpenseCategory{"miscellaneous"},
             Expenses{{Expense{1_cents, ExpenseCategory{"miscellaneous"}}}}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 2700_cents,
       total(
@@ -120,7 +122,8 @@ void categoryTotalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
           ExpenseCategory{"Gifts"}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees2(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees2(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 1100_cents,
       total(
@@ -145,7 +148,8 @@ void categoryTotalHavingMultipleExpenseTrees2(testcpplite::TestResult &result) {
           ExpenseCategory{"Entertainment"}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees3(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 400_cents,
       total(
@@ -172,7 +176,8 @@ void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
               Subcategory{RecursiveCategory{ExpenseCategory{"Verizon"}}}}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees4(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
       total(
@@ -199,7 +204,8 @@ void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
               Subcategory{RecursiveCategory{ExpenseCategory{"Vitamins"}}}}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees5(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
       total(
@@ -226,7 +232,8 @@ void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &result) {
               Subcategory{RecursiveCategory{ExpenseCategory{"Car Rental"}}}}));
 }
 
-void categoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingMultipleExpenseTrees6(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
       total(
