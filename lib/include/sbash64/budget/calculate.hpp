@@ -5,11 +5,11 @@
 #include <vector>
 
 namespace sbash64::budget::calculate {
-auto difference(Income, const Expenses &) -> USD;
+auto surplus(Income, const Expenses &) -> USD;
 
-auto difference(Income, const ExpenseTree &) -> USD;
+auto surplus(Income, const ExpenseTree &) -> USD;
 
-auto difference(Income, const ExpenseTree &, const RecursiveExpense &) -> USD;
+auto surplus(Income, const ExpenseTree &, const RecursiveExpense &) -> USD;
 
 auto total(const Category &, const Expenses &) -> USD;
 

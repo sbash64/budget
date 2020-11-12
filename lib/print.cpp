@@ -19,7 +19,7 @@ void pretty(std::ostream &stream, Income income, const Expenses &expenses) {
     stream << "    " << category.name << ": "
            << format_(calculate::total(category, expenses)) << "\n";
   }
-  stream << "Difference: " << format_(calculate::difference(income, expenses));
+  stream << "Difference: " << format_(calculate::surplus(income, expenses));
 }
 
 static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
@@ -44,7 +44,6 @@ void pretty(std::ostream &stream, Income income,
   stream << "Expenses: ";
   int indentation{};
   recursive(stream, expenseTree, indentation);
-  stream << "Difference: "
-         << format_(calculate::difference(income, expenseTree));
+  stream << "Difference: " << format_(calculate::surplus(income, expenseTree));
 }
 } // namespace sbash64::budget::print

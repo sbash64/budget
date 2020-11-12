@@ -12,7 +12,7 @@ static auto total_(const Expenses &expenses) -> USD {
 
 auto total(const Expenses &expenses) -> USD { return total_(expenses); }
 
-auto difference(Income income, const Expenses &expenses) -> USD {
+auto surplus(Income income, const Expenses &expenses) -> USD {
   return income.usd - total_(expenses);
 }
 
@@ -36,7 +36,7 @@ static auto total_(const ExpenseTree &expenseTree) -> USD {
   return totalUsd;
 }
 
-auto difference(Income income, const ExpenseTree &expenseTree) -> USD {
+auto surplus(Income income, const ExpenseTree &expenseTree) -> USD {
   return income.usd - total_(expenseTree);
 }
 
@@ -68,8 +68,8 @@ static auto currentCost(const ExpenseTree &expenseTree,
                    recursiveExpense.category));
 }
 
-auto difference(Income income, const ExpenseTree &expenseTree,
-                const RecursiveExpense &recursiveExpense) -> USD {
+auto surplus(Income income, const ExpenseTree &expenseTree,
+             const RecursiveExpense &recursiveExpense) -> USD {
   return income.usd -
          (total_(expenseTree) - currentCost(expenseTree, recursiveExpense) +
           usd(recursiveExpense));

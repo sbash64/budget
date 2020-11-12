@@ -4,29 +4,29 @@
 #include <sbash64/budget/calculate.hpp>
 
 namespace sbash64::budget::calculate {
-void differenceHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 0_cents, difference(Income{0_cents}, Expenses{}));
+void surplusHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
+  assertEqual(result, 0_cents, surplus(Income{0_cents}, Expenses{}));
 }
 
-void differenceHavingIncomeButNoExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 1_cents, difference(Income{1_cents}, Expenses{}));
+void surplusHavingIncomeButNoExpenses(testcpplite::TestResult &result) {
+  assertEqual(result, 1_cents, surplus(Income{1_cents}, Expenses{}));
 }
 
-void differenceHavingOneExpense(testcpplite::TestResult &result) {
+void surplusHavingOneExpense(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents,
-              difference(Income{3_cents}, Expenses{{Expense{2_cents}}}));
+              surplus(Income{3_cents}, Expenses{{Expense{2_cents}}}));
 }
 
-void differenceHavingTwoExpenses(testcpplite::TestResult &result) {
+void surplusHavingTwoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 6_cents,
-              difference(Income{11_cents},
-                         Expenses{{Expense{2_cents}, Expense{3_cents}}}));
+              surplus(Income{11_cents},
+                      Expenses{{Expense{2_cents}, Expense{3_cents}}}));
 }
 
-void differenceHavingMultipleExpenses(testcpplite::TestResult &result) {
+void surplusHavingMultipleExpenses(testcpplite::TestResult &result) {
   assertEqual(
       result, 1000_cents,
-      difference(
+      surplus(
           Income{10000_cents},
           ExpenseTree{{{Category{"Food"},
                         ExpenseTree{{{Category{"Dining Out"}, 200_cents},
@@ -47,10 +47,10 @@ void differenceHavingMultipleExpenses(testcpplite::TestResult &result) {
                                      {Category{"Ford"}, 1300_cents}}}}}}));
 }
 
-void differenceAfterUpdate(testcpplite::TestResult &result) {
+void surplusAfterUpdate(testcpplite::TestResult &result) {
   assertEqual(
       result, 800_cents,
-      difference(
+      surplus(
           Income{10000_cents},
           ExpenseTree{{{Category{"Food"},
                         ExpenseTree{{{Category{"Dining Out"}, 200_cents},
