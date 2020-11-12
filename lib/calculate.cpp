@@ -16,7 +16,7 @@ auto surplus(Income income, const Expenses &expenses) -> USD {
   return income.usd - total_(expenses);
 }
 
-auto total(const Category &category, const Expenses &expenses) -> USD {
+auto total(const ExpenseCategory &category, const Expenses &expenses) -> USD {
   return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
                          [=](USD usd, const Expense &expense) -> USD {
                            return category == expense.category
@@ -82,14 +82,15 @@ static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
              : std::get<USD>(expenseTreeOrUsd);
 }
 
-static auto total_(const ExpenseTree &expenseTree, const Category &category)
-    -> USD {
+static auto total_(const ExpenseTree &expenseTree,
+                   const ExpenseCategory &category) -> USD {
   return expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0
              ? USD{0}
              : total_(expenseTree.categorizedExpenseTreesOrCosts.at(category));
 }
 
-auto total(const ExpenseTree &expenseTree, const Category &category) -> USD {
+auto total(const ExpenseTree &expenseTree, const ExpenseCategory &category)
+    -> USD {
   return total_(expenseTree, category);
 }
 
@@ -126,7 +127,7 @@ auto total(const ExpenseTree &expenseTree) -> USD {
 }
 
 auto categories(const Expenses &expenses) -> Categories {
-  std::set<Category> uniqueCategories;
+  std::set<ExpenseCategory> uniqueCategories;
   std::for_each(expenses.all.begin(), expenses.all.end(),
                 [&](const Expense &expense) {
                   uniqueCategories.insert(expense.category);

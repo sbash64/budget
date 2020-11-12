@@ -11,18 +11,18 @@ auto surplus(Income, const ExpenseTree &) -> USD;
 
 auto surplus(Income, const ExpenseTree &, const RecursiveExpense &) -> USD;
 
-auto total(const Category &, const Expenses &) -> USD;
+auto total(const ExpenseCategory &, const Expenses &) -> USD;
 
 auto total(const ExpenseTree &) -> USD;
 
-auto total(const ExpenseTree &, const Category &) -> USD;
+auto total(const ExpenseTree &, const ExpenseCategory &) -> USD;
 
 auto total(const ExpenseTree &, const RecursiveCategory &) -> USD;
 
 auto total(const Expenses &) -> USD;
 
 struct Categories {
-  std::vector<Category> each;
+  std::vector<ExpenseCategory> each;
 };
 
 auto categories(const Expenses &) -> Categories;

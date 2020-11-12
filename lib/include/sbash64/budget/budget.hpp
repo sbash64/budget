@@ -21,21 +21,23 @@ struct Income {
   USD usd;
 };
 
-struct Category {
+struct ExpenseCategory {
   std::string name;
 };
 
-inline auto operator<(const Category &a, const Category &b) -> bool {
+inline auto operator<(const ExpenseCategory &a, const ExpenseCategory &b)
+    -> bool {
   return a.name < b.name;
 }
 
-inline auto operator==(const Category &a, const Category &b) -> bool {
+inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
+    -> bool {
   return a.name == b.name;
 }
 
 struct Expense {
   USD usd{};
-  Category category;
+  ExpenseCategory category;
 };
 
 struct Expenses {
@@ -43,7 +45,7 @@ struct Expenses {
 };
 
 struct ExpenseTree {
-  std::map<Category, std::variant<ExpenseTree, USD>>
+  std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
       categorizedExpenseTreesOrCosts;
 };
 
@@ -62,7 +64,7 @@ struct RecursiveCategory;
 using Subcategory = rvalue_reference_wrapper<RecursiveCategory>;
 
 struct RecursiveCategory {
-  Category category;
+  ExpenseCategory category;
   std::optional<Subcategory> maybeSubcategory{};
 };
 
@@ -71,7 +73,7 @@ struct RecursiveExpense;
 using Subexpense = rvalue_reference_wrapper<RecursiveExpense>;
 
 struct RecursiveExpense {
-  Category category;
+  ExpenseCategory category;
   std::variant<USD, Subexpense> subexpenseOrUsd;
 };
 } // namespace sbash64::budget

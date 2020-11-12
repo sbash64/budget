@@ -46,7 +46,7 @@ Difference: $1.00
 void prettyBudgetHavingOneExpense(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{100_cents},
-      Expenses{{Expense{25_cents, Category{"Groceries"}}}},
+      Expenses{{Expense{25_cents, ExpenseCategory{"Groceries"}}}},
       R"(
 Income: $1.00
 Expenses: $0.25
@@ -58,15 +58,15 @@ Difference: $0.75
 void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{25000_cents},
-      Expenses{{Expense{1234_cents, Category{"Groceries"}},
-                Expense{5678_cents, Category{"Groceries"}},
-                Expense{342_cents, Category{"Entertainment"}},
-                Expense{598_cents, Category{"Groceries"}},
-                Expense{2999_cents, Category{"Rent"}},
-                Expense{1266_cents, Category{"Giving"}},
-                Expense{3538_cents, Category{"Gas"}},
-                Expense{3242_cents, Category{"Rent"}},
-                Expense{5893_cents, Category{"Gas"}}}},
+      Expenses{{Expense{1234_cents, ExpenseCategory{"Groceries"}},
+                Expense{5678_cents, ExpenseCategory{"Groceries"}},
+                Expense{342_cents, ExpenseCategory{"Entertainment"}},
+                Expense{598_cents, ExpenseCategory{"Groceries"}},
+                Expense{2999_cents, ExpenseCategory{"Rent"}},
+                Expense{1266_cents, ExpenseCategory{"Giving"}},
+                Expense{3538_cents, ExpenseCategory{"Gas"}},
+                Expense{3242_cents, ExpenseCategory{"Rent"}},
+                Expense{5893_cents, ExpenseCategory{"Gas"}}}},
       R"(
 Income: $250.00
 Expenses: $247.90
@@ -83,21 +83,23 @@ void prettyBudgetHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{10000_cents},
       ExpenseTree{
-          {{Category{"Food"},
-            ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                         {Category{"Groceries"}, 300_cents}}}},
-           {Category{"Phone"}, ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                            {Category{"Light"}, 500_cents}}}},
-           {Category{"Health"}, ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                             {Category{"Other"}, 700_cents}}}},
-           {Category{"Gifts"},
-            ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                         {Category{"Birthdays"}, 900_cents},
-                         {Category{"Anniversary"}, 1000_cents}}}},
-           {Category{"Entertainment"}, 1100_cents},
-           {Category{"Car Loans"},
-            ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                         {Category{"Ford"}, 1300_cents}}}}}},
+          {{ExpenseCategory{"Food"},
+            ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                         {ExpenseCategory{"Groceries"}, 300_cents}}}},
+           {ExpenseCategory{"Phone"},
+            ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                         {ExpenseCategory{"Light"}, 500_cents}}}},
+           {ExpenseCategory{"Health"},
+            ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                         {ExpenseCategory{"Other"}, 700_cents}}}},
+           {ExpenseCategory{"Gifts"},
+            ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                         {ExpenseCategory{"Birthdays"}, 900_cents},
+                         {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+           {ExpenseCategory{"Entertainment"}, 1100_cents},
+           {ExpenseCategory{"Car Loans"},
+            ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                         {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
       R"(
 Income: $100.00
 Expenses: $90.00

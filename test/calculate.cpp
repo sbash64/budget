@@ -28,23 +28,24 @@ void surplusHavingMultipleExpenses(testcpplite::TestResult &result) {
       result, 1000_cents,
       surplus(
           Income{10000_cents},
-          ExpenseTree{{{Category{"Food"},
-                        ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                     {Category{"Groceries"}, 300_cents}}}},
-                       {Category{"Phone"},
-                        ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                     {Category{"Light"}, 500_cents}}}},
-                       {Category{"Health"},
-                        ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                     {Category{"Other"}, 700_cents}}}},
-                       {Category{"Gifts"},
-                        ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                     {Category{"Birthdays"}, 900_cents},
-                                     {Category{"Anniversary"}, 1000_cents}}}},
-                       {Category{"Entertainment"}, 1100_cents},
-                       {Category{"Car Loans"},
-                        ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                     {Category{"Ford"}, 1300_cents}}}}}}));
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}}));
 }
 
 void surplusAfterExpenseChange(testcpplite::TestResult &result) {
@@ -52,209 +53,229 @@ void surplusAfterExpenseChange(testcpplite::TestResult &result) {
       result, 800_cents,
       surplus(
           Income{10000_cents},
-          ExpenseTree{{{Category{"Food"},
-                        ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                     {Category{"Groceries"}, 300_cents}}}},
-                       {Category{"Phone"},
-                        ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                     {Category{"Light"}, 500_cents}}}},
-                       {Category{"Health"},
-                        ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                     {Category{"Other"}, 700_cents}}}},
-                       {Category{"Gifts"},
-                        ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                     {Category{"Birthdays"}, 900_cents},
-                                     {Category{"Anniversary"}, 1000_cents}}}},
-                       {Category{"Entertainment"}, 1100_cents},
-                       {Category{"Car Loans"},
-                        ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                     {Category{"Ford"}, 1300_cents}}}}}},
-          RecursiveExpense{Category{"Gifts"},
-                           Subexpense{RecursiveExpense{Category{"Birthdays"},
-                                                       1100_cents}}}));
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          RecursiveExpense{ExpenseCategory{"Gifts"},
+                           Subexpense{RecursiveExpense{
+                               ExpenseCategory{"Birthdays"}, 1100_cents}}}));
 }
 
 void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 0_cents, total(Category{"miscellaneous"}, Expenses{}));
+  assertEqual(result, 0_cents,
+              total(ExpenseCategory{"miscellaneous"}, Expenses{}));
 }
 
 void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &result) {
-  assertEqual(result, 0_cents,
-              total(Category{"miscellaneous"},
-                    Expenses{{Expense{1_cents, Category{"groceries"}}}}));
+  assertEqual(
+      result, 0_cents,
+      total(ExpenseCategory{"miscellaneous"},
+            Expenses{{Expense{1_cents, ExpenseCategory{"groceries"}}}}));
 }
 
 void categoryTotalHavingOneExpense(testcpplite::TestResult &result) {
-  assertEqual(result, 1_cents,
-              total(Category{"miscellaneous"},
-                    Expenses{{Expense{1_cents, Category{"miscellaneous"}}}}));
+  assertEqual(
+      result, 1_cents,
+      total(ExpenseCategory{"miscellaneous"},
+            Expenses{{Expense{1_cents, ExpenseCategory{"miscellaneous"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
   assertEqual(
       result, 2700_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            Category{"Gifts"}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          ExpenseCategory{"Gifts"}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees2(testcpplite::TestResult &result) {
   assertEqual(
       result, 1100_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            Category{"Entertainment"}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          ExpenseCategory{"Entertainment"}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &result) {
   assertEqual(
       result, 400_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{Category{"Phone"}, Subcategory{RecursiveCategory{
-                                                     Category{"Verizon"}}}}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          RecursiveCategory{
+              ExpenseCategory{"Phone"},
+              Subcategory{RecursiveCategory{ExpenseCategory{"Verizon"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{Category{"Health"}, Subcategory{RecursiveCategory{
-                                                      Category{"Vitamins"}}}}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          RecursiveCategory{
+              ExpenseCategory{"Health"},
+              Subcategory{RecursiveCategory{ExpenseCategory{"Vitamins"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{
-                Category{"Vacation"},
-                Subcategory{RecursiveCategory{Category{"Car Rental"}}}}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          RecursiveCategory{
+              ExpenseCategory{"Vacation"},
+              Subcategory{RecursiveCategory{ExpenseCategory{"Car Rental"}}}}));
 }
 
 void categoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
-      total(ExpenseTree{{{Category{"Food"},
-                          ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                                       {Category{"Groceries"}, 300_cents}}}},
-                         {Category{"Phone"},
-                          ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                       {Category{"Light"}, 500_cents}}}},
-                         {Category{"Health"},
-                          ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                       {Category{"Other"}, 700_cents}}}},
-                         {Category{"Gifts"},
-                          ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                                       {Category{"Birthdays"}, 900_cents},
-                                       {Category{"Anniversary"}, 1000_cents}}}},
-                         {Category{"Entertainment"}, 1100_cents},
-                         {Category{"Car Loans"},
-                          ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                                       {Category{"Ford"}, 1300_cents}}}}}},
-            RecursiveCategory{
-                Category{"Food"},
-                Subcategory{RecursiveCategory{
-                    Category{"Dining Out"},
-                    Subcategory{RecursiveCategory{Category{"Chipotle"}}}}}}));
+      total(
+          ExpenseTree{
+              {{ExpenseCategory{"Food"},
+                ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                             {ExpenseCategory{"Groceries"}, 300_cents}}}},
+               {ExpenseCategory{"Phone"},
+                ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                             {ExpenseCategory{"Light"}, 500_cents}}}},
+               {ExpenseCategory{"Health"},
+                ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                             {ExpenseCategory{"Other"}, 700_cents}}}},
+               {ExpenseCategory{"Gifts"},
+                ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                             {ExpenseCategory{"Birthdays"}, 900_cents},
+                             {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+               {ExpenseCategory{"Entertainment"}, 1100_cents},
+               {ExpenseCategory{"Car Loans"},
+                ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                             {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          RecursiveCategory{ExpenseCategory{"Food"},
+                            Subcategory{RecursiveCategory{
+                                ExpenseCategory{"Dining Out"},
+                                Subcategory{RecursiveCategory{
+                                    ExpenseCategory{"Chipotle"}}}}}}));
 }
 
 void totalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
   assertEqual(
       result, 9000_cents,
       total(ExpenseTree{
-          {{Category{"Food"},
-            ExpenseTree{{{Category{"Dining Out"}, 200_cents},
-                         {Category{"Groceries"}, 300_cents}}}},
-           {Category{"Phone"}, ExpenseTree{{{Category{"Verizon"}, 400_cents},
-                                            {Category{"Light"}, 500_cents}}}},
-           {Category{"Health"}, ExpenseTree{{{Category{"Gym"}, 600_cents},
-                                             {Category{"Other"}, 700_cents}}}},
-           {Category{"Gifts"},
-            ExpenseTree{{{Category{"Christmas"}, 800_cents},
-                         {Category{"Birthdays"}, 900_cents},
-                         {Category{"Anniversary"}, 1000_cents}}}},
-           {Category{"Entertainment"}, 1100_cents},
-           {Category{"Car Loans"},
-            ExpenseTree{{{Category{"Honda"}, 1200_cents},
-                         {Category{"Ford"}, 1300_cents}}}}}}));
+          {{ExpenseCategory{"Food"},
+            ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
+                         {ExpenseCategory{"Groceries"}, 300_cents}}}},
+           {ExpenseCategory{"Phone"},
+            ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
+                         {ExpenseCategory{"Light"}, 500_cents}}}},
+           {ExpenseCategory{"Health"},
+            ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
+                         {ExpenseCategory{"Other"}, 700_cents}}}},
+           {ExpenseCategory{"Gifts"},
+            ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
+                         {ExpenseCategory{"Birthdays"}, 900_cents},
+                         {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
+           {ExpenseCategory{"Entertainment"}, 1100_cents},
+           {ExpenseCategory{"Car Loans"},
+            ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
+                         {ExpenseCategory{"Ford"}, 1300_cents}}}}}}));
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -269,13 +290,15 @@ void categoriesFromNoExpenses(testcpplite::TestResult &result) {
 }
 
 void categoriesFromOneExpense(testcpplite::TestResult &result) {
-  assertEqual(result, Categories{{Category{"groceries"}}},
-              categories(Expenses{{Expense{0_cents, Category{"groceries"}}}}));
+  assertEqual(
+      result, Categories{{ExpenseCategory{"groceries"}}},
+      categories(Expenses{{Expense{0_cents, ExpenseCategory{"groceries"}}}}));
 }
 
 void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &result) {
-  assertEqual(result, Categories{{Category{"groceries"}}},
-              categories(Expenses{{Expense{1_cents, Category{"groceries"}},
-                                   Expense{2_cents, Category{"groceries"}}}}));
+  assertEqual(
+      result, Categories{{ExpenseCategory{"groceries"}}},
+      categories(Expenses{{Expense{1_cents, ExpenseCategory{"groceries"}},
+                           Expense{2_cents, ExpenseCategory{"groceries"}}}}));
 }
 } // namespace sbash64::budget::calculate
