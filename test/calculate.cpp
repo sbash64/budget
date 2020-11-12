@@ -5,11 +5,11 @@
 
 namespace sbash64::budget::calculate {
 void surplusHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 0_cents, surplus(Income{0_cents}, Expenses{}));
+  assertEqual(result, 0_cents, surplus(Income{0_cents}, ExpenseTree{}));
 }
 
 void surplusHavingNoExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 1_cents, surplus(Income{1_cents}, Expenses{}));
+  assertEqual(result, 600_cents, surplus(Income{600_cents}, ExpenseTree{}));
 }
 
 void surplusHavingOneExpense(testcpplite::TestResult &result) {
