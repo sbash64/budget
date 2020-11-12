@@ -113,13 +113,4 @@ auto total(const ExpenseTree &expenseTree,
 auto total(const ExpenseTree &expenseTree) -> USD {
   return total_(expenseTree);
 }
-
-auto categories(const Expenses &expenses) -> Categories {
-  std::set<ExpenseCategory> uniqueCategories;
-  std::for_each(expenses.all.begin(), expenses.all.end(),
-                [&](const Expense &expense) {
-                  uniqueCategories.insert(expense.category);
-                });
-  return Categories{{uniqueCategories.begin(), uniqueCategories.end()}};
-}
 } // namespace sbash64::budget::calculate

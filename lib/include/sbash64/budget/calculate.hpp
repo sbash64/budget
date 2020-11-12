@@ -16,12 +16,6 @@ auto total(const ExpenseTree &, const ExpenseCategory &) -> USD;
 auto total(const ExpenseTree &, const RecursiveExpenseCategory &) -> USD;
 
 auto total(const Expenses &) -> USD;
-
-struct Categories {
-  std::vector<ExpenseCategory> each;
-};
-
-auto categories(const Expenses &) -> Categories;
 } // namespace sbash64::budget::calculate
 
 #endif
