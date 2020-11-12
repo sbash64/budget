@@ -83,10 +83,11 @@ void expenseCategoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
 
 void expenseCategoryTotalHavingOneUnrelatedExpense(
     testcpplite::TestResult &result) {
-  assertEqual(
-      result, 0_cents,
-      total(ExpenseCategory{"miscellaneous"},
-            Expenses{{Expense{1_cents, ExpenseCategory{"groceries"}}}}));
+  assertEqual(result, 0_cents,
+              total(ExpenseTree{{
+                        {ExpenseCategory{"Entertainment"}, 1100_cents},
+                    }},
+                    ExpenseCategory{"Groceries"}));
 }
 
 void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &result) {
