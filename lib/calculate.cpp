@@ -4,18 +4,6 @@
 #include <set>
 
 namespace sbash64::budget::calculate {
-static auto total_(const Expenses &expenses) -> USD {
-  return std::accumulate(
-      expenses.all.begin(), expenses.all.end(), USD{0},
-      [](USD usd, const Expense &expense) -> USD { return expense.usd + usd; });
-}
-
-auto total(const Expenses &expenses) -> USD { return total_(expenses); }
-
-auto surplus(Income income, const Expenses &expenses) -> USD {
-  return income.usd - total_(expenses);
-}
-
 auto total(const ExpenseCategory &category, const Expenses &expenses) -> USD {
   return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
                          [=](USD usd, const Expense &expense) -> USD {
