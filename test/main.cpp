@@ -64,12 +64,6 @@ static auto runAllTests() -> int {
        {calculate::expenseTotalHavingMultipleExpenseCategoriesAndSubcategories,
         "calculate category total having multiple expense categories and "
         "subcategories"},
-       {calculate::categoriesFromNoExpenses,
-        "calculate categories from no expenses"},
-       {calculate::categoriesFromOneExpense,
-        "calculate categories from one expense"},
-       {calculate::categoriesFromTwoExpensesOfSameCategory,
-        "calculate categories from two expenses of same category"},
        {print::prettyBudgetHavingNoIncomeNorExpenses,
         "print pretty budget having no income nor expenses"},
        {print::prettyBudgetHavingNoExpenses,

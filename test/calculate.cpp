@@ -286,28 +286,4 @@ void expenseTotalHavingMultipleExpenseCategoriesAndSubcategories(
             ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
                          {ExpenseCategory{"Ford"}, 1300_cents}}}}}}));
 }
-
-static void assertEqual(testcpplite::TestResult &result,
-                        const Categories &expected, const Categories &actual) {
-  assertEqual(result, expected.each.size(), actual.each.size());
-  assertTrue(result, std::equal(expected.each.begin(), expected.each.end(),
-                                actual.each.begin()));
-}
-
-void categoriesFromNoExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, Categories{}, categories(Expenses{}));
-}
-
-void categoriesFromOneExpense(testcpplite::TestResult &result) {
-  assertEqual(
-      result, Categories{{ExpenseCategory{"groceries"}}},
-      categories(Expenses{{Expense{0_cents, ExpenseCategory{"groceries"}}}}));
-}
-
-void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &result) {
-  assertEqual(
-      result, Categories{{ExpenseCategory{"groceries"}}},
-      categories(Expenses{{Expense{1_cents, ExpenseCategory{"groceries"}},
-                           Expense{2_cents, ExpenseCategory{"groceries"}}}}));
-}
 } // namespace sbash64::budget::calculate

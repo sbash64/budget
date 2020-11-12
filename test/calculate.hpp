@@ -13,9 +13,6 @@ void surplusAfterExpenseChange(testcpplite::TestResult &);
 void expenseCategoryTotalHavingNoExpenses(testcpplite::TestResult &);
 void expenseCategoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &);
 void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &);
-void categoriesFromNoExpenses(testcpplite::TestResult &);
-void categoriesFromOneExpense(testcpplite::TestResult &);
-void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &);
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories(
     testcpplite::TestResult &);
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories2(
