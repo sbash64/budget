@@ -76,7 +76,7 @@ void surplusAfterExpenseChange(testcpplite::TestResult &result) {
                                ExpenseCategory{"Birthdays"}, 1100_cents}}}));
 }
 
-void categoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
+void expenseCategoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents,
               total(ExpenseCategory{"miscellaneous"}, Expenses{}));
 }

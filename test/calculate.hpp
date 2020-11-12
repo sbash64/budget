@@ -10,7 +10,7 @@ void surplusHavingOneExpense(testcpplite::TestResult &);
 void surplusHavingTwoExpenses(testcpplite::TestResult &);
 void surplusHavingMultipleExpenses(testcpplite::TestResult &);
 void surplusAfterExpenseChange(testcpplite::TestResult &);
-void categoryTotalHavingNoExpenses(testcpplite::TestResult &);
+void expenseCategoryTotalHavingNoExpenses(testcpplite::TestResult &);
 void expenseCategoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &);
 void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &);
 void categoriesFromNoExpenses(testcpplite::TestResult &);
