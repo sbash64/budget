@@ -4,15 +4,6 @@
 #include <sstream>
 
 namespace sbash64::budget::print {
-static void
-assertPrettyWithBoundedNewlinesYields(testcpplite::TestResult &result,
-                                      Income income, const Expenses &expenses,
-                                      std::string_view expected) {
-  std::stringstream stream;
-  pretty(stream, income, expenses);
-  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
-}
-
 static void assertPrettyWithBoundedNewlinesYields(
     testcpplite::TestResult &result, Income income, const ExpenseTree &expenses,
     std::string_view expected) {
