@@ -47,7 +47,9 @@ Difference: $1.00
 void prettyBudgetHavingOneExpense(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{100_cents},
-      Expenses{{Expense{25_cents, ExpenseCategory{"Groceries"}}}},
+      ExpenseTree{{
+          {ExpenseCategory{"Groceries"}, 25_cents},
+      }},
       R"(
 Income: $1.00
 Expenses: $0.25
