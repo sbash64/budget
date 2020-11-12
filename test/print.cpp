@@ -61,15 +61,13 @@ Difference: $0.75
 void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{25000_cents},
-      Expenses{{Expense{1234_cents, ExpenseCategory{"Groceries"}},
-                Expense{5678_cents, ExpenseCategory{"Groceries"}},
-                Expense{342_cents, ExpenseCategory{"Entertainment"}},
-                Expense{598_cents, ExpenseCategory{"Groceries"}},
-                Expense{2999_cents, ExpenseCategory{"Rent"}},
-                Expense{1266_cents, ExpenseCategory{"Giving"}},
-                Expense{3538_cents, ExpenseCategory{"Gas"}},
-                Expense{3242_cents, ExpenseCategory{"Rent"}},
-                Expense{5893_cents, ExpenseCategory{"Gas"}}}},
+      ExpenseTree{{
+          {ExpenseCategory{"Entertainment"}, 342_cents},
+          {ExpenseCategory{"Giving"}, 1266_cents},
+          {ExpenseCategory{"Rent"}, 6241_cents},
+          {ExpenseCategory{"Groceries"}, 7510_cents},
+          {ExpenseCategory{"Gas"}, 9431_cents},
+      }},
       R"(
 Income: $250.00
 Expenses: $247.90
