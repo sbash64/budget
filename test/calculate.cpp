@@ -18,9 +18,12 @@ void surplusHavingOneExpense(testcpplite::TestResult &result) {
 }
 
 void surplusHavingTwoExpenses(testcpplite::TestResult &result) {
-  assertEqual(result, 6_cents,
-              surplus(Income{11_cents},
-                      Expenses{{Expense{2_cents}, Expense{3_cents}}}));
+  assertEqual(result, 300_cents,
+              surplus(Income{600_cents},
+                      ExpenseTree{{
+                          {ExpenseCategory{"Entertainment"}, 100_cents},
+                          {ExpenseCategory{"Groceries"}, 200_cents},
+                      }}));
 }
 
 void surplusHavingMultipleExpenses(testcpplite::TestResult &result) {
