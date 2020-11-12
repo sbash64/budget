@@ -59,13 +59,13 @@ private:
   const T &rvalue;
 };
 
-struct RecursiveCategory;
+struct RecursiveExpenseCategory;
 
-using Subcategory = rvalue_reference_wrapper<RecursiveCategory>;
+using ExpenseSubcategory = rvalue_reference_wrapper<RecursiveExpenseCategory>;
 
-struct RecursiveCategory {
+struct RecursiveExpenseCategory {
   ExpenseCategory category;
-  std::optional<Subcategory> maybeSubcategory{};
+  std::optional<ExpenseSubcategory> maybeSubcategory{};
 };
 
 struct RecursiveExpense;

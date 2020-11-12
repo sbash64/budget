@@ -171,9 +171,9 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories3(
                {ExpenseCategory{"Car Loans"},
                 ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
                              {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
-          RecursiveCategory{
-              ExpenseCategory{"Phone"},
-              Subcategory{RecursiveCategory{ExpenseCategory{"Verizon"}}}}));
+          RecursiveExpenseCategory{ExpenseCategory{"Phone"},
+                                   ExpenseSubcategory{RecursiveExpenseCategory{
+                                       ExpenseCategory{"Verizon"}}}}));
 }
 
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4(
@@ -199,9 +199,9 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4(
                {ExpenseCategory{"Car Loans"},
                 ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
                              {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
-          RecursiveCategory{
-              ExpenseCategory{"Health"},
-              Subcategory{RecursiveCategory{ExpenseCategory{"Vitamins"}}}}));
+          RecursiveExpenseCategory{ExpenseCategory{"Health"},
+                                   ExpenseSubcategory{RecursiveExpenseCategory{
+                                       ExpenseCategory{"Vitamins"}}}}));
 }
 
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5(
@@ -227,9 +227,9 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5(
                {ExpenseCategory{"Car Loans"},
                 ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
                              {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
-          RecursiveCategory{
-              ExpenseCategory{"Vacation"},
-              Subcategory{RecursiveCategory{ExpenseCategory{"Car Rental"}}}}));
+          RecursiveExpenseCategory{ExpenseCategory{"Vacation"},
+                                   ExpenseSubcategory{RecursiveExpenseCategory{
+                                       ExpenseCategory{"Car Rental"}}}}));
 }
 
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
@@ -255,11 +255,12 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
                {ExpenseCategory{"Car Loans"},
                 ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
                              {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
-          RecursiveCategory{ExpenseCategory{"Food"},
-                            Subcategory{RecursiveCategory{
-                                ExpenseCategory{"Dining Out"},
-                                Subcategory{RecursiveCategory{
-                                    ExpenseCategory{"Chipotle"}}}}}}));
+          RecursiveExpenseCategory{
+              ExpenseCategory{"Food"},
+              ExpenseSubcategory{RecursiveExpenseCategory{
+                  ExpenseCategory{"Dining Out"},
+                  ExpenseSubcategory{RecursiveExpenseCategory{
+                      ExpenseCategory{"Chipotle"}}}}}}));
 }
 
 void totalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {

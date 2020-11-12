@@ -17,7 +17,7 @@ auto total(const ExpenseTree &) -> USD;
 
 auto total(const ExpenseTree &, const ExpenseCategory &) -> USD;
 
-auto total(const ExpenseTree &, const RecursiveCategory &) -> USD;
+auto total(const ExpenseTree &, const RecursiveExpenseCategory &) -> USD;
 
 auto total(const Expenses &) -> USD;
 

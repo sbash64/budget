@@ -47,13 +47,13 @@ static auto usd(const RecursiveExpense &recursiveExpense) -> USD {
 }
 
 static auto recursiveCategory(const RecursiveExpense &recursiveExpense)
-    -> RecursiveCategory {
-  return RecursiveCategory{
+    -> RecursiveExpenseCategory {
+  return RecursiveExpenseCategory{
       recursiveExpense.category.name,
       std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
-          ? Subcategory{recursiveCategory(
+          ? ExpenseSubcategory{recursiveCategory(
                 std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))}
-          : std::optional<Subcategory>{}};
+          : std::optional<ExpenseSubcategory>{}};
 }
 
 static auto currentCost(const ExpenseTree &expenseTree,
@@ -95,10 +95,10 @@ auto total(const ExpenseTree &expenseTree, const ExpenseCategory &category)
 }
 
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd,
-                   const RecursiveCategory &recursiveCategory) -> USD;
+                   const RecursiveExpenseCategory &recursiveCategory) -> USD;
 
 static auto total_(const ExpenseTree &expenseTree,
-                   const RecursiveCategory &recursiveCategory) -> USD {
+                   const RecursiveExpenseCategory &recursiveCategory) -> USD {
   if (recursiveCategory.maybeSubcategory.has_value())
     return expenseTree.categorizedExpenseTreesOrCosts.count(
                recursiveCategory.category) != 0
@@ -110,7 +110,7 @@ static auto total_(const ExpenseTree &expenseTree,
 }
 
 static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd,
-                   const RecursiveCategory &recursiveCategory) -> USD {
+                   const RecursiveExpenseCategory &recursiveCategory) -> USD {
   return std::holds_alternative<ExpenseTree>(expenseTreeOrUsd)
              ? total_(std::get<ExpenseTree>(expenseTreeOrUsd),
                       recursiveCategory)
@@ -118,7 +118,7 @@ static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd,
 }
 
 auto total(const ExpenseTree &expenseTree,
-           const RecursiveCategory &recursiveCategory) -> USD {
+           const RecursiveExpenseCategory &recursiveCategory) -> USD {
   return total_(expenseTree, recursiveCategory);
 }
 
