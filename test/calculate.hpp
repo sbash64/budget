@@ -5,11 +5,11 @@
 
 namespace sbash64::budget::calculate {
 void surplusHavingNoIncomeNorExpenses(testcpplite::TestResult &);
-void surplusHavingIncomeButNoExpenses(testcpplite::TestResult &);
+void surplusHavingNoExpenses(testcpplite::TestResult &);
 void surplusHavingOneExpense(testcpplite::TestResult &);
 void surplusHavingTwoExpenses(testcpplite::TestResult &);
 void surplusHavingMultipleExpenses(testcpplite::TestResult &);
-void surplusAfterUpdate(testcpplite::TestResult &);
+void surplusAfterExpenseChange(testcpplite::TestResult &);
 void categoryTotalHavingNoExpenses(testcpplite::TestResult &);
 void categoryTotalHavingOneUnrelatedExpense(testcpplite::TestResult &);
 void categoryTotalHavingOneExpense(testcpplite::TestResult &);

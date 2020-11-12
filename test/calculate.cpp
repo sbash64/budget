@@ -8,7 +8,7 @@ void surplusHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents, surplus(Income{0_cents}, Expenses{}));
 }
 
-void surplusHavingIncomeButNoExpenses(testcpplite::TestResult &result) {
+void surplusHavingNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, surplus(Income{1_cents}, Expenses{}));
 }
 
@@ -47,7 +47,7 @@ void surplusHavingMultipleExpenses(testcpplite::TestResult &result) {
                                      {Category{"Ford"}, 1300_cents}}}}}}));
 }
 
-void surplusAfterUpdate(testcpplite::TestResult &result) {
+void surplusAfterExpenseChange(testcpplite::TestResult &result) {
   assertEqual(
       result, 800_cents,
       surplus(
