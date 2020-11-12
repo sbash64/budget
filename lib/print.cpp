@@ -12,16 +12,6 @@ static auto format_(USD usd) -> std::string {
 
 auto format(USD usd) -> std::string { return format_(usd); }
 
-void pretty(std::ostream &stream, Income income, const Expenses &expenses) {
-  stream << "Income: " << format_(income.usd) << "\n";
-  stream << "Expenses: " << format_(calculate::total(expenses)) << "\n";
-  for (const auto &category : calculate::categories(expenses).each) {
-    stream << "    " << category.name << ": "
-           << format_(calculate::total(category, expenses)) << "\n";
-  }
-  stream << "Difference: " << format_(calculate::surplus(income, expenses));
-}
-
 static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
                       int &indentation) {
   stream << format_(calculate::total(expenseTree)) << '\n';

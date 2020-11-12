@@ -6,7 +6,6 @@
 #include <string>
 
 namespace sbash64::budget::print {
-void pretty(std::ostream &, Income, const Expenses &);
 void pretty(std::ostream &, Income, const ExpenseTree &);
 auto format(USD) -> std::string;
 } // namespace sbash64::budget::print
