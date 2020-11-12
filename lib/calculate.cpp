@@ -3,15 +3,6 @@
 #include <numeric>
 
 namespace sbash64::budget::calculate {
-auto total(const ExpenseCategory &category, const Expenses &expenses) -> USD {
-  return std::accumulate(expenses.all.begin(), expenses.all.end(), USD{0},
-                         [=](USD usd, const Expense &expense) -> USD {
-                           return category == expense.category
-                                      ? expense.usd + usd
-                                      : usd;
-                         });
-}
-
 static auto total_(const ExpenseTree &expenseTree) -> USD {
   USD totalUsd{0};
   for (const auto &[category, expenseTreeOrTotalUsd] :

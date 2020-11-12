@@ -35,15 +35,6 @@ inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
   return a.name == b.name;
 }
 
-struct Expense {
-  USD usd{};
-  ExpenseCategory category{};
-};
-
-struct Expenses {
-  std::vector<Expense> all;
-};
-
 struct ExpenseTree {
   std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
       categorizedExpenseTreesOrCosts;
