@@ -39,24 +39,31 @@ static auto runAllTests() -> int {
         "calculate expense category total having one expense"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories,
-        "calculate expense category total having multiple expense trees"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories2,
-        "calculate expense category total having multiple expense trees 2"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories 2"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories3,
-        "calculate expense category total having multiple expense trees 3"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories 3"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4,
-        "calculate expense category total having multiple expense trees 4"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories 4"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5,
-        "calculate expense category total having multiple expense trees 5"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories 5"},
        {calculate::
             expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6,
-        "calculate expense category total having multiple expense trees 6"},
-       {calculate::totalHavingMultipleExpenseTrees,
-        "calculate category total having multiple expense trees"},
+        "calculate expense category total having multiple expense categories "
+        "and subcategories 6"},
+       {calculate::expenseTotalHavingMultipleExpenseCategoriesAndSubcategories,
+        "calculate category total having multiple expense categories and "
+        "subcategories"},
        {calculate::categoriesFromNoExpenses,
         "calculate categories from no expenses"},
        {calculate::categoriesFromOneExpense,

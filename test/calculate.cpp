@@ -263,7 +263,8 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
                       ExpenseCategory{"Chipotle"}}}}}}));
 }
 
-void totalHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
+void expenseTotalHavingMultipleExpenseCategoriesAndSubcategories(
+    testcpplite::TestResult &result) {
   assertEqual(
       result, 9000_cents,
       total(ExpenseTree{

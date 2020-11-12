@@ -28,7 +28,8 @@ void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5(
     testcpplite::TestResult &);
 void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
     testcpplite::TestResult &);
-void totalHavingMultipleExpenseTrees(testcpplite::TestResult &);
+void expenseTotalHavingMultipleExpenseCategoriesAndSubcategories(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::calculate
 
 #endif
