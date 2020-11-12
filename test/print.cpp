@@ -27,7 +27,7 @@ static void assertFormatYields(testcpplite::TestResult &result, USD usd,
 }
 
 void prettyBudgetHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
-  assertPrettyWithBoundedNewlinesYields(result, Income{}, Expenses{}, R"(
+  assertPrettyWithBoundedNewlinesYields(result, Income{}, ExpenseTree{}, R"(
 Income: $0.00
 Expenses: $0.00
 Difference: $0.00
