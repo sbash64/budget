@@ -78,7 +78,7 @@ void surplusAfterExpenseChange(testcpplite::TestResult &result) {
 
 void expenseCategoryTotalHavingNoExpenses(testcpplite::TestResult &result) {
   assertEqual(result, 0_cents,
-              total(ExpenseCategory{"miscellaneous"}, Expenses{}));
+              total(ExpenseTree{}, ExpenseCategory{"Entertainment"}));
 }
 
 void expenseCategoryTotalHavingOneUnrelatedExpense(
