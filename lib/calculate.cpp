@@ -1,7 +1,6 @@
 #include "calculate.hpp"
 #include <algorithm>
 #include <numeric>
-#include <set>
 
 namespace sbash64::budget::calculate {
 auto total(const ExpenseCategory &category, const Expenses &expenses) -> USD {
