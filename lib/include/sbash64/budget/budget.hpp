@@ -37,7 +37,7 @@ inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
 
 struct Expense {
   USD usd{};
-  ExpenseCategory category;
+  ExpenseCategory category{};
 };
 
 struct Expenses {

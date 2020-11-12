@@ -16,12 +16,18 @@ void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &);
 void categoriesFromNoExpenses(testcpplite::TestResult &);
 void categoriesFromOneExpense(testcpplite::TestResult &);
 void categoriesFromTwoExpensesOfSameCategory(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees2(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees3(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees4(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees5(testcpplite::TestResult &);
-void expenseCategoryTotalHavingMultipleExpenseTrees6(testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories(
+    testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories2(
+    testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories3(
+    testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4(
+    testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5(
+    testcpplite::TestResult &);
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
+    testcpplite::TestResult &);
 void totalHavingMultipleExpenseTrees(testcpplite::TestResult &);
 } // namespace sbash64::budget::calculate
 

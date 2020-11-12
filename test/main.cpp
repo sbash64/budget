@@ -37,17 +37,23 @@ static auto runAllTests() -> int {
         "calculate expense category total having one unrelated expense"},
        {calculate::expenseCategoryTotalHavingOneExpense,
         "calculate expense category total having one expense"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories,
         "calculate expense category total having multiple expense trees"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees2,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories2,
         "calculate expense category total having multiple expense trees 2"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees3,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories3,
         "calculate expense category total having multiple expense trees 3"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees4,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4,
         "calculate expense category total having multiple expense trees 4"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees5,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5,
         "calculate expense category total having multiple expense trees 5"},
-       {calculate::expenseCategoryTotalHavingMultipleExpenseTrees6,
+       {calculate::
+            expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6,
         "calculate expense category total having multiple expense trees 6"},
        {calculate::totalHavingMultipleExpenseTrees,
         "calculate category total having multiple expense trees"},

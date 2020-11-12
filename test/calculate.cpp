@@ -96,7 +96,7 @@ void expenseCategoryTotalHavingOneExpense(testcpplite::TestResult &result) {
             Expenses{{Expense{1_cents, ExpenseCategory{"miscellaneous"}}}}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 2700_cents,
@@ -122,7 +122,7 @@ void expenseCategoryTotalHavingMultipleExpenseTrees(
           ExpenseCategory{"Gifts"}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees2(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories2(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 1100_cents,
@@ -148,7 +148,7 @@ void expenseCategoryTotalHavingMultipleExpenseTrees2(
           ExpenseCategory{"Entertainment"}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees3(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories3(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 400_cents,
@@ -176,7 +176,7 @@ void expenseCategoryTotalHavingMultipleExpenseTrees3(
               Subcategory{RecursiveCategory{ExpenseCategory{"Verizon"}}}}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees4(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories4(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
@@ -204,7 +204,7 @@ void expenseCategoryTotalHavingMultipleExpenseTrees4(
               Subcategory{RecursiveCategory{ExpenseCategory{"Vitamins"}}}}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees5(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories5(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
@@ -232,7 +232,7 @@ void expenseCategoryTotalHavingMultipleExpenseTrees5(
               Subcategory{RecursiveCategory{ExpenseCategory{"Car Rental"}}}}));
 }
 
-void expenseCategoryTotalHavingMultipleExpenseTrees6(
+void expenseCategoryTotalHavingMultipleExpenseCategoriesAndSubcategories6(
     testcpplite::TestResult &result) {
   assertEqual(
       result, 0_cents,
