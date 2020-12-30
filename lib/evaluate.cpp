@@ -6,9 +6,9 @@
 namespace sbash64::budget::evaluate {
 static auto isUsd(std::string_view s) -> bool { return s[0] == '2'; }
 
-static void f(RecursiveExpense &expense, std::stringstream &stream,
-              std::string_view category,
-              std::vector<RecursiveExpense> &expenses) {
+static void initialize(RecursiveExpense &expense, std::stringstream &stream,
+                       std::string_view category,
+                       std::vector<RecursiveExpense> &expenses) {
   expense.category.name = category;
   std::string next;
   stream >> next;
@@ -17,23 +17,22 @@ static void f(RecursiveExpense &expense, std::stringstream &stream,
   } else {
     expenses.push_back({});
     auto &subexpense{expenses.back()};
-    f(subexpense, stream, next, expenses);
+    initialize(subexpense, stream, next, expenses);
     expense.subexpenseOrUsd.emplace<Subexpense>(subexpense);
   }
 }
 
 void command(ExpenseRecord &record, std::string_view s) {
+  LabeledExpense expense;
   std::stringstream stream{s.data()};
   std::string category;
   stream >> category;
   std::vector<RecursiveExpense> expenses;
-  LabeledExpense expense;
-  f(expense.expense, stream, category, expenses);
-  stream.get();
-  char b[100] = {'\0'};
-  stream.getline(b, 100);
-  std::string d{b};
-  expense.label = d;
+  initialize(expense.expense, stream, category, expenses);
+  stream >> std::ws;
+  std::string label;
+  getline(stream, label);
+  expense.label = label;
   record.enter(expense);
 }
 } // namespace sbash64::budget::evaluate
