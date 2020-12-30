@@ -1,7 +1,7 @@
 #include "calculate.hpp"
+#include "collect.hpp"
 #include "parse.hpp"
 #include "print.hpp"
-#include "transform.hpp"
 #include <iostream>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
@@ -65,7 +65,7 @@ static auto runAllTests() -> int {
        {calculate::expenseTotalHavingMultipleExpenseCategoriesAndSubcategories,
         "calculate category total having multiple expense categories and "
         "subcategories"},
-       {transform::expensesToTree, "transform expenses to tree"},
+       {collect::expensesToTree, "collect expenses to tree"},
        {print::prettyBudgetHavingNoIncomeNorExpenses,
         "print pretty budget having no income nor expenses"},
        {print::prettyBudgetHavingNoExpenses,

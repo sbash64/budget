@@ -1,9 +1,9 @@
-#include "transform.hpp"
+#include "collect.hpp"
 #include "usd.hpp"
-#include <sbash64/budget/transform.hpp>
+#include <sbash64/budget/collect.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::transform {
+namespace sbash64::budget::collect {
 static void assertEqual(testcpplite::TestResult &result,
                         const ExpenseTree &expected,
                         const ExpenseTree &actual) {
@@ -47,4 +47,4 @@ void expensesToTree(testcpplite::TestResult &result) {
            {ExpenseCategory{"Gifts"},
             ExpenseTree{{{ExpenseCategory{"Birthdays"}, 4000_cents}}}}}});
 }
-} // namespace sbash64::budget::transform
+} // namespace sbash64::budget::collect

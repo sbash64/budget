@@ -1,10 +1,10 @@
-#ifndef SBASH64_BUDGET_TRANSFORM_HPP_
-#define SBASH64_BUDGET_TRANSFORM_HPP_
+#ifndef SBASH64_BUDGET_COLLECT_HPP_
+#define SBASH64_BUDGET_COLLECT_HPP_
 
 #include "budget.hpp"
 #include <vector>
 
-namespace sbash64::budget::transform {
+namespace sbash64::budget::collect {
 static void add(ExpenseTree &expenseTree, const RecursiveExpense &expense) {
   if (std::holds_alternative<USD>(expense.subexpenseOrUsd)) {
     if (expenseTree.categorizedExpenseTreesOrCosts.count(expense.category) == 0)
@@ -30,6 +30,6 @@ auto expenseTree(const std::vector<RecursiveExpense> &v) -> ExpenseTree {
     add(expenseTree, x);
   return expenseTree;
 }
-} // namespace sbash64::budget::transform
+} // namespace sbash64::budget::collect
 
 #endif
