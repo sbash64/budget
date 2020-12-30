@@ -6,7 +6,7 @@ namespace sbash64::budget::calculate {
 static auto total_(const ExpenseTree &expenseTree) -> USD {
   USD totalUsd{0};
   for (const auto &[category, expenseTreeOrTotalUsd] :
-       expenseTree.categorizedExpenseTreesOrCosts)
+       expenseTree.categorizedExpenseTreesOrTotalUsds)
     totalUsd =
         totalUsd + (std::holds_alternative<ExpenseTree>(expenseTreeOrTotalUsd)
                         ? total_(std::get<ExpenseTree>(expenseTreeOrTotalUsd))
@@ -39,10 +39,10 @@ static auto currentCost(const ExpenseTree &expenseTree,
   return std::holds_alternative<Subexpense>(recursiveExpense.subexpenseOrUsd)
              ? currentCost(
                    std::get<ExpenseTree>(
-                       expenseTree.categorizedExpenseTreesOrCosts.at(
+                       expenseTree.categorizedExpenseTreesOrTotalUsds.at(
                            recursiveExpense.category)),
                    std::get<Subexpense>(recursiveExpense.subexpenseOrUsd))
-             : std::get<USD>(expenseTree.categorizedExpenseTreesOrCosts.at(
+             : std::get<USD>(expenseTree.categorizedExpenseTreesOrTotalUsds.at(
                    recursiveExpense.category));
 }
 
@@ -62,9 +62,10 @@ static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd)
 
 static auto total_(const ExpenseTree &expenseTree,
                    const ExpenseCategory &category) -> USD {
-  return expenseTree.categorizedExpenseTreesOrCosts.count(category) == 0
+  return expenseTree.categorizedExpenseTreesOrTotalUsds.count(category) == 0
              ? USD{0}
-             : total_(expenseTree.categorizedExpenseTreesOrCosts.at(category));
+             : total_(
+                   expenseTree.categorizedExpenseTreesOrTotalUsds.at(category));
 }
 
 auto total(const ExpenseTree &expenseTree, const ExpenseCategory &category)
@@ -78,9 +79,9 @@ static auto total_(const std::variant<ExpenseTree, USD> &expenseTreeOrUsd,
 static auto total_(const ExpenseTree &expenseTree,
                    const RecursiveExpenseCategory &recursiveCategory) -> USD {
   if (recursiveCategory.maybeSubcategory.has_value())
-    return expenseTree.categorizedExpenseTreesOrCosts.count(
+    return expenseTree.categorizedExpenseTreesOrTotalUsds.count(
                recursiveCategory.category) != 0
-               ? total_(expenseTree.categorizedExpenseTreesOrCosts.at(
+               ? total_(expenseTree.categorizedExpenseTreesOrTotalUsds.at(
                             recursiveCategory.category),
                         recursiveCategory.maybeSubcategory.value())
                : USD{0};

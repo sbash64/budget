@@ -3,25 +3,26 @@
 namespace sbash64::budget::collect {
 static auto containsCategory(const ExpenseTree &expenseTree,
                              const RecursiveExpense &expense) -> bool {
-  return expenseTree.categorizedExpenseTreesOrCosts.count(expense.category) ==
-         0;
+  return expenseTree.categorizedExpenseTreesOrTotalUsds.count(
+             expense.category) == 0;
 }
 
 static void insert(ExpenseTree &expenseTree, const RecursiveExpense &expense) {
   if (std::holds_alternative<USD>(expense.subexpenseOrUsd)) {
     if (containsCategory(expenseTree, expense))
-      expenseTree.categorizedExpenseTreesOrCosts[expense.category] = USD{0};
-    expenseTree.categorizedExpenseTreesOrCosts.at(expense.category) =
-        std::get<USD>(
-            expenseTree.categorizedExpenseTreesOrCosts.at(expense.category)) +
+      expenseTree.categorizedExpenseTreesOrTotalUsds[expense.category] = USD{0};
+    expenseTree.categorizedExpenseTreesOrTotalUsds.at(expense.category) =
+        std::get<USD>(expenseTree.categorizedExpenseTreesOrTotalUsds.at(
+            expense.category)) +
         std::get<USD>(expense.subexpenseOrUsd);
   } else {
     if (containsCategory(expenseTree, expense))
-      expenseTree.categorizedExpenseTreesOrCosts[expense.category] =
+      expenseTree.categorizedExpenseTreesOrTotalUsds[expense.category] =
           ExpenseTree{};
-    insert(std::get<ExpenseTree>(
-               expenseTree.categorizedExpenseTreesOrCosts.at(expense.category)),
-           std::get<Subexpense>(expense.subexpenseOrUsd));
+    insert(
+        std::get<ExpenseTree>(expenseTree.categorizedExpenseTreesOrTotalUsds.at(
+            expense.category)),
+        std::get<Subexpense>(expense.subexpenseOrUsd));
   }
 }
 

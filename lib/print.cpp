@@ -17,7 +17,7 @@ static void recursive(std::ostream &stream, const ExpenseTree &expenseTree,
   stream << format_(calculate::total(expenseTree)) << '\n';
   indentation += 4;
   for (const auto &[category, nextExpenseTreeOrCost] :
-       expenseTree.categorizedExpenseTreesOrCosts) {
+       expenseTree.categorizedExpenseTreesOrTotalUsds) {
     stream << std::string(indentation, ' ') << category.name << ": ";
     if (std::holds_alternative<ExpenseTree>(nextExpenseTreeOrCost))
       recursive(stream, std::get<ExpenseTree>(nextExpenseTreeOrCost),

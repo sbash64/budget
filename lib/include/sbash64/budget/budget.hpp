@@ -39,11 +39,12 @@ inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
 struct ExpenseTree {
   std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
-      categorizedExpenseTreesOrCosts;
+      categorizedExpenseTreesOrTotalUsds;
 };
 
 inline auto operator==(const ExpenseTree &a, const ExpenseTree &b) -> bool {
-  return a.categorizedExpenseTreesOrCosts == b.categorizedExpenseTreesOrCosts;
+  return a.categorizedExpenseTreesOrTotalUsds ==
+         b.categorizedExpenseTreesOrTotalUsds;
 }
 
 template <typename T> class rvalue_reference_wrapper {
