@@ -4,9 +4,6 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <string_view>
 
-#include <iostream>
-#include <sbash64/budget/print.hpp>
-
 namespace sbash64::budget::evaluate {
 static void assertEqual(testcpplite::TestResult &result,
                         const LabeledExpense &expected,
