@@ -50,7 +50,6 @@ inline auto operator==(const ExpenseTree &a, const ExpenseTree &b) -> bool {
 template <typename T> class rvalue_reference_wrapper {
 public:
   rvalue_reference_wrapper<T>(const T &rvalue) : rvalue{rvalue} {}
-
   operator T() const { return rvalue; }
 
 private:
@@ -78,6 +77,30 @@ struct RecursiveExpense {
 struct LabeledExpense {
   RecursiveExpense expense;
   std::string label;
+};
+
+inline auto operator==(const RecursiveExpense &a, const RecursiveExpense &b)
+    -> bool {
+  return a.subexpenseOrUsd == b.subexpenseOrUsd && a.category == b.category;
+}
+
+inline auto operator==(const LabeledExpense &a, const LabeledExpense &b)
+    -> bool {
+  return a.expense == b.expense && a.label == b.label;
+}
+
+#define SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(a)                   \
+  virtual ~a() = default;                                                      \
+  a() = default;                                                               \
+  a(const a &) = delete;                                                       \
+  a(a &&) = delete;                                                            \
+  auto operator=(const a &)->a & = delete;                                     \
+  auto operator=(a &&)->a & = delete
+
+class ExpenseRecord {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(ExpenseRecord);
+  virtual void enter(const LabeledExpense &) = 0;
 };
 } // namespace sbash64::budget
 

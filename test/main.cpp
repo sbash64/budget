@@ -1,5 +1,6 @@
 #include "calculate.hpp"
 #include "collect.hpp"
+#include "evaluate.hpp"
 #include "parse.hpp"
 #include "print.hpp"
 #include <iostream>
@@ -20,6 +21,7 @@ static auto runAllTests() -> int {
         "parse three decimal places (X.XXX) as USD"},
        {parse::twelveOneThousandthsAsUsd,
         "parse twelve one-thousandths (0.012) as USD"},
+       {evaluate::enteringExpense, "evaluate entering expense"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,
