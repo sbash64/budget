@@ -35,10 +35,16 @@ inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
   return a.name == b.name;
 }
 
+inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
+
 struct ExpenseTree {
   std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
       categorizedExpenseTreesOrCosts;
 };
+
+inline auto operator==(const ExpenseTree &a, const ExpenseTree &b) -> bool {
+  return a.categorizedExpenseTreesOrCosts == b.categorizedExpenseTreesOrCosts;
+}
 
 template <typename T> class rvalue_reference_wrapper {
 public:
