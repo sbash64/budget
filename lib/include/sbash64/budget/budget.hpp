@@ -74,6 +74,11 @@ struct RecursiveExpense {
   ExpenseCategory category;
   std::variant<USD, Subexpense> subexpenseOrUsd;
 };
+
+struct LabeledExpense {
+  RecursiveExpense expense;
+  std::string label;
+};
 } // namespace sbash64::budget
 
 #endif

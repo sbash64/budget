@@ -12,6 +12,14 @@ static void assertPrettyWithBoundedNewlinesYields(
   assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
 }
 
+static void assertPrettyWithBoundedNewlinesYields(
+    testcpplite::TestResult &result,
+    const std::vector<LabeledExpense> &expenses, std::string_view expected) {
+  std::stringstream stream;
+  pretty(stream, expenses);
+  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+}
+
 static void assertFormatYields(testcpplite::TestResult &result, USD usd,
                                std::string_view expected) {
   assertEqual(result, expected.data(), format(usd));
@@ -130,5 +138,48 @@ void formatOneCent(testcpplite::TestResult &result) {
 
 void formatTenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, 10_cents, "$0.10");
+}
+
+void aFewExpenses(testcpplite::TestResult &result) {
+  assertPrettyWithBoundedNewlinesYields(
+      result,
+      {LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Gifts"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Birthdays"}, 2500_cents}}},
+           "Sam's 24th"},
+       LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Gifts"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Birthdays"}, 1500_cents}}},
+           "Brinley's 3rd"},
+       LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Food"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Dining Out"}, 1300_cents}}},
+           "Chipotle 10/30/20"},
+       LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Phone"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Verizon"}, 6700_cents}}},
+           "Seren's Galaxy"},
+       LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Food"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Groceries"}, 3700_cents}}},
+           "Hyvee 10/15/20"},
+       LabeledExpense{
+           RecursiveExpense{ExpenseCategory{"Food"},
+                            Subexpense{RecursiveExpense{
+                                ExpenseCategory{"Dining Out"}, 850_cents}}},
+           "Raising Cane's 10/17/20"}},
+      R"(
+Gifts::Birthdays: $25.00 - Sam's 24th
+Gifts::Birthdays: $15.00 - Brinley's 3rd
+Food::Dining Out: $13.00 - Chipotle 10/30/20
+Phone::Verizon: $67.00 - Seren's Galaxy
+Food::Groceries: $37.00 - Hyvee 10/15/20
+Food::Dining Out: $8.50 - Raising Cane's 10/17/20
+)");
 }
 } // namespace sbash64::budget::print

@@ -36,4 +36,29 @@ void pretty(std::ostream &stream, Income income,
   recursive(stream, expenseTree, indentation);
   stream << "Difference: " << format_(calculate::surplus(income, expenseTree));
 }
+
+void pretty(std::ostream &stream, const RecursiveExpense &expense) {
+  if (std::holds_alternative<USD>(expense.subexpenseOrUsd)) {
+    stream << expense.category.name << ": ";
+    stream << format_(std::get<USD>(expense.subexpenseOrUsd));
+  } else {
+    stream << expense.category.name << "::";
+    pretty(stream, std::get<Subexpense>(expense.subexpenseOrUsd));
+  }
+}
+
+void pretty(std::ostream &stream, const LabeledExpense &expense) {
+  pretty(stream, expense.expense);
+  stream << " - " << expense.label;
+}
+
+void pretty(std::ostream &stream, const std::vector<LabeledExpense> &expenses) {
+  bool first{true};
+  for (auto expense : expenses) {
+    if (!first)
+      stream << '\n';
+    pretty(stream, expense);
+    first = false;
+  }
+}
 } // namespace sbash64::budget::print

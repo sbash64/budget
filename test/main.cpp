@@ -76,6 +76,7 @@ static auto runAllTests() -> int {
         "print pretty budget having multiple expenses"},
        {print::prettyBudgetHavingMultipleExpenseTrees,
         "print pretty budget having multiple expenses trees"},
+       {print::aFewExpenses, "print a few expenses"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
