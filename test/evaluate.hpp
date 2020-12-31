@@ -7,6 +7,7 @@ namespace sbash64::budget::evaluate {
 void expenseWithOneSubcategory(testcpplite::TestResult &);
 void expenseWithTwoSubcategories(testcpplite::TestResult &);
 void expenseWithMultiWordSubcategories(testcpplite::TestResult &);
+void invalidExpense(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif

@@ -31,10 +31,30 @@ private:
   bool entered{};
 };
 
+class AssertsNoExpenseEntered : public ExpenseRecord {
+public:
+  AssertsNoExpenseEntered(testcpplite::TestResult &testResult)
+      : testResult{testResult} {}
+
+  ~AssertsNoExpenseEntered() override { assertFalse(testResult, entered); }
+
+  void enter(const LabeledExpense &) override { entered = true; }
+
+private:
+  testcpplite::TestResult &testResult;
+  bool entered{};
+};
+
 static void assertExpenseEntered(testcpplite::TestResult &result,
                                  std::string_view c,
                                  const LabeledExpense &expected) {
   AssertsExpenseEntered record{result, expected};
+  command(record, c);
+}
+
+static void assertNoExpenseEntered(testcpplite::TestResult &result,
+                                   std::string_view c) {
+  AssertsNoExpenseEntered record{result};
   command(record, c);
 }
 
@@ -70,5 +90,10 @@ void expenseWithMultiWordSubcategories(testcpplite::TestResult &result) {
                                               ExpenseCategory{"With Friends"},
                                               930_cents}}}}},
                      "Chipotle 10/13/20"});
+}
+
+void invalidExpense(testcpplite::TestResult &result) {
+  assertNoExpenseEntered(
+      result, R"(Food "Dining Out" "With Friends" Chipotle 10/13/20)");
 }
 } // namespace sbash64::budget::evaluate

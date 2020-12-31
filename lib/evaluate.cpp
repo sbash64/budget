@@ -17,11 +17,15 @@ static auto getNext(std::stringstream &stream) -> std::string {
   return next;
 }
 
+class InvalidCommand {};
+
 static void initialize(RecursiveExpense &expense, std::stringstream &stream,
                        std::string_view category,
                        std::forward_list<RecursiveExpense> &expenses) {
   expense.category.name = category;
   auto next{getNext(stream)};
+  if (next.empty())
+    throw InvalidCommand{};
   if (parse::isUsd(next)) {
     expense.subexpenseOrUsd = parse::usd(next);
   } else {
@@ -38,11 +42,14 @@ void command(ExpenseRecord &record, std::string_view s) {
   std::string category;
   stream >> category;
   std::forward_list<RecursiveExpense> expenses;
-  initialize(expense.expense, stream, category, expenses);
-  stream >> std::ws;
-  std::string label;
-  getline(stream, label);
-  expense.label = label;
-  record.enter(expense);
+  try {
+    initialize(expense.expense, stream, category, expenses);
+    stream >> std::ws;
+    std::string label;
+    getline(stream, label);
+    expense.label = label;
+    record.enter(expense);
+  } catch (const InvalidCommand &) {
+  }
 }
 } // namespace sbash64::budget::evaluate
