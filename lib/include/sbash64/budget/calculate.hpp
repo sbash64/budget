@@ -2,12 +2,12 @@
 #define SBASH64_BUDGET_CALCULATE_HPP_
 
 #include "budget.hpp"
-#include <vector>
 
 namespace sbash64::budget::calculate {
 auto surplus(Income, const ExpenseTree &) -> USD;
 
-auto surplus(Income, const ExpenseTree &, const RecursiveExpense &) -> USD;
+auto surplusAfterUpdate(Income, const ExpenseTree &, const RecursiveExpense &)
+    -> USD;
 
 auto total(const ExpenseTree &) -> USD;
 

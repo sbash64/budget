@@ -56,7 +56,7 @@ void surplusHavingMultipleExpenses(testcpplite::TestResult &result) {
 void surplusAfterExpenseChange(testcpplite::TestResult &result) {
   assertEqual(
       result, 800_cents,
-      surplus(
+      surplusAfterUpdate(
           Income{10000_cents},
           ExpenseTree{{{Category{"Food"},
                         ExpenseTree{{{Category{"Dining Out"}, 200_cents},
