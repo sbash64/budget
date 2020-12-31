@@ -38,7 +38,7 @@ static void assertExpenseEntered(testcpplite::TestResult &result,
   command(record, c);
 }
 
-void enteringExpense(testcpplite::TestResult &result) {
+void expenseWithOneSubcategory(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, "Gifts Birthdays 25 Sam's 24th",
       LabeledExpense{
@@ -46,5 +46,26 @@ void enteringExpense(testcpplite::TestResult &result) {
                            Subexpense{RecursiveExpense{
                                ExpenseCategory{"Birthdays"}, 2500_cents}}},
           "Sam's 24th"});
+}
+
+void expenseWithTwoSubcategories(testcpplite::TestResult &result) {
+  assertExpenseEntered(
+      result, "Gifts Birthdays Sam 25 24th",
+      LabeledExpense{
+          RecursiveExpense{ExpenseCategory{"Gifts"},
+                           Subexpense{RecursiveExpense{
+                               ExpenseCategory{"Birthdays"},
+                               Subexpense{RecursiveExpense{
+                                   ExpenseCategory{"Sam"}, 2500_cents}}}}},
+          "24th"});
+  assertExpenseEntered(
+      result, R"(Food "Dining Out" "With Friends" 9.30 Chipotle 10/13/20)",
+      LabeledExpense{RecursiveExpense{ExpenseCategory{"Food"},
+                                      Subexpense{RecursiveExpense{
+                                          ExpenseCategory{"Dining Out"},
+                                          Subexpense{RecursiveExpense{
+                                              ExpenseCategory{"With Friends"},
+                                              930_cents}}}}},
+                     "Chipotle 10/13/20"});
 }
 } // namespace sbash64::budget::evaluate

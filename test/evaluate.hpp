@@ -4,7 +4,8 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::evaluate {
-void enteringExpense(testcpplite::TestResult &);
+void expenseWithOneSubcategory(testcpplite::TestResult &);
+void expenseWithTwoSubcategories(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif
