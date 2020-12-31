@@ -22,6 +22,7 @@ static auto runAllTests() -> int {
        {parse::twelveOneThousandthsAsUsd,
         "parse twelve one-thousandths (0.012) as USD"},
        {parse::alphabeticIsNotUsd, "alphabetic ([a-z]) is not USD"},
+       {parse::integerIsUsd, "integer is USD"},
        {evaluate::enteringExpense, "evaluate entering expense"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},

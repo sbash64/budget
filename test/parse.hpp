@@ -14,6 +14,7 @@ void withoutLeadingZeroAsUsd(testcpplite::TestResult &);
 void threeDecimalPlacesAsUsd(testcpplite::TestResult &);
 void twelveOneThousandthsAsUsd(testcpplite::TestResult &);
 void alphabeticIsNotUsd(testcpplite::TestResult &);
+void integerIsUsd(testcpplite::TestResult &);
 } // namespace sbash64::budget::parse
 
 #endif

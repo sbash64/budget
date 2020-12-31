@@ -49,7 +49,13 @@ static void assertIsNotUsd(testcpplite::TestResult &result,
   assertFalse(result, isUsd(s));
 }
 
+static void assertIsUsd(testcpplite::TestResult &result, std::string_view s) {
+  assertTrue(result, isUsd(s));
+}
+
 void alphabeticIsNotUsd(testcpplite::TestResult &result) {
   assertIsNotUsd(result, "a");
 }
+
+void integerIsUsd(testcpplite::TestResult &result) { assertIsUsd(result, "1"); }
 } // namespace sbash64::budget::parse
