@@ -61,35 +61,33 @@ static void assertNoExpenseEntered(testcpplite::TestResult &result,
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, "Gifts Birthdays 25 Sam's 24th",
-      LabeledExpense{
-          RecursiveExpense{ExpenseCategory{"Gifts"},
-                           Subexpense{RecursiveExpense{
-                               ExpenseCategory{"Birthdays"}, 2500_cents}}},
-          "Sam's 24th"});
+      LabeledExpense{RecursiveExpense{Category{"Gifts"},
+                                      Subexpense{RecursiveExpense{
+                                          Category{"Birthdays"}, 2500_cents}}},
+                     "Sam's 24th"});
 }
 
 void expenseWithTwoSubcategories(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, "Gifts Birthdays Sam 25 24th",
-      LabeledExpense{
-          RecursiveExpense{ExpenseCategory{"Gifts"},
-                           Subexpense{RecursiveExpense{
-                               ExpenseCategory{"Birthdays"},
-                               Subexpense{RecursiveExpense{
-                                   ExpenseCategory{"Sam"}, 2500_cents}}}}},
-          "24th"});
+      LabeledExpense{RecursiveExpense{Category{"Gifts"},
+                                      Subexpense{RecursiveExpense{
+                                          Category{"Birthdays"},
+                                          Subexpense{RecursiveExpense{
+                                              Category{"Sam"}, 2500_cents}}}}},
+                     "24th"});
 }
 
 void expenseWithMultiWordSubcategories(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, R"(Food "Dining Out" "With Friends" 9.30 Chipotle 10/13/20)",
-      LabeledExpense{RecursiveExpense{ExpenseCategory{"Food"},
-                                      Subexpense{RecursiveExpense{
-                                          ExpenseCategory{"Dining Out"},
-                                          Subexpense{RecursiveExpense{
-                                              ExpenseCategory{"With Friends"},
-                                              930_cents}}}}},
-                     "Chipotle 10/13/20"});
+      LabeledExpense{
+          RecursiveExpense{Category{"Food"},
+                           Subexpense{RecursiveExpense{
+                               Category{"Dining Out"},
+                               Subexpense{RecursiveExpense{
+                                   Category{"With Friends"}, 930_cents}}}}},
+          "Chipotle 10/13/20"});
 }
 
 void invalidExpense(testcpplite::TestResult &result) {

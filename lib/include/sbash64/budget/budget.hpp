@@ -22,28 +22,24 @@ struct Income {
   USD usd;
 };
 
-struct ExpenseCategory {
+struct Category {
   std::string name;
 };
 
-inline auto operator<(const ExpenseCategory &a, const ExpenseCategory &b)
-    -> bool {
+inline auto operator<(const Category &a, const Category &b) -> bool {
   return a.name < b.name;
 }
 
-inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
-    -> bool {
+inline auto operator==(const Category &a, const Category &b) -> bool {
   return a.name == b.name;
 }
 
 struct ExpenseTree {
-  std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
-      categorizedExpenseTreesOrTotalUsds;
+  std::map<Category, std::variant<ExpenseTree, USD>> expenseTreeOrUsd;
 };
 
 inline auto operator==(const ExpenseTree &a, const ExpenseTree &b) -> bool {
-  return a.categorizedExpenseTreesOrTotalUsds ==
-         b.categorizedExpenseTreesOrTotalUsds;
+  return a.expenseTreeOrUsd == b.expenseTreeOrUsd;
 }
 
 template <typename T> class rvalue_reference_wrapper {
@@ -60,7 +56,7 @@ struct RecursiveExpenseCategory;
 using ExpenseSubcategory = rvalue_reference_wrapper<RecursiveExpenseCategory>;
 
 struct RecursiveExpenseCategory {
-  ExpenseCategory category;
+  Category category;
   std::optional<ExpenseSubcategory> maybeSubcategory{};
 };
 
@@ -69,7 +65,7 @@ struct RecursiveExpense;
 using Subexpense = rvalue_reference_wrapper<RecursiveExpense>;
 
 struct RecursiveExpense {
-  ExpenseCategory category;
+  Category category;
   std::variant<USD, Subexpense> subexpenseOrUsd;
 };
 

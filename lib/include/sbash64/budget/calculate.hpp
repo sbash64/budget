@@ -11,7 +11,7 @@ auto surplus(Income, const ExpenseTree &, const RecursiveExpense &) -> USD;
 
 auto total(const ExpenseTree &) -> USD;
 
-auto total(const ExpenseTree &, const ExpenseCategory &) -> USD;
+auto total(const ExpenseTree &, const Category &) -> USD;
 
 auto total(const ExpenseTree &, const RecursiveExpenseCategory &) -> USD;
 } // namespace sbash64::budget::calculate

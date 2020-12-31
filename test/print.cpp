@@ -44,12 +44,11 @@ Difference: $1.00
 }
 
 void prettyBudgetHavingOneExpense(testcpplite::TestResult &result) {
-  assertPrettyWithBoundedNewlinesYields(
-      result, Income{100_cents},
-      ExpenseTree{{
-          {ExpenseCategory{"Groceries"}, 25_cents},
-      }},
-      R"(
+  assertPrettyWithBoundedNewlinesYields(result, Income{100_cents},
+                                        ExpenseTree{{
+                                            {Category{"Groceries"}, 25_cents},
+                                        }},
+                                        R"(
 Income: $1.00
 Expenses: $0.25
     Groceries: $0.25
@@ -61,11 +60,11 @@ void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{25000_cents},
       ExpenseTree{{
-          {ExpenseCategory{"Entertainment"}, 342_cents},
-          {ExpenseCategory{"Giving"}, 1266_cents},
-          {ExpenseCategory{"Rent"}, 6241_cents},
-          {ExpenseCategory{"Groceries"}, 7510_cents},
-          {ExpenseCategory{"Gas"}, 9431_cents},
+          {Category{"Entertainment"}, 342_cents},
+          {Category{"Giving"}, 1266_cents},
+          {Category{"Rent"}, 6241_cents},
+          {Category{"Groceries"}, 7510_cents},
+          {Category{"Gas"}, 9431_cents},
       }},
       R"(
 Income: $250.00
@@ -83,23 +82,21 @@ void prettyBudgetHavingMultipleExpenseTrees(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result, Income{10000_cents},
       ExpenseTree{
-          {{ExpenseCategory{"Food"},
-            ExpenseTree{{{ExpenseCategory{"Dining Out"}, 200_cents},
-                         {ExpenseCategory{"Groceries"}, 300_cents}}}},
-           {ExpenseCategory{"Phone"},
-            ExpenseTree{{{ExpenseCategory{"Verizon"}, 400_cents},
-                         {ExpenseCategory{"Light"}, 500_cents}}}},
-           {ExpenseCategory{"Health"},
-            ExpenseTree{{{ExpenseCategory{"Gym"}, 600_cents},
-                         {ExpenseCategory{"Other"}, 700_cents}}}},
-           {ExpenseCategory{"Gifts"},
-            ExpenseTree{{{ExpenseCategory{"Christmas"}, 800_cents},
-                         {ExpenseCategory{"Birthdays"}, 900_cents},
-                         {ExpenseCategory{"Anniversary"}, 1000_cents}}}},
-           {ExpenseCategory{"Entertainment"}, 1100_cents},
-           {ExpenseCategory{"Car Loans"},
-            ExpenseTree{{{ExpenseCategory{"Honda"}, 1200_cents},
-                         {ExpenseCategory{"Ford"}, 1300_cents}}}}}},
+          {{Category{"Food"},
+            ExpenseTree{{{Category{"Dining Out"}, 200_cents},
+                         {Category{"Groceries"}, 300_cents}}}},
+           {Category{"Phone"}, ExpenseTree{{{Category{"Verizon"}, 400_cents},
+                                            {Category{"Light"}, 500_cents}}}},
+           {Category{"Health"}, ExpenseTree{{{Category{"Gym"}, 600_cents},
+                                             {Category{"Other"}, 700_cents}}}},
+           {Category{"Gifts"},
+            ExpenseTree{{{Category{"Christmas"}, 800_cents},
+                         {Category{"Birthdays"}, 900_cents},
+                         {Category{"Anniversary"}, 1000_cents}}}},
+           {Category{"Entertainment"}, 1100_cents},
+           {Category{"Car Loans"},
+            ExpenseTree{{{Category{"Honda"}, 1200_cents},
+                         {Category{"Ford"}, 1300_cents}}}}}},
       R"(
 Income: $100.00
 Expenses: $90.00
@@ -143,36 +140,31 @@ void formatTenCents(testcpplite::TestResult &result) {
 void aFewExpenses(testcpplite::TestResult &result) {
   assertPrettyWithBoundedNewlinesYields(
       result,
-      {LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Gifts"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Birthdays"}, 2500_cents}}},
-           "Sam's 24th"},
+      {LabeledExpense{RecursiveExpense{Category{"Gifts"},
+                                       Subexpense{RecursiveExpense{
+                                           Category{"Birthdays"}, 2500_cents}}},
+                      "Sam's 24th"},
+       LabeledExpense{RecursiveExpense{Category{"Gifts"},
+                                       Subexpense{RecursiveExpense{
+                                           Category{"Birthdays"}, 1500_cents}}},
+                      "Brinley's 3rd"},
        LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Gifts"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Birthdays"}, 1500_cents}}},
-           "Brinley's 3rd"},
-       LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Food"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Dining Out"}, 1300_cents}}},
+           RecursiveExpense{Category{"Food"},
+                            Subexpense{RecursiveExpense{Category{"Dining Out"},
+                                                        1300_cents}}},
            "Chipotle 10/30/20"},
-       LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Phone"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Verizon"}, 6700_cents}}},
-           "Seren's Galaxy"},
-       LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Food"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Groceries"}, 3700_cents}}},
-           "Hyvee 10/15/20"},
-       LabeledExpense{
-           RecursiveExpense{ExpenseCategory{"Food"},
-                            Subexpense{RecursiveExpense{
-                                ExpenseCategory{"Dining Out"}, 850_cents}}},
-           "Raising Cane's 10/17/20"}},
+       LabeledExpense{RecursiveExpense{Category{"Phone"},
+                                       Subexpense{RecursiveExpense{
+                                           Category{"Verizon"}, 6700_cents}}},
+                      "Seren's Galaxy"},
+       LabeledExpense{RecursiveExpense{Category{"Food"},
+                                       Subexpense{RecursiveExpense{
+                                           Category{"Groceries"}, 3700_cents}}},
+                      "Hyvee 10/15/20"},
+       LabeledExpense{RecursiveExpense{Category{"Food"},
+                                       Subexpense{RecursiveExpense{
+                                           Category{"Dining Out"}, 850_cents}}},
+                      "Raising Cane's 10/17/20"}},
       R"(
 Gifts::Birthdays: $25.00 - Sam's 24th
 Gifts::Birthdays: $15.00 - Brinley's 3rd

@@ -20,31 +20,30 @@ assertYieldsExpenseTree(testcpplite::TestResult &result,
 void expensesToTree(testcpplite::TestResult &result) {
   assertYieldsExpenseTree(
       result,
-      {RecursiveExpense{ExpenseCategory{"Gifts"},
-                        Subexpense{RecursiveExpense{
-                            ExpenseCategory{"Birthdays"}, 2500_cents}}},
-       RecursiveExpense{ExpenseCategory{"Gifts"},
-                        Subexpense{RecursiveExpense{
-                            ExpenseCategory{"Birthdays"}, 1500_cents}}},
-       RecursiveExpense{ExpenseCategory{"Food"},
-                        Subexpense{RecursiveExpense{
-                            ExpenseCategory{"Dining Out"}, 1300_cents}}},
-       RecursiveExpense{ExpenseCategory{"Phone"},
-                        Subexpense{RecursiveExpense{ExpenseCategory{"Verizon"},
-                                                    6700_cents}}},
-       RecursiveExpense{ExpenseCategory{"Food"},
-                        Subexpense{RecursiveExpense{
-                            ExpenseCategory{"Groceries"}, 3700_cents}}},
-       RecursiveExpense{ExpenseCategory{"Food"},
-                        Subexpense{RecursiveExpense{
-                            ExpenseCategory{"Dining Out"}, 850_cents}}}},
-      ExpenseTree{
-          {{ExpenseCategory{"Food"},
-            ExpenseTree{{{ExpenseCategory{"Dining Out"}, 2150_cents},
-                         {ExpenseCategory{"Groceries"}, 3700_cents}}}},
-           {ExpenseCategory{"Phone"},
-            ExpenseTree{{{ExpenseCategory{"Verizon"}, 6700_cents}}}},
-           {ExpenseCategory{"Gifts"},
-            ExpenseTree{{{ExpenseCategory{"Birthdays"}, 4000_cents}}}}}});
+      {RecursiveExpense{
+           Category{"Gifts"},
+           Subexpense{RecursiveExpense{Category{"Birthdays"}, 2500_cents}}},
+       RecursiveExpense{
+           Category{"Gifts"},
+           Subexpense{RecursiveExpense{Category{"Birthdays"}, 1500_cents}}},
+       RecursiveExpense{
+           Category{"Food"},
+           Subexpense{RecursiveExpense{Category{"Dining Out"}, 1300_cents}}},
+       RecursiveExpense{
+           Category{"Phone"},
+           Subexpense{RecursiveExpense{Category{"Verizon"}, 6700_cents}}},
+       RecursiveExpense{
+           Category{"Food"},
+           Subexpense{RecursiveExpense{Category{"Groceries"}, 3700_cents}}},
+       RecursiveExpense{
+           Category{"Food"},
+           Subexpense{RecursiveExpense{Category{"Dining Out"}, 850_cents}}}},
+      ExpenseTree{{{Category{"Food"},
+                    ExpenseTree{{{Category{"Dining Out"}, 2150_cents},
+                                 {Category{"Groceries"}, 3700_cents}}}},
+                   {Category{"Phone"},
+                    ExpenseTree{{{Category{"Verizon"}, 6700_cents}}}},
+                   {Category{"Gifts"},
+                    ExpenseTree{{{Category{"Birthdays"}, 4000_cents}}}}}});
 }
 } // namespace sbash64::budget::collect
