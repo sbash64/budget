@@ -43,4 +43,13 @@ void threeDecimalPlacesAsUsd(testcpplite::TestResult &result) {
 void twelveOneThousandthsAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, ".012");
 }
+
+static void assertIsNotUsd(testcpplite::TestResult &result,
+                           std::string_view s) {
+  assertFalse(result, isUsd(s));
+}
+
+void alphabeticIsNotUsd(testcpplite::TestResult &result) {
+  assertIsNotUsd(result, "a");
+}
 } // namespace sbash64::budget::parse

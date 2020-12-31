@@ -4,15 +4,13 @@
 #include <vector>
 
 namespace sbash64::budget::evaluate {
-static auto isUsd(std::string_view s) -> bool { return s[0] == '2'; }
-
 static void initialize(RecursiveExpense &expense, std::stringstream &stream,
                        std::string_view category,
                        std::vector<RecursiveExpense> &expenses) {
   expense.category.name = category;
   std::string next;
   stream >> next;
-  if (isUsd(next)) {
+  if (parse::isUsd(next)) {
     expense.subexpenseOrUsd = parse::usd(next);
   } else {
     expenses.push_back({});

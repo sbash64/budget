@@ -6,6 +6,7 @@
 
 namespace sbash64::budget::parse {
 auto usd(std::string_view) -> USD;
+auto isUsd(std::string_view) -> bool;
 } // namespace sbash64::budget::parse
 
 #endif

@@ -21,4 +21,6 @@ auto usd(std::string_view s) -> USD {
   }
   return usd;
 }
+
+auto isUsd(std::string_view s) -> bool { return s[0] == '2'; }
 } // namespace sbash64::budget::parse
