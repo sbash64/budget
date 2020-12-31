@@ -50,25 +50,25 @@ private:
   bool entered{};
 };
 
-class AssertsPrints : public ExpenseRecord {
+class AssertsPrinted : public ExpenseRecord {
 public:
-  AssertsPrints(testcpplite::TestResult &testResult,
-                const std::ostream &expectedStream)
+  AssertsPrinted(testcpplite::TestResult &testResult,
+                 const std::ostream &expectedStream)
       : expectedStream{expectedStream}, testResult{testResult} {}
 
-  ~AssertsPrints() override { assertTrue(testResult, prints); }
+  ~AssertsPrinted() override { assertTrue(testResult, printed); }
 
   void enter(const LabeledExpense &) override {}
 
   void print(std::ostream &s) override {
     assertTrue(testResult, &expectedStream == &s);
-    prints = true;
+    printed = true;
   }
 
 private:
   const std::ostream &expectedStream;
   testcpplite::TestResult &testResult;
-  bool prints{};
+  bool printed{};
 };
 
 static void assertExpenseEntered(testcpplite::TestResult &result,
@@ -86,9 +86,10 @@ static void assertNoExpenseEntered(testcpplite::TestResult &result,
   command(record, c, s);
 }
 
-static void assertPrints(testcpplite::TestResult &result, std::string_view c) {
+static void assertExpenseRecordPrinted(testcpplite::TestResult &result,
+                                       std::string_view c) {
   std::stringstream s;
-  AssertsPrints record{result, s};
+  AssertsPrinted record{result, s};
   command(record, c, s);
 }
 
@@ -130,6 +131,6 @@ void invalidExpense(testcpplite::TestResult &result) {
 }
 
 void printCommand(testcpplite::TestResult &result) {
-  assertPrints(result, "print");
+  assertExpenseRecordPrinted(result, "print");
 }
 } // namespace sbash64::budget::evaluate
