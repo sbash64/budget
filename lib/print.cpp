@@ -54,7 +54,7 @@ void pretty(std::ostream &stream, const LabeledExpense &expense) {
 
 void pretty(std::ostream &stream, const std::vector<LabeledExpense> &expenses) {
   bool first{true};
-  for (auto expense : expenses) {
+  for (const auto &expense : expenses) {
     if (!first)
       stream << '\n';
     pretty(stream, expense);
