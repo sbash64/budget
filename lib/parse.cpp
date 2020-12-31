@@ -25,7 +25,8 @@ auto usd(std::string_view s) -> USD {
 }
 
 auto isUsd(std::string_view s) -> bool {
-  return std::all_of(s.begin(), s.end(),
-                     [](unsigned char c) { return std::isdigit(c); });
+  return std::all_of(s.begin(), s.end(), [](unsigned char c) {
+    return std::isdigit(c) || c == '.';
+  });
 }
 } // namespace sbash64::budget::parse

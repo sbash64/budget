@@ -15,6 +15,7 @@ void threeDecimalPlacesAsUsd(testcpplite::TestResult &);
 void twelveOneThousandthsAsUsd(testcpplite::TestResult &);
 void alphabeticIsNotUsd(testcpplite::TestResult &);
 void integerIsUsd(testcpplite::TestResult &);
+void decimalIsUsd(testcpplite::TestResult &);
 } // namespace sbash64::budget::parse
 
 #endif

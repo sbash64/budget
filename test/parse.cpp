@@ -58,4 +58,8 @@ void alphabeticIsNotUsd(testcpplite::TestResult &result) {
 }
 
 void integerIsUsd(testcpplite::TestResult &result) { assertIsUsd(result, "1"); }
+
+void decimalIsUsd(testcpplite::TestResult &result) {
+  assertIsUsd(result, "1.2");
+}
 } // namespace sbash64::budget::parse
