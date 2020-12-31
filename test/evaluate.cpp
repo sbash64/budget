@@ -58,6 +58,9 @@ void expenseWithTwoSubcategories(testcpplite::TestResult &result) {
                                Subexpense{RecursiveExpense{
                                    ExpenseCategory{"Sam"}, 2500_cents}}}}},
           "24th"});
+}
+
+void expenseWithMultiWordSubcategories(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, R"(Food "Dining Out" "With Friends" 9.30 Chipotle 10/13/20)",
       LabeledExpense{RecursiveExpense{ExpenseCategory{"Food"},
