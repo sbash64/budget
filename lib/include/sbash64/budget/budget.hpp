@@ -6,7 +6,6 @@
 #include <optional>
 #include <string>
 #include <variant>
-#include <vector>
 
 namespace sbash64::budget {
 struct USD {
@@ -16,6 +15,8 @@ struct USD {
 inline auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 
 inline auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
+
+inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
 struct Income {
   USD usd;
@@ -34,8 +35,6 @@ inline auto operator==(const ExpenseCategory &a, const ExpenseCategory &b)
     -> bool {
   return a.name == b.name;
 }
-
-inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
 struct ExpenseTree {
   std::map<ExpenseCategory, std::variant<ExpenseTree, USD>>
@@ -74,15 +73,15 @@ struct RecursiveExpense {
   std::variant<USD, Subexpense> subexpenseOrUsd;
 };
 
-struct LabeledExpense {
-  RecursiveExpense expense;
-  std::string label;
-};
-
 inline auto operator==(const RecursiveExpense &a, const RecursiveExpense &b)
     -> bool {
   return a.subexpenseOrUsd == b.subexpenseOrUsd && a.category == b.category;
 }
+
+struct LabeledExpense {
+  RecursiveExpense expense;
+  std::string label;
+};
 
 inline auto operator==(const LabeledExpense &a, const LabeledExpense &b)
     -> bool {
