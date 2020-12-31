@@ -21,8 +21,8 @@ public:
 
   ~AssertsExpenseEntered() override { assertTrue(testResult, entered); }
 
-  void enter(const LabeledExpense &e) override {
-    assertEqual(testResult, expectedLabeledExpense, e);
+  void enter(const LabeledExpense &actual) override {
+    assertEqual(testResult, expectedLabeledExpense, actual);
     entered = true;
   }
 
@@ -60,8 +60,8 @@ public:
 
   void enter(const LabeledExpense &) override {}
 
-  void print(std::ostream &s) override {
-    assertTrue(testResult, &expectedStream == &s);
+  void print(std::ostream &actual) override {
+    assertTrue(testResult, &expectedStream == &actual);
     printed = true;
   }
 
@@ -72,25 +72,25 @@ private:
 };
 
 static void assertExpenseEntered(testcpplite::TestResult &result,
-                                 std::string_view c,
+                                 std::string_view input,
                                  const LabeledExpense &expected) {
-  std::stringstream s;
+  std::stringstream output;
   AssertsExpenseEntered record{result, expected};
-  command(record, c, s);
+  command(record, input, output);
 }
 
 static void assertNoExpenseEntered(testcpplite::TestResult &result,
-                                   std::string_view c) {
-  std::stringstream s;
+                                   std::string_view input) {
+  std::stringstream output;
   AssertsNoExpenseEntered record{result};
-  command(record, c, s);
+  command(record, input, output);
 }
 
 static void assertExpenseRecordPrinted(testcpplite::TestResult &result,
-                                       std::string_view c) {
-  std::stringstream s;
-  AssertsPrinted record{result, s};
-  command(record, c, s);
+                                       std::string_view input) {
+  std::stringstream output;
+  AssertsPrinted record{result, output};
+  command(record, input, output);
 }
 
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
