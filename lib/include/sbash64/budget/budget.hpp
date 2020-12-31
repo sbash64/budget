@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <variant>
 
@@ -96,6 +97,7 @@ class ExpenseRecord {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(ExpenseRecord);
   virtual void enter(const LabeledExpense &) = 0;
+  virtual void print(std::ostream &) = 0;
 };
 } // namespace sbash64::budget
 

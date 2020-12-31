@@ -2,6 +2,7 @@
 #include "usd.hpp"
 #include <sbash64/budget/evaluate.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
+#include <sstream>
 #include <string_view>
 
 namespace sbash64::budget::evaluate {
@@ -25,6 +26,8 @@ public:
     entered = true;
   }
 
+  void print(std::ostream &) override {}
+
 private:
   const LabeledExpense &expectedLabeledExpense;
   testcpplite::TestResult &testResult;
@@ -40,22 +43,53 @@ public:
 
   void enter(const LabeledExpense &) override { entered = true; }
 
+  void print(std::ostream &) override {}
+
 private:
   testcpplite::TestResult &testResult;
   bool entered{};
 };
 
+class AssertsPrints : public ExpenseRecord {
+public:
+  AssertsPrints(testcpplite::TestResult &testResult,
+                const std::ostream &expectedStream)
+      : expectedStream{expectedStream}, testResult{testResult} {}
+
+  ~AssertsPrints() override { assertTrue(testResult, prints); }
+
+  void enter(const LabeledExpense &) override {}
+
+  void print(std::ostream &s) override {
+    assertTrue(testResult, &expectedStream == &s);
+    prints = true;
+  }
+
+private:
+  const std::ostream &expectedStream;
+  testcpplite::TestResult &testResult;
+  bool prints{};
+};
+
 static void assertExpenseEntered(testcpplite::TestResult &result,
                                  std::string_view c,
                                  const LabeledExpense &expected) {
+  std::stringstream s;
   AssertsExpenseEntered record{result, expected};
-  command(record, c);
+  command(record, c, s);
 }
 
 static void assertNoExpenseEntered(testcpplite::TestResult &result,
                                    std::string_view c) {
+  std::stringstream s;
   AssertsNoExpenseEntered record{result};
-  command(record, c);
+  command(record, c, s);
+}
+
+static void assertPrints(testcpplite::TestResult &result, std::string_view c) {
+  std::stringstream s;
+  AssertsPrints record{result, s};
+  command(record, c, s);
 }
 
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
@@ -93,5 +127,9 @@ void expenseWithMultiWordSubcategories(testcpplite::TestResult &result) {
 void invalidExpense(testcpplite::TestResult &result) {
   assertNoExpenseEntered(
       result, R"(Food "Dining Out" "With Friends" Chipotle 10/13/20)");
+}
+
+void printCommand(testcpplite::TestResult &result) {
+  assertPrints(result, "print");
 }
 } // namespace sbash64::budget::evaluate

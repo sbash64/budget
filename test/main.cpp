@@ -31,6 +31,7 @@ static auto runAllTests() -> int {
        {evaluate::expenseWithMultiWordSubcategories,
         "evaluate expense with multi-word subcategories"},
        {evaluate::invalidExpense, "evaluate invalid expense"},
+       {evaluate::printCommand, "evaluate print command"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

@@ -38,20 +38,24 @@ static void initialize(RecursiveExpense &expense, std::stringstream &stream,
   }
 }
 
-void command(ExpenseRecord &record, std::string_view s) {
+void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
   LabeledExpense expense;
   std::stringstream stream{s.data()};
   std::string category;
   stream >> category;
-  std::forward_list<RecursiveExpense> expenses;
-  try {
-    initialize(expense.expense, stream, category, expenses);
-    stream >> std::ws;
-    std::string label;
-    getline(stream, label);
-    expense.label = label;
-    record.enter(expense);
-  } catch (const InvalidCommand &) {
+  if (category == "print") {
+    record.print(output);
+  } else {
+    std::forward_list<RecursiveExpense> expenses;
+    try {
+      initialize(expense.expense, stream, category, expenses);
+      stream >> std::ws;
+      std::string label;
+      getline(stream, label);
+      expense.label = label;
+      record.enter(expense);
+    } catch (const InvalidCommand &) {
+    }
   }
 }
 } // namespace sbash64::budget::evaluate
