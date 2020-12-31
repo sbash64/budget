@@ -37,7 +37,7 @@ void pretty(std::ostream &stream, Income income,
   stream << "Difference: " << format_(calculate::surplus(income, expenseTree));
 }
 
-void pretty(std::ostream &stream, const RecursiveExpense &expense) {
+static void pretty(std::ostream &stream, const RecursiveExpense &expense) {
   if (std::holds_alternative<USD>(expense.subexpenseOrUsd)) {
     stream << expense.category.name << ": ";
     stream << format_(std::get<USD>(expense.subexpenseOrUsd));

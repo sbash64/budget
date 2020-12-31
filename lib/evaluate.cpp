@@ -1,5 +1,6 @@
 #include "evaluate.hpp"
 #include "parse.hpp"
+#include "print.hpp"
 #include <forward_list>
 #include <sstream>
 
@@ -54,6 +55,7 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
       getline(stream, label);
       expense.label = label;
       record.enter(expense);
+      print::pretty(output, expense);
     } catch (const InvalidCommand &) {
     }
   }

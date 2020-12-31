@@ -71,6 +71,13 @@ private:
   bool printed{};
 };
 
+class ExpenseRecordStub : public ExpenseRecord {
+public:
+  void enter(const LabeledExpense &) override {}
+
+  void print(std::ostream &) override {}
+};
+
 static void assertExpenseEntered(testcpplite::TestResult &result,
                                  std::string_view input,
                                  const LabeledExpense &expected) {
@@ -91,6 +98,14 @@ static void assertExpenseRecordPrinted(testcpplite::TestResult &result,
   std::stringstream output;
   AssertsPrinted record{result, output};
   command(record, input, output);
+}
+
+static void assertPrints(testcpplite::TestResult &result,
+                         std::string_view input, std::string_view expected) {
+  std::stringstream output;
+  ExpenseRecordStub record;
+  command(record, input, output);
+  assertEqual(result, std::string{expected}, output.str());
 }
 
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
@@ -132,5 +147,10 @@ void invalidExpense(testcpplite::TestResult &result) {
 
 void printCommand(testcpplite::TestResult &result) {
   assertExpenseRecordPrinted(result, "print");
+}
+
+void expenseShouldPrintExpense(testcpplite::TestResult &result) {
+  assertPrints(result, "Gifts Birthdays 25 Sam's 24th",
+               "Gifts::Birthdays: $25.00 - Sam's 24th");
 }
 } // namespace sbash64::budget::evaluate

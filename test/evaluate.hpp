@@ -9,6 +9,7 @@ void expenseWithTwoSubcategories(testcpplite::TestResult &);
 void expenseWithMultiWordSubcategories(testcpplite::TestResult &);
 void invalidExpense(testcpplite::TestResult &);
 void printCommand(testcpplite::TestResult &);
+void expenseShouldPrintExpense(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif
