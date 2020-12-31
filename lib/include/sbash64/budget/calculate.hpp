@@ -13,7 +13,7 @@ auto total(const ExpenseTree &) -> USD;
 
 auto total(const ExpenseTree &, const Category &) -> USD;
 
-auto total(const ExpenseTree &, const RecursiveExpenseCategory &) -> USD;
+auto total(const ExpenseTree &, const RecursiveCategory &) -> USD;
 } // namespace sbash64::budget::calculate
 
 #endif
