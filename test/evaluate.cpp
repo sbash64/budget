@@ -153,4 +153,9 @@ void expenseShouldPrintExpense(testcpplite::TestResult &result) {
   assertPrints(result, "Gifts Birthdays 25 Sam's 24th",
                "Gifts::Birthdays: $25.00 - Sam's 24th");
 }
+
+void invalidExpenseShouldPrintMessage(testcpplite::TestResult &result) {
+  assertPrints(result, "Gifts Birthdays Sam 24th",
+               "No expense entered because no amount found.");
+}
 } // namespace sbash64::budget::evaluate

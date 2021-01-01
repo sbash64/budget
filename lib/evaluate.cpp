@@ -57,6 +57,7 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
       record.enter(expense);
       print::pretty(output, expense);
     } catch (const InvalidCommand &) {
+      output << "No expense entered because no amount found.";
     }
   }
 }
