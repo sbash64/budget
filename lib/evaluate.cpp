@@ -20,7 +20,7 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-class InvalidCommand {};
+class NoAmountFound {};
 
 static void initialize(RecursiveExpense &expense, std::stringstream &stream,
                        std::string_view category,
@@ -28,7 +28,7 @@ static void initialize(RecursiveExpense &expense, std::stringstream &stream,
   expense.category.name = category;
   const auto argument{nextArgument(stream)};
   if (argument.empty())
-    throw InvalidCommand{};
+    throw NoAmountFound{};
   if (parse::isUsd(argument)) {
     expense.subexpenseOrUsd = parse::usd(argument);
   } else {
@@ -56,7 +56,7 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
       expense.label = label;
       record.enter(expense);
       print::pretty(output, expense);
-    } catch (const InvalidCommand &) {
+    } catch (const NoAmountFound &) {
       output << "No expense entered because no amount found.";
     }
   }
