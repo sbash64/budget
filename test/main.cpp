@@ -37,6 +37,7 @@ static auto runAllTests() -> int {
        {evaluate::expenseShouldPrintExpense,
         "evaluate expense should print expense"},
        {evaluate::debit, "evaluate debit"},
+       {evaluate::credit, "evaluate credit"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

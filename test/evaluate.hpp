@@ -12,6 +12,7 @@ void printCommand(testcpplite::TestResult &);
 void expenseShouldPrintExpense(testcpplite::TestResult &);
 void invalidExpenseShouldPrintMessage(testcpplite::TestResult &);
 void debit(testcpplite::TestResult &);
+void credit(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif

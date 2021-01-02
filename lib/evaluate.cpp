@@ -89,21 +89,32 @@ void Controller::command(Bank &bank, std::string_view input) {
   switch (state) {
   case State::normal:
     break;
-  case State::readyForDebitDate:
-    debitDate = date(input);
-    state = State::readyForDebitDescription;
+  case State::readyForDate:
+    date = evaluate::date(input);
+    state = State::readyForDescription;
     return;
-  case State::readyForDebitDescription:
-    bank.debit(debitAccountName,
-               Transaction{debitAmount, input.data(), debitDate});
+  case State::readyForDescription:
+    switch (transactionState) {
+    case TransactionState::credit:
+      bank.credit(Transaction{amount, input.data(), date});
+      break;
+    case TransactionState::debit:
+      bank.debit(debitAccountName, Transaction{amount, input.data(), date});
+      break;
+    }
     state = State::normal;
     return;
   }
   std::stringstream stream{input.data()};
   std::string commandName;
   stream >> commandName;
-  debitAccountName = next(stream);
-  debitAmount = parse::usd(next(stream));
-  state = State::readyForDebitDate;
+  if (commandName == "debit") {
+    debitAccountName = next(stream);
+    transactionState = TransactionState::debit;
+  } else {
+    transactionState = TransactionState::credit;
+  }
+  amount = parse::usd(next(stream));
+  state = State::readyForDate;
 }
 } // namespace sbash64::budget::evaluate

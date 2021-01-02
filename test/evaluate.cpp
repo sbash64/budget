@@ -85,14 +85,21 @@ public:
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
+  auto creditedTransaction() -> Transaction { return creditedTransaction_; }
+
   void debit(std::string_view accountName,
              const Transaction &transaction) override {
     debitedAccountName_ = accountName;
     debitedTransaction_ = transaction;
   }
 
+  void credit(const Transaction &transaction) {
+    creditedTransaction_ = transaction;
+  }
+
 private:
   Transaction debitedTransaction_;
+  Transaction creditedTransaction_;
   std::string debitedAccountName_;
 };
 } // namespace
@@ -159,6 +166,16 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
   assertEqual(result, expectedTransaction, bank.debitedTransaction());
 }
 
+static void assertCreditsAccount(testcpplite::TestResult &result,
+                                 const std::vector<std::string> &input,
+                                 const Transaction &expectedTransaction) {
+  Controller controller;
+  BankStub bank;
+  for (const auto &x : input)
+    command(controller, bank, x);
+  assertEqual(result, expectedTransaction, bank.creditedTransaction());
+}
+
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
   assertExpenseEntered(
       result, "Gifts Birthdays 25 Sam's 24th",
@@ -214,5 +231,11 @@ void debit(testcpplite::TestResult &result) {
   assertDebitsAccount(
       result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
+}
+
+void credit(testcpplite::TestResult &result) {
+  assertCreditsAccount(
+      result, {"credit 2134.35", "11 22 19", "btnrh"},
+      Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
 }
 } // namespace sbash64::budget::evaluate
