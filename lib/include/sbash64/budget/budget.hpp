@@ -6,6 +6,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <variant>
 
 namespace sbash64::budget {
@@ -140,12 +141,10 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
   return {transaction, false};
 }
 
-struct Debit {
-  Transaction transaction;
-};
-
-struct Credit {
-  Transaction transaction;
+class Bank {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Bank);
+  virtual void debit(std::string_view accountName, const Transaction &) = 0;
 };
 } // namespace sbash64::budget
 

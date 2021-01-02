@@ -6,7 +6,21 @@
 #include <string_view>
 
 namespace sbash64::budget::evaluate {
+class Controller {
+public:
+  void command(Bank &, std::string_view);
+
+private:
+  enum class State { normal, readyForDebitDate, readyForDebitDescription };
+
+  USD debitAmount;
+  Date debitDate;
+  std::string debitAccountName;
+  State state;
+};
+
 void command(ExpenseRecord &, std::string_view, std::ostream &);
+void command(Controller &, Bank &, std::string_view);
 } // namespace sbash64::budget::evaluate
 
 #endif

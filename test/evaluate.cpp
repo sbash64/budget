@@ -12,6 +12,7 @@ static void assertEqual(testcpplite::TestResult &result,
   assertTrue(result, expected == actual);
 }
 
+namespace {
 class AssertsExpenseEntered : public ExpenseRecord {
 public:
   AssertsExpenseEntered(testcpplite::TestResult &testResult,
@@ -78,6 +79,23 @@ public:
   void print(std::ostream &) override {}
 };
 
+class BankStub : public Bank {
+public:
+  auto debitedAccountName() -> std::string { return debitedAccountName_; }
+
+  auto debitedTransaction() -> Transaction { return debitedTransaction_; }
+
+  void debit(std::string_view accountName, const Transaction &transaction) {
+    debitedAccountName_ = accountName;
+    debitedTransaction_ = transaction;
+  }
+
+private:
+  Transaction debitedTransaction_;
+  std::string debitedAccountName_;
+};
+} // namespace
+
 static void assertExpenseEntered(testcpplite::TestResult &result,
                                  std::string_view input,
                                  const LabeledExpense &expected) {
@@ -106,6 +124,38 @@ static void assertPrints(testcpplite::TestResult &result,
   ExpenseRecordStub record;
   command(record, input, output);
   assertEqual(result, std::string{expected}, output.str());
+}
+
+constexpr auto to_integral(Month e) ->
+    typename std::underlying_type<Month>::type {
+  return static_cast<typename std::underlying_type<Month>::type>(e);
+}
+
+static void assertEqual(testcpplite::TestResult &result, const Date &expected,
+                        const Date &actual) {
+  assertEqual(result, expected.day, actual.day);
+  assertEqual(result, to_integral(expected.month), to_integral(actual.month));
+  assertEqual(result, expected.year, actual.year);
+}
+
+static void assertEqual(testcpplite::TestResult &result,
+                        const Transaction &expected,
+                        const Transaction &actual) {
+  assertEqual(result, expected.amount, actual.amount);
+  assertEqual(result, expected.description, actual.description);
+  assertEqual(result, expected.date, actual.date);
+}
+
+static void assertDebitsAccount(testcpplite::TestResult &result,
+                                const std::vector<std::string> &input,
+                                const std::string &expectedAccountName,
+                                const Transaction &expectedTransaction) {
+  Controller controller;
+  BankStub bank;
+  for (const auto &x : input)
+    command(controller, bank, x);
+  assertEqual(result, expectedAccountName, bank.debitedAccountName());
+  assertEqual(result, expectedTransaction, bank.debitedTransaction());
 }
 
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
@@ -157,5 +207,11 @@ void expenseShouldPrintExpense(testcpplite::TestResult &result) {
 void invalidExpenseShouldPrintMessage(testcpplite::TestResult &result) {
   assertPrints(result, "Gifts Birthdays Sam 24th",
                "No expense entered because no amount found.");
+}
+
+void debit(testcpplite::TestResult &result) {
+  assertDebitsAccount(
+      result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
+      Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 } // namespace sbash64::budget::evaluate

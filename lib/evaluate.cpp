@@ -61,4 +61,49 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
     }
   }
 }
+
+void command(Controller &c, Bank &b, std::string_view s) { c.command(b, s); }
+
+static auto next(std::stringstream &stream) -> std::string {
+  std::string next;
+  stream >> next;
+  return next;
+}
+
+static auto date(std::string_view s) -> Date {
+  Date date;
+  std::stringstream stream{s.data()};
+  int month;
+  stream >> month;
+  int day;
+  stream >> day;
+  int year;
+  stream >> year;
+  date.month = Month{month};
+  date.day = day;
+  date.year = year + 2000;
+  return date;
+}
+
+void Controller::command(Bank &bank, std::string_view input) {
+  switch (state) {
+  case State::normal:
+    break;
+  case State::readyForDebitDate:
+    debitDate = date(input);
+    state = State::readyForDebitDescription;
+    return;
+  case State::readyForDebitDescription:
+    bank.debit(debitAccountName,
+               Transaction{debitAmount, input.data(), debitDate});
+    state = State::normal;
+    return;
+  }
+  std::stringstream stream{input.data()};
+  std::string commandName;
+  stream >> commandName;
+  debitAccountName = next(stream);
+  debitAmount = parse::usd(next(stream));
+  state = State::readyForDebitDate;
+}
 } // namespace sbash64::budget::evaluate
