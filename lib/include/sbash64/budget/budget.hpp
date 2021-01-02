@@ -99,6 +99,54 @@ public:
   virtual void enter(const LabeledExpense &) = 0;
   virtual void print(std::ostream &) = 0;
 };
+
+enum class Month {
+  January = 1,
+  February,
+  March,
+  April,
+  May,
+  June,
+  July,
+  August,
+  September,
+  October,
+  November,
+  December
+};
+
+struct Date {
+  int year;
+  Month month;
+  int day;
+};
+
+struct Transaction {
+  USD amount;
+  std::string description;
+  Date date;
+};
+
+struct PrintableTransaction {
+  Transaction transaction;
+  bool debit;
+};
+
+inline auto printableDebit(Transaction transaction) -> PrintableTransaction {
+  return {transaction, true};
+}
+
+inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
+  return {transaction, false};
+}
+
+struct Debit {
+  Transaction transaction;
+};
+
+struct Credit {
+  Transaction transaction;
+};
 } // namespace sbash64::budget
 
 #endif

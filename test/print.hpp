@@ -14,6 +14,7 @@ void prettyBudgetHavingOneExpense(testcpplite::TestResult &);
 void prettyBudgetHavingMultipleExpenses(testcpplite::TestResult &);
 void prettyBudgetHavingMultipleExpenseTrees(testcpplite::TestResult &);
 void aFewExpenses(testcpplite::TestResult &);
+void transactions(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif

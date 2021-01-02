@@ -20,6 +20,15 @@ static void assertPrettyWithBoundedNewlinesYields(
   assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
 }
 
+static void assertPrettyWithBoundedNewlinesYields(
+    testcpplite::TestResult &result,
+    const std::vector<PrintableTransaction> &transactions,
+    std::string_view expected) {
+  std::stringstream stream;
+  pretty(stream, transactions);
+  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+}
+
 static void assertFormatYields(testcpplite::TestResult &result, USD usd,
                                std::string_view expected) {
   assertEqual(result, expected.data(), format(usd));
@@ -172,6 +181,23 @@ Food::Dining Out: $13.00 - Chipotle 10/30/20
 Phone::Verizon: $67.00 - Seren's Galaxy
 Food::Groceries: $37.00 - Hyvee 10/15/20
 Food::Dining Out: $8.50 - Raising Cane's 10/17/20
+)");
+}
+
+void transactions(testcpplite::TestResult &result) {
+  assertPrettyWithBoundedNewlinesYields(
+      result,
+      {printableDebit(Transaction{2500_cents, "Sam's 24th",
+                                  Date{2020, Month::December, 27}}),
+       printableDebit(Transaction{2734_cents, "Brinley's 3rd",
+                                  Date{2021, Month::January, 14}}),
+       printableDebit(Transaction{2410_cents, "Hannah's 30th",
+                                  Date{2021, Month::March, 18}})},
+      R"(
+Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
+25.00                    12/27/2020          Sam's 24th
+27.34                    01/14/2021          Brinley's 3rd
+24.10                    03/18/2021          Hannah's 30th
 )");
 }
 } // namespace sbash64::budget::print

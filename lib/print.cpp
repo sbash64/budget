@@ -4,10 +4,14 @@
 #include <string>
 
 namespace sbash64::budget::print {
-static auto format_(USD usd) -> std::string {
+static auto formatWithoutDollarSign(USD usd) -> std::string {
   char cents[3];
   std::snprintf(cents, sizeof cents, "%.2lld", usd.cents % 100);
-  return '$' + std::to_string(usd.cents / 100) + '.' + std::string{cents};
+  return std::to_string(usd.cents / 100) + '.' + std::string{cents};
+}
+
+static auto format_(USD usd) -> std::string {
+  return '$' + formatWithoutDollarSign(usd);
 }
 
 auto format(USD usd) -> std::string { return format_(usd); }
@@ -59,6 +63,26 @@ void pretty(std::ostream &stream, const std::vector<LabeledExpense> &expenses) {
       stream << '\n';
     pretty(stream, expense);
     first = false;
+  }
+}
+
+static auto format(const Date &date) -> std::string {
+  char month[3];
+  char day[3];
+  std::snprintf(month, sizeof month, "%.2d", date.month);
+  std::snprintf(day, sizeof day, "%.2d", date.day);
+  return std::string{month} + '/' + std::string{day} + '/' +
+         std::to_string(date.year);
+}
+
+void pretty(std::ostream &stream,
+            const std::vector<PrintableTransaction> &transactions) {
+  stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
+  for (auto transaction : transactions) {
+    stream << '\n'
+           << formatWithoutDollarSign(transaction.transaction.amount)
+           << "                    " << format(transaction.transaction.date)
+           << "          " << transaction.transaction.description;
   }
 }
 } // namespace sbash64::budget::print
