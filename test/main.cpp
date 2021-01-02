@@ -1,3 +1,4 @@
+#include "bank.hpp"
 #include "calculate.hpp"
 #include "collect.hpp"
 #include "evaluate.hpp"
@@ -38,6 +39,8 @@ static auto runAllTests() -> int {
         "evaluate expense should print expense"},
        {evaluate::debit, "evaluate debit"},
        {evaluate::credit, "evaluate credit"},
+       {bank::createsMasterAccountOnConstruction,
+        "bank creates master account on construction"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

@@ -79,7 +79,7 @@ public:
   void print(std::ostream &) override {}
 };
 
-class BankStub : public Bank {
+class BankStub : public Model {
 public:
   auto debitedAccountName() -> std::string { return debitedAccountName_; }
 

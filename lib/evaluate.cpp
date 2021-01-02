@@ -62,7 +62,7 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
   }
 }
 
-void command(Controller &c, Bank &b, std::string_view s) { c.command(b, s); }
+void command(Controller &c, Model &b, std::string_view s) { c.command(b, s); }
 
 static auto next(std::stringstream &stream) -> std::string {
   std::string next;
@@ -85,7 +85,7 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Bank &bank, std::string_view input) {
+void Controller::command(Model &bank, std::string_view input) {
   switch (state) {
   case State::normal:
     break;
