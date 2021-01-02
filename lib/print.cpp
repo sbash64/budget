@@ -78,7 +78,7 @@ static auto format(const Date &date) -> std::string {
 void pretty(std::ostream &stream,
             const std::vector<PrintableTransaction> &transactions) {
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
-  for (auto transaction : transactions) {
+  for (const auto &transaction : transactions) {
     stream << '\n'
            << formatWithoutDollarSign(transaction.transaction.amount)
            << "                    " << format(transaction.transaction.date)

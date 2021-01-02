@@ -85,7 +85,8 @@ public:
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
-  void debit(std::string_view accountName, const Transaction &transaction) {
+  void debit(std::string_view accountName,
+             const Transaction &transaction) override {
     debitedAccountName_ = accountName;
     debitedTransaction_ = transaction;
   }

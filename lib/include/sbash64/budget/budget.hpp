@@ -7,6 +7,7 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 
 namespace sbash64::budget {
@@ -130,15 +131,15 @@ struct Transaction {
 
 struct PrintableTransaction {
   Transaction transaction;
-  bool debit;
+  bool debit{};
 };
 
 inline auto printableDebit(Transaction transaction) -> PrintableTransaction {
-  return {transaction, true};
+  return {std::move(transaction), true};
 }
 
 inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
-  return {transaction, false};
+  return {std::move(transaction), false};
 }
 
 class Bank {

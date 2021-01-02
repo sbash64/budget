@@ -71,13 +71,13 @@ static auto next(std::stringstream &stream) -> std::string {
 }
 
 static auto date(std::string_view s) -> Date {
-  Date date;
+  Date date{};
   std::stringstream stream{s.data()};
-  int month;
+  int month = 0;
   stream >> month;
-  int day;
+  int day = 0;
   stream >> day;
-  int year;
+  int year = 0;
   stream >> year;
   date.month = Month{month};
   date.day = day;
