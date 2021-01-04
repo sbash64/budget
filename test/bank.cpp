@@ -13,8 +13,13 @@ public:
 
   void credit(const Transaction &t) override { creditedTransaction_ = t; }
 
+  auto debitedTransaction() -> Transaction { return debitedTransaction_; }
+
+  void debit(const Transaction &t) { debitedTransaction_ = t; }
+
 private:
   Transaction creditedTransaction_;
+  Transaction debitedTransaction_;
 };
 
 class AccountFactoryStub : public AccountFactory {
@@ -51,5 +56,17 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   assertEqual(result,
               Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
               masterAccount->creditedTransaction());
+}
+
+void debitsNonexistantAccount(testcpplite::TestResult &result) {
+  AccountFactoryStub factory;
+  Bank bank{factory};
+  const auto account{std::make_shared<AccountStub>()};
+  factory.add(account, "giraffe");
+  bank.debit("giraffe",
+             Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+  assertEqual(result,
+              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
+              account->debitedTransaction());
 }
 } // namespace sbash64::budget::bank
