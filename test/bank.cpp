@@ -1,5 +1,6 @@
 #include "bank.hpp"
 #include "usd.hpp"
+#include <functional>
 #include <map>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
@@ -41,10 +42,17 @@ private:
 };
 } // namespace
 
-void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
+static void testBank(
+    const std::function<void(AccountFactoryStub &factory, Bank &bank)> &f) {
   AccountFactoryStub factory;
   Bank bank{factory};
-  assertEqual(result, "master", factory.name());
+  f(factory, bank);
+}
+
+void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory, Bank &) {
+    assertEqual(result, "master", factory.name());
+  });
 }
 
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
@@ -59,29 +67,29 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
 }
 
 void debitsNonexistantAccount(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  Bank bank{factory};
-  const auto account{std::make_shared<AccountStub>()};
-  factory.add(account, "giraffe");
-  bank.debit("giraffe",
-             Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-  assertEqual(result,
-              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
-              account->debitedTransaction());
+  testBank([&](AccountFactoryStub &factory, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    factory.add(account, "giraffe");
+    bank.debit("giraffe",
+               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    assertEqual(result,
+                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
+                account->debitedTransaction());
+  });
 }
 
 void debitsExistingAccount(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  Bank bank{factory};
-  const auto account{std::make_shared<AccountStub>()};
-  factory.add(account, "giraffe");
-  bank.debit("giraffe",
-             Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-  factory.add(nullptr, "giraffe");
-  bank.debit("giraffe",
-             Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-  assertEqual(result,
-              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-              account->debitedTransaction());
+  testBank([&](AccountFactoryStub &factory, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    factory.add(account, "giraffe");
+    bank.debit("giraffe",
+               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    factory.add(nullptr, "giraffe");
+    bank.debit("giraffe",
+               Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertEqual(result,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
+                account->debitedTransaction());
+  });
 }
 } // namespace sbash64::budget::bank
