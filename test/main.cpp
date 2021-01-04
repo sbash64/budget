@@ -44,6 +44,7 @@ static auto runAllTests() -> int {
        {bank::creditsMasterAccountWhenCredited,
         "bank credits master account when credited"},
        {bank::debitsNonexistantAccount, "bank debits nonexistant account"},
+       {bank::debitsExistingAccount, "bank debits existing account"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

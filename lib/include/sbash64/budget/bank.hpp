@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_BANK_HPP_
 
 #include "budget.hpp"
+#include <map>
 #include <memory>
 #include <string_view>
 
@@ -28,6 +29,7 @@ public:
 private:
   AccountFactory &factory;
   std::shared_ptr<Account> masterAccount;
+  std::map<std::string, std::shared_ptr<Account>> accounts;
 };
 } // namespace sbash64::budget
 
