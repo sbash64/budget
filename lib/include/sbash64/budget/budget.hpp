@@ -148,6 +148,20 @@ public:
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void credit(const Transaction &) = 0;
 };
+
+class Account {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
+  virtual void credit(const Transaction &) = 0;
+  virtual void debit(const Transaction &) = 0;
+};
+
+class Printer {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Printer);
+  virtual void print(const Account &primary,
+                     const std::vector<const Account *> &secondaries) = 0;
+};
 } // namespace sbash64::budget
 
 #endif

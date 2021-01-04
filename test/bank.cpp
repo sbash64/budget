@@ -8,6 +8,25 @@
 
 namespace sbash64::budget::bank {
 namespace {
+class PrinterStub : public Printer {
+public:
+  auto primaryAccount() -> const Account * { return primaryAccount_; }
+
+  void print(const Account &primary,
+             const std::vector<const Account *> &secondaries) override {
+    primaryAccount_ = &primary;
+    secondaryAccounts_ = secondaries;
+  }
+
+  auto secondaryAccounts() -> std::vector<const Account *> {
+    return secondaryAccounts_;
+  }
+
+private:
+  std::vector<const Account *> secondaryAccounts_;
+  const Account *primaryAccount_{};
+};
+
 class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
@@ -57,6 +76,16 @@ static void debit(Bank &bank, std::string_view accountName,
 static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
                 std::string_view accountName) {
   factory.add(std::move(account), accountName);
+}
+
+static void
+assertContainsSecondaryAccount(testcpplite::TestResult &result,
+                               PrinterStub &printer,
+                               const std::shared_ptr<Account> &account) {
+  assertTrue(result,
+             std::find(printer.secondaryAccounts().begin(),
+                       printer.secondaryAccounts().end(),
+                       account.get()) != printer.secondaryAccounts().end());
 }
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
@@ -119,5 +148,27 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
       result,
       Transaction{456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
       masterAccount->debitedTransaction());
+}
+
+void printPrintsAccounts(testcpplite::TestResult &result) {
+  AccountFactoryStub factory;
+  const auto masterAccount{std::make_shared<AccountStub>()};
+  add(factory, masterAccount, "master");
+  Bank bank{factory};
+  const auto giraffe{std::make_shared<AccountStub>()};
+  add(factory, giraffe, "giraffe");
+  const auto penguin{std::make_shared<AccountStub>()};
+  add(factory, penguin, "penguin");
+  const auto leopard{std::make_shared<AccountStub>()};
+  add(factory, leopard, "leopard");
+  debit(bank, "giraffe", {});
+  debit(bank, "penguin", {});
+  debit(bank, "leopard", {});
+  PrinterStub printer;
+  bank.print(printer);
+  assertEqual(result, masterAccount.get(), printer.primaryAccount());
+  assertContainsSecondaryAccount(result, printer, giraffe);
+  assertContainsSecondaryAccount(result, printer, penguin);
+  assertContainsSecondaryAccount(result, printer, leopard);
 }
 } // namespace sbash64::budget::bank

@@ -44,4 +44,17 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
                                  std::string{masterAccountName},
                              date});
 }
+
+static auto
+collect(const std::map<std::string, std::shared_ptr<Account>> &accounts)
+    -> std::vector<const Account *> {
+  std::vector<const Account *> collected;
+  for (const auto &[key, account] : accounts)
+    collected.push_back(account.get());
+  return collected;
+}
+
+void Bank::print(Printer &printer) {
+  printer.print(*masterAccount, collect(accounts));
+}
 } // namespace sbash64::budget

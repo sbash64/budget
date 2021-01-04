@@ -5,15 +5,9 @@
 #include <map>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 namespace sbash64::budget {
-class Account {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
-  virtual void credit(const Transaction &) = 0;
-  virtual void debit(const Transaction &) = 0;
-};
-
 class AccountFactory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountFactory);
@@ -26,6 +20,7 @@ public:
   void debit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount, Date);
+  void print(Printer &);
 
 private:
   AccountFactory &factory;

@@ -14,7 +14,7 @@ if(${SBASH64_BUDGET_ENABLE_TESTS})
   FetchContent_Declare(
     testcpplite
     GIT_REPOSITORY https://github.com/sbash64/testcpplite
-    GIT_TAG v2.0.1)
+    GIT_TAG v2.1.1)
   FetchContent_MakeAvailable(testcpplite)
 
   enable_testing()
