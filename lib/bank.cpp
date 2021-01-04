@@ -9,6 +9,11 @@ static void credit(const std::shared_ptr<Account> &account,
   account->credit(t);
 }
 
+static void debit(const std::shared_ptr<Account> &account,
+                  const Transaction &t) {
+  account->debit(t);
+}
+
 Bank::Bank(AccountFactory &factory)
     : factory{factory}, masterAccount{factory.make(masterAccountName)} {}
 
@@ -23,16 +28,16 @@ static void createNewAccountIfNeeded(
 
 void Bank::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(accounts, factory, accountName);
-  const auto account{accounts.at(accountName.data())};
-  account->debit(t);
+  budget::debit(accounts.at(accountName.data()), t);
 }
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(accounts, factory, accountName);
-  masterAccount->debit(Transaction{amount,
-                                   std::string{transferDescription} + " to " +
-                                       std::string{accountName},
-                                   date});
+  budget::debit(masterAccount,
+                Transaction{amount,
+                            std::string{transferDescription} + " to " +
+                                std::string{accountName},
+                            date});
   budget::credit(accounts.at(accountName.data()),
                  Transaction{amount,
                              std::string{transferDescription} + " from " +
