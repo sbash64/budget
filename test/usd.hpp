@@ -8,6 +8,12 @@ namespace sbash64::budget {
 auto operator"" _cents(unsigned long long cents) -> USD;
 
 void assertEqual(testcpplite::TestResult &result, USD expected, USD actual);
+
+void assertEqual(testcpplite::TestResult &result, const Date &expected,
+                 const Date &actual);
+
+void assertEqual(testcpplite::TestResult &result, const Transaction &expected,
+                 const Transaction &actual);
 } // namespace sbash64::budget
 
 #endif

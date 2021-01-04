@@ -9,6 +9,7 @@ namespace sbash64::budget {
 class Account {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
+  virtual void credit(const Transaction &) = 0;
 };
 
 class AccountFactory {
@@ -25,6 +26,7 @@ public:
 
 private:
   AccountFactory &factory;
+  std::shared_ptr<Account> masterAccount;
 };
 } // namespace sbash64::budget
 

@@ -41,6 +41,8 @@ static auto runAllTests() -> int {
        {evaluate::credit, "evaluate credit"},
        {bank::createsMasterAccountOnConstruction,
         "bank creates master account on construction"},
+       {bank::creditsMasterAccountWhenCredited,
+        "bank credits master account when credited"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

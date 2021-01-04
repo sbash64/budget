@@ -5,6 +5,7 @@
 
 namespace sbash64::budget::bank {
 void createsMasterAccountOnConstruction(testcpplite::TestResult &);
+void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif
