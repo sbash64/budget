@@ -54,6 +54,11 @@ static void debit(Bank &bank, std::string_view accountName,
   bank.debit(accountName, t);
 }
 
+static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
+                std::string_view accountName) {
+  factory.add(std::move(account), accountName);
+}
+
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory, Bank &) {
     assertEqual(result, "master", factory.name());
@@ -63,7 +68,7 @@ void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
-  factory.add(masterAccount, "master");
+  add(factory, masterAccount, "master");
   Bank bank{factory};
   bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   assertEqual(result,
@@ -74,7 +79,7 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
 void debitsNonexistantAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
-    factory.add(account, "giraffe");
+    add(factory, account, "giraffe");
     debit(bank, "giraffe",
           Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
     assertEqual(result,
@@ -86,10 +91,10 @@ void debitsNonexistantAccount(testcpplite::TestResult &result) {
 void debitsExistingAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
-    factory.add(account, "giraffe");
+    add(factory, account, "giraffe");
     debit(bank, "giraffe",
           Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-    factory.add(nullptr, "giraffe");
+    add(factory, nullptr, "giraffe");
     debit(bank, "giraffe",
           Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertEqual(result,
