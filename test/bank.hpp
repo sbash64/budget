@@ -8,6 +8,7 @@ void createsMasterAccountOnConstruction(testcpplite::TestResult &);
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
 void debitsNonexistantAccount(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);
+void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

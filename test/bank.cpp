@@ -102,4 +102,22 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
                 account->debitedTransaction());
   });
 }
+
+void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
+  AccountFactoryStub factory;
+  const auto masterAccount{std::make_shared<AccountStub>()};
+  add(factory, masterAccount, "master");
+  Bank bank{factory};
+  const auto account{std::make_shared<AccountStub>()};
+  add(factory, account, "giraffe");
+  bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
+  assertEqual(result,
+              Transaction{456_cents, "transfer from master",
+                          Date{1776, Month::July, 4}},
+              account->creditedTransaction());
+  assertEqual(
+      result,
+      Transaction{456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
+      masterAccount->debitedTransaction());
+}
 } // namespace sbash64::budget::bank
