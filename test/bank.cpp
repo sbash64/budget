@@ -11,7 +11,7 @@ class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
-  void credit(const Transaction &t) { creditedTransaction_ = t; }
+  void credit(const Transaction &t) override { creditedTransaction_ = t; }
 
 private:
   Transaction creditedTransaction_;
@@ -44,7 +44,7 @@ void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
 
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   AccountFactoryStub factory;
-  auto masterAccount{std::make_shared<AccountStub>()};
+  const auto masterAccount{std::make_shared<AccountStub>()};
   factory.add(masterAccount, "master");
   Bank bank{factory};
   bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
