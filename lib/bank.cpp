@@ -49,7 +49,8 @@ static auto
 collect(const std::map<std::string, std::shared_ptr<Account>> &accounts)
     -> std::vector<const Account *> {
   std::vector<const Account *> collected;
-  for (const auto &[key, account] : accounts)
+  collected.reserve(accounts.size());
+  for (const auto &[name, account] : accounts)
     collected.push_back(account.get());
   return collected;
 }
