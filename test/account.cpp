@@ -14,7 +14,7 @@ public:
   }
 
   void printAccountSummary(
-      USD balance,
+      std::string_view name, USD balance,
       const std::vector<PrintableTransaction> &transactions) override {
     accountTransactions_ = transactions;
     accountBalance_ = balance;

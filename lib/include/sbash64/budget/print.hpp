@@ -18,7 +18,7 @@ public:
   StreamPrinter(std::ostream &);
   void print(Account &primary,
              const std::vector<Account *> &secondaries) override;
-  void printAccountSummary(USD balance,
+  void printAccountSummary(std::string_view name, USD balance,
                            const std::vector<PrintableTransaction> &) override;
 
 private:

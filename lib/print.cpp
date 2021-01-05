@@ -98,5 +98,26 @@ void StreamPrinter::print(Account &primary,
 }
 
 void StreamPrinter::printAccountSummary(
-    USD balance, const std::vector<PrintableTransaction> &transactions) {}
+    std::string_view name, USD balance,
+    const std::vector<PrintableTransaction> &transactions) {
+  stream << "----" << '\n';
+  stream << name << '\n';
+  stream << format_(balance) << '\n';
+  stream << '\n';
+  stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
+  for (const auto &transaction : transactions) {
+    const auto formattedAmount{
+        formatWithoutDollarSign(transaction.transaction.amount)};
+    stream << '\n';
+    auto extraSpaces{0};
+    if (transaction.type == Transaction::Type::credit)
+      extraSpaces = 12;
+    stream << std::string(extraSpaces, ' ');
+    stream << formattedAmount;
+    stream << std::string(25 - formattedAmount.length() - extraSpaces, ' ')
+           << format(transaction.transaction.date) << "          "
+           << transaction.transaction.description;
+  }
+  stream << '\n' << "----" << '\n';
+}
 } // namespace sbash64::budget::print

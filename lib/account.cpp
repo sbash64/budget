@@ -28,6 +28,6 @@ void InMemoryAccount::print(Printer &printer) {
             [](const PrintableTransaction &a, const PrintableTransaction &b) {
               return a.transaction.date < b.transaction.date;
             });
-  printer.printAccountSummary(balance(credits, debits), transactions);
+  printer.printAccountSummary("", balance(credits, debits), transactions);
 }
 } // namespace sbash64::budget

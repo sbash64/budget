@@ -169,7 +169,7 @@ public:
   virtual void print(Account &primary,
                      const std::vector<Account *> &secondaries) {}
   virtual void
-  printAccountSummary(USD balance,
+  printAccountSummary(std::string_view name, USD balance,
                       const std::vector<PrintableTransaction> &transactions) {}
 };
 

@@ -235,4 +235,30 @@ allen
 )",
               '\n' + stream.str() + '\n');
 }
+
+void account(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  StreamPrinter printer{stream};
+  printer.printAccountSummary(
+      "Checking", 1234_cents,
+      {printableDebit(Transaction{2500_cents, "Sam's 24th",
+                                  Date{2020, Month::December, 27}}),
+       printableCredit(Transaction{2734_cents, "Birthday present",
+                                   Date{2021, Month::October, 20}}),
+       printableDebit(Transaction{2410_cents, "Hannah's 30th",
+                                  Date{2021, Month::March, 18}})});
+  assertEqual(result, R"(
+----
+Checking
+$12.34
+
+Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
+25.00                    12/27/2020          Sam's 24th
+            27.34        10/20/2021          Birthday present
+24.10                    03/18/2021          Hannah's 30th
+----
+
+)",
+              '\n' + stream.str() + '\n');
+}
 } // namespace sbash64::budget::print
