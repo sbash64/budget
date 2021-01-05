@@ -15,7 +15,7 @@ private:
   USD amount;
   Date date;
   std::string debitAccountName;
-  State state;
+  State state{State::normal};
   Transaction::Type transactionType;
 };
 

@@ -89,9 +89,24 @@ static auto date(std::string_view s) -> Date {
 
 void Controller::command(Model &bank, Printer &printer,
                          std::string_view input) {
+  std::stringstream stream{std::string{input}};
+  std::string commandName;
   switch (state) {
   case State::normal:
-    break;
+    stream >> commandName;
+    if (commandName == "print") {
+      bank.print(printer);
+      return;
+    }
+    if (commandName == "debit") {
+      debitAccountName = next(stream);
+      transactionType = Transaction::Type::debit;
+    } else {
+      transactionType = Transaction::Type::credit;
+    }
+    amount = parse::usd(next(stream));
+    state = State::readyForDate;
+    return;
   case State::readyForDate:
     date = evaluate::date(input);
     state = State::readyForDescription;
@@ -109,20 +124,5 @@ void Controller::command(Model &bank, Printer &printer,
     state = State::normal;
     return;
   }
-  std::stringstream stream{std::string{input}};
-  std::string commandName;
-  stream >> commandName;
-  if (commandName == "print") {
-    bank.print(printer);
-    return;
-  }
-  if (commandName == "debit") {
-    debitAccountName = next(stream);
-    transactionType = Transaction::Type::debit;
-  } else {
-    transactionType = Transaction::Type::credit;
-  }
-  amount = parse::usd(next(stream));
-  state = State::readyForDate;
 }
 } // namespace sbash64::budget::evaluate
