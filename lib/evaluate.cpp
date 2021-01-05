@@ -20,48 +20,6 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-class NoAmountFound {};
-
-static void initialize(RecursiveExpense &expense, std::stringstream &stream,
-                       std::string_view category,
-                       std::forward_list<RecursiveExpense> &expenses) {
-  expense.category.name = category;
-  const auto argument{nextArgument(stream)};
-  if (argument.empty())
-    throw NoAmountFound{};
-  if (parse::isUsd(argument)) {
-    expense.subexpenseOrUsd = parse::usd(argument);
-  } else {
-    expenses.push_front({});
-    auto &subexpense{expenses.front()};
-    initialize(subexpense, stream, argument, expenses);
-    expense.subexpenseOrUsd.emplace<Subexpense>(subexpense);
-  }
-}
-
-void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
-  LabeledExpense expense;
-  std::stringstream stream{std::string{s}};
-  std::string category;
-  stream >> category;
-  if (category == "print") {
-    record.print(output);
-  } else {
-    std::forward_list<RecursiveExpense> expenses;
-    try {
-      initialize(expense.expense, stream, category, expenses);
-      stream >> std::ws;
-      std::string label;
-      getline(stream, label);
-      expense.label = label;
-      record.enter(expense);
-      print::pretty(output, expense);
-    } catch (const NoAmountFound &) {
-      output << "No expense entered because no amount found.";
-    }
-  }
-}
-
 void command(Controller &c, Model &b, Printer &p, std::string_view s) {
   c.command(b, p, s);
 }

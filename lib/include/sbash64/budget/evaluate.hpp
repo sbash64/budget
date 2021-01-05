@@ -2,7 +2,7 @@
 #define SBASH64_BUDGET_EVALUATE_HPP_
 
 #include "budget.hpp"
-#include <ostream>
+#include <string>
 #include <string_view>
 
 namespace sbash64::budget::evaluate {
@@ -21,7 +21,6 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(ExpenseRecord &, std::string_view, std::ostream &);
 void command(Controller &, Model &, Printer &, std::string_view);
 } // namespace sbash64::budget::evaluate
 

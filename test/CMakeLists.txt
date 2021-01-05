@@ -2,10 +2,8 @@ add_executable(
   sbash64-budget-tests
   main.cpp
   parse.cpp
-  calculate.cpp
   usd.cpp
   print.cpp
-  collect.cpp
   evaluate.cpp
   bank.cpp
   account.cpp)
