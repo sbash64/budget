@@ -9,12 +9,6 @@
 #include <vector>
 
 namespace sbash64::budget {
-class AccountFactory {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountFactory);
-  virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
-};
-
 class Bank : public Model {
 public:
   Bank(AccountFactory &);

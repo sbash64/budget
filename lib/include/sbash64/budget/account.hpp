@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_ACCOUNT_HPP_
 
 #include "budget.hpp"
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,13 @@ public:
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void print(Printer &) override;
+
+  class Factory : public AccountFactory {
+  public:
+    auto make(std::string_view name) -> std::shared_ptr<Account> override {
+      return std::make_shared<InMemoryAccount>(std::string{name});
+    }
+  };
 
 private:
   std::vector<Transaction> debits;

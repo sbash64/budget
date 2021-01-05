@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <ostream>
 #include <string>
@@ -161,6 +162,12 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void print(Printer &) {}
+};
+
+class AccountFactory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountFactory);
+  virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
 };
 
 class Printer {
