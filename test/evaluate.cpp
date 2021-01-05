@@ -1,4 +1,5 @@
 #include "evaluate.hpp"
+#include "printer-stub.hpp"
 #include "usd.hpp"
 #include <sbash64/budget/evaluate.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
@@ -7,8 +8,6 @@
 
 namespace sbash64::budget::evaluate {
 namespace {
-class PrinterStub : public Printer {};
-
 class BankStub : public Model {
 public:
   auto debitedAccountName() -> std::string { return debitedAccountName_; }

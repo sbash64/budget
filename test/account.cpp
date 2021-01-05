@@ -1,35 +1,10 @@
 #include "account.hpp"
+#include "printer-stub.hpp"
 #include "usd.hpp"
 #include <sbash64/budget/account.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
-namespace {
-class PrinterStub : public Printer {
-public:
-  auto accountBalance() -> USD { return accountBalance_; }
-
-  auto accountTransactions() -> std::vector<PrintableTransaction> {
-    return accountTransactions_;
-  }
-
-  void printAccountSummary(
-      std::string_view name, USD balance,
-      const std::vector<PrintableTransaction> &transactions) override {
-    accountName_ = name;
-    accountTransactions_ = transactions;
-    accountBalance_ = balance;
-  }
-
-  auto accountName() -> std::string { return accountName_; }
-
-private:
-  std::vector<PrintableTransaction> accountTransactions_;
-  USD accountBalance_{};
-  std::string accountName_;
-};
-} // namespace
-
 constexpr auto to_integral(Transaction::Type e) ->
     typename std::underlying_type<Transaction::Type>::type {
   return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);

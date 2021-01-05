@@ -1,4 +1,5 @@
 #include "bank.hpp"
+#include "printer-stub.hpp"
 #include "usd.hpp"
 #include <functional>
 #include <map>
@@ -8,25 +9,6 @@
 
 namespace sbash64::budget::bank {
 namespace {
-class PrinterStub : public Printer {
-public:
-  auto primaryAccount() -> const Account * { return primaryAccount_; }
-
-  void print(Account &primary,
-             const std::vector<Account *> &secondaries) override {
-    primaryAccount_ = &primary;
-    secondaryAccounts_ = secondaries;
-  }
-
-  auto secondaryAccounts() -> std::vector<Account *> {
-    return secondaryAccounts_;
-  }
-
-private:
-  std::vector<Account *> secondaryAccounts_;
-  const Account *primaryAccount_{};
-};
-
 class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
@@ -36,6 +18,8 @@ public:
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
   void debit(const Transaction &t) override { debitedTransaction_ = t; }
+
+  void print(Printer &) override {}
 
 private:
   Transaction creditedTransaction_;

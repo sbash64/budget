@@ -84,7 +84,7 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
-  virtual void print(Printer &) {}
+  virtual void print(Printer &) = 0;
 };
 
 class AccountFactory {
@@ -97,10 +97,10 @@ class Printer {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Printer);
   virtual void print(Account &primary,
-                     const std::vector<Account *> &secondaries) {}
-  virtual void
-  printAccountSummary(std::string_view name, USD balance,
-                      const std::vector<PrintableTransaction> &transactions) {}
+                     const std::vector<Account *> &secondaries) = 0;
+  virtual void printAccountSummary(
+      std::string_view name, USD balance,
+      const std::vector<PrintableTransaction> &transactions) = 0;
 };
 
 class Model {
