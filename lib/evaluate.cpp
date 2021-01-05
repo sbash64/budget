@@ -111,7 +111,7 @@ void Controller::command(Model &bank, Printer &printer,
       amount = parse::usd(next(stream));
       state = State::readyForDate;
     }
-    return;
+    break;
   case State::readyForDate:
     date = evaluate::date(input);
     switch (commandType) {
@@ -123,7 +123,7 @@ void Controller::command(Model &bank, Printer &printer,
       state = State::normal;
       break;
     }
-    return;
+    break;
   case State::readyForDescription:
     switch (transactionType) {
     case Transaction::Type::credit:
@@ -134,7 +134,7 @@ void Controller::command(Model &bank, Printer &printer,
       break;
     }
     state = State::normal;
-    return;
+    break;
   }
 }
 } // namespace sbash64::budget::evaluate
