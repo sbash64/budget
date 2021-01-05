@@ -1,3 +1,4 @@
+#include "account.hpp"
 #include "bank.hpp"
 #include "calculate.hpp"
 #include "collect.hpp"
@@ -48,6 +49,8 @@ static auto runAllTests() -> int {
        {bank::transferDebitsMasterAndCreditsOther,
         "bank transfer debits master and credits other"},
        {bank::printPrintsAccounts, "bank print prints accounts"},
+       {account::printPrintsAllTransactionsInChronologicalOrderAndBalance,
+        "account print prints all transactions and balance"},
        {calculate::surplusHavingNoIncomeNorExpenses,
         "calculate surplus having no income nor expenses"},
        {calculate::surplusHavingNoExpenses,

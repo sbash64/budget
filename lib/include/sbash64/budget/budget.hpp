@@ -9,6 +9,7 @@
 #include <string_view>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace sbash64::budget {
 struct USD {
@@ -123,6 +124,14 @@ struct Date {
   int day;
 };
 
+inline auto operator<(const Date &a, const Date &b) -> bool {
+  if (a.year != b.year)
+    return a.year < b.year;
+  if (a.month != b.month)
+    return a.month < b.month;
+  return a.day < b.day;
+}
+
 struct Transaction {
   USD amount;
   std::string description;
@@ -160,7 +169,10 @@ class Printer {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Printer);
   virtual void print(const Account &primary,
-                     const std::vector<const Account *> &secondaries) = 0;
+                     const std::vector<const Account *> &secondaries) {}
+  virtual void
+  printAccountSummary(USD balance,
+                      const std::vector<PrintableTransaction> &transactions) {}
 };
 } // namespace sbash64::budget
 
