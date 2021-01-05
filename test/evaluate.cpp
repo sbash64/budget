@@ -72,6 +72,8 @@ private:
   bool printed{};
 };
 
+class PrinterStub : public Printer {};
+
 class ExpenseRecordStub : public ExpenseRecord {
 public:
   void enter(const LabeledExpense &) override {}
@@ -99,12 +101,15 @@ public:
 
   void transferTo(std::string_view accountName, USD amount, Date) override {}
 
-  void print(Printer &) override {}
+  void print(Printer &p) override { printer_ = &p; }
+
+  auto printer() -> const Printer * { return printer_; }
 
 private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
+  const Printer *printer_{};
 };
 } // namespace
 
@@ -131,6 +136,15 @@ static void assertExpenseRecordPrinted(testcpplite::TestResult &result,
 }
 
 static void assertPrints(testcpplite::TestResult &result,
+                         std::string_view input) {
+  Controller controller;
+  BankStub bank;
+  PrinterStub printer;
+  command(controller, bank, printer, input);
+  assertEqual(result, &printer, bank.printer());
+}
+
+static void assertPrints(testcpplite::TestResult &result,
                          std::string_view input, std::string_view expected) {
   std::stringstream output;
   ExpenseRecordStub record;
@@ -144,8 +158,9 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const Transaction &expectedTransaction) {
   Controller controller;
   BankStub bank;
+  PrinterStub printer;
   for (const auto &x : input)
-    command(controller, bank, x);
+    command(controller, bank, printer, x);
   assertEqual(result, expectedAccountName, bank.debitedAccountName());
   assertEqual(result, expectedTransaction, bank.debitedTransaction());
 }
@@ -155,8 +170,9 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const Transaction &expectedTransaction) {
   Controller controller;
   BankStub bank;
+  PrinterStub printer;
   for (const auto &x : input)
-    command(controller, bank, x);
+    command(controller, bank, printer, x);
   assertEqual(result, expectedTransaction, bank.creditedTransaction());
 }
 
@@ -198,7 +214,7 @@ void invalidExpense(testcpplite::TestResult &result) {
 }
 
 void printCommand(testcpplite::TestResult &result) {
-  assertExpenseRecordPrinted(result, "print");
+  assertPrints(result, "print");
 }
 
 void expenseShouldPrintExpense(testcpplite::TestResult &result) {

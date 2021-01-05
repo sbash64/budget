@@ -62,7 +62,9 @@ void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
   }
 }
 
-void command(Controller &c, Model &b, std::string_view s) { c.command(b, s); }
+void command(Controller &c, Model &b, Printer &p, std::string_view s) {
+  c.command(b, p, s);
+}
 
 static auto next(std::stringstream &stream) -> std::string {
   std::string next;
@@ -85,7 +87,8 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, std::string_view input) {
+void Controller::command(Model &bank, Printer &printer,
+                         std::string_view input) {
   switch (state) {
   case State::normal:
     break;
@@ -108,6 +111,10 @@ void Controller::command(Model &bank, std::string_view input) {
   std::stringstream stream{input.data()};
   std::string commandName;
   stream >> commandName;
+  if (commandName == "print") {
+    bank.print(printer);
+    return;
+  }
   if (commandName == "debit") {
     debitAccountName = next(stream);
     transactionType = Transaction::Type::debit;
