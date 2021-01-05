@@ -16,9 +16,7 @@ public:
 
   class Factory : public AccountFactory {
   public:
-    auto make(std::string_view name) -> std::shared_ptr<Account> override {
-      return std::make_shared<InMemoryAccount>(std::string{name});
-    }
+    auto make(std::string_view name) -> std::shared_ptr<Account> override;
   };
 
 private:

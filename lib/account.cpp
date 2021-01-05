@@ -7,15 +7,15 @@ void InMemoryAccount::credit(const Transaction &t) { credits.push_back(t); }
 
 void InMemoryAccount::debit(const Transaction &t) { debits.push_back(t); }
 
+static auto balance(const std::vector<Transaction> &transactions) -> USD {
+  return std::accumulate(
+      transactions.begin(), transactions.end(), USD{0},
+      [](USD total, const Transaction &t) { return total + t.amount; });
+}
+
 static auto balance(const std::vector<Transaction> &credits,
                     const std::vector<Transaction> &debits) -> USD {
-  const auto creditBalance{std::accumulate(
-      credits.begin(), credits.end(), USD{0},
-      [](USD total, const Transaction &t) { return total + t.amount; })};
-  const auto debitBalance{std::accumulate(
-      debits.begin(), debits.end(), USD{0},
-      [](USD total, const Transaction &t) { return total + t.amount; })};
-  return creditBalance - debitBalance;
+  return balance(credits) - balance(debits);
 }
 
 void InMemoryAccount::print(Printer &printer) {
@@ -32,4 +32,9 @@ void InMemoryAccount::print(Printer &printer) {
 }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
+
+auto InMemoryAccount::Factory::make(std::string_view name)
+    -> std::shared_ptr<Account> {
+  return std::make_shared<InMemoryAccount>(std::string{name});
+}
 } // namespace sbash64::budget
