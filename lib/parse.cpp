@@ -7,7 +7,7 @@
 namespace sbash64::budget::parse {
 auto usd(std::string_view s) -> USD {
   USD usd{};
-  std::istringstream stream{s.data()};
+  std::istringstream stream{std::string{s}};
   if (stream.peek() != '.') {
     stream >> usd.cents;
     usd.cents *= 100;

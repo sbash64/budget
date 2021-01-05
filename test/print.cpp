@@ -9,7 +9,7 @@ static void assertPrettyWithBoundedNewlinesYields(
     std::string_view expected) {
   std::stringstream stream;
   pretty(stream, income, expenses);
-  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+  assertEqual(result, std::string{expected}, '\n' + stream.str() + '\n');
 }
 
 static void assertPrettyWithBoundedNewlinesYields(
@@ -17,7 +17,7 @@ static void assertPrettyWithBoundedNewlinesYields(
     const std::vector<LabeledExpense> &expenses, std::string_view expected) {
   std::stringstream stream;
   pretty(stream, expenses);
-  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+  assertEqual(result, std::string{expected}, '\n' + stream.str() + '\n');
 }
 
 static void assertPrettyWithBoundedNewlinesYields(
@@ -26,12 +26,12 @@ static void assertPrettyWithBoundedNewlinesYields(
     std::string_view expected) {
   std::stringstream stream;
   pretty(stream, transactions);
-  assertEqual(result, expected.data(), '\n' + stream.str() + '\n');
+  assertEqual(result, std::string{expected}, '\n' + stream.str() + '\n');
 }
 
 static void assertFormatYields(testcpplite::TestResult &result, USD usd,
                                std::string_view expected) {
-  assertEqual(result, expected.data(), format(usd));
+  assertEqual(result, std::string{expected}, format(usd));
 }
 
 void prettyBudgetHavingNoIncomeNorExpenses(testcpplite::TestResult &result) {
