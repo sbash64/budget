@@ -41,7 +41,7 @@ static void initialize(RecursiveExpense &expense, std::stringstream &stream,
 
 void command(ExpenseRecord &record, std::string_view s, std::ostream &output) {
   LabeledExpense expense;
-  std::stringstream stream{s.data()};
+  std::stringstream stream{std::string{s}};
   std::string category;
   stream >> category;
   if (category == "print") {
@@ -74,7 +74,7 @@ static auto next(std::stringstream &stream) -> std::string {
 
 static auto date(std::string_view s) -> Date {
   Date date{};
-  std::stringstream stream{s.data()};
+  std::stringstream stream{std::string{s}};
   int month = 0;
   stream >> month;
   int day = 0;
@@ -99,16 +99,17 @@ void Controller::command(Model &bank, Printer &printer,
   case State::readyForDescription:
     switch (transactionType) {
     case Transaction::Type::credit:
-      bank.credit(Transaction{amount, input.data(), date});
+      bank.credit(Transaction{amount, std::string{input}, date});
       break;
     case Transaction::Type::debit:
-      bank.debit(debitAccountName, Transaction{amount, input.data(), date});
+      bank.debit(debitAccountName,
+                 Transaction{amount, std::string{input}, date});
       break;
     }
     state = State::normal;
     return;
   }
-  std::stringstream stream{input.data()};
+  std::stringstream stream{std::string{input}};
   std::string commandName;
   stream >> commandName;
   if (commandName == "print") {

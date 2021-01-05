@@ -20,15 +20,15 @@ Bank::Bank(AccountFactory &factory)
 void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
 
 static void createNewAccountIfNeeded(
-    std::map<std::string, std::shared_ptr<Account>> &accounts,
+    std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
     AccountFactory &factory, std::string_view accountName) {
-  if (accounts.count(accountName.data()) == 0)
-    accounts[accountName.data()] = factory.make(accountName);
+  if (accounts.count(accountName) == 0)
+    accounts[std::string{accountName}] = factory.make(accountName);
 }
 
 void Bank::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(accounts, factory, accountName);
-  budget::debit(accounts.at(accountName.data()), t);
+  budget::debit(accounts.at(std::string{accountName}), t);
 }
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
@@ -38,15 +38,15 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
                             std::string{transferDescription} + " to " +
                                 std::string{accountName},
                             date});
-  budget::credit(accounts.at(accountName.data()),
+  budget::credit(accounts.at(std::string{accountName}),
                  Transaction{amount,
                              std::string{transferDescription} + " from " +
                                  std::string{masterAccountName},
                              date});
 }
 
-static auto
-collect(const std::map<std::string, std::shared_ptr<Account>> &accounts)
+static auto collect(const std::map<std::string, std::shared_ptr<Account>,
+                                   std::less<>> &accounts)
     -> std::vector<const Account *> {
   std::vector<const Account *> collected;
   collected.reserve(accounts.size());
