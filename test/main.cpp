@@ -36,6 +36,7 @@ static auto runAllTests() -> int {
        {evaluate::invalidExpenseShouldPrintMessage,
         "evaluate invalid expense should print message"},
        {evaluate::printCommand, "evaluate print command"},
+       {evaluate::transferToCommand, "evaluate transfer to command"},
        {evaluate::expenseShouldPrintExpense,
         "evaluate expense should print expense"},
        {evaluate::debit, "evaluate debit"},

@@ -99,17 +99,33 @@ public:
     creditedTransaction_ = transaction;
   }
 
-  void transferTo(std::string_view accountName, USD amount, Date) override {}
+  void transferTo(std::string_view accountName, USD amount,
+                  Date date) override {
+    transferredAmount_ = amount;
+    accountNameTransferredTo_ = accountName;
+    transferDate_ = date;
+  }
 
   void print(Printer &p) override { printer_ = &p; }
 
   auto printer() -> const Printer * { return printer_; }
+
+  auto transferredAmount() -> USD { return transferredAmount_; }
+
+  auto accountNameTransferredTo() -> std::string {
+    return accountNameTransferredTo_;
+  }
+
+  auto transferDate() -> Date { return transferDate_; }
 
 private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
   const Printer *printer_{};
+  USD transferredAmount_{};
+  std::string accountNameTransferredTo_;
+  Date transferDate_;
 };
 } // namespace
 
@@ -125,13 +141,6 @@ static void assertNoExpenseEntered(testcpplite::TestResult &result,
                                    std::string_view input) {
   std::stringstream output;
   AssertsNoExpenseEntered record{result};
-  command(record, input, output);
-}
-
-static void assertExpenseRecordPrinted(testcpplite::TestResult &result,
-                                       std::string_view input) {
-  std::stringstream output;
-  AssertsPrinted record{result, output};
   command(record, input, output);
 }
 
@@ -174,6 +183,22 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
   for (const auto &x : input)
     command(controller, bank, printer, x);
   assertEqual(result, expectedTransaction, bank.creditedTransaction());
+}
+
+static void assertTransfersToAccount(testcpplite::TestResult &result,
+                                     const std::vector<std::string> &input,
+                                     USD expectedAmount,
+                                     std::string_view expectedAccountName,
+                                     const Date &expectedDate) {
+  Controller controller;
+  BankStub bank;
+  PrinterStub printer;
+  for (const auto &x : input)
+    command(controller, bank, printer, x);
+  assertEqual(result, expectedAmount, bank.transferredAmount());
+  assertEqual(result, std::string{expectedAccountName},
+              bank.accountNameTransferredTo());
+  assertEqual(result, expectedDate, bank.transferDate());
 }
 
 void expenseWithOneSubcategory(testcpplite::TestResult &result) {
@@ -237,5 +262,10 @@ void credit(testcpplite::TestResult &result) {
   assertCreditsAccount(
       result, {"credit 2134.35", "11 22 19", "btnrh"},
       Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
+}
+
+void transferToCommand(testcpplite::TestResult &result) {
+  assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
+                           5000_cents, "Groceries", Date{2021, Month::June, 3});
 }
 } // namespace sbash64::budget::evaluate

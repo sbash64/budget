@@ -96,20 +96,33 @@ void Controller::command(Model &bank, Printer &printer,
     stream >> commandName;
     if (commandName == "print") {
       bank.print(printer);
-      return;
-    }
-    if (commandName == "debit") {
-      debitAccountName = next(stream);
-      transactionType = Transaction::Type::debit;
     } else {
-      transactionType = Transaction::Type::credit;
+      if (commandName == "transferto") {
+        accountName = next(stream);
+        commandType = CommandType::transfer;
+      } else if (commandName == "debit") {
+        accountName = next(stream);
+        transactionType = Transaction::Type::debit;
+        commandType = CommandType::transaction;
+      } else if (commandName == "credit") {
+        transactionType = Transaction::Type::credit;
+        commandType = CommandType::transaction;
+      }
+      amount = parse::usd(next(stream));
+      state = State::readyForDate;
     }
-    amount = parse::usd(next(stream));
-    state = State::readyForDate;
     return;
   case State::readyForDate:
     date = evaluate::date(input);
-    state = State::readyForDescription;
+    switch (commandType) {
+    case CommandType::transaction:
+      state = State::readyForDescription;
+      break;
+    case CommandType::transfer:
+      bank.transferTo(accountName, amount, date);
+      state = State::normal;
+      break;
+    }
     return;
   case State::readyForDescription:
     switch (transactionType) {
@@ -117,8 +130,7 @@ void Controller::command(Model &bank, Printer &printer,
       bank.credit(Transaction{amount, std::string{input}, date});
       break;
     case Transaction::Type::debit:
-      bank.debit(debitAccountName,
-                 Transaction{amount, std::string{input}, date});
+      bank.debit(accountName, Transaction{amount, std::string{input}, date});
       break;
     }
     state = State::normal;

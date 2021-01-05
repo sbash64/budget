@@ -12,10 +12,12 @@ public:
 
 private:
   enum class State { normal, readyForDate, readyForDescription };
+  enum class CommandType { transaction, transfer };
   USD amount;
   Date date;
-  std::string debitAccountName;
+  std::string accountName;
   State state{State::normal};
+  CommandType commandType;
   Transaction::Type transactionType;
 };
 
