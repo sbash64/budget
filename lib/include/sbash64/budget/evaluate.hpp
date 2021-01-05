@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-namespace sbash64::budget::evaluate {
+namespace sbash64::budget {
 class Controller {
 public:
   void command(Model &, Printer &, std::string_view);
@@ -22,6 +22,6 @@ private:
 };
 
 void command(Controller &, Model &, Printer &, std::string_view);
-} // namespace sbash64::budget::evaluate
+} // namespace sbash64::budget
 
 #endif

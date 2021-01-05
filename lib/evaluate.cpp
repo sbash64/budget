@@ -1,10 +1,9 @@
 #include "evaluate.hpp"
 #include "parse.hpp"
 #include "print.hpp"
-#include <forward_list>
 #include <sstream>
 
-namespace sbash64::budget::evaluate {
+namespace sbash64::budget {
 constexpr auto multiWordArgumentDelimiter{'"'};
 
 static auto nextArgument(std::stringstream &stream) -> std::string {
@@ -66,12 +65,12 @@ void Controller::command(Model &bank, Printer &printer,
         transactionType = Transaction::Type::credit;
         commandType = CommandType::transaction;
       }
-      amount = parse::usd(next(stream));
+      amount = usd(next(stream));
       state = State::readyForDate;
     }
     break;
   case State::readyForDate:
-    date = evaluate::date(input);
+    date = budget::date(input);
     switch (commandType) {
     case CommandType::transaction:
       state = State::readyForDescription;
@@ -95,4 +94,4 @@ void Controller::command(Model &bank, Printer &printer,
     break;
   }
 }
-} // namespace sbash64::budget::evaluate
+} // namespace sbash64::budget

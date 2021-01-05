@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace sbash64::budget::parse {
+namespace sbash64::budget {
 auto usd(std::string_view s) -> USD {
   USD usd{};
   std::istringstream stream{std::string{s}};
@@ -29,4 +29,4 @@ auto isUsd(std::string_view s) -> bool {
     return (std::isdigit(c) != 0) || c == '.';
   });
 }
-} // namespace sbash64::budget::parse
+} // namespace sbash64::budget

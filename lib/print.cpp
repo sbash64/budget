@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <string>
 
-namespace sbash64::budget::print {
+namespace sbash64::budget {
 static auto formatWithoutDollarSign(USD usd) -> std::string {
   char cents[3];
   std::snprintf(cents, sizeof cents, "%.2lld", usd.cents % 100);
@@ -58,4 +58,4 @@ void StreamPrinter::printAccountSummary(
   }
   stream << '\n' << "----" << '\n';
 }
-} // namespace sbash64::budget::print
+} // namespace sbash64::budget

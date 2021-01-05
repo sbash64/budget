@@ -8,6 +8,14 @@
 #include <utility>
 #include <vector>
 
+#define SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(a)                   \
+  virtual ~a() = default;                                                      \
+  a() = default;                                                               \
+  a(const a &) = delete;                                                       \
+  a(a &&) = delete;                                                            \
+  auto operator=(const a &)->a & = delete;                                     \
+  auto operator=(a &&)->a & = delete
+
 namespace sbash64::budget {
 struct USD {
   std::int_least64_t cents;
@@ -18,14 +26,6 @@ inline auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 inline auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
 inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
-
-#define SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(a)                   \
-  virtual ~a() = default;                                                      \
-  a() = default;                                                               \
-  a(const a &) = delete;                                                       \
-  a(a &&) = delete;                                                            \
-  auto operator=(const a &)->a & = delete;                                     \
-  auto operator=(a &&)->a & = delete
 
 enum class Month {
   January = 1,

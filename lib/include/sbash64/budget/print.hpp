@@ -5,7 +5,7 @@
 #include <ostream>
 #include <string>
 
-namespace sbash64::budget::print {
+namespace sbash64::budget {
 auto format(USD) -> std::string;
 
 class StreamPrinter : public Printer {
@@ -19,6 +19,6 @@ public:
 private:
   std::ostream &stream;
 };
-} // namespace sbash64::budget::print
+} // namespace sbash64::budget
 
 #endif
