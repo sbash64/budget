@@ -153,18 +153,21 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
   return {std::move(transaction), Transaction::Type::credit};
 }
 
+class Printer;
+
 class Account {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
+  virtual void print(Printer &) {}
 };
 
 class Printer {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Printer);
-  virtual void print(const Account &primary,
-                     const std::vector<const Account *> &secondaries) {}
+  virtual void print(Account &primary,
+                     const std::vector<Account *> &secondaries) {}
   virtual void
   printAccountSummary(USD balance,
                       const std::vector<PrintableTransaction> &transactions) {}

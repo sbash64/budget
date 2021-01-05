@@ -85,4 +85,18 @@ void pretty(std::ostream &stream,
            << "          " << transaction.transaction.description;
   }
 }
+
+StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
+
+void StreamPrinter::print(Account &primary,
+                          const std::vector<Account *> &secondaries) {
+  primary.print(*this);
+  for (auto *account : secondaries) {
+    stream << "\n\n";
+    account->print(*this);
+  }
+}
+
+void StreamPrinter::printAccountSummary(
+    USD balance, const std::vector<PrintableTransaction> &transactions) {}
 } // namespace sbash64::budget::print

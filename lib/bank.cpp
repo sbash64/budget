@@ -47,8 +47,8 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
                                    std::less<>> &accounts)
-    -> std::vector<const Account *> {
-  std::vector<const Account *> collected;
+    -> std::vector<Account *> {
+  std::vector<Account *> collected;
   collected.reserve(accounts.size());
   for (const auto &[name, account] : accounts)
     collected.push_back(account.get());

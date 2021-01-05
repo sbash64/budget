@@ -4,6 +4,21 @@
 #include <sstream>
 
 namespace sbash64::budget::print {
+namespace {
+class AccountStub : public Account {
+public:
+  AccountStub(std::stringstream &stream, std::string name)
+      : stream{stream}, name{std::move(name)} {}
+  void credit(const Transaction &) override {}
+  void debit(const Transaction &) override {}
+  void print(Printer &) override { stream << name; }
+
+private:
+  std::stringstream &stream;
+  std::string name;
+};
+} // namespace
+
 static void assertPrettyWithBoundedNewlinesYields(
     testcpplite::TestResult &result, Income income, const ExpenseTree &expenses,
     std::string_view expected) {
@@ -199,5 +214,25 @@ Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
 27.34                    01/14/2021          Brinley's 3rd
 24.10                    03/18/2021          Hannah's 30th
 )");
+}
+
+void accounts(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  StreamPrinter printer{stream};
+  AccountStub jeff(stream, "jeff");
+  AccountStub steve(stream, "steve");
+  AccountStub sue(stream, "sue");
+  AccountStub allen(stream, "allen");
+  printer.print(jeff, {&steve, &sue, &allen});
+  assertEqual(result, R"(
+jeff
+
+steve
+
+sue
+
+allen
+)",
+              '\n' + stream.str() + '\n');
 }
 } // namespace sbash64::budget::print

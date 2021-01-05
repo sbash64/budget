@@ -12,18 +12,18 @@ class PrinterStub : public Printer {
 public:
   auto primaryAccount() -> const Account * { return primaryAccount_; }
 
-  void print(const Account &primary,
-             const std::vector<const Account *> &secondaries) override {
+  void print(Account &primary,
+             const std::vector<Account *> &secondaries) override {
     primaryAccount_ = &primary;
     secondaryAccounts_ = secondaries;
   }
 
-  auto secondaryAccounts() -> std::vector<const Account *> {
+  auto secondaryAccounts() -> std::vector<Account *> {
     return secondaryAccounts_;
   }
 
 private:
-  std::vector<const Account *> secondaryAccounts_;
+  std::vector<Account *> secondaryAccounts_;
   const Account *primaryAccount_{};
 };
 

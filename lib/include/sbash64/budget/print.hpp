@@ -12,6 +12,18 @@ void pretty(std::ostream &, const std::vector<LabeledExpense> &);
 void pretty(std::ostream &, const std::vector<PrintableTransaction> &);
 void pretty(std::ostream &, const LabeledExpense &);
 auto format(USD) -> std::string;
+
+class StreamPrinter : public Printer {
+public:
+  StreamPrinter(std::ostream &);
+  void print(Account &primary,
+             const std::vector<Account *> &secondaries) override;
+  void printAccountSummary(USD balance,
+                           const std::vector<PrintableTransaction> &) override;
+
+private:
+  std::ostream &stream;
+};
 } // namespace sbash64::budget::print
 
 #endif

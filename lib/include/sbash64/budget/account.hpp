@@ -9,7 +9,7 @@ class InMemoryAccount : public Account {
 public:
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
-  void print(Printer &);
+  void print(Printer &) override;
 
 private:
   std::vector<Transaction> debits;
