@@ -16,13 +16,17 @@ public:
   void printAccountSummary(
       std::string_view name, USD balance,
       const std::vector<PrintableTransaction> &transactions) override {
+    accountName_ = name;
     accountTransactions_ = transactions;
     accountBalance_ = balance;
   }
 
+  auto accountName() -> std::string { return accountName_; }
+
 private:
   std::vector<PrintableTransaction> accountTransactions_;
   USD accountBalance_{};
+  std::string accountName_;
 };
 } // namespace
 
@@ -40,7 +44,7 @@ static void assertEqual(testcpplite::TestResult &result,
 
 void printPrintsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
-  InMemoryAccount account;
+  InMemoryAccount account{"joe"};
   account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   account.debit(
       Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -48,6 +52,7 @@ void printPrintsAllTransactionsInChronologicalOrderAndBalance(
       Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
   PrinterStub printer;
   account.print(printer);
+  assertEqual(result, "joe", printer.accountName());
   assertEqual(result, 123_cents - 456_cents + 789_cents,
               printer.accountBalance());
   assertEqual(result,
