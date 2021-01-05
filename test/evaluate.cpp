@@ -93,7 +93,7 @@ public:
     debitedTransaction_ = transaction;
   }
 
-  void credit(const Transaction &transaction) {
+  void credit(const Transaction &transaction) override {
     creditedTransaction_ = transaction;
   }
 

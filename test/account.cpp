@@ -26,12 +26,16 @@ private:
 };
 } // namespace
 
+constexpr auto to_integral(Transaction::Type e) ->
+    typename std::underlying_type<Transaction::Type>::type {
+  return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);
+}
+
 static void assertEqual(testcpplite::TestResult &result,
                         const PrintableTransaction &expected,
                         const PrintableTransaction &actual) {
   assertEqual(result, expected.transaction, actual.transaction);
-  assertEqual(result, static_cast<int>(expected.debit),
-              static_cast<int>(actual.debit));
+  assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
 
 void printPrintsAllTransactionsInChronologicalOrderAndBalance(

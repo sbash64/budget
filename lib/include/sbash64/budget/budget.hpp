@@ -136,19 +136,21 @@ struct Transaction {
   USD amount;
   std::string description;
   Date date;
+
+  enum class Type { credit, debit };
 };
 
 struct PrintableTransaction {
   Transaction transaction;
-  bool debit{};
+  Transaction::Type type{};
 };
 
 inline auto printableDebit(Transaction transaction) -> PrintableTransaction {
-  return {std::move(transaction), true};
+  return {std::move(transaction), Transaction::Type::debit};
 }
 
 inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
-  return {std::move(transaction), false};
+  return {std::move(transaction), Transaction::Type::credit};
 }
 
 class Model {

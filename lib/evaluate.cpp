@@ -94,11 +94,11 @@ void Controller::command(Model &bank, std::string_view input) {
     state = State::readyForDescription;
     return;
   case State::readyForDescription:
-    switch (transactionState) {
-    case TransactionState::credit:
+    switch (transactionType) {
+    case Transaction::Type::credit:
       bank.credit(Transaction{amount, input.data(), date});
       break;
-    case TransactionState::debit:
+    case Transaction::Type::debit:
       bank.debit(debitAccountName, Transaction{amount, input.data(), date});
       break;
     }
@@ -110,9 +110,9 @@ void Controller::command(Model &bank, std::string_view input) {
   stream >> commandName;
   if (commandName == "debit") {
     debitAccountName = next(stream);
-    transactionState = TransactionState::debit;
+    transactionType = Transaction::Type::debit;
   } else {
-    transactionState = TransactionState::credit;
+    transactionType = Transaction::Type::credit;
   }
   amount = parse::usd(next(stream));
   state = State::readyForDate;
