@@ -1,5 +1,6 @@
 #include "account.hpp"
 #include <algorithm>
+#include <memory>
 #include <numeric>
 
 namespace sbash64::budget {

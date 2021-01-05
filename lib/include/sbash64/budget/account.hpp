@@ -2,7 +2,6 @@
 #define SBASH64_BUDGET_ACCOUNT_HPP_
 
 #include "budget.hpp"
-#include <memory>
 #include <string>
 #include <vector>
 

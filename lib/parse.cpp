@@ -1,8 +1,6 @@
 #include "parse.hpp"
-#include <algorithm>
-#include <cctype>
-#include <iomanip>
 #include <sstream>
+#include <string>
 
 namespace sbash64::budget {
 auto usd(std::string_view s) -> USD {
@@ -22,11 +20,5 @@ auto usd(std::string_view s) -> USD {
     usd.cents += cents;
   }
   return usd;
-}
-
-auto isUsd(std::string_view s) -> bool {
-  return !s.empty() && std::all_of(s.begin(), s.end(), [](unsigned char c) {
-    return (std::isdigit(c) != 0) || c == '.';
-  });
 }
 } // namespace sbash64::budget
