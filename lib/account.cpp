@@ -18,7 +18,10 @@ static auto balance(const std::vector<Transaction> &credits,
   return balance(credits) - balance(debits);
 }
 
-void InMemoryAccount::print(Printer &printer) {
+static auto
+dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
+                                const std::vector<Transaction> &debits)
+    -> std::vector<PrintableTransaction> {
   std::vector<PrintableTransaction> transactions;
   for (const auto &c : credits)
     transactions.push_back(printableCredit(c));
@@ -28,7 +31,12 @@ void InMemoryAccount::print(Printer &printer) {
             [](const PrintableTransaction &a, const PrintableTransaction &b) {
               return a.transaction.date < b.transaction.date;
             });
-  printer.printAccountSummary(name, balance(credits, debits), transactions);
+  return transactions;
+}
+
+void InMemoryAccount::print(Printer &printer) {
+  printer.printAccountSummary(name, balance(credits, debits),
+                              dateSortedPrintableTransactions(credits, debits));
 }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
