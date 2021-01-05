@@ -97,6 +97,10 @@ public:
     creditedTransaction_ = transaction;
   }
 
+  void transferTo(std::string_view accountName, USD amount, Date) override {}
+
+  void print(Printer &) override {}
+
 private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;

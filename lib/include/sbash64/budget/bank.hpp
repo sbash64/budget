@@ -19,8 +19,8 @@ public:
   Bank(AccountFactory &);
   void debit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
-  void transferTo(std::string_view accountName, USD amount, Date);
-  void print(Printer &);
+  void transferTo(std::string_view accountName, USD amount, Date) override;
+  void print(Printer &) override;
 
 private:
   AccountFactory &factory;

@@ -153,13 +153,6 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
   return {std::move(transaction), Transaction::Type::credit};
 }
 
-class Model {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Model);
-  virtual void debit(std::string_view accountName, const Transaction &) = 0;
-  virtual void credit(const Transaction &) = 0;
-};
-
 class Account {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
@@ -175,6 +168,15 @@ public:
   virtual void
   printAccountSummary(USD balance,
                       const std::vector<PrintableTransaction> &transactions) {}
+};
+
+class Model {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Model);
+  virtual void debit(std::string_view accountName, const Transaction &) = 0;
+  virtual void credit(const Transaction &) = 0;
+  virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
+  virtual void print(Printer &) = 0;
 };
 } // namespace sbash64::budget
 
