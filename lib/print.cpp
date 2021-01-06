@@ -26,8 +26,8 @@ static auto format(const Date &date) -> std::string {
 
 StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
 
-void StreamPrinter::print(Account &primary,
-                          const std::vector<Account *> &secondaries) {
+void StreamPrinter::show(Account &primary,
+                         const std::vector<Account *> &secondaries) {
   primary.print(*this);
   for (auto *account : secondaries) {
     stream << "\n\n";
@@ -35,7 +35,7 @@ void StreamPrinter::print(Account &primary,
   }
 }
 
-void StreamPrinter::printAccountSummary(
+void StreamPrinter::showAccountSummary(
     std::string_view name, USD balance,
     const std::vector<PrintableTransaction> &transactions) {
   stream << "----" << '\n';

@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_TEST_VIEW_STUB_HPP_
 #define SBASH64_BUDGET_TEST_VIEW_STUB_HPP_
 
-#include <sbash64/budget/print.hpp>
+#include <sbash64/budget/budget.hpp>
 
 namespace sbash64::budget {
 class ViewStub : public View {
@@ -12,7 +12,7 @@ public:
     return accountTransactions_;
   }
 
-  void printAccountSummary(
+  void showAccountSummary(
       std::string_view name, USD balance,
       const std::vector<PrintableTransaction> &transactions) override {
     accountName_ = name;
@@ -24,8 +24,8 @@ public:
 
   auto primaryAccount() -> const Account * { return primaryAccount_; }
 
-  void print(Account &primary,
-             const std::vector<Account *> &secondaries) override {
+  void show(Account &primary,
+            const std::vector<Account *> &secondaries) override {
     primaryAccount_ = &primary;
     secondaryAccounts_ = secondaries;
   }

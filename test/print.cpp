@@ -47,7 +47,7 @@ void accounts(testcpplite::TestResult &result) {
   AccountStub steve(stream, "steve");
   AccountStub sue(stream, "sue");
   AccountStub allen(stream, "allen");
-  printer.print(jeff, {&steve, &sue, &allen});
+  printer.show(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
 
@@ -63,7 +63,7 @@ allen
 void account(testcpplite::TestResult &result) {
   std::stringstream stream;
   StreamPrinter printer{stream};
-  printer.printAccountSummary(
+  printer.showAccountSummary(
       "Checking", 1234_cents,
       {printableDebit(Transaction{2500_cents, "Sam's 24th",
                                   Date{2020, Month::December, 27}}),

@@ -98,11 +98,11 @@ public:
 class View {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
-  virtual void print(Account &primary,
-                     const std::vector<Account *> &secondaries) = 0;
-  virtual void printAccountSummary(
-      std::string_view name, USD balance,
-      const std::vector<PrintableTransaction> &transactions) = 0;
+  virtual void show(Account &primary,
+                    const std::vector<Account *> &secondaries) = 0;
+  virtual void
+  showAccountSummary(std::string_view name, USD balance,
+                     const std::vector<PrintableTransaction> &transactions) = 0;
 };
 
 class PersistentMemory {
