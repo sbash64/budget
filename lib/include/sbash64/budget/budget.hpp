@@ -109,7 +109,7 @@ class PersistentMemory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(PersistentMemory);
   virtual void save(Account &primary,
-                    const std::vector<Account *> &secondaries) {}
+                    const std::vector<Account *> &secondaries) = 0;
 };
 
 class Model {
@@ -119,7 +119,7 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void print(View &) = 0;
-  virtual void save(PersistentMemory &) {}
+  virtual void save(PersistentMemory &) = 0;
 };
 } // namespace sbash64::budget
 
