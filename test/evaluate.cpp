@@ -52,7 +52,7 @@ private:
   const Printer *printer_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
-  Date transferDate_;
+  Date transferDate_{};
 };
 } // namespace
 
@@ -105,9 +105,7 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
   assertEqual(result, expectedDate, bank.transferDate());
 }
 
-void printCommand(testcpplite::TestResult &result) {
-  assertPrints(result, "print");
-}
+void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
 
 void debit(testcpplite::TestResult &result) {
   assertDebitsAccount(
@@ -121,7 +119,7 @@ void credit(testcpplite::TestResult &result) {
       Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
 }
 
-void transferToCommand(testcpplite::TestResult &result) {
+void transferTo(testcpplite::TestResult &result) {
   assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
                            5000_cents, "Groceries", Date{2021, Month::June, 3});
 }

@@ -4,10 +4,10 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::evaluate {
-void printCommand(testcpplite::TestResult &);
+void print(testcpplite::TestResult &);
 void debit(testcpplite::TestResult &);
 void credit(testcpplite::TestResult &);
-void transferToCommand(testcpplite::TestResult &);
+void transferTo(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif
