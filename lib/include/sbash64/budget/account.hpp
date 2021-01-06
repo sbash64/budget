@@ -11,7 +11,7 @@ public:
   InMemoryAccount(std::string name);
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
-  void print(View &) override;
+  void show(View &) override;
 
   class Factory : public AccountFactory {
   public:

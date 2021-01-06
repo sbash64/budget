@@ -35,7 +35,7 @@ public:
     transferDate_ = date;
   }
 
-  void print(View &p) override { printer_ = &p; }
+  void show(View &p) override { printer_ = &p; }
 
   auto view() -> const View * { return printer_; }
 

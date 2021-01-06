@@ -15,7 +15,7 @@ public:
   void debit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount, Date) override;
-  void print(View &) override;
+  void show(View &) override;
   void save(PersistentMemory &) override;
 
 private:

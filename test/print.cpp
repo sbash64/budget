@@ -11,7 +11,7 @@ public:
       : stream{stream}, name{std::move(name)} {}
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
-  void print(View &) override { stream << name; }
+  void show(View &) override { stream << name; }
 
 private:
   std::stringstream &stream;

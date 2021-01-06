@@ -28,10 +28,10 @@ StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
 
 void StreamPrinter::show(Account &primary,
                          const std::vector<Account *> &secondaries) {
-  primary.print(*this);
+  primary.show(*this);
   for (auto *account : secondaries) {
     stream << "\n\n";
-    account->print(*this);
+    account->show(*this);
   }
 }
 

@@ -55,7 +55,7 @@ static auto collect(const std::map<std::string, std::shared_ptr<Account>,
   return collected;
 }
 
-void Bank::print(View &view) { view.show(*masterAccount, collect(accounts)); }
+void Bank::show(View &view) { view.show(*masterAccount, collect(accounts)); }
 
 void Bank::save(PersistentMemory &persistentMemory) {
   persistentMemory.save(*masterAccount, collect(accounts));

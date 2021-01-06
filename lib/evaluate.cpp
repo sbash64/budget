@@ -53,7 +53,7 @@ void Controller::command(Model &bank, View &printer,
   case State::normal:
     stream >> commandName;
     if (commandName == "print") {
-      bank.print(printer);
+      bank.show(printer);
     } else if (commandName == "save") {
       bank.save(persistentMemory);
     } else {

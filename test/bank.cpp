@@ -20,7 +20,7 @@ public:
 
   void debit(const Transaction &t) override { debitedTransaction_ = t; }
 
-  void print(View &) override {}
+  void show(View &) override {}
 
 private:
   Transaction creditedTransaction_;
@@ -150,7 +150,7 @@ void printPrintsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
   debit(bank, "penguin", {});
   debit(bank, "leopard", {});
   ViewStub view;
-  bank.print(view);
+  bank.show(view);
   assertEqual(result, masterAccount.get(), view.primaryAccount());
   assertEqual(result, giraffe.get(), view.secondaryAccounts().at(0));
   assertEqual(result, leopard.get(), view.secondaryAccounts().at(1));

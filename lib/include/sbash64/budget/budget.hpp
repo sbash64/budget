@@ -86,7 +86,7 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
-  virtual void print(View &) = 0;
+  virtual void show(View &) = 0;
 };
 
 class AccountFactory {
@@ -118,7 +118,7 @@ public:
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
-  virtual void print(View &) = 0;
+  virtual void show(View &) = 0;
   virtual void save(PersistentMemory &) = 0;
 };
 } // namespace sbash64::budget
