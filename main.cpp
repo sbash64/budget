@@ -1,3 +1,4 @@
+#include "./test/persistent-memory-stub.hpp"
 #include <iostream>
 #include <sbash64/budget/account.hpp>
 #include <sbash64/budget/bank.hpp>
@@ -6,14 +7,15 @@
 
 namespace sbash64::budget {
 static void repl() {
-  evaluate::Controller controller;
+  Controller controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
-  print::StreamPrinter printer{std::cout};
+  StreamPrinter printer{std::cout};
+  PersistentMemoryStub persistentMemory;
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
-    sbash64::budget::evaluate::command(controller, bank, printer, line);
+    sbash64::budget::command(controller, bank, printer, persistentMemory, line);
   }
 }
 } // namespace sbash64::budget

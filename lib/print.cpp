@@ -33,6 +33,7 @@ void StreamPrinter::show(Account &primary,
     stream << "\n\n";
     account->show(*this);
   }
+  stream << '\n';
 }
 
 void StreamPrinter::showAccountSummary(

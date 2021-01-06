@@ -57,6 +57,7 @@ steve
 sue
 
 allen
+
 )",
               '\n' + stream.str() + '\n');
 }
