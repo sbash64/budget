@@ -1,8 +1,9 @@
-#include "./test/persistent-memory-stub.hpp"
+#include <fstream>
 #include <iostream>
 #include <sbash64/budget/account.hpp>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/evaluate.hpp>
+#include <sbash64/budget/file.hpp>
 #include <sbash64/budget/print.hpp>
 
 namespace sbash64::budget {
@@ -11,12 +12,17 @@ static void repl() {
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
   StreamPrinter printer{std::cout};
-  PersistentMemoryStub persistentMemory;
+  std::ofstream fileStream;
+  fileStream.open("budget.txt");
+  File file{fileStream};
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
-    sbash64::budget::command(controller, bank, printer, persistentMemory, line);
+    if (line == "exit")
+      break;
+    sbash64::budget::command(controller, bank, printer, file, line);
   }
+  fileStream.close();
 }
 } // namespace sbash64::budget
 
