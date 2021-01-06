@@ -18,7 +18,7 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &c, Model &b, Printer &p, PersistentMemory &pm,
+void command(Controller &c, Model &b, View &p, PersistentMemory &pm,
              std::string_view s) {
   c.command(b, p, pm, s);
 }
@@ -44,7 +44,7 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, Printer &printer,
+void Controller::command(Model &bank, View &printer,
                          PersistentMemory &persistentMemory,
                          std::string_view input) {
   std::stringstream stream{std::string{input}};

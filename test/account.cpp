@@ -25,7 +25,7 @@ void printPrintsAllTransactionsInChronologicalOrderAndBalance(
       Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   account.credit(
       Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-  PrinterStub printer;
+  ViewStub printer;
   account.print(printer);
   assertEqual(result, "joe", printer.accountName());
   assertEqual(result, 123_cents - 456_cents + 789_cents,

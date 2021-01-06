@@ -34,9 +34,9 @@ public:
     transferDate_ = date;
   }
 
-  void print(Printer &p) override { printer_ = &p; }
+  void print(View &p) override { printer_ = &p; }
 
-  auto printer() -> const Printer * { return printer_; }
+  auto printer() -> const View * { return printer_; }
 
   void save(PersistentMemory &p) override { persistentMemory_ = &p; }
 
@@ -56,7 +56,7 @@ private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
-  const Printer *printer_{};
+  const View *printer_{};
   const PersistentMemory *persistentMemory_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
@@ -66,12 +66,12 @@ private:
 class PersistentMemoryStub : public PersistentMemory {};
 } // namespace
 
-static void testController(
-    const std::function<void(Controller &, ModelStub &, PrinterStub &,
-                             PersistentMemoryStub &)> &f) {
+static void
+testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
+                                        PersistentMemoryStub &)> &f) {
   Controller controller;
   ModelStub model;
-  PrinterStub printer;
+  ViewStub printer;
   PersistentMemoryStub persistentMemory;
   f(controller, model, printer, persistentMemory);
 }
@@ -79,7 +79,7 @@ static void testController(
 static void assertPrints(testcpplite::TestResult &result,
                          std::string_view input) {
   testController([&](Controller &controller, ModelStub &model,
-                     PrinterStub &printer,
+                     ViewStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     command(controller, model, printer, persistentMemory, input);
     assertEqual(result, &printer, model.printer());
@@ -89,7 +89,7 @@ static void assertPrints(testcpplite::TestResult &result,
 static void assertSaves(testcpplite::TestResult &result,
                         std::string_view input) {
   testController([&](Controller &controller, ModelStub &model,
-                     PrinterStub &printer,
+                     ViewStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     command(controller, model, printer, persistentMemory, input);
     assertEqual(result, &persistentMemory, model.persistentMemory());
@@ -101,7 +101,7 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
   testController([&](Controller &controller, ModelStub &model,
-                     PrinterStub &printer,
+                     ViewStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
       command(controller, model, printer, persistentMemory, x);
@@ -113,8 +113,7 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
 static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
-  testController([&](Controller &controller, ModelStub &bank,
-                     PrinterStub &printer,
+  testController([&](Controller &controller, ModelStub &bank, ViewStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
       command(controller, bank, printer, persistentMemory, x);
@@ -128,7 +127,7 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      std::string_view expectedAccountName,
                                      const Date &expectedDate) {
   testController([&](Controller &controller, ModelStub &model,
-                     PrinterStub &printer,
+                     ViewStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
       command(controller, model, printer, persistentMemory, x);

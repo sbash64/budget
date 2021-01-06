@@ -35,7 +35,7 @@ dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
   return transactions;
 }
 
-void InMemoryAccount::print(Printer &printer) {
+void InMemoryAccount::print(View &printer) {
   printer.printAccountSummary(name, balance(credits, debits),
                               dateSortedPrintableTransactions(credits, debits));
 }

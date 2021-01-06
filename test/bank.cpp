@@ -19,7 +19,7 @@ public:
 
   void debit(const Transaction &t) override { debitedTransaction_ = t; }
 
-  void print(Printer &) override {}
+  void print(View &) override {}
 
 private:
   Transaction creditedTransaction_;
@@ -64,7 +64,7 @@ static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
 
 static void
 assertContainsSecondaryAccount(testcpplite::TestResult &result,
-                               PrinterStub &printer,
+                               ViewStub &printer,
                                const std::shared_ptr<Account> &account) {
   assertTrue(result,
              std::find(printer.secondaryAccounts().begin(),
@@ -148,7 +148,7 @@ void printPrintsAccounts(testcpplite::TestResult &result) {
   debit(bank, "giraffe", {});
   debit(bank, "penguin", {});
   debit(bank, "leopard", {});
-  PrinterStub printer;
+  ViewStub printer;
   bank.print(printer);
   assertEqual(result, masterAccount.get(), printer.primaryAccount());
   assertContainsSecondaryAccount(result, printer, giraffe);

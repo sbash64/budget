@@ -77,7 +77,7 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
   return {std::move(transaction), Transaction::Type::credit};
 }
 
-class Printer;
+class View;
 
 class PersistentMemory;
 
@@ -86,7 +86,7 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
-  virtual void print(Printer &) = 0;
+  virtual void print(View &) = 0;
 };
 
 class AccountFactory {
@@ -95,9 +95,9 @@ public:
   virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
 };
 
-class Printer {
+class View {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Printer);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
   virtual void print(Account &primary,
                      const std::vector<Account *> &secondaries) = 0;
   virtual void printAccountSummary(
@@ -116,7 +116,7 @@ public:
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
-  virtual void print(Printer &) = 0;
+  virtual void print(View &) = 0;
   virtual void save(PersistentMemory &) {}
 };
 } // namespace sbash64::budget

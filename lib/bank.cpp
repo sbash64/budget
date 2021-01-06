@@ -55,7 +55,7 @@ static auto collect(const std::map<std::string, std::shared_ptr<Account>,
   return collected;
 }
 
-void Bank::print(Printer &printer) {
+void Bank::print(View &printer) {
   printer.print(*masterAccount, collect(accounts));
 }
 } // namespace sbash64::budget

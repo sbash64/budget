@@ -8,7 +8,7 @@
 namespace sbash64::budget {
 auto format(USD) -> std::string;
 
-class StreamPrinter : public Printer {
+class StreamPrinter : public View {
 public:
   StreamPrinter(std::ostream &);
   void print(Account &primary,

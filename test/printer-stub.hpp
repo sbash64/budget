@@ -4,7 +4,7 @@
 #include <sbash64/budget/print.hpp>
 
 namespace sbash64::budget {
-class PrinterStub : public Printer {
+class ViewStub : public View {
 public:
   auto accountBalance() -> USD { return accountBalance_; }
 
