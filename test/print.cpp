@@ -44,10 +44,10 @@ void formatTenCents(testcpplite::TestResult &result) {
 void accounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   StreamPrinter printer{stream};
-  AccountStub jeff(stream, "jeff");
-  AccountStub steve(stream, "steve");
-  AccountStub sue(stream, "sue");
-  AccountStub allen(stream, "allen");
+  AccountStub jeff{stream, "jeff"};
+  AccountStub steve{stream, "steve"};
+  AccountStub sue{stream, "sue"};
+  AccountStub allen{stream, "allen"};
   printer.show(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
