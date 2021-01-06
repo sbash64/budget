@@ -46,21 +46,25 @@ private:
 };
 } // namespace
 
+static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
+                std::string_view accountName) {
+  factory.add(std::move(account), accountName);
+}
+
 static void testBank(
-    const std::function<void(AccountFactoryStub &factory, Bank &bank)> &f) {
+    const std::function<void(AccountFactoryStub &factory,
+                             const std::shared_ptr<AccountStub> &masterAccount,
+                             Bank &bank)> &f) {
   AccountFactoryStub factory;
+  const auto masterAccount{std::make_shared<AccountStub>()};
+  add(factory, masterAccount, "master");
   Bank bank{factory};
-  f(factory, bank);
+  f(factory, masterAccount, bank);
 }
 
 static void debit(Bank &bank, std::string_view accountName,
                   const Transaction &t) {
   bank.debit(accountName, t);
-}
-
-static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
-                std::string_view accountName) {
-  factory.add(std::move(account), accountName);
 }
 
 static void
@@ -74,24 +78,24 @@ assertContainsSecondaryAccount(testcpplite::TestResult &result,
 }
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory, Bank &) {
-    assertEqual(result, "master", factory.name());
-  });
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &,
+               Bank &) { assertEqual(result, "master", factory.name()); });
 }
 
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  const auto masterAccount{std::make_shared<AccountStub>()};
-  add(factory, masterAccount, "master");
-  Bank bank{factory};
-  bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-  assertEqual(result,
-              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-              masterAccount->creditedTransaction());
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertEqual(result,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
+                masterAccount->creditedTransaction());
+  });
 }
 
 void debitsNonexistantAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory, Bank &bank) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
     debit(bank, "giraffe",
@@ -103,7 +107,8 @@ void debitsNonexistantAccount(testcpplite::TestResult &result) {
 }
 
 void debitsExistingAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory, Bank &bank) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
     debit(bank, "giraffe",
@@ -118,64 +123,61 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
 }
 
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  const auto masterAccount{std::make_shared<AccountStub>()};
-  add(factory, masterAccount, "master");
-  Bank bank{factory};
-  const auto account{std::make_shared<AccountStub>()};
-  add(factory, account, "giraffe");
-  bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
-  assertEqual(result,
-              Transaction{456_cents, "transfer from master",
-                          Date{1776, Month::July, 4}},
-              account->creditedTransaction());
-  assertEqual(
-      result,
-      Transaction{456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
-      masterAccount->debitedTransaction());
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
+    assertEqual(result,
+                Transaction{456_cents, "transfer from master",
+                            Date{1776, Month::July, 4}},
+                account->creditedTransaction());
+    assertEqual(result,
+                Transaction{456_cents, "transfer to giraffe",
+                            Date{1776, Month::July, 4}},
+                masterAccount->debitedTransaction());
+  });
 }
 
 void printPrintsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  const auto masterAccount{std::make_shared<AccountStub>()};
-  add(factory, masterAccount, "master");
-  Bank bank{factory};
-  const auto giraffe{std::make_shared<AccountStub>()};
-  add(factory, giraffe, "giraffe");
-  const auto penguin{std::make_shared<AccountStub>()};
-  add(factory, penguin, "penguin");
-  const auto leopard{std::make_shared<AccountStub>()};
-  add(factory, leopard, "leopard");
-  debit(bank, "giraffe", {});
-  debit(bank, "penguin", {});
-  debit(bank, "leopard", {});
-  ViewStub view;
-  bank.show(view);
-  assertEqual(result, masterAccount.get(), view.primaryAccount());
-  assertEqual(result, giraffe.get(), view.secondaryAccounts().at(0));
-  assertEqual(result, leopard.get(), view.secondaryAccounts().at(1));
-  assertEqual(result, penguin.get(), view.secondaryAccounts().at(2));
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    ViewStub view;
+    bank.show(view);
+    assertEqual(result, masterAccount.get(), view.primaryAccount());
+    assertEqual(result, giraffe.get(), view.secondaryAccounts().at(0));
+    assertEqual(result, leopard.get(), view.secondaryAccounts().at(1));
+    assertEqual(result, penguin.get(), view.secondaryAccounts().at(2));
+  });
 }
 
 void saveSavesAccounts(testcpplite::TestResult &result) {
-  AccountFactoryStub factory;
-  const auto masterAccount{std::make_shared<AccountStub>()};
-  add(factory, masterAccount, "master");
-  Bank bank{factory};
-  const auto giraffe{std::make_shared<AccountStub>()};
-  add(factory, giraffe, "giraffe");
-  const auto penguin{std::make_shared<AccountStub>()};
-  add(factory, penguin, "penguin");
-  const auto leopard{std::make_shared<AccountStub>()};
-  add(factory, leopard, "leopard");
-  debit(bank, "giraffe", {});
-  debit(bank, "penguin", {});
-  debit(bank, "leopard", {});
-  PersistentMemoryStub persistentMemory;
-  bank.save(persistentMemory);
-  assertEqual(result, masterAccount.get(), persistentMemory.primaryAccount());
-  assertContainsSecondaryAccount(result, persistentMemory, giraffe);
-  assertContainsSecondaryAccount(result, persistentMemory, penguin);
-  assertContainsSecondaryAccount(result, persistentMemory, leopard);
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    PersistentMemoryStub persistentMemory;
+    bank.save(persistentMemory);
+    assertEqual(result, masterAccount.get(), persistentMemory.primaryAccount());
+    assertContainsSecondaryAccount(result, persistentMemory, giraffe);
+    assertContainsSecondaryAccount(result, persistentMemory, penguin);
+    assertContainsSecondaryAccount(result, persistentMemory, leopard);
+  });
 }
 } // namespace sbash64::budget::bank
