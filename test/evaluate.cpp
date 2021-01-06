@@ -9,7 +9,7 @@
 
 namespace sbash64::budget::evaluate {
 namespace {
-class BankStub : public Model {
+class ModelStub : public Model {
 public:
   auto debitedAccountName() -> std::string { return debitedAccountName_; }
 
@@ -66,33 +66,33 @@ private:
 class PersistentMemoryStub : public PersistentMemory {};
 } // namespace
 
-static void
-testController(const std::function<void(Controller &, BankStub &, PrinterStub &,
-                                        PersistentMemoryStub &)> &f) {
+static void testController(
+    const std::function<void(Controller &, ModelStub &, PrinterStub &,
+                             PersistentMemoryStub &)> &f) {
   Controller controller;
-  BankStub bank;
+  ModelStub model;
   PrinterStub printer;
   PersistentMemoryStub persistentMemory;
-  f(controller, bank, printer, persistentMemory);
+  f(controller, model, printer, persistentMemory);
 }
 
 static void assertPrints(testcpplite::TestResult &result,
                          std::string_view input) {
-  testController([&](Controller &controller, BankStub &bank,
+  testController([&](Controller &controller, ModelStub &model,
                      PrinterStub &printer,
                      PersistentMemoryStub &persistentMemory) {
-    command(controller, bank, printer, persistentMemory, input);
-    assertEqual(result, &printer, bank.printer());
+    command(controller, model, printer, persistentMemory, input);
+    assertEqual(result, &printer, model.printer());
   });
 }
 
 static void assertSaves(testcpplite::TestResult &result,
                         std::string_view input) {
-  testController([&](Controller &controller, BankStub &bank,
+  testController([&](Controller &controller, ModelStub &model,
                      PrinterStub &printer,
                      PersistentMemoryStub &persistentMemory) {
-    command(controller, bank, printer, persistentMemory, input);
-    assertEqual(result, &persistentMemory, bank.persistentMemory());
+    command(controller, model, printer, persistentMemory, input);
+    assertEqual(result, &persistentMemory, model.persistentMemory());
   });
 }
 
@@ -100,20 +100,20 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const std::vector<std::string> &input,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
-  testController([&](Controller &controller, BankStub &bank,
+  testController([&](Controller &controller, ModelStub &model,
                      PrinterStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
-      command(controller, bank, printer, persistentMemory, x);
-    assertEqual(result, expectedAccountName, bank.debitedAccountName());
-    assertEqual(result, expectedTransaction, bank.debitedTransaction());
+      command(controller, model, printer, persistentMemory, x);
+    assertEqual(result, expectedAccountName, model.debitedAccountName());
+    assertEqual(result, expectedTransaction, model.debitedTransaction());
   });
 }
 
 static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
-  testController([&](Controller &controller, BankStub &bank,
+  testController([&](Controller &controller, ModelStub &bank,
                      PrinterStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
@@ -127,15 +127,15 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      USD expectedAmount,
                                      std::string_view expectedAccountName,
                                      const Date &expectedDate) {
-  testController([&](Controller &controller, BankStub &bank,
+  testController([&](Controller &controller, ModelStub &model,
                      PrinterStub &printer,
                      PersistentMemoryStub &persistentMemory) {
     for (const auto &x : input)
-      command(controller, bank, printer, persistentMemory, x);
-    assertEqual(result, expectedAmount, bank.transferredAmount());
+      command(controller, model, printer, persistentMemory, x);
+    assertEqual(result, expectedAmount, model.transferredAmount());
     assertEqual(result, std::string{expectedAccountName},
-                bank.accountNameTransferredTo());
-    assertEqual(result, expectedDate, bank.transferDate());
+                model.accountNameTransferredTo());
+    assertEqual(result, expectedDate, model.transferDate());
   });
 }
 
