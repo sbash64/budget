@@ -8,7 +8,7 @@
 namespace sbash64::budget {
 class Controller {
 public:
-  void command(Model &, Printer &, std::string_view);
+  void command(Model &, Printer &, PersistentMemory &, std::string_view);
 
 private:
   enum class State { normal, readyForDate, readyForDescription };
@@ -21,7 +21,8 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(Controller &, Model &, Printer &, std::string_view);
+void command(Controller &, Model &, Printer &, PersistentMemory &,
+             std::string_view);
 } // namespace sbash64::budget
 
 #endif

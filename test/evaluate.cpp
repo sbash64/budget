@@ -37,6 +37,12 @@ public:
 
   auto printer() -> const Printer * { return printer_; }
 
+  void save(PersistentMemory &p) { persistentMemory_ = &p; }
+
+  auto persistentMemory() -> const PersistentMemory * {
+    return persistentMemory_;
+  }
+
   auto transferredAmount() -> USD { return transferredAmount_; }
 
   auto accountNameTransferredTo() -> std::string {
@@ -50,10 +56,13 @@ private:
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
   const Printer *printer_{};
+  const PersistentMemory *persistentMemory_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
   Date transferDate_{};
 };
+
+class PersistentMemoryStub : public PersistentMemory {};
 } // namespace
 
 static void assertPrints(testcpplite::TestResult &result,
@@ -61,8 +70,19 @@ static void assertPrints(testcpplite::TestResult &result,
   Controller controller;
   BankStub bank;
   PrinterStub printer;
-  command(controller, bank, printer, input);
+  PersistentMemoryStub persistentMemory;
+  command(controller, bank, printer, persistentMemory, input);
   assertEqual(result, &printer, bank.printer());
+}
+
+static void assertSaves(testcpplite::TestResult &result,
+                        std::string_view input) {
+  Controller controller;
+  BankStub bank;
+  PrinterStub printer;
+  PersistentMemoryStub persistentMemory;
+  command(controller, bank, printer, persistentMemory, input);
+  assertEqual(result, &persistentMemory, bank.persistentMemory());
 }
 
 static void assertDebitsAccount(testcpplite::TestResult &result,
@@ -72,8 +92,9 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
   Controller controller;
   BankStub bank;
   PrinterStub printer;
+  PersistentMemoryStub persistentMemory;
   for (const auto &x : input)
-    command(controller, bank, printer, x);
+    command(controller, bank, printer, persistentMemory, x);
   assertEqual(result, expectedAccountName, bank.debitedAccountName());
   assertEqual(result, expectedTransaction, bank.debitedTransaction());
 }
@@ -84,8 +105,9 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
   Controller controller;
   BankStub bank;
   PrinterStub printer;
+  PersistentMemoryStub persistentMemory;
   for (const auto &x : input)
-    command(controller, bank, printer, x);
+    command(controller, bank, printer, persistentMemory, x);
   assertEqual(result, expectedTransaction, bank.creditedTransaction());
 }
 
@@ -97,8 +119,9 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
   Controller controller;
   BankStub bank;
   PrinterStub printer;
+  PersistentMemoryStub persistentMemory;
   for (const auto &x : input)
-    command(controller, bank, printer, x);
+    command(controller, bank, printer, persistentMemory, x);
   assertEqual(result, expectedAmount, bank.transferredAmount());
   assertEqual(result, std::string{expectedAccountName},
               bank.accountNameTransferredTo());
@@ -123,4 +146,6 @@ void transferTo(testcpplite::TestResult &result) {
   assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
                            5000_cents, "Groceries", Date{2021, Month::June, 3});
 }
+
+void save(testcpplite::TestResult &result) { assertSaves(result, "save"); }
 } // namespace sbash64::budget::evaluate

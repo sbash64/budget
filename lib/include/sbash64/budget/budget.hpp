@@ -79,6 +79,8 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
 
 class Printer;
 
+class PersistentMemory;
+
 class Account {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
@@ -103,6 +105,11 @@ public:
       const std::vector<PrintableTransaction> &transactions) = 0;
 };
 
+class PersistentMemory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(PersistentMemory);
+};
+
 class Model {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Model);
@@ -110,6 +117,7 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void print(Printer &) = 0;
+  virtual void save(PersistentMemory &) {}
 };
 } // namespace sbash64::budget
 
