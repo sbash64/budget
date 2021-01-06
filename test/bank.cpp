@@ -64,13 +64,11 @@ static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
 }
 
 static void
-assertContainsSecondaryAccount(testcpplite::TestResult &result,
-                               ViewStub &printer,
+assertContainsSecondaryAccount(testcpplite::TestResult &result, ViewStub &view,
                                const std::shared_ptr<Account> &account) {
-  assertTrue(result,
-             std::find(printer.secondaryAccounts().begin(),
-                       printer.secondaryAccounts().end(),
-                       account.get()) != printer.secondaryAccounts().end());
+  assertTrue(result, std::find(view.secondaryAccounts().begin(),
+                               view.secondaryAccounts().end(), account.get()) !=
+                         view.secondaryAccounts().end());
 }
 
 static void
@@ -145,7 +143,7 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
       masterAccount->debitedTransaction());
 }
 
-void printPrintsAccounts(testcpplite::TestResult &result) {
+void printPrintsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
   add(factory, masterAccount, "master");
@@ -159,12 +157,12 @@ void printPrintsAccounts(testcpplite::TestResult &result) {
   debit(bank, "giraffe", {});
   debit(bank, "penguin", {});
   debit(bank, "leopard", {});
-  ViewStub printer;
-  bank.print(printer);
-  assertEqual(result, masterAccount.get(), printer.primaryAccount());
-  assertContainsSecondaryAccount(result, printer, giraffe);
-  assertContainsSecondaryAccount(result, printer, penguin);
-  assertContainsSecondaryAccount(result, printer, leopard);
+  ViewStub view;
+  bank.print(view);
+  assertEqual(result, masterAccount.get(), view.primaryAccount());
+  assertEqual(result, giraffe.get(), view.secondaryAccounts().at(0));
+  assertEqual(result, leopard.get(), view.secondaryAccounts().at(1));
+  assertEqual(result, penguin.get(), view.secondaryAccounts().at(2));
 }
 
 void saveSavesAccounts(testcpplite::TestResult &result) {

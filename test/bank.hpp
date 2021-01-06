@@ -9,7 +9,7 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
 void debitsNonexistantAccount(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &);
-void printPrintsAccounts(testcpplite::TestResult &);
+void printPrintsAccountsInAlphabeticOrder(testcpplite::TestResult &);
 void saveSavesAccounts(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
