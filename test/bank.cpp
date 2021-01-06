@@ -64,14 +64,6 @@ static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
 }
 
 static void
-assertContainsSecondaryAccount(testcpplite::TestResult &result, ViewStub &view,
-                               const std::shared_ptr<Account> &account) {
-  assertTrue(result, std::find(view.secondaryAccounts().begin(),
-                               view.secondaryAccounts().end(), account.get()) !=
-                         view.secondaryAccounts().end());
-}
-
-static void
 assertContainsSecondaryAccount(testcpplite::TestResult &result,
                                PersistentMemoryStub &persistentMemory,
                                const std::shared_ptr<Account> &account) {
