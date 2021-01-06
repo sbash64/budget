@@ -26,7 +26,7 @@ static void assertSaved(testcpplite::TestResult &result, AccountStub &account,
   assertEqual(result, &persistentMemory, account.persistentMemory());
 }
 
-void accounts(testcpplite::TestResult &result) {
+void savesAccounts(testcpplite::TestResult &result) {
   File file;
   AccountStub primary;
   AccountStub jim;

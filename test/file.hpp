@@ -4,7 +4,7 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::file {
-void accounts(testcpplite::TestResult &);
+void savesAccounts(testcpplite::TestResult &);
 } // namespace sbash64::budget::file
 
 #endif
