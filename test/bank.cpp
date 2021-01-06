@@ -22,6 +22,8 @@ public:
 
   void show(View &) override {}
 
+  void save(PersistentMemory &) override {}
+
 private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;

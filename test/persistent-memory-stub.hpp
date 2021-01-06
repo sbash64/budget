@@ -22,7 +22,7 @@ public:
 
   void saveAccount(std::string_view name,
                    const std::vector<Transaction> &credits,
-                   const std::vector<Transaction> &debits) {
+                   const std::vector<Transaction> &debits) override {
     accountName_ = name;
     credits_ = credits;
     debits_ = debits;

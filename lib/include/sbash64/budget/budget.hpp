@@ -96,7 +96,7 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
-  virtual void save(PersistentMemory &) {}
+  virtual void save(PersistentMemory &) = 0;
 };
 
 class AccountFactory {
