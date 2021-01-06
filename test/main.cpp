@@ -47,7 +47,8 @@ static auto runAllTests() -> int {
        {print::formatTenCents, "format ten cents"},
        {print::accounts, "print accounts"},
        {print::account, "print account"},
-       {file::savesAccounts, "file accounts"}},
+       {file::savesAccounts, "file saves accounts"},
+       {file::savesAccount, "file saves account"}},
       std::cout);
 }
 } // namespace sbash64::budget
