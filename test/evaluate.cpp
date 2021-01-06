@@ -1,4 +1,5 @@
 #include "evaluate.hpp"
+#include "persistent-memory-stub.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
@@ -62,8 +63,6 @@ private:
   std::string accountNameTransferredTo_;
   Date transferDate_{};
 };
-
-class PersistentMemoryStub : public PersistentMemory {};
 } // namespace
 
 static void

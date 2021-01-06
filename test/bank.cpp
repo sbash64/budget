@@ -1,4 +1,5 @@
 #include "bank.hpp"
+#include "persistent-memory-stub.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
@@ -9,24 +10,6 @@
 
 namespace sbash64::budget::bank {
 namespace {
-class PersistentMemoryStub : public PersistentMemory {
-public:
-  auto primaryAccount() -> const Account * { return primaryAccount_; }
-
-  void save(Account &primary, const std::vector<Account *> &secondaries) {
-    primaryAccount_ = &primary;
-    secondaryAccounts_ = secondaries;
-  }
-
-  auto secondaryAccounts() -> std::vector<Account *> {
-    return secondaryAccounts_;
-  }
-
-private:
-  std::vector<Account *> secondaryAccounts_;
-  const Account *primaryAccount_{};
-};
-
 class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
