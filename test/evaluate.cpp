@@ -76,22 +76,33 @@ testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
   f(controller, model, view, persistentMemory);
 }
 
-static void assertPrints(testcpplite::TestResult &result,
-                         std::string_view input) {
+static void
+testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
+                                        PersistentMemoryStub &)> &f,
+               std::string_view input) {
   testController([&](Controller &controller, ModelStub &model, ViewStub &view,
                      PersistentMemoryStub &persistentMemory) {
     command(controller, model, view, persistentMemory, input);
-    assertEqual(result, &view, model.view());
+    f(controller, model, view, persistentMemory);
   });
+}
+
+static void assertPrints(testcpplite::TestResult &result,
+                         std::string_view input) {
+  testController(
+      [&](Controller &, ModelStub &model, ViewStub &view,
+          PersistentMemoryStub &) { assertEqual(result, &view, model.view()); },
+      input);
 }
 
 static void assertSaves(testcpplite::TestResult &result,
                         std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
-                     PersistentMemoryStub &persistentMemory) {
-    command(controller, model, view, persistentMemory, input);
-    assertEqual(result, &persistentMemory, model.persistentMemory());
-  });
+  testController(
+      [&](Controller &, ModelStub &model, ViewStub &,
+          PersistentMemoryStub &persistentMemory) {
+        assertEqual(result, &persistentMemory, model.persistentMemory());
+      },
+      input);
 }
 
 static void assertDebitsAccount(testcpplite::TestResult &result,
