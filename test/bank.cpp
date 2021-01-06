@@ -1,6 +1,6 @@
 #include "bank.hpp"
-#include "printer-stub.hpp"
 #include "usd.hpp"
+#include "view-stub.hpp"
 #include <functional>
 #include <map>
 #include <sbash64/budget/bank.hpp>

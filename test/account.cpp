@@ -1,6 +1,6 @@
 #include "account.hpp"
-#include "printer-stub.hpp"
 #include "usd.hpp"
+#include "view-stub.hpp"
 #include <sbash64/budget/account.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
