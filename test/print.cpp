@@ -82,7 +82,6 @@ Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
             27.34        10/20/2021          Birthday present
 24.10                    03/18/2021          Hannah's 30th
 ----
-
 )",
               '\n' + stream.str() + '\n');
 }

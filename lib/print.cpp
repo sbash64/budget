@@ -56,6 +56,6 @@ void StreamPrinter::showAccountSummary(
            << format(transaction.transaction.date) << "          "
            << transaction.transaction.description;
   }
-  stream << '\n' << "----" << '\n';
+  stream << '\n' << "----";
 }
 } // namespace sbash64::budget
