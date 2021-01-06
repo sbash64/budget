@@ -4,8 +4,9 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
-void printPrintsAllTransactionsInChronologicalOrderAndBalance(
+void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
+void saveSavesAllTransactions(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

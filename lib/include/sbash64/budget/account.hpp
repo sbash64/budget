@@ -12,6 +12,7 @@ public:
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
+  void save(PersistentMemory &) override;
 
   class Factory : public AccountFactory {
   public:

@@ -48,6 +48,10 @@ struct Date {
   int day;
 };
 
+inline auto operator==(const Date &a, const Date &b) -> bool {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
 inline auto operator<(const Date &a, const Date &b) -> bool {
   if (a.year != b.year)
     return a.year < b.year;
@@ -63,6 +67,11 @@ struct Transaction {
 
   enum class Type { credit, debit };
 };
+
+inline auto operator==(const Transaction &a, const Transaction &b) -> bool {
+  return a.amount == b.amount && a.description == b.description &&
+         a.date == b.date;
+}
 
 struct PrintableTransaction {
   Transaction transaction;
@@ -87,6 +96,7 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
+  virtual void save(PersistentMemory &) {}
 };
 
 class AccountFactory {
@@ -110,6 +120,9 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(PersistentMemory);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
+  virtual void saveAccount(std::string_view name,
+                           const std::vector<Transaction> &credits,
+                           const std::vector<Transaction> &debits) = 0;
 };
 
 class Model {

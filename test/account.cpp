@@ -1,4 +1,5 @@
 #include "account.hpp"
+#include "persistent-memory-stub.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <sbash64/budget/account.hpp>
@@ -17,7 +18,23 @@ static void assertEqual(testcpplite::TestResult &result,
   assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
 
-void printPrintsAllTransactionsInChronologicalOrderAndBalance(
+static void assertContainsCredit(testcpplite::TestResult &result,
+                                 PersistentMemoryStub &persistentMemory,
+                                 const Transaction &transaction) {
+  assertTrue(result, std::find(persistentMemory.credits().begin(),
+                               persistentMemory.credits().end(), transaction) !=
+                         persistentMemory.credits().end());
+}
+
+static void assertContainsDebit(testcpplite::TestResult &result,
+                                PersistentMemoryStub &persistentMemory,
+                                const Transaction &transaction) {
+  assertTrue(result, std::find(persistentMemory.debits().begin(),
+                               persistentMemory.debits().end(),
+                               transaction) != persistentMemory.debits().end());
+}
+
+void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -42,5 +59,26 @@ void printPrintsAllTransactionsInChronologicalOrderAndBalance(
               printableCredit(
                   Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
               printer.accountTransactions().at(2));
+}
+
+void saveSavesAllTransactions(testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  account.debit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.credit(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  PersistentMemoryStub persistentMemory;
+  account.save(persistentMemory);
+  assertEqual(result, "joe", persistentMemory.accountName());
+  assertContainsDebit(
+      result, persistentMemory,
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  assertContainsCredit(
+      result, persistentMemory,
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertContainsCredit(
+      result, persistentMemory,
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
 }
 } // namespace sbash64::budget::account

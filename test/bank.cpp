@@ -139,7 +139,7 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
   });
 }
 
-void printPrintsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
+void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
     const auto giraffe{std::make_shared<AccountStub>()};

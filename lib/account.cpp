@@ -40,6 +40,10 @@ void InMemoryAccount::show(View &printer) {
                              dateSortedPrintableTransactions(credits, debits));
 }
 
+void InMemoryAccount::save(PersistentMemory &persistentMemory) {
+  persistentMemory.saveAccount(name, credits, debits);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
 auto InMemoryAccount::Factory::make(std::string_view name)
