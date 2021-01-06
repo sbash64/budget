@@ -51,11 +51,8 @@ void accounts(testcpplite::TestResult &result) {
   printer.show(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
-
 steve
-
 sue
-
 allen
 
 )",
