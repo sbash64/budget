@@ -9,6 +9,24 @@
 
 namespace sbash64::budget::bank {
 namespace {
+class PersistentMemoryStub : public PersistentMemory {
+public:
+  auto primaryAccount() -> const Account * { return primaryAccount_; }
+
+  void save(Account &primary, const std::vector<Account *> &secondaries) {
+    primaryAccount_ = &primary;
+    secondaryAccounts_ = secondaries;
+  }
+
+  auto secondaryAccounts() -> std::vector<Account *> {
+    return secondaryAccounts_;
+  }
+
+private:
+  std::vector<Account *> secondaryAccounts_;
+  const Account *primaryAccount_{};
+};
+
 class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
@@ -70,6 +88,16 @@ assertContainsSecondaryAccount(testcpplite::TestResult &result,
              std::find(printer.secondaryAccounts().begin(),
                        printer.secondaryAccounts().end(),
                        account.get()) != printer.secondaryAccounts().end());
+}
+
+static void
+assertContainsSecondaryAccount(testcpplite::TestResult &result,
+                               PersistentMemoryStub &persistentMemory,
+                               const std::shared_ptr<Account> &account) {
+  assertTrue(result, std::find(persistentMemory.secondaryAccounts().begin(),
+                               persistentMemory.secondaryAccounts().end(),
+                               account.get()) !=
+                         persistentMemory.secondaryAccounts().end());
 }
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
@@ -154,5 +182,27 @@ void printPrintsAccounts(testcpplite::TestResult &result) {
   assertContainsSecondaryAccount(result, printer, giraffe);
   assertContainsSecondaryAccount(result, printer, penguin);
   assertContainsSecondaryAccount(result, printer, leopard);
+}
+
+void saveSavesAccounts(testcpplite::TestResult &result) {
+  AccountFactoryStub factory;
+  const auto masterAccount{std::make_shared<AccountStub>()};
+  add(factory, masterAccount, "master");
+  Bank bank{factory};
+  const auto giraffe{std::make_shared<AccountStub>()};
+  add(factory, giraffe, "giraffe");
+  const auto penguin{std::make_shared<AccountStub>()};
+  add(factory, penguin, "penguin");
+  const auto leopard{std::make_shared<AccountStub>()};
+  add(factory, leopard, "leopard");
+  debit(bank, "giraffe", {});
+  debit(bank, "penguin", {});
+  debit(bank, "leopard", {});
+  PersistentMemoryStub persistentMemory;
+  bank.save(persistentMemory);
+  assertEqual(result, masterAccount.get(), persistentMemory.primaryAccount());
+  assertContainsSecondaryAccount(result, persistentMemory, giraffe);
+  assertContainsSecondaryAccount(result, persistentMemory, penguin);
+  assertContainsSecondaryAccount(result, persistentMemory, leopard);
 }
 } // namespace sbash64::budget::bank

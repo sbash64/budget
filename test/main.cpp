@@ -35,6 +35,7 @@ static auto runAllTests() -> int {
        {bank::transferDebitsMasterAndCreditsOther,
         "bank transfer debits master and credits other"},
        {bank::printPrintsAccounts, "bank print prints accounts"},
+       {bank::saveSavesAccounts, "bank save saves accounts"},
        {account::printPrintsAllTransactionsInChronologicalOrderAndBalance,
         "account print prints all transactions and balance"},
        {print::formatZeroDollars, "format zero dollars"},

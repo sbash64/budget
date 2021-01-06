@@ -58,4 +58,8 @@ static auto collect(const std::map<std::string, std::shared_ptr<Account>,
 void Bank::print(View &printer) {
   printer.print(*masterAccount, collect(accounts));
 }
+
+void Bank::save(PersistentMemory &persistentMemory) {
+  persistentMemory.save(*masterAccount, collect(accounts));
+}
 } // namespace sbash64::budget

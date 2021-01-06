@@ -108,6 +108,8 @@ public:
 class PersistentMemory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(PersistentMemory);
+  virtual void save(Account &primary,
+                    const std::vector<Account *> &secondaries) {}
 };
 
 class Model {
