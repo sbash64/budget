@@ -1,6 +1,7 @@
 #include "account.hpp"
 #include "bank.hpp"
 #include "evaluate.hpp"
+#include "file.hpp"
 #include "parse.hpp"
 #include "print.hpp"
 #include <iostream>
@@ -45,7 +46,8 @@ static auto runAllTests() -> int {
        {print::formatOneCent, "format one cent"},
        {print::formatTenCents, "format ten cents"},
        {print::accounts, "print accounts"},
-       {print::account, "print account"}},
+       {print::account, "print account"},
+       {file::accounts, "file accounts"}},
       std::cout);
 }
 } // namespace sbash64::budget
