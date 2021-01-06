@@ -1,6 +1,7 @@
 #include "evaluate.hpp"
 #include "printer-stub.hpp"
 #include "usd.hpp"
+#include <functional>
 #include <sbash64/budget/evaluate.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <sstream>
@@ -37,7 +38,7 @@ public:
 
   auto printer() -> const Printer * { return printer_; }
 
-  void save(PersistentMemory &p) { persistentMemory_ = &p; }
+  void save(PersistentMemory &p) override { persistentMemory_ = &p; }
 
   auto persistentMemory() -> const PersistentMemory * {
     return persistentMemory_;
@@ -65,50 +66,60 @@ private:
 class PersistentMemoryStub : public PersistentMemory {};
 } // namespace
 
-static void assertPrints(testcpplite::TestResult &result,
-                         std::string_view input) {
+static void
+testController(const std::function<void(Controller &, BankStub &, PrinterStub &,
+                                        PersistentMemoryStub &)> &f) {
   Controller controller;
   BankStub bank;
   PrinterStub printer;
   PersistentMemoryStub persistentMemory;
-  command(controller, bank, printer, persistentMemory, input);
-  assertEqual(result, &printer, bank.printer());
+  f(controller, bank, printer, persistentMemory);
+}
+
+static void assertPrints(testcpplite::TestResult &result,
+                         std::string_view input) {
+  testController([&](Controller &controller, BankStub &bank,
+                     PrinterStub &printer,
+                     PersistentMemoryStub &persistentMemory) {
+    command(controller, bank, printer, persistentMemory, input);
+    assertEqual(result, &printer, bank.printer());
+  });
 }
 
 static void assertSaves(testcpplite::TestResult &result,
                         std::string_view input) {
-  Controller controller;
-  BankStub bank;
-  PrinterStub printer;
-  PersistentMemoryStub persistentMemory;
-  command(controller, bank, printer, persistentMemory, input);
-  assertEqual(result, &persistentMemory, bank.persistentMemory());
+  testController([&](Controller &controller, BankStub &bank,
+                     PrinterStub &printer,
+                     PersistentMemoryStub &persistentMemory) {
+    command(controller, bank, printer, persistentMemory, input);
+    assertEqual(result, &persistentMemory, bank.persistentMemory());
+  });
 }
 
 static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const std::vector<std::string> &input,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
-  Controller controller;
-  BankStub bank;
-  PrinterStub printer;
-  PersistentMemoryStub persistentMemory;
-  for (const auto &x : input)
-    command(controller, bank, printer, persistentMemory, x);
-  assertEqual(result, expectedAccountName, bank.debitedAccountName());
-  assertEqual(result, expectedTransaction, bank.debitedTransaction());
+  testController([&](Controller &controller, BankStub &bank,
+                     PrinterStub &printer,
+                     PersistentMemoryStub &persistentMemory) {
+    for (const auto &x : input)
+      command(controller, bank, printer, persistentMemory, x);
+    assertEqual(result, expectedAccountName, bank.debitedAccountName());
+    assertEqual(result, expectedTransaction, bank.debitedTransaction());
+  });
 }
 
 static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
-  Controller controller;
-  BankStub bank;
-  PrinterStub printer;
-  PersistentMemoryStub persistentMemory;
-  for (const auto &x : input)
-    command(controller, bank, printer, persistentMemory, x);
-  assertEqual(result, expectedTransaction, bank.creditedTransaction());
+  testController([&](Controller &controller, BankStub &bank,
+                     PrinterStub &printer,
+                     PersistentMemoryStub &persistentMemory) {
+    for (const auto &x : input)
+      command(controller, bank, printer, persistentMemory, x);
+    assertEqual(result, expectedTransaction, bank.creditedTransaction());
+  });
 }
 
 static void assertTransfersToAccount(testcpplite::TestResult &result,
@@ -116,16 +127,16 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      USD expectedAmount,
                                      std::string_view expectedAccountName,
                                      const Date &expectedDate) {
-  Controller controller;
-  BankStub bank;
-  PrinterStub printer;
-  PersistentMemoryStub persistentMemory;
-  for (const auto &x : input)
-    command(controller, bank, printer, persistentMemory, x);
-  assertEqual(result, expectedAmount, bank.transferredAmount());
-  assertEqual(result, std::string{expectedAccountName},
-              bank.accountNameTransferredTo());
-  assertEqual(result, expectedDate, bank.transferDate());
+  testController([&](Controller &controller, BankStub &bank,
+                     PrinterStub &printer,
+                     PersistentMemoryStub &persistentMemory) {
+    for (const auto &x : input)
+      command(controller, bank, printer, persistentMemory, x);
+    assertEqual(result, expectedAmount, bank.transferredAmount());
+    assertEqual(result, std::string{expectedAccountName},
+                bank.accountNameTransferredTo());
+    assertEqual(result, expectedDate, bank.transferDate());
+  });
 }
 
 void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
