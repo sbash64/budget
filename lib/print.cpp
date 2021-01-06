@@ -30,7 +30,7 @@ void StreamPrinter::show(Account &primary,
                          const std::vector<Account *> &secondaries) {
   primary.show(*this);
   for (auto *account : secondaries) {
-    stream << '\n';
+    stream << "\n\n";
     account->show(*this);
   }
   stream << '\n';
