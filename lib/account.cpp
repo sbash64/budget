@@ -52,6 +52,6 @@ auto InMemoryAccount::Factory::make(std::string_view name)
 }
 
 void InMemoryAccount::load(PersistentMemory &persistentMemory) {
-  persistentMemory.loadAccount(name, credits, debits);
+  persistentMemory.loadAccount(credits, debits);
 }
 } // namespace sbash64::budget

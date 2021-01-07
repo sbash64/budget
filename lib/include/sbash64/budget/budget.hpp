@@ -125,9 +125,8 @@ public:
   virtual void saveAccount(std::string_view name,
                            const std::vector<Transaction> &credits,
                            const std::vector<Transaction> &debits) = 0;
-  virtual void loadAccount(std::string_view name,
-                           std::vector<Transaction> &credits,
-                           std::vector<Transaction> &debits) {}
+  virtual void loadAccount(std::vector<Transaction> &credits,
+                           std::vector<Transaction> &debits) = 0;
   virtual void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>
                         &secondaries) {}

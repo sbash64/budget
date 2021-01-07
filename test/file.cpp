@@ -8,11 +8,17 @@ namespace sbash64::budget::file {
 namespace {
 class AccountStub : public Account {
 public:
+  AccountStub(std::ostream &stream, std::string name)
+      : stream{stream}, name{std::move(name)} {}
+
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override {}
 
-  void save(PersistentMemory &p) override { persistentMemory_ = &p; }
+  void save(PersistentMemory &p) override {
+    persistentMemory_ = &p;
+    stream << name;
+  }
 
   auto persistentMemory() -> const PersistentMemory * {
     return persistentMemory_;
@@ -20,6 +26,8 @@ public:
 
 private:
   const PersistentMemory *persistentMemory_{};
+  std::ostream &stream;
+  std::string name;
 };
 } // namespace
 
@@ -32,15 +40,25 @@ void savesAccounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   std::stringstream input;
   File file{input, stream};
-  AccountStub primary;
-  AccountStub jim;
-  AccountStub allison;
-  AccountStub ned;
-  file.save(primary, {&jim, &allison, &ned});
-  assertSaved(result, primary, file);
-  assertSaved(result, jim, file);
-  assertSaved(result, allison, file);
-  assertSaved(result, ned, file);
+  AccountStub jeff{stream, "jeff"};
+  AccountStub steve{stream, "steve"};
+  AccountStub sue{stream, "sue"};
+  AccountStub allen{stream, "allen"};
+  file.save(jeff, {&steve, &sue, &allen});
+  assertSaved(result, jeff, file);
+  assertSaved(result, steve, file);
+  assertSaved(result, sue, file);
+  assertSaved(result, allen, file);
+  assertEqual(result, R"(
+jeff
+
+steve
+
+sue
+
+allen
+)",
+              '\n' + stream.str());
 }
 
 void savesAccount(testcpplite::TestResult &result) {
@@ -67,9 +85,8 @@ credits
 debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
-)",
-              '\n' + stream.str() + '\n');
+3.24 hyvee 2/8/2021)",
+              '\n' + stream.str());
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -81,9 +98,8 @@ static void assertEqual(testcpplite::TestResult &result,
 }
 
 void loadsAccount(testcpplite::TestResult &result) {
-  std::stringstream stream{R"(
-Groceries
-credits
+  std::stringstream stream{
+      R"(credits
 50 transfer from master 1/10/2021
 25 transfer from master 3/12/2021
 25 transfer from master 2/8/2021
@@ -96,7 +112,7 @@ debits
   File file{stream, output};
   std::vector<Transaction> credits;
   std::vector<Transaction> debits;
-  file.loadAccount("Groceries", credits, debits);
+  file.loadAccount(credits, debits);
   assertEqual(result,
               {Transaction{5000_cents, "transfer from master",
                            Date{2021, Month::January, 10}},

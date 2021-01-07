@@ -85,13 +85,11 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
 void loadLoadsAllTransactions(testcpplite::TestResult &result) {
   PersistentMemoryStub persistentMemory;
   persistentMemory.setCreditsToLoad(
-      "joe",
       {Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}});
   persistentMemory.setDebitsToLoad(
-      "joe",
       {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}});
-  InMemoryAccount account{"joe"};
+  InMemoryAccount account{""};
   account.load(persistentMemory);
   ViewStub printer;
   account.show(printer);

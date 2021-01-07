@@ -7,8 +7,11 @@
 namespace sbash64::budget {
 void File::save(Account &primary, const std::vector<Account *> &secondaries) {
   primary.save(*this);
-  for (auto *account : secondaries)
+  for (auto *account : secondaries) {
+    stream << "\n\n";
     account->save(*this);
+  }
+  stream << '\n';
 }
 
 static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
@@ -31,8 +34,6 @@ static auto operator<<(std::ostream &stream, const Date &date)
   stream << date.year;
   return stream;
 }
-
-static auto formatDescription(std::string_view) -> std::string {}
 
 void File::saveAccount(std::string_view name,
                        const std::vector<Transaction> &credits,
@@ -57,23 +58,20 @@ void File::saveAccount(std::string_view name,
 
 static auto asDate(std::string_view s) -> Date {
   std::stringstream stream{std::string{s}};
-  int month;
+  int month = 0;
   stream >> month;
   stream.get();
-  int day;
+  int day = 0;
   stream >> day;
   stream.get();
-  int year;
+  int year = 0;
   stream >> year;
   return Date{year, Month{month}, day};
 }
 
-void File::loadAccount(std::string_view name, std::vector<Transaction> &credits,
+void File::loadAccount(std::vector<Transaction> &credits,
                        std::vector<Transaction> &debits) {
   std::string line;
-  while (line != name) {
-    getline(input, line);
-  }
   getline(input, line);
   getline(input, line);
   while (line != "debits") {

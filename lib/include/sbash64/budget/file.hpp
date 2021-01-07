@@ -14,7 +14,7 @@ public:
   void saveAccount(std::string_view name,
                    const std::vector<Transaction> &credits,
                    const std::vector<Transaction> &debits) override;
-  void loadAccount(std::string_view name, std::vector<Transaction> &credits,
+  void loadAccount(std::vector<Transaction> &credits,
                    std::vector<Transaction> &debits) override;
 
 private:
