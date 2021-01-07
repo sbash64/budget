@@ -99,7 +99,7 @@ public:
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
   virtual void save(PersistentMemory &) = 0;
-  virtual void load(PersistentMemory &) {}
+  virtual void load(PersistentMemory &) = 0;
 };
 
 class AccountFactory {
@@ -130,7 +130,7 @@ public:
                            std::vector<Transaction> &debits) = 0;
   virtual void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                        &secondaries) {}
+                        &secondaries) = 0;
 };
 
 class Model {

@@ -13,6 +13,7 @@ public:
   void debit(const Transaction &) override {}
   void show(View &) override { stream << name; }
   void save(PersistentMemory &) override {}
+  void load(PersistentMemory &) override {}
 
 private:
   std::stringstream &stream;

@@ -24,6 +24,8 @@ public:
 
   void save(PersistentMemory &) override {}
 
+  void load(PersistentMemory &) override {}
+
 private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;

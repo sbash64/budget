@@ -14,6 +14,7 @@ public:
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override {}
+  void load(PersistentMemory &) override {}
 
   void save(PersistentMemory &p) override {
     persistentMemory_ = &p;
@@ -38,7 +39,7 @@ public:
   void debit(const Transaction &) override {}
   void show(View &) override {}
   void save(PersistentMemory &) override {}
-  void load(PersistentMemory &p) {
+  void load(PersistentMemory &p) override {
     persistentMemory_ = &p;
     getline(stream, lineRead_);
   }
@@ -61,16 +62,12 @@ public:
     accounts[std::string{name}] = std::move(account);
   }
 
-  auto name() -> std::string { return name_; }
-
   auto make(std::string_view s) -> std::shared_ptr<Account> override {
-    name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
   }
 
 private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
-  std::string name_;
 };
 } // namespace
 
