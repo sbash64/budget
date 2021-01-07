@@ -13,19 +13,22 @@ static void repl() {
   Bank bank{accountFactory};
   StreamPrinter printer{std::cout};
   std::ofstream outputFileStream;
-  outputFileStream.open("new-budget.txt");
-  std::ifstream inputFileStream{"old-budget.txt"};
-  if (!inputFileStream.is_open())
-    return;
+  std::ifstream inputFileStream{"budget.txt"};
   File file{inputFileStream, outputFileStream};
+  if (inputFileStream.is_open())
+    bank.load(file);
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
     if (line == "exit")
       break;
-    sbash64::budget::command(controller, bank, printer, file, line);
+    if (line == "save") {
+      outputFileStream.open("budget.txt");
+      bank.save(file);
+      outputFileStream.close();
+    } else
+      sbash64::budget::command(controller, bank, printer, file, line);
   }
-  outputFileStream.close();
 }
 } // namespace sbash64::budget
 
