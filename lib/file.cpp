@@ -69,55 +69,41 @@ static auto asDate(std::string_view s) -> Date {
   return Date{year, Month{month}, day};
 }
 
+static void f(std::istream &input, std::string &line,
+              std::vector<Transaction> &transactions) {
+  std::stringstream transaction{line};
+  std::string word;
+  transaction >> word;
+  auto amount{usd(word)};
+  std::stringstream description;
+  transaction >> word;
+  std::string nextWord;
+  transaction >> nextWord;
+  auto first{true};
+  while (transaction) {
+    if (!first)
+      description << ' ';
+    description << word;
+    word = nextWord;
+    transaction >> nextWord;
+    first = false;
+  }
+  auto date{asDate(word)};
+  transactions.push_back(Transaction{amount, description.str(), date});
+  getline(input, line);
+}
+
 void File::loadAccount(std::vector<Transaction> &credits,
                        std::vector<Transaction> &debits) {
   std::string line;
   getline(input, line);
   getline(input, line);
   while (line != "debits") {
-    std::stringstream transaction{line};
-    std::string word;
-    transaction >> word;
-    auto amount{usd(word)};
-    std::stringstream description;
-    transaction >> word;
-    std::string nextWord;
-    transaction >> nextWord;
-    auto first{true};
-    while (transaction) {
-      if (!first)
-        description << ' ';
-      description << word;
-      word = nextWord;
-      transaction >> nextWord;
-      first = false;
-    }
-    auto date{asDate(word)};
-    credits.push_back(Transaction{amount, description.str(), date});
-    getline(input, line);
+    f(input, line, credits);
   }
   getline(input, line);
   while (!line.empty()) {
-    std::stringstream transaction{line};
-    std::string word;
-    transaction >> word;
-    auto amount{usd(word)};
-    std::stringstream description;
-    transaction >> word;
-    std::string nextWord;
-    transaction >> nextWord;
-    auto first{true};
-    while (transaction) {
-      if (!first)
-        description << ' ';
-      description << word;
-      word = nextWord;
-      transaction >> nextWord;
-      first = false;
-    }
-    auto date{asDate(word)};
-    debits.push_back(Transaction{amount, description.str(), date});
-    getline(input, line);
+    f(input, line, debits);
   }
 }
 
