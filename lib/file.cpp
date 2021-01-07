@@ -7,11 +7,12 @@
 namespace sbash64::budget {
 void File::save(Account &primary, const std::vector<Account *> &secondaries) {
   primary.save(*this);
+  output << '\n';
   for (auto *account : secondaries) {
-    stream << "\n\n";
+    output << '\n';
     account->save(*this);
+    output << '\n';
   }
-  stream << '\n';
 }
 
 static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
@@ -38,25 +39,25 @@ static auto operator<<(std::ostream &stream, const Date &date)
 void File::saveAccount(std::string_view name,
                        const std::vector<Transaction> &credits,
                        const std::vector<Transaction> &debits) {
-  stream << name << '\n';
-  stream << "credits";
+  output << name << '\n';
+  output << "credits";
   for (const auto &credit : credits) {
-    stream << '\n';
-    stream << credit.amount << ' ';
-    stream << credit.description << ' ';
-    stream << credit.date;
+    output << '\n';
+    output << credit.amount << ' ';
+    output << credit.description << ' ';
+    output << credit.date;
   }
-  stream << '\n';
-  stream << "debits";
+  output << '\n';
+  output << "debits";
   for (const auto &debit : debits) {
-    stream << '\n';
-    stream << debit.amount << ' ';
-    stream << debit.description << ' ';
-    stream << debit.date;
+    output << '\n';
+    output << debit.amount << ' ';
+    output << debit.description << ' ';
+    output << debit.date;
   }
 }
 
-static auto asDate(std::string_view s) -> Date {
+static auto date(std::string_view s) -> Date {
   std::stringstream stream{std::string{s}};
   int month = 0;
   stream >> month;
@@ -69,27 +70,27 @@ static auto asDate(std::string_view s) -> Date {
   return Date{year, Month{month}, day};
 }
 
-static void f(std::istream &input, std::string &line,
-              std::vector<Transaction> &transactions) {
+static void loadTransaction(std::istream &input, std::string &line,
+                            std::vector<Transaction> &transactions) {
   std::stringstream transaction{line};
   std::string word;
   transaction >> word;
-  auto amount{usd(word)};
+  const auto amount{usd(word)};
   std::stringstream description;
-  transaction >> word;
-  std::string nextWord;
-  transaction >> nextWord;
-  auto first{true};
+  std::string first;
+  std::string second;
+  std::string third;
+  transaction >> first;
+  transaction >> second;
+  transaction >> third;
   while (transaction) {
-    if (!first)
-      description << ' ';
-    description << word;
-    word = nextWord;
-    transaction >> nextWord;
-    first = false;
+    description << first << ' ';
+    first = second;
+    second = third;
+    transaction >> third;
   }
-  auto date{asDate(word)};
-  transactions.push_back(Transaction{amount, description.str(), date});
+  description << first;
+  transactions.push_back(Transaction{amount, description.str(), date(second)});
   getline(input, line);
 }
 
@@ -99,14 +100,14 @@ void File::loadAccount(std::vector<Transaction> &credits,
   getline(input, line);
   getline(input, line);
   while (line != "debits") {
-    f(input, line, credits);
+    loadTransaction(input, line, credits);
   }
   getline(input, line);
   while (!line.empty()) {
-    f(input, line, debits);
+    loadTransaction(input, line, debits);
   }
 }
 
 File::File(std::istream &input, std::ostream &stream)
-    : input{input}, stream{stream} {}
+    : input{input}, output{stream} {}
 } // namespace sbash64::budget

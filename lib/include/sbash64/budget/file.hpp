@@ -19,7 +19,7 @@ public:
 
 private:
   std::istream &input;
-  std::ostream &stream;
+  std::ostream &output;
 };
 } // namespace sbash64::budget
 
