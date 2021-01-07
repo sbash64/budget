@@ -27,7 +27,7 @@ static void repl() {
       bank.save(file);
       outputFileStream.close();
     } else
-      sbash64::budget::command(controller, bank, printer, file, line);
+      sbash64::budget::command(controller, bank, printer, line);
   }
 }
 } // namespace sbash64::budget
