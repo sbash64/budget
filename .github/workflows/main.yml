@@ -1,0 +1,22 @@
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  main:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: generate buildsystem
+        run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_TESTS=1 -DCMAKE_BUILD_TYPE=Release
+      - name: build tests
+        run: cmake --build build --config Release --target sbash64-budget-tests
+      - name: test
+        run: ./build/test/sbash64-budget-tests
+      - name: build app
+        run: cmake --build build --config Release --target sbash64-budget
