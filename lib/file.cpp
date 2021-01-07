@@ -1,4 +1,6 @@
 #include "file.hpp"
+#include "parse.hpp"
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -53,5 +55,74 @@ void File::saveAccount(std::string_view name,
   }
 }
 
-File::File(std::ostream &stream) : stream{stream} {}
+static auto asDate(std::string_view s) -> Date {
+  std::stringstream stream{std::string{s}};
+  int month;
+  stream >> month;
+  stream.get();
+  int day;
+  stream >> day;
+  stream.get();
+  int year;
+  stream >> year;
+  return Date{year, Month{month}, day};
+}
+
+void File::loadAccount(std::string_view name, std::vector<Transaction> &credits,
+                       std::vector<Transaction> &debits) {
+  std::string line;
+  while (line != name) {
+    getline(input, line);
+  }
+  getline(input, line);
+  getline(input, line);
+  while (line != "debits") {
+    std::stringstream transaction{line};
+    std::string word;
+    transaction >> word;
+    auto amount{usd(word)};
+    std::stringstream description;
+    transaction >> word;
+    std::string nextWord;
+    transaction >> nextWord;
+    auto first{true};
+    while (transaction) {
+      if (!first)
+        description << ' ';
+      description << word;
+      word = nextWord;
+      transaction >> nextWord;
+      first = false;
+    }
+    auto date{asDate(word)};
+    credits.push_back(Transaction{amount, description.str(), date});
+    getline(input, line);
+  }
+  getline(input, line);
+  while (!line.empty()) {
+    std::stringstream transaction{line};
+    std::string word;
+    transaction >> word;
+    auto amount{usd(word)};
+    std::stringstream description;
+    transaction >> word;
+    std::string nextWord;
+    transaction >> nextWord;
+    auto first{true};
+    while (transaction) {
+      if (!first)
+        description << ' ';
+      description << word;
+      word = nextWord;
+      transaction >> nextWord;
+      first = false;
+    }
+    auto date{asDate(word)};
+    debits.push_back(Transaction{amount, description.str(), date});
+    getline(input, line);
+  }
+}
+
+File::File(std::istream &input, std::ostream &stream)
+    : input{input}, stream{stream} {}
 } // namespace sbash64::budget
