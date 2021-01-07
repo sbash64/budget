@@ -45,7 +45,7 @@ public:
   }
 
   void loadAccount(std::string_view name, std::vector<Transaction> &credits,
-                   std::vector<Transaction> &debits) {
+                   std::vector<Transaction> &debits) override {
     credits = creditsToLoad.at(std::string{name});
     debits = debitsToLoad.at(std::string{name});
   }
