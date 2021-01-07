@@ -11,6 +11,8 @@ target_link_libraries(sbash64-budget sbash64-budget-lib)
 
 option(SBASH64_BUDGET_ENABLE_TESTS "Enable tests" OFF)
 if(${SBASH64_BUDGET_ENABLE_TESTS})
+  enable_testing()
+
   FetchContent_Declare(
     testcpplite
     GIT_REPOSITORY https://github.com/sbash64/testcpplite

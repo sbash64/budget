@@ -17,6 +17,7 @@ jobs:
       - name: build tests
         run: cmake --build build --config Release --target sbash64-budget-tests
       - name: test
-        run: ./build/test/sbash64-budget-tests
+        run: ctest -V -C Release
+        working-directory: ./build
       - name: build app
         run: cmake --build build --config Release --target sbash64-budget
