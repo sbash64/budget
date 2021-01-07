@@ -12,9 +12,10 @@ static void repl() {
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
   StreamPrinter printer{std::cout};
-  std::ofstream fileStream;
-  fileStream.open("budget.txt");
-  File file{fileStream};
+  std::ofstream outputFileStream;
+  outputFileStream.open("new-budget.txt");
+  std::ifstream inputFileStream{"old-budget.txt"};
+  File file{inputFileStream, outputFileStream};
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
@@ -22,7 +23,7 @@ static void repl() {
       break;
     sbash64::budget::command(controller, bank, printer, file, line);
   }
-  fileStream.close();
+  outputFileStream.close();
 }
 } // namespace sbash64::budget
 
