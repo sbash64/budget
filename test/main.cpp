@@ -26,8 +26,6 @@ static auto runAllTests() -> int {
        {evaluate::transferTo, "evaluate transfer to command"},
        {evaluate::debit, "evaluate debit"},
        {evaluate::credit, "evaluate credit"},
-       {evaluate::save, "evaluate save"},
-       {evaluate::load, "evaluate load"},
        {bank::createsMasterAccountOnConstruction,
         "bank creates master account on construction"},
        {bank::creditsMasterAccountWhenCredited,

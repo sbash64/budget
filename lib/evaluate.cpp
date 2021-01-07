@@ -18,9 +18,8 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &c, Model &b, View &p, PersistentMemory &pm,
-             std::string_view s) {
-  c.command(b, p, pm, s);
+void command(Controller &c, Model &b, View &p, std::string_view s) {
+  c.command(b, p, s);
 }
 
 static auto next(std::stringstream &stream) -> std::string {
@@ -44,9 +43,7 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, View &printer,
-                         PersistentMemory &persistentMemory,
-                         std::string_view input) {
+void Controller::command(Model &bank, View &printer, std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   switch (state) {
@@ -54,10 +51,6 @@ void Controller::command(Model &bank, View &printer,
     stream >> commandName;
     if (commandName == "print") {
       bank.show(printer);
-    } else if (commandName == "save") {
-      bank.save(persistentMemory);
-    } else if (commandName == "load") {
-      bank.load(persistentMemory);
     } else {
       if (commandName == "transferto") {
         accountName = next(stream);

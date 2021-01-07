@@ -39,17 +39,9 @@ public:
 
   auto view() -> const View * { return printer_; }
 
-  void save(PersistentMemory &p) override { persistentMemory_ = &p; }
+  void save(PersistentMemory &) override {}
 
-  void load(PersistentMemory &p) { persistentMemoryFromLoad_ = &p; }
-
-  auto persistentMemory() -> const PersistentMemory * {
-    return persistentMemory_;
-  }
-
-  auto persistentMemoryFromLoad() -> const PersistentMemory * {
-    return persistentMemoryFromLoad_;
-  }
+  void load(PersistentMemory &) override {}
 
   auto transferredAmount() -> USD { return transferredAmount_; }
 
@@ -64,72 +56,44 @@ private:
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
   const View *printer_{};
-  const PersistentMemory *persistentMemory_{};
-  const PersistentMemory *persistentMemoryFromLoad_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
   Date transferDate_{};
 };
 } // namespace
 
-static void
-testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
-                                        PersistentMemoryStub &)> &f) {
+static void testController(
+    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f) {
   Controller controller;
   ModelStub model;
   ViewStub view;
-  PersistentMemoryStub persistentMemory;
-  f(controller, model, view, persistentMemory);
+  f(controller, model, view);
 }
 
-static void
-testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
-                                        PersistentMemoryStub &)> &f,
-               std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
-                     PersistentMemoryStub &persistentMemory) {
-    command(controller, model, view, persistentMemory, input);
-    f(controller, model, view, persistentMemory);
+static void testController(
+    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
+    std::string_view input) {
+  testController([&](Controller &controller, ModelStub &model, ViewStub &view) {
+    command(controller, model, view, input);
+    f(controller, model, view);
   });
 }
 
-static void
-testController(const std::function<void(Controller &, ModelStub &, ViewStub &,
-                                        PersistentMemoryStub &)> &f,
-               const std::vector<std::string> &input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
-                     PersistentMemoryStub &persistentMemory) {
+static void testController(
+    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
+    const std::vector<std::string> &input) {
+  testController([&](Controller &controller, ModelStub &model, ViewStub &view) {
     for (const auto &x : input)
-      command(controller, model, view, persistentMemory, x);
-    f(controller, model, view, persistentMemory);
+      command(controller, model, view, x);
+    f(controller, model, view);
   });
 }
 
 static void assertPrints(testcpplite::TestResult &result,
                          std::string_view input) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &view,
-          PersistentMemoryStub &) { assertEqual(result, &view, model.view()); },
-      input);
-}
-
-static void assertSaves(testcpplite::TestResult &result,
-                        std::string_view input) {
-  testController(
-      [&](Controller &, ModelStub &model, ViewStub &,
-          PersistentMemoryStub &persistentMemory) {
-        assertEqual(result, &persistentMemory, model.persistentMemory());
-      },
-      input);
-}
-
-static void assertLoads(testcpplite::TestResult &result,
-                        std::string_view input) {
-  testController(
-      [&](Controller &, ModelStub &model, ViewStub &,
-          PersistentMemoryStub &persistentMemory) {
-        assertEqual(result, &persistentMemory,
-                    model.persistentMemoryFromLoad());
+      [&](Controller &, ModelStub &model, ViewStub &view) {
+        assertEqual(result, &view, model.view());
       },
       input);
 }
@@ -139,7 +103,7 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &, PersistentMemoryStub &) {
+      [&](Controller &, ModelStub &model, ViewStub &) {
         assertEqual(result, expectedAccountName, model.debitedAccountName());
         assertEqual(result, expectedTransaction, model.debitedTransaction());
       },
@@ -150,7 +114,7 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &bank, ViewStub &, PersistentMemoryStub &) {
+      [&](Controller &, ModelStub &bank, ViewStub &) {
         assertEqual(result, expectedTransaction, bank.creditedTransaction());
       },
       input);
@@ -162,7 +126,7 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      std::string_view expectedAccountName,
                                      const Date &expectedDate) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &, PersistentMemoryStub &) {
+      [&](Controller &, ModelStub &model, ViewStub &) {
         assertEqual(result, expectedAmount, model.transferredAmount());
         assertEqual(result, std::string{expectedAccountName},
                     model.accountNameTransferredTo());
@@ -189,8 +153,4 @@ void transferTo(testcpplite::TestResult &result) {
   assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
                            5000_cents, "Groceries", Date{2021, Month::June, 3});
 }
-
-void save(testcpplite::TestResult &result) { assertSaves(result, "save"); }
-
-void load(testcpplite::TestResult &result) { assertLoads(result, "load"); }
 } // namespace sbash64::budget::evaluate
