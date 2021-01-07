@@ -56,6 +56,8 @@ void Controller::command(Model &bank, View &printer,
       bank.show(printer);
     } else if (commandName == "save") {
       bank.save(persistentMemory);
+    } else if (commandName == "load") {
+      bank.load(persistentMemory);
     } else {
       if (commandName == "transferto") {
         accountName = next(stream);

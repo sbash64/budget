@@ -41,8 +41,14 @@ public:
 
   void save(PersistentMemory &p) override { persistentMemory_ = &p; }
 
+  void load(PersistentMemory &p) { persistentMemoryFromLoad_ = &p; }
+
   auto persistentMemory() -> const PersistentMemory * {
     return persistentMemory_;
+  }
+
+  auto persistentMemoryFromLoad() -> const PersistentMemory * {
+    return persistentMemoryFromLoad_;
   }
 
   auto transferredAmount() -> USD { return transferredAmount_; }
@@ -59,6 +65,7 @@ private:
   std::string debitedAccountName_;
   const View *printer_{};
   const PersistentMemory *persistentMemory_{};
+  const PersistentMemory *persistentMemoryFromLoad_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
   Date transferDate_{};
@@ -112,6 +119,17 @@ static void assertSaves(testcpplite::TestResult &result,
       [&](Controller &, ModelStub &model, ViewStub &,
           PersistentMemoryStub &persistentMemory) {
         assertEqual(result, &persistentMemory, model.persistentMemory());
+      },
+      input);
+}
+
+static void assertLoads(testcpplite::TestResult &result,
+                        std::string_view input) {
+  testController(
+      [&](Controller &, ModelStub &model, ViewStub &,
+          PersistentMemoryStub &persistentMemory) {
+        assertEqual(result, &persistentMemory,
+                    model.persistentMemoryFromLoad());
       },
       input);
 }
@@ -173,4 +191,6 @@ void transferTo(testcpplite::TestResult &result) {
 }
 
 void save(testcpplite::TestResult &result) { assertSaves(result, "save"); }
+
+void load(testcpplite::TestResult &result) { assertLoads(result, "load"); }
 } // namespace sbash64::budget::evaluate
