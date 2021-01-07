@@ -15,6 +15,8 @@ static void repl() {
   std::ofstream outputFileStream;
   outputFileStream.open("new-budget.txt");
   std::ifstream inputFileStream{"old-budget.txt"};
+  if (!inputFileStream.is_open())
+    return;
   File file{inputFileStream, outputFileStream};
   for (;;) {
     std::string line;
