@@ -141,7 +141,7 @@ public:
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void show(View &) = 0;
   virtual void save(PersistentMemory &) = 0;
-  virtual void load(PersistentMemory &) {}
+  virtual void load(PersistentMemory &) = 0;
 };
 } // namespace sbash64::budget
 
