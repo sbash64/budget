@@ -53,6 +53,7 @@ static auto runAllTests() -> int {
        {print::account, "print account"},
        {file::savesAccounts, "file saves accounts"},
        {file::savesAccount, "file saves account"},
+       {file::loadsAccounts, "file loads accounts"},
        {file::loadsAccount, "file loads account"}},
       std::cout);
 }

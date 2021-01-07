@@ -6,9 +6,9 @@
 
 namespace sbash64::budget::file {
 namespace {
-class AccountStub : public Account {
+class SaveAccountStub : public Account {
 public:
-  AccountStub(std::ostream &stream, std::string name)
+  SaveAccountStub(std::ostream &stream, std::string name)
       : stream{stream}, name{std::move(name)} {}
 
   void credit(const Transaction &) override {}
@@ -29,10 +29,60 @@ private:
   std::ostream &stream;
   std::string name;
 };
+
+class LoadAccountStub : public Account {
+public:
+  explicit LoadAccountStub(std::istream &stream) : stream{stream} {}
+
+  void credit(const Transaction &) override {}
+  void debit(const Transaction &) override {}
+  void show(View &) override {}
+  void save(PersistentMemory &) override {}
+  void load(PersistentMemory &p) {
+    persistentMemory_ = &p;
+    getline(stream, lineRead_);
+  }
+
+  auto persistentMemory() -> const PersistentMemory * {
+    return persistentMemory_;
+  }
+
+  auto lineRead() -> std::string { return lineRead_; }
+
+private:
+  const PersistentMemory *persistentMemory_{};
+  std::istream &stream;
+  std::string lineRead_;
+};
+
+class AccountFactoryStub : public AccountFactory {
+public:
+  void add(std::shared_ptr<Account> account, std::string_view name) {
+    accounts[std::string{name}] = std::move(account);
+  }
+
+  auto name() -> std::string { return name_; }
+
+  auto make(std::string_view s) -> std::shared_ptr<Account> override {
+    name_ = s;
+    return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
+  }
+
+private:
+  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::string name_;
+};
 } // namespace
 
-static void assertSaved(testcpplite::TestResult &result, AccountStub &account,
+static void assertSaved(testcpplite::TestResult &result,
+                        SaveAccountStub &account,
                         PersistentMemory &persistentMemory) {
+  assertEqual(result, &persistentMemory, account.persistentMemory());
+}
+
+static void assertLoaded(testcpplite::TestResult &result,
+                         LoadAccountStub &account,
+                         PersistentMemory &persistentMemory) {
   assertEqual(result, &persistentMemory, account.persistentMemory());
 }
 
@@ -40,10 +90,10 @@ void savesAccounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   std::stringstream input;
   File file{input, stream};
-  AccountStub jeff{stream, "jeff"};
-  AccountStub steve{stream, "steve"};
-  AccountStub sue{stream, "sue"};
-  AccountStub allen{stream, "allen"};
+  SaveAccountStub jeff{stream, "jeff"};
+  SaveAccountStub steve{stream, "steve"};
+  SaveAccountStub sue{stream, "sue"};
+  SaveAccountStub allen{stream, "allen"};
   file.save(jeff, {&steve, &sue, &allen});
   assertSaved(result, jeff, file);
   assertSaved(result, steve, file);
@@ -126,5 +176,44 @@ debits
                Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
                Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
               debits);
+}
+
+void loadsAccounts(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  std::stringstream input{
+      R"(jeff
+this is for jeff
+steve
+this one's for steve
+sue
+and of course sue
+allen
+last but not least is allen
+)"};
+  File file{input, stream};
+  auto jeff{std::make_shared<LoadAccountStub>(input)};
+  auto steve{std::make_shared<LoadAccountStub>(input)};
+  auto sue{std::make_shared<LoadAccountStub>(input)};
+  auto allen{std::make_shared<LoadAccountStub>(input)};
+  AccountFactoryStub factory;
+  factory.add(jeff, "jeff");
+  factory.add(steve, "steve");
+  factory.add(sue, "sue");
+  factory.add(allen, "allen");
+  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::shared_ptr<Account> primary;
+  file.load(factory, primary, accounts);
+  assertLoaded(result, *jeff, file);
+  assertLoaded(result, *steve, file);
+  assertLoaded(result, *sue, file);
+  assertLoaded(result, *allen, file);
+  assertEqual(result, jeff.get(), primary.get());
+  assertEqual(result, steve.get(), accounts.at("steve").get());
+  assertEqual(result, sue.get(), accounts.at("sue").get());
+  assertEqual(result, allen.get(), accounts.at("allen").get());
+  assertEqual(result, "this is for jeff", jeff->lineRead());
+  assertEqual(result, "this one's for steve", steve->lineRead());
+  assertEqual(result, "and of course sue", sue->lineRead());
+  assertEqual(result, "last but not least is allen", allen->lineRead());
 }
 } // namespace sbash64::budget::file

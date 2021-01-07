@@ -108,6 +108,22 @@ void File::loadAccount(std::vector<Transaction> &credits,
   }
 }
 
+void File::load(
+    AccountFactory &factory, std::shared_ptr<Account> &primary,
+    std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
+  std::string line;
+  getline(input, line);
+  primary = factory.make(line);
+  primary->load(*this);
+  getline(input, line);
+  while (!line.empty()) {
+    auto next{factory.make(line)};
+    next->load(*this);
+    secondaries[line] = std::move(next);
+    getline(input, line);
+  }
+}
+
 File::File(std::istream &input, std::ostream &stream)
     : input{input}, output{stream} {}
 } // namespace sbash64::budget
