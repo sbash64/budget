@@ -1,7 +1,11 @@
 #ifndef SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 #define SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 
+#include <functional>
+#include <map>
 #include <sbash64/budget/budget.hpp>
+#include <string_view>
+#include <utility>
 
 namespace sbash64::budget {
 class PersistentMemoryStub : public PersistentMemory {
@@ -32,7 +36,23 @@ public:
 
   auto debits() -> std::vector<Transaction> { return debits_; }
 
+  void setCreditsToLoad(std::string_view name, std::vector<Transaction> t) {
+    creditsToLoad[std::string{name}] = std::move(t);
+  }
+
+  void setDebitsToLoad(std::string_view name, std::vector<Transaction> t) {
+    debitsToLoad[std::string{name}] = std::move(t);
+  }
+
+  void loadAccount(std::string_view name, std::vector<Transaction> &credits,
+                   std::vector<Transaction> &debits) {
+    credits = creditsToLoad.at(std::string{name});
+    debits = debitsToLoad.at(std::string{name});
+  }
+
 private:
+  std::map<std::string, std::vector<Transaction>> creditsToLoad;
+  std::map<std::string, std::vector<Transaction>> debitsToLoad;
   std::string accountName_;
   std::vector<Account *> secondaryAccounts_;
   std::vector<Transaction> credits_;

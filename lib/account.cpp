@@ -50,4 +50,8 @@ auto InMemoryAccount::Factory::make(std::string_view name)
     -> std::shared_ptr<Account> {
   return std::make_shared<InMemoryAccount>(std::string{name});
 }
+
+void InMemoryAccount::load(PersistentMemory &persistentMemory) {
+  persistentMemory.loadAccount(name, credits, debits);
+}
 } // namespace sbash64::budget

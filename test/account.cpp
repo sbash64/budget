@@ -81,4 +81,31 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
       result, persistentMemory,
       Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
 }
+
+void loadLoadsAllTransactions(testcpplite::TestResult &result) {
+  PersistentMemoryStub persistentMemory;
+  persistentMemory.setCreditsToLoad(
+      "joe",
+      {Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+       Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}});
+  persistentMemory.setDebitsToLoad(
+      "joe",
+      {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}});
+  InMemoryAccount account{"joe"};
+  account.load(persistentMemory);
+  ViewStub printer;
+  account.show(printer);
+  assertEqual(result,
+              printableDebit(Transaction{456_cents, "gorilla",
+                                         Date{2020, Month::January, 20}}),
+              printer.accountTransactions().at(0));
+  assertEqual(result,
+              printableCredit(Transaction{789_cents, "chimpanzee",
+                                          Date{2020, Month::June, 1}}),
+              printer.accountTransactions().at(1));
+  assertEqual(result,
+              printableCredit(
+                  Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
+              printer.accountTransactions().at(2));
+}
 } // namespace sbash64::budget::account

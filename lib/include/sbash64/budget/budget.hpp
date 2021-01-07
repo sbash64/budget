@@ -123,6 +123,9 @@ public:
   virtual void saveAccount(std::string_view name,
                            const std::vector<Transaction> &credits,
                            const std::vector<Transaction> &debits) = 0;
+  virtual void loadAccount(std::string_view name,
+                           std::vector<Transaction> &credits,
+                           std::vector<Transaction> &debits) {}
 };
 
 class Model {
