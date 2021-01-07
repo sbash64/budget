@@ -73,24 +73,24 @@ static auto date(std::string_view s) -> Date {
 static void loadTransaction(std::istream &input, std::string &line,
                             std::vector<Transaction> &transactions) {
   std::stringstream transaction{line};
-  std::string word;
-  transaction >> word;
-  const auto amount{usd(word)};
+  std::string next;
+  std::string eventuallyDate;
+  std::string eventuallyEndOfLine;
+  transaction >> next;
+  const auto amount{usd(next)};
   std::stringstream description;
-  std::string first;
-  std::string second;
-  std::string third;
-  transaction >> first;
-  transaction >> second;
-  transaction >> third;
+  transaction >> next;
+  transaction >> eventuallyDate;
+  transaction >> eventuallyEndOfLine;
   while (transaction) {
-    description << first << ' ';
-    first = second;
-    second = third;
-    transaction >> third;
+    description << next << ' ';
+    next = eventuallyDate;
+    eventuallyDate = eventuallyEndOfLine;
+    transaction >> eventuallyEndOfLine;
   }
-  description << first;
-  transactions.push_back(Transaction{amount, description.str(), date(second)});
+  description << next;
+  transactions.push_back(
+      Transaction{amount, description.str(), date(eventuallyDate)});
   getline(input, line);
 }
 
