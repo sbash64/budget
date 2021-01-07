@@ -154,7 +154,8 @@ debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
-)"};
+
+next)"};
   std::stringstream output;
   File file{stream, output};
   std::vector<Transaction> credits;
@@ -173,6 +174,9 @@ debits
                Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
                Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
               debits);
+  std::string next;
+  getline(stream, next);
+  assertEqual(result, "next", next);
 }
 
 void loadsAccounts(testcpplite::TestResult &result) {
@@ -185,8 +189,7 @@ this one's for steve
 sue
 and of course sue
 allen
-last but not least is allen
-)"};
+last but not least is allen)"};
   File file{input, stream};
   auto jeff{std::make_shared<LoadAccountStub>(input)};
   auto steve{std::make_shared<LoadAccountStub>(input)};

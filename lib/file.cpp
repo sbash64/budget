@@ -115,12 +115,10 @@ void File::load(
   getline(input, line);
   primary = factory.make(line);
   primary->load(*this);
-  getline(input, line);
-  while (!line.empty()) {
+  while (getline(input, line)) {
     auto next{factory.make(line)};
     next->load(*this);
     secondaries[line] = std::move(next);
-    getline(input, line);
   }
 }
 
