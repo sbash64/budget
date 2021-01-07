@@ -60,4 +60,8 @@ void Bank::show(View &view) { view.show(*masterAccount, collect(accounts)); }
 void Bank::save(PersistentMemory &persistentMemory) {
   persistentMemory.save(*masterAccount, collect(accounts));
 }
+
+void Bank::load(PersistentMemory &persistentMemory) {
+  persistentMemory.load(factory, masterAccount, accounts);
+}
 } // namespace sbash64::budget

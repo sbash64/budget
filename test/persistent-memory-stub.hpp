@@ -50,6 +50,25 @@ public:
     debits = debitsToLoad.at(std::string{name});
   }
 
+  auto primaryAccountToLoadInto() -> const std::shared_ptr<Account> * {
+    return primaryAccountToLoadInto_;
+  }
+
+  void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
+            std::map<std::string, std::shared_ptr<Account>, std::less<>>
+                &secondaries) override {
+    accountFactory_ = &factory;
+    primaryAccountToLoadInto_ = &primary;
+    secondaryAccountsToLoadInto_ = &secondaries;
+  }
+
+  auto secondaryAccountsToLoadInto()
+      -> const std::map<std::string, std::shared_ptr<Account>, std::less<>> * {
+    return secondaryAccountsToLoadInto_;
+  }
+
+  auto accountFactory() -> const AccountFactory * { return accountFactory_; }
+
 private:
   std::map<std::string, std::vector<Transaction>> creditsToLoad;
   std::map<std::string, std::vector<Transaction>> debitsToLoad;
@@ -58,6 +77,10 @@ private:
   std::vector<Transaction> credits_;
   std::vector<Transaction> debits_;
   const Account *primaryAccount_{};
+  const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
+  const std::map<std::string, std::shared_ptr<Account>, std::less<>>
+      *secondaryAccountsToLoadInto_{};
+  const AccountFactory *accountFactory_{};
 };
 } // namespace sbash64::budget
 

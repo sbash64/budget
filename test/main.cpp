@@ -38,6 +38,7 @@ static auto runAllTests() -> int {
         "bank transfer debits master and credits other"},
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},
        {bank::saveSavesAccounts, "bank save saves accounts"},
+       {bank::loadLoadsAccounts, "bank load loads accounts"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
        {account::saveSavesAllTransactions,

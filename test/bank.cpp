@@ -182,4 +182,33 @@ void saveSavesAccounts(testcpplite::TestResult &result) {
     assertContainsSecondaryAccount(result, persistentMemory, leopard);
   });
 }
+
+void loadLoadsAccounts(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    PersistentMemoryStub persistentMemory;
+    bank.load(persistentMemory);
+    assertEqual(result, &factory, persistentMemory.accountFactory());
+    assertEqual(result, masterAccount.get(),
+                persistentMemory.primaryAccountToLoadInto()->get());
+    assertEqual(
+        result, giraffe.get(),
+        persistentMemory.secondaryAccountsToLoadInto()->at("giraffe").get());
+    assertEqual(
+        result, penguin.get(),
+        persistentMemory.secondaryAccountsToLoadInto()->at("penguin").get());
+    assertEqual(
+        result, leopard.get(),
+        persistentMemory.secondaryAccountsToLoadInto()->at("leopard").get());
+  });
+}
 } // namespace sbash64::budget::bank

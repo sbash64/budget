@@ -11,6 +11,7 @@ void debitsExistingAccount(testcpplite::TestResult &);
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &);
 void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &);
 void saveSavesAccounts(testcpplite::TestResult &);
+void loadLoadsAccounts(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

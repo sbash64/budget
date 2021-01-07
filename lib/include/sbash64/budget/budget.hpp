@@ -2,6 +2,8 @@
 #define SBASH64_BUDGET_BUDGET_HPP_
 
 #include <cstdint>
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -126,6 +128,9 @@ public:
   virtual void loadAccount(std::string_view name,
                            std::vector<Transaction> &credits,
                            std::vector<Transaction> &debits) {}
+  virtual void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
+                    std::map<std::string, std::shared_ptr<Account>, std::less<>>
+                        &secondaries) {}
 };
 
 class Model {

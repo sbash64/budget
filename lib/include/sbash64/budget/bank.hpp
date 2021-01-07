@@ -17,6 +17,7 @@ public:
   void transferTo(std::string_view accountName, USD amount, Date) override;
   void show(View &) override;
   void save(PersistentMemory &) override;
+  void load(PersistentMemory &) override;
 
 private:
   AccountFactory &factory;
