@@ -8,7 +8,7 @@
 namespace sbash64::budget {
 class InMemoryAccount : public Account {
 public:
-  InMemoryAccount(std::string name);
+  explicit InMemoryAccount(std::string name);
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;

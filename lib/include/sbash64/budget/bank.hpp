@@ -11,7 +11,7 @@
 namespace sbash64::budget {
 class Bank : public Model {
 public:
-  Bank(AccountFactory &);
+  explicit Bank(AccountFactory &);
   void debit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount, Date) override;
