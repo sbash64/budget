@@ -43,14 +43,14 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, View &printer, std::string_view input) {
+void Controller::command(Model &bank, View &view, std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   switch (state) {
   case State::normal:
     stream >> commandName;
     if (commandName == "print") {
-      bank.show(printer);
+      bank.show(view);
     } else {
       if (commandName == "transferto") {
         accountName = next(stream);
