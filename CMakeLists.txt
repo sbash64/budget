@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.19)
+cmake_policy(SET CMP0048 NEW)
+project(sbash64-budget LANGUAGES CXX)
+
 include(FetchContent)
 FetchContent_Declare(
   GSL
