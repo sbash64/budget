@@ -10,7 +10,7 @@ auto format(USD) -> std::string;
 
 class StreamPrinter : public View {
 public:
-  StreamPrinter(std::ostream &);
+  explicit StreamPrinter(std::ostream &);
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void showAccountSummary(std::string_view name, USD balance,

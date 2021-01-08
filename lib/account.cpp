@@ -24,6 +24,7 @@ dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
                                 const std::vector<Transaction> &debits)
     -> std::vector<PrintableTransaction> {
   std::vector<PrintableTransaction> transactions;
+  transactions.reserve(credits.size() + debits.size());
   for (const auto &c : credits)
     transactions.push_back(printableCredit(c));
   for (const auto &d : debits)

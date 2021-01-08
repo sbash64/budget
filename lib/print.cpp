@@ -1,12 +1,15 @@
 #include "print.hpp"
 #include <cstdio>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 namespace sbash64::budget {
 static auto formatWithoutDollarSign(USD usd) -> std::string {
-  char cents[3];
-  std::snprintf(cents, sizeof cents, "%.2lld", usd.cents % 100);
-  return std::to_string(usd.cents / 100) + '.' + std::string{cents};
+  std::stringstream stream;
+  stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
+         << usd.cents % 100;
+  return stream.str();
 }
 
 static auto format_(USD usd) -> std::string {
