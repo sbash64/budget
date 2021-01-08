@@ -191,10 +191,10 @@ and of course sue
 allen
 last but not least is allen)"};
   File file{input, stream};
-  auto jeff{std::make_shared<LoadAccountStub>(input)};
-  auto steve{std::make_shared<LoadAccountStub>(input)};
-  auto sue{std::make_shared<LoadAccountStub>(input)};
-  auto allen{std::make_shared<LoadAccountStub>(input)};
+  const auto jeff{std::make_shared<LoadAccountStub>(input)};
+  const auto steve{std::make_shared<LoadAccountStub>(input)};
+  const auto sue{std::make_shared<LoadAccountStub>(input)};
+  const auto allen{std::make_shared<LoadAccountStub>(input)};
   AccountFactoryStub factory;
   factory.add(jeff, "jeff");
   factory.add(steve, "steve");
