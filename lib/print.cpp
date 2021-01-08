@@ -18,13 +18,25 @@ static auto format_(USD usd) -> std::string {
 
 auto format(USD usd) -> std::string { return format_(usd); }
 
+constexpr auto to_integral(Month e) ->
+    typename std::underlying_type<Month>::type {
+  return static_cast<typename std::underlying_type<Month>::type>(e);
+}
+
+static auto operator<<(std::ostream &stream, const Month &month)
+    -> std::ostream & {
+  stream << to_integral(month);
+  return stream;
+}
+
 static auto format(const Date &date) -> std::string {
-  char month[3];
-  char day[3];
-  std::snprintf(month, sizeof month, "%.2d", date.month);
-  std::snprintf(day, sizeof day, "%.2d", date.day);
-  return std::string{month} + '/' + std::string{day} + '/' +
-         std::to_string(date.year);
+  std::stringstream stream;
+  stream << std::setw(2) << std::setfill('0') << date.month;
+  stream << '/';
+  stream << date.day;
+  stream << '/';
+  stream << date.year;
+  return stream.str();
 }
 
 StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
