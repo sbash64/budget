@@ -67,8 +67,6 @@ void StreamPrinter::showAccountSummary(
   stream << '\n';
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
-    const auto formattedAmount{
-        formatWithoutDollarSign(transaction.transaction.amount)};
     stream << '\n';
     if (transaction.type == Transaction::Type::credit) {
       stream << std::setw(12) << "";
@@ -76,8 +74,9 @@ void StreamPrinter::showAccountSummary(
     } else {
       stream << std::setw(25);
     }
-    stream << std::left << formattedAmount << std::right;
-    stream << transaction.transaction.date << "          "
+    stream << std::left
+           << formatWithoutDollarSign(transaction.transaction.amount)
+           << std::right << transaction.transaction.date << std::setw(10) << ""
            << transaction.transaction.description;
   }
   stream << '\n' << "----";
