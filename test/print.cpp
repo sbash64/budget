@@ -44,7 +44,7 @@ void formatTenCents(testcpplite::TestResult &result) {
 
 void accounts(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamPrinter printer{stream};
+  StreamView printer{stream};
   AccountStub jeff{stream, "jeff"};
   AccountStub steve{stream, "steve"};
   AccountStub sue{stream, "sue"};
@@ -65,7 +65,7 @@ allen
 
 void account(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamPrinter printer{stream};
+  StreamView printer{stream};
   printer.showAccountSummary(
       "Checking", 1234_cents,
       {printableDebit(Transaction{2500_cents, "Sam's 24th",

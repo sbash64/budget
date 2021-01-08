@@ -11,7 +11,7 @@ static void repl() {
   Controller controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
-  StreamPrinter printer{std::cout};
+  StreamView printer{std::cout};
   std::ofstream outputFileStream;
   std::ifstream inputFileStream{"budget.txt"};
   File file{inputFileStream, outputFileStream};

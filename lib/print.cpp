@@ -46,10 +46,10 @@ static auto operator<<(std::ostream &stream, const Date &date)
                 << date.day << '/' << date.year << std::setfill(fill);
 }
 
-StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
+StreamView::StreamView(std::ostream &stream) : stream{stream} {}
 
-void StreamPrinter::show(Account &primary,
-                         const std::vector<Account *> &secondaries) {
+void StreamView::show(Account &primary,
+                      const std::vector<Account *> &secondaries) {
   primary.show(*this);
   for (auto *account : secondaries) {
     stream << "\n\n";
@@ -58,7 +58,7 @@ void StreamPrinter::show(Account &primary,
   stream << '\n';
 }
 
-void StreamPrinter::showAccountSummary(
+void StreamView::showAccountSummary(
     std::string_view name, USD balance,
     const std::vector<PrintableTransaction> &transactions) {
   stream << "----" << '\n';

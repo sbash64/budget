@@ -8,9 +8,9 @@
 namespace sbash64::budget {
 auto format(USD) -> std::string;
 
-class StreamPrinter : public View {
+class StreamView : public View {
 public:
-  explicit StreamPrinter(std::ostream &);
+  explicit StreamView(std::ostream &);
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void showAccountSummary(std::string_view name, USD balance,
