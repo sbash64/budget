@@ -140,7 +140,7 @@ static void assertEqual(testcpplite::TestResult &result,
                         const std::vector<Transaction> &expected,
                         const std::vector<Transaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (int i{0}; i < expected.size(); ++i)
+  for (std::vector<Transaction>::size_type i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
