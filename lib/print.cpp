@@ -7,7 +7,7 @@
 namespace sbash64::budget {
 static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
   stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
-         << usd.cents % 100;
+         << usd.cents % 100 << std::setfill(' ');
   return stream;
 }
 
@@ -45,7 +45,7 @@ static auto operator<<(std::ostream &stream, const Date &date)
   stream << '/';
   stream << date.day;
   stream << '/';
-  stream << date.year;
+  stream << date.year << std::setfill(' ');
   return stream;
 }
 
@@ -74,14 +74,12 @@ void StreamPrinter::showAccountSummary(
         formatWithoutDollarSign(transaction.transaction.amount)};
     stream << '\n';
     if (transaction.type == Transaction::Type::credit) {
-      stream << std::string(12, ' ');
-      stream << std::setw(13) << std::setfill(' ') << std::left;
-      stream << formattedAmount << std::right;
-      // stream << std::string(13 - formattedAmount.length(), ' ');
+      stream << std::setw(12) << "";
+      stream << std::setw(13);
     } else {
-      stream << formattedAmount;
-      stream << std::string(25 - formattedAmount.length(), ' ');
+      stream << std::setw(25);
     }
+    stream << std::left << formattedAmount << std::right;
     stream << transaction.transaction.date << "          "
            << transaction.transaction.description;
   }
