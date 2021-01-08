@@ -6,9 +6,9 @@
 #include <ostream>
 
 namespace sbash64::budget {
-class File : public PersistentMemory {
+class PersistentStreams : public PersistentMemory {
 public:
-  explicit File(std::istream &, std::ostream &);
+  explicit PersistentStreams(std::istream &, std::ostream &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void saveAccount(std::string_view name,

@@ -86,7 +86,7 @@ static void assertLoaded(testcpplite::TestResult &result,
 void savesAccounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   std::stringstream input;
-  File file{input, stream};
+  PersistentStreams file{input, stream};
   SaveAccountStub jeff{stream, "jeff"};
   SaveAccountStub steve{stream, "steve"};
   SaveAccountStub sue{stream, "sue"};
@@ -111,7 +111,7 @@ allen
 void savesAccount(testcpplite::TestResult &result) {
   std::stringstream stream;
   std::stringstream input;
-  File file{input, stream};
+  PersistentStreams file{input, stream};
   file.saveAccount(
       "Groceries",
       {Transaction{5000_cents, "transfer from master",
@@ -157,7 +157,7 @@ debits
 
 next)"};
   std::stringstream output;
-  File file{stream, output};
+  PersistentStreams file{stream, output};
   std::vector<Transaction> credits;
   std::vector<Transaction> debits;
   file.loadAccount(credits, debits);
@@ -190,7 +190,7 @@ sue
 and of course sue
 allen
 last but not least is allen)"};
-  File file{input, stream};
+  PersistentStreams file{input, stream};
   const auto jeff{std::make_shared<LoadAccountStub>(input)};
   const auto steve{std::make_shared<LoadAccountStub>(input)};
   const auto sue{std::make_shared<LoadAccountStub>(input)};

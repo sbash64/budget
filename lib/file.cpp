@@ -5,7 +5,8 @@
 #include <string_view>
 
 namespace sbash64::budget {
-void File::save(Account &primary, const std::vector<Account *> &secondaries) {
+void PersistentStreams::save(Account &primary,
+                             const std::vector<Account *> &secondaries) {
   primary.save(*this);
   output << '\n';
   for (auto *account : secondaries) {
@@ -36,9 +37,9 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void File::saveAccount(std::string_view name,
-                       const std::vector<Transaction> &credits,
-                       const std::vector<Transaction> &debits) {
+void PersistentStreams::saveAccount(std::string_view name,
+                                    const std::vector<Transaction> &credits,
+                                    const std::vector<Transaction> &debits) {
   output << name << '\n';
   output << "credits";
   for (const auto &credit : credits) {
@@ -94,8 +95,8 @@ static void loadTransaction(std::istream &input, std::string &line,
   getline(input, line);
 }
 
-void File::loadAccount(std::vector<Transaction> &credits,
-                       std::vector<Transaction> &debits) {
+void PersistentStreams::loadAccount(std::vector<Transaction> &credits,
+                                    std::vector<Transaction> &debits) {
   std::string line;
   getline(input, line);
   getline(input, line);
@@ -108,7 +109,7 @@ void File::loadAccount(std::vector<Transaction> &credits,
   }
 }
 
-void File::load(
+void PersistentStreams::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
   std::string line;
@@ -122,6 +123,6 @@ void File::load(
   }
 }
 
-File::File(std::istream &input, std::ostream &stream)
+PersistentStreams::PersistentStreams(std::istream &input, std::ostream &stream)
     : input{input}, output{stream} {}
 } // namespace sbash64::budget

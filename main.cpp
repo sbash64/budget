@@ -14,7 +14,7 @@ static void repl() {
   StreamView printer{std::cout};
   std::ofstream outputFileStream;
   std::ifstream inputFileStream{"budget.txt"};
-  File file{inputFileStream, outputFileStream};
+  PersistentStreams file{inputFileStream, outputFileStream};
   if (inputFileStream.is_open())
     bank.load(file);
   for (;;) {
