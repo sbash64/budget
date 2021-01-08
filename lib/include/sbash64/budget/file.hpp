@@ -16,7 +16,7 @@ public:
                    const std::vector<Transaction> &debits) override;
   void loadAccount(std::vector<Transaction> &credits,
                    std::vector<Transaction> &debits) override;
-  void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
+  void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
             std::map<std::string, std::shared_ptr<Account>, std::less<>>
                 &secondaries) override;
 

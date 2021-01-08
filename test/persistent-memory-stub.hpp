@@ -54,7 +54,7 @@ public:
     return primaryAccountToLoadInto_;
   }
 
-  void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
+  void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
             std::map<std::string, std::shared_ptr<Account>, std::less<>>
                 &secondaries) override {
     accountFactory_ = &factory;
@@ -67,7 +67,7 @@ public:
     return secondaryAccountsToLoadInto_;
   }
 
-  auto accountFactory() -> const AccountFactory * { return accountFactory_; }
+  auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
   std::vector<Transaction> creditsToLoad;
@@ -80,7 +80,7 @@ private:
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>
       *secondaryAccountsToLoadInto_{};
-  const AccountFactory *accountFactory_{};
+  const Account::Factory *accountFactory_{};
 };
 } // namespace sbash64::budget
 

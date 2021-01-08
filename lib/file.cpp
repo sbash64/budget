@@ -109,7 +109,7 @@ void File::loadAccount(std::vector<Transaction> &credits,
 }
 
 void File::load(
-    AccountFactory &factory, std::shared_ptr<Account> &primary,
+    Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
   std::string line;
   getline(input, line);

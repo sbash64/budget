@@ -14,14 +14,14 @@ static void debit(const std::shared_ptr<Account> &account,
   account->debit(t);
 }
 
-Bank::Bank(AccountFactory &factory)
+Bank::Bank(Account::Factory &factory)
     : factory{factory}, masterAccount{factory.make(masterAccountName)} {}
 
 void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
 
 static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
-    AccountFactory &factory, std::string_view accountName) {
+    Account::Factory &factory, std::string_view accountName) {
   if (accounts.count(accountName) == 0)
     accounts[std::string{accountName}] = factory.make(accountName);
 }

@@ -100,12 +100,12 @@ public:
   virtual void show(View &) = 0;
   virtual void save(PersistentMemory &) = 0;
   virtual void load(PersistentMemory &) = 0;
-};
 
-class AccountFactory {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountFactory);
-  virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
+  class Factory {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
+    virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
+  };
 };
 
 class View {
@@ -128,7 +128,8 @@ public:
                            const std::vector<Transaction> &debits) = 0;
   virtual void loadAccount(std::vector<Transaction> &credits,
                            std::vector<Transaction> &debits) = 0;
-  virtual void load(AccountFactory &factory, std::shared_ptr<Account> &primary,
+  virtual void load(Account::Factory &factory,
+                    std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>
                         &secondaries) = 0;
 };

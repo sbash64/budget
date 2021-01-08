@@ -15,7 +15,7 @@ public:
   void save(PersistentMemory &) override;
   void load(PersistentMemory &) override;
 
-  class Factory : public AccountFactory {
+  class Factory : public Account::Factory {
   public:
     auto make(std::string_view name) -> std::shared_ptr<Account> override;
   };

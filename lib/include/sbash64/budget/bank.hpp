@@ -11,7 +11,7 @@
 namespace sbash64::budget {
 class Bank : public Model {
 public:
-  explicit Bank(AccountFactory &);
+  explicit Bank(Account::Factory &);
   void debit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount, Date) override;
@@ -20,7 +20,7 @@ public:
   void load(PersistentMemory &) override;
 
 private:
-  AccountFactory &factory;
+  Account::Factory &factory;
   std::shared_ptr<Account> masterAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
 };
