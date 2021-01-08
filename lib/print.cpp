@@ -5,15 +5,22 @@
 #include <string>
 
 namespace sbash64::budget {
-static auto formatWithoutDollarSign(USD usd) -> std::string {
-  std::stringstream stream;
+static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
   stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
          << usd.cents % 100;
+  return stream;
+}
+
+static auto formatWithoutDollarSign(USD usd) -> std::string {
+  std::stringstream stream;
+  stream << usd;
   return stream.str();
 }
 
 static auto format_(USD usd) -> std::string {
-  return '$' + formatWithoutDollarSign(usd);
+  std::stringstream stream;
+  stream << '$' << usd;
+  return stream.str();
 }
 
 auto format(USD usd) -> std::string { return format_(usd); }
@@ -29,14 +36,14 @@ static auto operator<<(std::ostream &stream, const Month &month)
   return stream;
 }
 
-static auto format(const Date &date) -> std::string {
-  std::stringstream stream;
+static auto operator<<(std::ostream &stream, const Date &date)
+    -> std::ostream & {
   stream << std::setw(2) << std::setfill('0') << date.month;
   stream << '/';
   stream << date.day;
   stream << '/';
   stream << date.year;
-  return stream.str();
+  return stream;
 }
 
 StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
@@ -69,7 +76,7 @@ void StreamPrinter::showAccountSummary(
     stream << std::string(extraSpaces, ' ');
     stream << formattedAmount;
     stream << std::string(25 - formattedAmount.length() - extraSpaces, ' ')
-           << format(transaction.transaction.date) << "          "
+           << transaction.transaction.date << "          "
            << transaction.transaction.description;
   }
   stream << '\n' << "----";
