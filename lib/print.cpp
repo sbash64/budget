@@ -17,13 +17,16 @@ static auto formatWithoutDollarSign(USD usd) -> std::string {
   return stream.str();
 }
 
-static auto format_(USD usd) -> std::string {
-  std::stringstream stream;
+static auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
   stream << '$' << usd;
-  return stream.str();
+  return stream;
 }
 
-auto format(USD usd) -> std::string { return format_(usd); }
+auto format(USD usd) -> std::string {
+  std::stringstream stream;
+  putWithDollarSign(stream, usd);
+  return stream.str();
+}
 
 constexpr auto to_integral(Month e) ->
     typename std::underlying_type<Month>::type {
@@ -63,20 +66,23 @@ void StreamPrinter::showAccountSummary(
     const std::vector<PrintableTransaction> &transactions) {
   stream << "----" << '\n';
   stream << name << '\n';
-  stream << format_(balance) << '\n';
+  putWithDollarSign(stream, balance) << '\n';
   stream << '\n';
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
     const auto formattedAmount{
         formatWithoutDollarSign(transaction.transaction.amount)};
     stream << '\n';
-    auto extraSpaces{0};
-    if (transaction.type == Transaction::Type::credit)
-      extraSpaces = 12;
-    stream << std::string(extraSpaces, ' ');
-    stream << formattedAmount;
-    stream << std::string(25 - formattedAmount.length() - extraSpaces, ' ')
-           << transaction.transaction.date << "          "
+    if (transaction.type == Transaction::Type::credit) {
+      stream << std::string(12, ' ');
+      stream << std::setw(13) << std::setfill(' ') << std::left;
+      stream << formattedAmount << std::right;
+      // stream << std::string(13 - formattedAmount.length(), ' ');
+    } else {
+      stream << formattedAmount;
+      stream << std::string(25 - formattedAmount.length(), ' ');
+    }
+    stream << transaction.transaction.date << "          "
            << transaction.transaction.description;
   }
   stream << '\n' << "----";
