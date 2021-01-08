@@ -41,7 +41,7 @@ void InMemoryAccount::show(View &printer) {
                              dateSortedPrintableTransactions(credits, debits));
 }
 
-void InMemoryAccount::save(PersistentMemory &persistentMemory) {
+void InMemoryAccount::save(OutputPersistentMemory &persistentMemory) {
   persistentMemory.saveAccount(name, credits, debits);
 }
 
@@ -52,7 +52,7 @@ auto InMemoryAccount::Factory::make(std::string_view name)
   return std::make_shared<InMemoryAccount>(std::string{name});
 }
 
-void InMemoryAccount::load(PersistentMemory &persistentMemory) {
+void InMemoryAccount::load(InputPersistentMemory &persistentMemory) {
   persistentMemory.loadAccount(credits, debits);
 }
 } // namespace sbash64::budget

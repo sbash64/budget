@@ -6,7 +6,8 @@
 #include <ostream>
 
 namespace sbash64::budget {
-class PersistentStreams : public PersistentMemory {
+class PersistentStreams : public InputPersistentMemory,
+                          public OutputPersistentMemory {
 public:
   explicit PersistentStreams(std::istream &, std::ostream &);
   void save(Account &primary,

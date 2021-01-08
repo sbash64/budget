@@ -89,8 +89,8 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
 }
 
 class View;
-
-class PersistentMemory;
+class InputPersistentMemory;
+class OutputPersistentMemory;
 
 class Account {
 public:
@@ -98,8 +98,8 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
-  virtual void save(PersistentMemory &) = 0;
-  virtual void load(PersistentMemory &) = 0;
+  virtual void save(OutputPersistentMemory &) = 0;
+  virtual void load(InputPersistentMemory &) = 0;
 
   class Factory {
   public:
@@ -118,14 +118,19 @@ public:
                      const std::vector<PrintableTransaction> &transactions) = 0;
 };
 
-class PersistentMemory {
+class OutputPersistentMemory {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(PersistentMemory);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(OutputPersistentMemory);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
   virtual void saveAccount(std::string_view name,
                            const std::vector<Transaction> &credits,
                            const std::vector<Transaction> &debits) = 0;
+};
+
+class InputPersistentMemory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(InputPersistentMemory);
   virtual void loadAccount(std::vector<Transaction> &credits,
                            std::vector<Transaction> &debits) = 0;
   virtual void load(Account::Factory &factory,
@@ -141,8 +146,8 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void show(View &) = 0;
-  virtual void save(PersistentMemory &) = 0;
-  virtual void load(PersistentMemory &) = 0;
+  virtual void save(OutputPersistentMemory &) = 0;
+  virtual void load(InputPersistentMemory &) = 0;
 };
 } // namespace sbash64::budget
 

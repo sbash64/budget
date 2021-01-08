@@ -8,7 +8,8 @@
 #include <utility>
 
 namespace sbash64::budget {
-class PersistentMemoryStub : public PersistentMemory {
+class PersistentMemoryStub : public InputPersistentMemory,
+                             public OutputPersistentMemory {
 public:
   auto primaryAccount() -> const Account * { return primaryAccount_; }
 

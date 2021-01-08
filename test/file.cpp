@@ -14,19 +14,19 @@ public:
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override {}
-  void load(PersistentMemory &) override {}
+  void load(InputPersistentMemory &) override {}
 
-  void save(PersistentMemory &p) override {
+  void save(OutputPersistentMemory &p) override {
     persistentMemory_ = &p;
     stream << name;
   }
 
-  auto persistentMemory() -> const PersistentMemory * {
+  auto persistentMemory() -> const OutputPersistentMemory * {
     return persistentMemory_;
   }
 
 private:
-  const PersistentMemory *persistentMemory_{};
+  const OutputPersistentMemory *persistentMemory_{};
   std::ostream &stream;
   std::string name;
 };
@@ -38,20 +38,20 @@ public:
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override {}
-  void save(PersistentMemory &) override {}
-  void load(PersistentMemory &p) override {
+  void save(OutputPersistentMemory &) override {}
+  void load(InputPersistentMemory &p) override {
     persistentMemory_ = &p;
     getline(stream, lineRead_);
   }
 
-  auto persistentMemory() -> const PersistentMemory * {
+  auto persistentMemory() -> const InputPersistentMemory * {
     return persistentMemory_;
   }
 
   auto lineRead() -> std::string { return lineRead_; }
 
 private:
-  const PersistentMemory *persistentMemory_{};
+  const InputPersistentMemory *persistentMemory_{};
   std::istream &stream;
   std::string lineRead_;
 };
@@ -73,13 +73,13 @@ private:
 
 static void assertSaved(testcpplite::TestResult &result,
                         SaveAccountStub &account,
-                        PersistentMemory &persistentMemory) {
+                        OutputPersistentMemory &persistentMemory) {
   assertEqual(result, &persistentMemory, account.persistentMemory());
 }
 
 static void assertLoaded(testcpplite::TestResult &result,
                          LoadAccountStub &account,
-                         PersistentMemory &persistentMemory) {
+                         InputPersistentMemory &persistentMemory) {
   assertEqual(result, &persistentMemory, account.persistentMemory());
 }
 

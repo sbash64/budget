@@ -12,8 +12,8 @@ public:
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override { stream << name; }
-  void save(PersistentMemory &) override {}
-  void load(PersistentMemory &) override {}
+  void save(OutputPersistentMemory &) override {}
+  void load(InputPersistentMemory &) override {}
 
 private:
   std::stringstream &stream;

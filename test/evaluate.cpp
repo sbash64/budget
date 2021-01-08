@@ -39,9 +39,9 @@ public:
 
   auto view() -> const View * { return printer_; }
 
-  void save(PersistentMemory &) override {}
+  void save(OutputPersistentMemory &) override {}
 
-  void load(PersistentMemory &) override {}
+  void load(InputPersistentMemory &) override {}
 
   auto transferredAmount() -> USD { return transferredAmount_; }
 

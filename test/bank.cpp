@@ -22,9 +22,9 @@ public:
 
   void show(View &) override {}
 
-  void save(PersistentMemory &) override {}
+  void save(OutputPersistentMemory &) override {}
 
-  void load(PersistentMemory &) override {}
+  void load(InputPersistentMemory &) override {}
 
 private:
   Transaction creditedTransaction_;
