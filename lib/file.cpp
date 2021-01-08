@@ -5,14 +5,14 @@
 #include <string_view>
 
 namespace sbash64::budget {
-void PersistentStreams::save(Account &primary,
-                             const std::vector<Account *> &secondaries) {
+void OutputStream::save(Account &primary,
+                        const std::vector<Account *> &secondaries) {
   primary.save(*this);
-  output << '\n';
+  stream << '\n';
   for (auto *account : secondaries) {
-    output << '\n';
+    stream << '\n';
     account->save(*this);
-    output << '\n';
+    stream << '\n';
   }
 }
 
@@ -37,24 +37,24 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void PersistentStreams::saveAccount(std::string_view name,
-                                    const std::vector<Transaction> &credits,
-                                    const std::vector<Transaction> &debits) {
-  output << name << '\n';
-  output << "credits";
+void OutputStream::saveAccount(std::string_view name,
+                               const std::vector<Transaction> &credits,
+                               const std::vector<Transaction> &debits) {
+  stream << name << '\n';
+  stream << "credits";
   for (const auto &credit : credits) {
-    output << '\n';
-    output << credit.amount << ' ';
-    output << credit.description << ' ';
-    output << credit.date;
+    stream << '\n';
+    stream << credit.amount << ' ';
+    stream << credit.description << ' ';
+    stream << credit.date;
   }
-  output << '\n';
-  output << "debits";
+  stream << '\n';
+  stream << "debits";
   for (const auto &debit : debits) {
-    output << '\n';
-    output << debit.amount << ' ';
-    output << debit.description << ' ';
-    output << debit.date;
+    stream << '\n';
+    stream << debit.amount << ' ';
+    stream << debit.description << ' ';
+    stream << debit.date;
   }
 }
 
@@ -95,34 +95,35 @@ static void loadTransaction(std::istream &input, std::string &line,
   getline(input, line);
 }
 
-void PersistentStreams::loadAccount(std::vector<Transaction> &credits,
-                                    std::vector<Transaction> &debits) {
+void InputStream::loadAccount(std::vector<Transaction> &credits,
+                              std::vector<Transaction> &debits) {
   std::string line;
-  getline(input, line);
-  getline(input, line);
+  getline(stream, line);
+  getline(stream, line);
   while (line != "debits") {
-    loadTransaction(input, line, credits);
+    loadTransaction(stream, line, credits);
   }
-  getline(input, line);
+  getline(stream, line);
   while (!line.empty()) {
-    loadTransaction(input, line, debits);
+    loadTransaction(stream, line, debits);
   }
 }
 
-void PersistentStreams::load(
+void InputStream::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
   std::string line;
-  getline(input, line);
+  getline(stream, line);
   primary = factory.make(line);
   primary->load(*this);
-  while (getline(input, line)) {
+  while (getline(stream, line)) {
     auto next{factory.make(line)};
     next->load(*this);
     secondaries[line] = std::move(next);
   }
 }
 
-PersistentStreams::PersistentStreams(std::istream &input, std::ostream &stream)
-    : input{input}, output{stream} {}
+InputStream::InputStream(std::istream &stream) : stream{stream} {}
+
+OutputStream::OutputStream(std::ostream &stream) : stream{stream} {}
 } // namespace sbash64::budget

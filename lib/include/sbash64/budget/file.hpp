@@ -6,15 +6,22 @@
 #include <ostream>
 
 namespace sbash64::budget {
-class PersistentStreams : public InputPersistentMemory,
-                          public OutputPersistentMemory {
+class OutputStream : public OutputPersistentMemory {
 public:
-  explicit PersistentStreams(std::istream &, std::ostream &);
+  explicit OutputStream(std::ostream &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void saveAccount(std::string_view name,
                    const std::vector<Transaction> &credits,
                    const std::vector<Transaction> &debits) override;
+
+private:
+  std::ostream &stream;
+};
+
+class InputStream : public InputPersistentMemory {
+public:
+  explicit InputStream(std::istream &);
   void loadAccount(std::vector<Transaction> &credits,
                    std::vector<Transaction> &debits) override;
   void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
@@ -22,8 +29,7 @@ public:
                 &secondaries) override;
 
 private:
-  std::istream &input;
-  std::ostream &output;
+  std::istream &stream;
 };
 } // namespace sbash64::budget
 

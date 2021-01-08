@@ -14,9 +14,10 @@ static void repl() {
   StreamView printer{std::cout};
   std::ofstream outputFileStream;
   std::ifstream inputFileStream{"budget.txt"};
-  PersistentStreams file{inputFileStream, outputFileStream};
+  OutputStream outputStream{outputFileStream};
+  InputStream inputStream{inputFileStream};
   if (inputFileStream.is_open())
-    bank.load(file);
+    bank.load(inputStream);
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
@@ -24,7 +25,7 @@ static void repl() {
       break;
     if (line == "save") {
       outputFileStream.open("budget.txt");
-      bank.save(file);
+      bank.save(outputStream);
       outputFileStream.close();
     } else
       sbash64::budget::command(controller, bank, printer, line);
