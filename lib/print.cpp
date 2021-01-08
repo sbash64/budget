@@ -6,9 +6,9 @@
 
 namespace sbash64::budget {
 static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
-  stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
-         << usd.cents % 100 << std::setfill(' ');
-  return stream;
+  const auto fill{stream.fill()};
+  return stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
+                << usd.cents % 100 << std::setfill(fill);
 }
 
 static auto formatWithoutDollarSign(USD usd) -> std::string {
@@ -41,12 +41,9 @@ static auto operator<<(std::ostream &stream, const Month &month)
 
 static auto operator<<(std::ostream &stream, const Date &date)
     -> std::ostream & {
-  stream << std::setw(2) << std::setfill('0') << date.month;
-  stream << '/';
-  stream << date.day;
-  stream << '/';
-  stream << date.year << std::setfill(' ');
-  return stream;
+  const auto fill{stream.fill()};
+  return stream << std::setw(2) << std::setfill('0') << date.month << '/'
+                << date.day << '/' << date.year << std::setfill(fill);
 }
 
 StreamPrinter::StreamPrinter(std::ostream &stream) : stream{stream} {}
