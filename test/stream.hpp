@@ -1,5 +1,5 @@
-#ifndef SBASH64_BUDGET_TEST_FILE_HPP_
-#define SBASH64_BUDGET_TEST_FILE_HPP_
+#ifndef SBASH64_BUDGET_TEST_STREAM_HPP_
+#define SBASH64_BUDGET_TEST_STREAM_HPP_
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 

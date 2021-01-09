@@ -1,5 +1,5 @@
-#ifndef SBASH64_BUDGET_FILE_HPP_
-#define SBASH64_BUDGET_FILE_HPP_
+#ifndef SBASH64_BUDGET_STREAM_HPP_
+#define SBASH64_BUDGET_STREAM_HPP_
 
 #include "budget.hpp"
 #include <istream>
