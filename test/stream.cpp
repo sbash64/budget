@@ -8,8 +8,10 @@ namespace sbash64::budget::file {
 namespace {
 class SaveAccountStub : public Account {
 public:
-  SaveAccountStub(std::ostream &stream, std::string name)
-      : stream{stream}, name{std::move(name)} {}
+  SaveAccountStub(std::string name, std::vector<Transaction> credits,
+                  std::vector<Transaction> debits)
+      : name{std::move(name)}, credits{std::move(credits)}, debits{std::move(
+                                                                debits)} {}
 
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
@@ -17,8 +19,7 @@ public:
   void load(InputPersistentMemory &) override {}
 
   void save(OutputPersistentMemory &p) override {
-    persistentMemory_ = &p;
-    stream << name;
+    p.saveAccount(name, credits, debits);
   }
 
   auto persistentMemory() -> const OutputPersistentMemory * {
@@ -27,7 +28,8 @@ public:
 
 private:
   const OutputPersistentMemory *persistentMemory_{};
-  std::ostream &stream;
+  std::vector<Transaction> credits;
+  std::vector<Transaction> debits;
   std::string name;
 };
 
@@ -86,23 +88,91 @@ static void assertLoaded(testcpplite::TestResult &result,
 void savesAccounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   OutputStream file{stream};
-  SaveAccountStub jeff{stream, "jeff"};
-  SaveAccountStub steve{stream, "steve"};
-  SaveAccountStub sue{stream, "sue"};
-  SaveAccountStub allen{stream, "allen"};
+  SaveAccountStub jeff{
+      "jeff",
+      {Transaction{5000_cents, "transfer from master",
+                   Date{2021, Month::January, 10}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::March, 12}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::February, 8}}},
+      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+  SaveAccountStub steve{
+      "steve",
+      {Transaction{5000_cents, "transfer from master",
+                   Date{2021, Month::January, 10}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::March, 12}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::February, 8}}},
+      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+  SaveAccountStub sue{
+      "sue",
+      {Transaction{5000_cents, "transfer from master",
+                   Date{2021, Month::January, 10}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::March, 12}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::February, 8}}},
+      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+  SaveAccountStub allen{
+      "allen",
+      {Transaction{5000_cents, "transfer from master",
+                   Date{2021, Month::January, 10}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::March, 12}},
+       Transaction{2500_cents, "transfer from master",
+                   Date{2021, Month::February, 8}}},
+      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
   file.save(jeff, {&steve, &sue, &allen});
-  assertSaved(result, jeff, file);
-  assertSaved(result, steve, file);
-  assertSaved(result, sue, file);
-  assertSaved(result, allen, file);
   assertEqual(result, R"(
 jeff
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
 
 steve
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
 
 sue
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
 
 allen
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
 )",
               '\n' + stream.str());
 }
