@@ -50,8 +50,7 @@ static auto runAllTests() -> int {
        {print::accounts, "print accounts"},
        {print::account, "print account"},
        {file::savesAccounts, "file saves accounts"},
-       {file::loadsAccounts, "file loads accounts"},
-       {file::loadsAccount, "file loads account"}},
+       {file::loadsAccounts, "file loads accounts"}},
       std::cout);
 }
 } // namespace sbash64::budget

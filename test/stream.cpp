@@ -23,15 +23,15 @@ public:
   }
 
 private:
+  std::string name;
   std::vector<Transaction> credits;
   std::vector<Transaction> debits;
-  std::string name;
 };
 
 class LoadAccountStub : public Account {
 public:
-  explicit LoadAccountStub(std::vector<Transaction> &credits,
-                           std::vector<Transaction> &debits)
+  LoadAccountStub(std::vector<Transaction> &credits,
+                  std::vector<Transaction> &debits)
       : credits{credits}, debits{debits} {}
 
   void credit(const Transaction &) override {}
@@ -54,7 +54,7 @@ public:
   }
 
   auto make(std::string_view s) -> std::shared_ptr<Account> override {
-    return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
+    return accounts.at(std::string{s});
   }
 
 private:
@@ -160,40 +160,6 @@ static void assertEqual(testcpplite::TestResult &result,
   assertEqual(result, expected.size(), actual.size());
   for (std::vector<Transaction>::size_type i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
-}
-
-void loadsAccount(testcpplite::TestResult &result) {
-  std::stringstream stream{
-      R"(credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
-
-next)"};
-  InputStream file{stream};
-  std::vector<Transaction> credits;
-  std::vector<Transaction> debits;
-  file.loadAccount(credits, debits);
-  assertEqual(result,
-              {Transaction{5000_cents, "transfer from master",
-                           Date{2021, Month::January, 10}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::March, 12}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::February, 8}}},
-              credits);
-  assertEqual(result,
-              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
-              debits);
-  std::string next;
-  getline(stream, next);
-  assertEqual(result, "next", next);
 }
 
 void loadsAccounts(testcpplite::TestResult &result) {
