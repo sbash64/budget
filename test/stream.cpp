@@ -22,12 +22,7 @@ public:
     p.saveAccount(name, credits, debits);
   }
 
-  auto persistentMemory() -> const OutputPersistentMemory * {
-    return persistentMemory_;
-  }
-
 private:
-  const OutputPersistentMemory *persistentMemory_{};
   std::vector<Transaction> credits;
   std::vector<Transaction> debits;
   std::string name;
@@ -35,27 +30,21 @@ private:
 
 class LoadAccountStub : public Account {
 public:
-  explicit LoadAccountStub(std::istream &stream) : stream{stream} {}
+  explicit LoadAccountStub(std::vector<Transaction> &credits,
+                           std::vector<Transaction> &debits)
+      : credits{credits}, debits{debits} {}
 
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void show(View &) override {}
   void save(OutputPersistentMemory &) override {}
   void load(InputPersistentMemory &p) override {
-    persistentMemory_ = &p;
-    getline(stream, lineRead_);
+    p.loadAccount(credits, debits);
   }
-
-  auto persistentMemory() -> const InputPersistentMemory * {
-    return persistentMemory_;
-  }
-
-  auto lineRead() -> std::string { return lineRead_; }
 
 private:
-  const InputPersistentMemory *persistentMemory_{};
-  std::istream &stream;
-  std::string lineRead_;
+  std::vector<Transaction> &credits;
+  std::vector<Transaction> &debits;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -72,18 +61,6 @@ private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
 };
 } // namespace
-
-static void assertSaved(testcpplite::TestResult &result,
-                        SaveAccountStub &account,
-                        OutputPersistentMemory &persistentMemory) {
-  assertEqual(result, &persistentMemory, account.persistentMemory());
-}
-
-static void assertLoaded(testcpplite::TestResult &result,
-                         LoadAccountStub &account,
-                         InputPersistentMemory &persistentMemory) {
-  assertEqual(result, &persistentMemory, account.persistentMemory());
-}
 
 void savesAccounts(testcpplite::TestResult &result) {
   std::stringstream stream;
@@ -222,18 +199,60 @@ next)"};
 void loadsAccounts(testcpplite::TestResult &result) {
   std::stringstream input{
       R"(jeff
-this is for jeff
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
+
 steve
-this one's for steve
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
+
 sue
-and of course sue
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
+
 allen
-last but not least is allen)"};
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 3/12/2021
+25 transfer from master 2/8/2021
+debits
+27.34 hyvee 1/12/2021
+12.56 walmart 6/15/2021
+3.24 hyvee 2/8/2021
+)"};
   InputStream file{input};
-  const auto jeff{std::make_shared<LoadAccountStub>(input)};
-  const auto steve{std::make_shared<LoadAccountStub>(input)};
-  const auto sue{std::make_shared<LoadAccountStub>(input)};
-  const auto allen{std::make_shared<LoadAccountStub>(input)};
+  std::vector<Transaction> creditsJeff;
+  std::vector<Transaction> debitsJeff;
+  std::vector<Transaction> creditsSteve;
+  std::vector<Transaction> debitsSteve;
+  std::vector<Transaction> creditsSue;
+  std::vector<Transaction> debitsSue;
+  std::vector<Transaction> creditsAllen;
+  std::vector<Transaction> debitsAllen;
+  const auto jeff{std::make_shared<LoadAccountStub>(creditsJeff, debitsJeff)};
+  const auto steve{
+      std::make_shared<LoadAccountStub>(creditsSteve, debitsSteve)};
+  const auto sue{std::make_shared<LoadAccountStub>(creditsSue, debitsSue)};
+  const auto allen{
+      std::make_shared<LoadAccountStub>(creditsAllen, debitsAllen)};
   AccountFactoryStub factory;
   factory.add(jeff, "jeff");
   factory.add(steve, "steve");
@@ -242,17 +261,61 @@ last but not least is allen)"};
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::shared_ptr<Account> primary;
   file.load(factory, primary, accounts);
-  assertLoaded(result, *jeff, file);
-  assertLoaded(result, *steve, file);
-  assertLoaded(result, *sue, file);
-  assertLoaded(result, *allen, file);
   assertEqual(result, jeff.get(), primary.get());
   assertEqual(result, steve.get(), accounts.at("steve").get());
   assertEqual(result, sue.get(), accounts.at("sue").get());
   assertEqual(result, allen.get(), accounts.at("allen").get());
-  assertEqual(result, "this is for jeff", jeff->lineRead());
-  assertEqual(result, "this one's for steve", steve->lineRead());
-  assertEqual(result, "and of course sue", sue->lineRead());
-  assertEqual(result, "last but not least is allen", allen->lineRead());
+  assertEqual(result,
+              {Transaction{5000_cents, "transfer from master",
+                           Date{2021, Month::January, 10}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::March, 12}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::February, 8}}},
+              creditsJeff);
+  assertEqual(result,
+              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+              debitsJeff);
+  assertEqual(result,
+              {Transaction{5000_cents, "transfer from master",
+                           Date{2021, Month::January, 10}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::March, 12}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::February, 8}}},
+              creditsSteve);
+  assertEqual(result,
+              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+              debitsSteve);
+  assertEqual(result,
+              {Transaction{5000_cents, "transfer from master",
+                           Date{2021, Month::January, 10}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::March, 12}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::February, 8}}},
+              creditsSue);
+  assertEqual(result,
+              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+              debitsSue);
+  assertEqual(result,
+              {Transaction{5000_cents, "transfer from master",
+                           Date{2021, Month::January, 10}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::March, 12}},
+               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::February, 8}}},
+              creditsAllen);
+  assertEqual(result,
+              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
+               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+              debitsAllen);
 }
 } // namespace sbash64::budget::file
