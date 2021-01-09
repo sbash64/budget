@@ -177,33 +177,6 @@ debits
               '\n' + stream.str());
 }
 
-void savesAccount(testcpplite::TestResult &result) {
-  std::stringstream stream;
-  OutputStream file{stream};
-  file.saveAccount(
-      "Groceries",
-      {Transaction{5000_cents, "transfer from master",
-                   Date{2021, Month::January, 10}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::March, 12}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::February, 8}}},
-      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}});
-  assertEqual(result, R"(
-Groceries
-credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021)",
-              '\n' + stream.str());
-}
-
 static void assertEqual(testcpplite::TestResult &result,
                         const std::vector<Transaction> &expected,
                         const std::vector<Transaction> &actual) {
