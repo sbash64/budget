@@ -27,6 +27,10 @@ static void repl() {
       outputFileStream.open("budget.txt");
       bank.save(outputStream);
       outputFileStream.close();
+    } else if (line == "load") {
+      inputFileStream.open("budget.txt");
+      bank.load(inputStream);
+      inputFileStream.close();
     } else
       sbash64::budget::command(controller, bank, printer, line);
   }
