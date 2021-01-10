@@ -3,9 +3,21 @@
 #include <sbash64/budget/stream.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <sstream>
+#include <utility>
 
 namespace sbash64::budget::file {
 namespace {
+class IoStreamFactoryStub : public IoStreamFactory {
+public:
+  explicit IoStreamFactoryStub(std::shared_ptr<std::iostream> stream)
+      : stream{std::move(stream)} {}
+
+  auto make() -> std::shared_ptr<std::iostream> override { return stream; }
+
+private:
+  std::shared_ptr<std::iostream> stream;
+};
+
 class SaveAccountStub : public Account {
 public:
   SaveAccountStub(std::string name, std::vector<Transaction> credits,
@@ -63,8 +75,9 @@ private:
 } // namespace
 
 void savesAccounts(testcpplite::TestResult &result) {
-  std::stringstream stream;
-  OutputStream file{stream};
+  auto stream{std::make_shared<std::stringstream>()};
+  IoStreamFactoryStub factory{stream};
+  OutputStream file{factory};
   SaveAccountStub jeff{
       "jeff",
       {Transaction{5000_cents, "transfer from master",
@@ -151,7 +164,7 @@ debits
 12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
 )",
-              '\n' + stream.str());
+              '\n' + stream->str());
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -163,7 +176,7 @@ static void assertEqual(testcpplite::TestResult &result,
 }
 
 void loadsAccounts(testcpplite::TestResult &result) {
-  std::stringstream input{
+  auto input{std::make_shared<std::stringstream>(
       R"(jeff
 credits
 50 transfer from master 1/10/2021
@@ -203,8 +216,9 @@ debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
-)"};
-  InputStream file{input};
+)")};
+  IoStreamFactoryStub factory{input};
+  InputStream file{factory};
   std::vector<Transaction> creditsJeff;
   std::vector<Transaction> debitsJeff;
   std::vector<Transaction> creditsSteve;
@@ -219,14 +233,14 @@ debits
   const auto sue{std::make_shared<LoadAccountStub>(creditsSue, debitsSue)};
   const auto allen{
       std::make_shared<LoadAccountStub>(creditsAllen, debitsAllen)};
-  AccountFactoryStub factory;
-  factory.add(jeff, "jeff");
-  factory.add(steve, "steve");
-  factory.add(sue, "sue");
-  factory.add(allen, "allen");
+  AccountFactoryStub accountFactory;
+  accountFactory.add(jeff, "jeff");
+  accountFactory.add(steve, "steve");
+  accountFactory.add(sue, "sue");
+  accountFactory.add(allen, "allen");
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::shared_ptr<Account> primary;
-  file.load(factory, primary, accounts);
+  file.load(accountFactory, primary, accounts);
   assertEqual(result, jeff.get(), primary.get());
   assertEqual(result, steve.get(), accounts.at("steve").get());
   assertEqual(result, sue.get(), accounts.at("sue").get());

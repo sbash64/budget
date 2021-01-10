@@ -7,12 +7,14 @@
 namespace sbash64::budget {
 void OutputStream::save(Account &primary,
                         const std::vector<Account *> &secondaries) {
+  const auto streamGuard{ioStreamFactory.make()};
+  stream = streamGuard.get();
   primary.save(*this);
-  stream << '\n';
+  *stream << '\n';
   for (auto *account : secondaries) {
-    stream << '\n';
+    *stream << '\n';
     account->save(*this);
-    stream << '\n';
+    *stream << '\n';
   }
 }
 
@@ -40,21 +42,21 @@ static auto operator<<(std::ostream &stream, const Date &date)
 void OutputStream::saveAccount(std::string_view name,
                                const std::vector<Transaction> &credits,
                                const std::vector<Transaction> &debits) {
-  stream << name << '\n';
-  stream << "credits";
+  *stream << name << '\n';
+  *stream << "credits";
   for (const auto &credit : credits) {
-    stream << '\n';
-    stream << credit.amount << ' ';
-    stream << credit.description << ' ';
-    stream << credit.date;
+    *stream << '\n';
+    *stream << credit.amount << ' ';
+    *stream << credit.description << ' ';
+    *stream << credit.date;
   }
-  stream << '\n';
-  stream << "debits";
+  *stream << '\n';
+  *stream << "debits";
   for (const auto &debit : debits) {
-    stream << '\n';
-    stream << debit.amount << ' ';
-    stream << debit.description << ' ';
-    stream << debit.date;
+    *stream << '\n';
+    *stream << debit.amount << ' ';
+    *stream << debit.description << ' ';
+    *stream << debit.date;
   }
 }
 
@@ -98,32 +100,36 @@ static void loadTransaction(std::istream &input, std::string &line,
 void InputStream::loadAccount(std::vector<Transaction> &credits,
                               std::vector<Transaction> &debits) {
   std::string line;
-  getline(stream, line);
-  getline(stream, line);
+  getline(*stream, line);
+  getline(*stream, line);
   while (line != "debits") {
-    loadTransaction(stream, line, credits);
+    loadTransaction(*stream, line, credits);
   }
-  getline(stream, line);
+  getline(*stream, line);
   while (!line.empty()) {
-    loadTransaction(stream, line, debits);
+    loadTransaction(*stream, line, debits);
   }
 }
 
 void InputStream::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
+  const auto streamGuard{ioStreamFactory.make()};
+  stream = streamGuard.get();
   std::string line;
-  getline(stream, line);
+  getline(*stream, line);
   primary = factory.make(line);
   primary->load(*this);
-  while (getline(stream, line)) {
+  while (getline(*stream, line)) {
     auto next{factory.make(line)};
     next->load(*this);
     secondaries[line] = std::move(next);
   }
 }
 
-InputStream::InputStream(std::istream &stream) : stream{stream} {}
+InputStream::InputStream(IoStreamFactory &ioStreamFactory)
+    : ioStreamFactory{ioStreamFactory} {}
 
-OutputStream::OutputStream(std::ostream &stream) : stream{stream} {}
+OutputStream::OutputStream(IoStreamFactory &ioStreamFactory)
+    : ioStreamFactory{ioStreamFactory} {}
 } // namespace sbash64::budget
