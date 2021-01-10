@@ -7,7 +7,7 @@
 namespace sbash64::budget {
 void OutputStream::save(Account &primary,
                         const std::vector<Account *> &secondaries) {
-  const auto streamGuard{ioStreamFactory.make()};
+  const auto streamGuard{ioStreamFactory.makeOutput()};
   stream = streamGuard.get();
   primary.save(*this);
   *stream << '\n';
@@ -114,7 +114,7 @@ void InputStream::loadAccount(std::vector<Transaction> &credits,
 void InputStream::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
-  const auto streamGuard{ioStreamFactory.make()};
+  const auto streamGuard{ioStreamFactory.makeInput()};
   stream = streamGuard.get();
   std::string line;
   getline(*stream, line);

@@ -12,7 +12,9 @@ public:
   explicit IoStreamFactoryStub(std::shared_ptr<std::iostream> stream)
       : stream{std::move(stream)} {}
 
-  auto make() -> std::shared_ptr<std::iostream> override { return stream; }
+  auto makeInput() -> std::shared_ptr<std::istream> override { return stream; }
+
+  auto makeOutput() -> std::shared_ptr<std::ostream> override { return stream; }
 
 private:
   std::shared_ptr<std::iostream> stream;

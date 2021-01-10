@@ -7,30 +7,34 @@
 #include <sbash64/budget/stream.hpp>
 
 namespace sbash64::budget {
+class FileStreamFactory : public IoStreamFactory {
+public:
+  auto makeInput() -> std::shared_ptr<std::istream> override {
+    return std::make_shared<std::ifstream>("budget.txt");
+  }
+
+  auto makeOutput() -> std::shared_ptr<std::ostream> override {
+    return std::make_shared<std::ofstream>("budget.txt");
+  }
+};
+
 static void repl() {
   Controller controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
   StreamView printer{std::cout};
-  std::ofstream outputFileStream;
-  std::ifstream inputFileStream{"budget.txt"};
-  OutputStream outputStream{outputFileStream};
-  InputStream inputStream{inputFileStream};
-  if (inputFileStream.is_open())
-    bank.load(inputStream);
+  FileStreamFactory streamFactory;
+  OutputStream outputStream{streamFactory};
+  InputStream inputStream{streamFactory};
   for (;;) {
     std::string line;
     std::getline(std::cin, line);
     if (line == "exit")
       break;
     if (line == "save") {
-      outputFileStream.open("budget.txt");
       bank.save(outputStream);
-      outputFileStream.close();
     } else if (line == "load") {
-      inputFileStream.open("budget.txt");
       bank.load(inputStream);
-      inputFileStream.close();
     } else
       sbash64::budget::command(controller, bank, printer, line);
   }

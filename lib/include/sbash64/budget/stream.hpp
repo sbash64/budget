@@ -2,14 +2,16 @@
 #define SBASH64_BUDGET_STREAM_HPP_
 
 #include "budget.hpp"
-#include <iostream>
+#include <istream>
 #include <memory>
+#include <ostream>
 
 namespace sbash64::budget {
 class IoStreamFactory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(IoStreamFactory);
-  virtual auto make() -> std::shared_ptr<std::iostream> = 0;
+  virtual auto makeInput() -> std::shared_ptr<std::istream> = 0;
+  virtual auto makeOutput() -> std::shared_ptr<std::ostream> = 0;
 };
 
 class OutputStream : public OutputPersistentMemory {
