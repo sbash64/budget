@@ -32,6 +32,8 @@ static auto runAllTests() -> int {
         "bank credits master account when credited"},
        {bank::debitsNonexistantAccount, "bank debits nonexistant account"},
        {bank::debitsExistingAccount, "bank debits existing account"},
+       {bank::removesTransactionsFromAccounts,
+        "bank removes transactions from accounts"},
        {bank::transferDebitsMasterAndCreditsOther,
         "bank transfer debits master and credits other"},
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},

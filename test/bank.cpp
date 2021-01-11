@@ -20,6 +20,10 @@ public:
 
   void debit(const Transaction &t) override { debitedTransaction_ = t; }
 
+  auto removedDebit() -> Transaction { return removedDebit_; }
+
+  void removeDebit(const Transaction &t) { removedDebit_ = t; }
+
   void show(View &) override {}
 
   void save(OutputPersistentMemory &) override {}
@@ -29,6 +33,7 @@ public:
 private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
+  Transaction removedDebit_;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -211,6 +216,20 @@ void loadLoadsAccounts(testcpplite::TestResult &result) {
     assertEqual(
         result, leopard.get(),
         persistentMemory.secondaryAccountsToLoadInto()->at("leopard").get());
+  });
+}
+
+void removesTransactionsFromAccounts(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                            Date{2013, Month::April, 3}});
+    assertEqual(result,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
+                account->removedDebit());
   });
 }
 } // namespace sbash64::budget::bank

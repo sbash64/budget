@@ -64,4 +64,8 @@ void Bank::save(OutputPersistentMemory &persistentMemory) {
 void Bank::load(InputPersistentMemory &persistentMemory) {
   persistentMemory.load(factory, masterAccount, accounts);
 }
+
+void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
+  accounts.at(std::string{accountName})->removeDebit(t);
+}
 } // namespace sbash64::budget
