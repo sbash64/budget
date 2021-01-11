@@ -12,8 +12,7 @@ constexpr auto to_integral(Month e) ->
 }
 
 void assertEqual(testcpplite::TestResult &result, USD expected, USD actual) {
-  assertEqual(result, gsl::narrow<unsigned long long>(expected.cents),
-              gsl::narrow<unsigned long long>(actual.cents));
+  assertEqual(result, expected.cents, actual.cents);
 }
 
 void assertEqual(testcpplite::TestResult &result, const Date &expected,

@@ -6,6 +6,8 @@
 namespace sbash64::budget::account {
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
+void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
+    testcpplite::TestResult &);
 void saveSavesAllTransactions(testcpplite::TestResult &);
 void loadLoadsAllTransactions(testcpplite::TestResult &);
 } // namespace sbash64::budget::account

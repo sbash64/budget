@@ -55,4 +55,15 @@ auto InMemoryAccount::Factory::make(std::string_view name)
 void InMemoryAccount::load(InputPersistentMemory &persistentMemory) {
   persistentMemory.loadAccount(credits, debits);
 }
+void InMemoryAccount::removeDebit(const Transaction &t) {
+  const auto it{std::find(debits.begin(), debits.end(), t)};
+  if (it != debits.end())
+    debits.erase(it);
+}
+
+void InMemoryAccount::removeCredit(const Transaction &t) {
+  const auto it{std::find(credits.begin(), credits.end(), t)};
+  if (it != credits.end())
+    credits.erase(it);
+}
 } // namespace sbash64::budget

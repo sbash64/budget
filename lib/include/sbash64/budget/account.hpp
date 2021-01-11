@@ -14,6 +14,8 @@ public:
   void show(View &) override;
   void save(OutputPersistentMemory &) override;
   void load(InputPersistentMemory &) override;
+  void removeCredit(const Transaction &);
+  void removeDebit(const Transaction &);
 
   class Factory : public Account::Factory {
   public:

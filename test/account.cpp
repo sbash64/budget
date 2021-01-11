@@ -1,5 +1,6 @@
 #include "account.hpp"
 #include "persistent-memory-stub.hpp"
+#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <sbash64/budget/account.hpp>
@@ -34,6 +35,15 @@ static void assertContainsDebit(testcpplite::TestResult &result,
                                transaction) != persistentMemory.debits().end());
 }
 
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<PrintableTransaction> &expected,
+                        const std::vector<PrintableTransaction> &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (std::vector<PrintableTransaction>::size_type i{0}; i < expected.size();
+       ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
+}
+
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
@@ -48,17 +58,39 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
   assertEqual(result, 123_cents - 456_cents + 789_cents,
               printer.accountBalance());
   assertEqual(result,
-              printableDebit(Transaction{456_cents, "gorilla",
-                                         Date{2020, Month::January, 20}}),
-              printer.accountTransactions().at(0));
+              {printableDebit(Transaction{456_cents, "gorilla",
+                                          Date{2020, Month::January, 20}}),
+               printableCredit(Transaction{789_cents, "chimpanzee",
+                                           Date{2020, Month::June, 1}}),
+               printableCredit(
+                   Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+              printer.accountTransactions());
+}
+
+void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  account.debit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.credit(
+      Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+  account.debit(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  account.removeDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.removeCredit(
+      Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+  ViewStub printer;
+  account.show(printer);
+  assertEqual(result, "joe", printer.accountName());
+  assertEqual(result, 123_cents - 789_cents, printer.accountBalance());
   assertEqual(result,
-              printableCredit(Transaction{789_cents, "chimpanzee",
+              {printableDebit(Transaction{789_cents, "chimpanzee",
                                           Date{2020, Month::June, 1}}),
-              printer.accountTransactions().at(1));
-  assertEqual(result,
-              printableCredit(
-                  Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
-              printer.accountTransactions().at(2));
+               printableCredit(
+                   Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+              printer.accountTransactions());
 }
 
 void saveSavesAllTransactions(testcpplite::TestResult &result) {

@@ -39,6 +39,9 @@ static auto runAllTests() -> int {
        {bank::loadLoadsAccounts, "bank load loads accounts"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
+       {account::
+            showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance,
+        "account show after removal shows remaining transactions and balance"},
        {account::saveSavesAllTransactions,
         "account save saves all transactions"},
        {account::loadLoadsAllTransactions,
