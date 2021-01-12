@@ -79,4 +79,16 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
 void Bank::removeCredit(const Transaction &t) {
   masterAccount->removeCredit(t);
 }
+
+void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
+  masterAccount->removeDebit(Transaction{amount,
+                                         std::string{transferDescription} +
+                                             " to " + std::string{accountName},
+                                         date});
+  accounts.at(std::string{accountName})
+      ->removeCredit(Transaction{amount,
+                                 std::string{transferDescription} + " from " +
+                                     std::string{masterAccountName},
+                                 date});
+}
 } // namespace sbash64::budget

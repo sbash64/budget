@@ -260,4 +260,23 @@ void removesFromMasterAccountWhenRemovingCredit(
                 masterAccount->removedCredit());
   });
 }
+
+void removeTransferRemovesDebitFromMasterAndCreditFromOther(
+    testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
+    assertEqual(result,
+                Transaction{456_cents, "transfer from master",
+                            Date{1776, Month::July, 4}},
+                account->removedCredit());
+    assertEqual(result,
+                Transaction{456_cents, "transfer to giraffe",
+                            Date{1776, Month::July, 4}},
+                masterAccount->removedDebit());
+  });
+}
 } // namespace sbash64::budget::bank

@@ -41,6 +41,8 @@ static auto runAllTests() -> int {
         "bank removes from master account when removing credit"},
        {bank::transferDebitsMasterAndCreditsOther,
         "bank transfer debits master and credits other"},
+       {bank::removeTransferRemovesDebitFromMasterAndCreditFromOther,
+        "bank remove transfer removes debit from master and credit from other"},
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},
        {bank::saveSavesAccounts, "bank save saves accounts"},
        {bank::loadLoadsAccounts, "bank load loads accounts"},
