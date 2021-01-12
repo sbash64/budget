@@ -24,8 +24,8 @@ static void repl() {
   Bank bank{accountFactory};
   StreamView printer{std::cout};
   FileStreamFactory streamFactory;
-  OutputStream outputStream{streamFactory};
-  InputStream inputStream{streamFactory};
+  WritesSessionToStream outputStream{streamFactory};
+  ReadsSessionFromStream inputStream{streamFactory};
   for (;;) {
     std::string line;
     std::getline(std::cin, line);

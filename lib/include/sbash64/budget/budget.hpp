@@ -89,8 +89,8 @@ inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
 }
 
 class View;
-class InputPersistentMemory;
-class OutputPersistentMemory;
+class SessionDeserialization;
+class SessionSerialization;
 
 class Account {
 public:
@@ -98,8 +98,8 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
-  virtual void save(OutputPersistentMemory &) = 0;
-  virtual void load(InputPersistentMemory &) = 0;
+  virtual void save(SessionSerialization &) = 0;
+  virtual void load(SessionDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
 
@@ -120,9 +120,9 @@ public:
                      const std::vector<PrintableTransaction> &transactions) = 0;
 };
 
-class OutputPersistentMemory {
+class SessionSerialization {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(OutputPersistentMemory);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
   virtual void saveAccount(std::string_view name,
@@ -130,9 +130,9 @@ public:
                            const std::vector<Transaction> &debits) = 0;
 };
 
-class InputPersistentMemory {
+class SessionDeserialization {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(InputPersistentMemory);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
   virtual void loadAccount(std::vector<Transaction> &credits,
                            std::vector<Transaction> &debits) = 0;
   virtual void load(Account::Factory &factory,
@@ -148,8 +148,8 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void show(View &) = 0;
-  virtual void save(OutputPersistentMemory &) = 0;
-  virtual void load(InputPersistentMemory &) = 0;
+  virtual void save(SessionSerialization &) = 0;
+  virtual void load(SessionDeserialization &) = 0;
 };
 } // namespace sbash64::budget
 

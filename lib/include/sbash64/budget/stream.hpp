@@ -14,9 +14,9 @@ public:
   virtual auto makeOutput() -> std::shared_ptr<std::ostream> = 0;
 };
 
-class OutputStream : public OutputPersistentMemory {
+class WritesSessionToStream : public SessionSerialization {
 public:
-  explicit OutputStream(IoStreamFactory &);
+  explicit WritesSessionToStream(IoStreamFactory &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void saveAccount(std::string_view name,
@@ -28,9 +28,9 @@ private:
   std::ostream *stream{};
 };
 
-class InputStream : public InputPersistentMemory {
+class ReadsSessionFromStream : public SessionDeserialization {
 public:
-  explicit InputStream(IoStreamFactory &);
+  explicit ReadsSessionFromStream(IoStreamFactory &);
   void loadAccount(std::vector<Transaction> &credits,
                    std::vector<Transaction> &debits) override;
   void load(Account::Factory &factory, std::shared_ptr<Account> &primary,

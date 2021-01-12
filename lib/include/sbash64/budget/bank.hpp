@@ -19,8 +19,8 @@ public:
   void transferTo(std::string_view accountName, USD amount, Date) override;
   void removeTransfer(std::string_view accountName, USD amount, Date);
   void show(View &) override;
-  void save(OutputPersistentMemory &) override;
-  void load(InputPersistentMemory &) override;
+  void save(SessionSerialization &) override;
+  void load(SessionDeserialization &) override;
 
 private:
   Account::Factory &factory;

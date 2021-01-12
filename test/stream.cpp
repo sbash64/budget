@@ -32,9 +32,9 @@ public:
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
-  void load(InputPersistentMemory &) override {}
+  void load(SessionDeserialization &) override {}
 
-  void save(OutputPersistentMemory &p) override {
+  void save(SessionSerialization &p) override {
     p.saveAccount(name, credits, debits);
   }
 
@@ -55,8 +55,8 @@ public:
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
-  void save(OutputPersistentMemory &) override {}
-  void load(InputPersistentMemory &p) override {
+  void save(SessionSerialization &) override {}
+  void load(SessionDeserialization &p) override {
     p.loadAccount(credits, debits);
   }
 
@@ -83,7 +83,7 @@ private:
 void savesAccounts(testcpplite::TestResult &result) {
   auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub factory{stream};
-  OutputStream file{factory};
+  WritesSessionToStream file{factory};
   SaveAccountStub jeff{
       "jeff",
       {Transaction{5000_cents, "transfer from master",
@@ -224,7 +224,7 @@ debits
 3.24 hyvee 2/8/2021
 )")};
   IoStreamFactoryStub factory{input};
-  InputStream file{factory};
+  ReadsSessionFromStream file{factory};
   std::vector<Transaction> creditsJeff;
   std::vector<Transaction> debitsJeff;
   std::vector<Transaction> creditsSteve;

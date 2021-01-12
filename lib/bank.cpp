@@ -95,11 +95,11 @@ static auto collect(const std::map<std::string, std::shared_ptr<Account>,
 
 void Bank::show(View &view) { view.show(*masterAccount, collect(accounts)); }
 
-void Bank::save(OutputPersistentMemory &persistentMemory) {
+void Bank::save(SessionSerialization &persistentMemory) {
   persistentMemory.save(*masterAccount, collect(accounts));
 }
 
-void Bank::load(InputPersistentMemory &persistentMemory) {
+void Bank::load(SessionDeserialization &persistentMemory) {
   persistentMemory.load(factory, masterAccount, accounts);
 }
 } // namespace sbash64::budget

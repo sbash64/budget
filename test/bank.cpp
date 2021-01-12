@@ -30,9 +30,9 @@ public:
 
   void show(View &) override {}
 
-  void save(OutputPersistentMemory &) override {}
+  void save(SessionSerialization &) override {}
 
-  void load(InputPersistentMemory &) override {}
+  void load(SessionDeserialization &) override {}
 
 private:
   Transaction creditedTransaction_;

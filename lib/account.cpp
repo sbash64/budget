@@ -41,7 +41,7 @@ void InMemoryAccount::show(View &printer) {
                              dateSortedPrintableTransactions(credits, debits));
 }
 
-void InMemoryAccount::save(OutputPersistentMemory &persistentMemory) {
+void InMemoryAccount::save(SessionSerialization &persistentMemory) {
   persistentMemory.saveAccount(name, credits, debits);
 }
 
@@ -52,7 +52,7 @@ auto InMemoryAccount::Factory::make(std::string_view name)
   return std::make_shared<InMemoryAccount>(std::string{name});
 }
 
-void InMemoryAccount::load(InputPersistentMemory &persistentMemory) {
+void InMemoryAccount::load(SessionDeserialization &persistentMemory) {
   persistentMemory.loadAccount(credits, debits);
 }
 void InMemoryAccount::removeDebit(const Transaction &t) {

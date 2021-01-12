@@ -5,8 +5,8 @@
 #include <string_view>
 
 namespace sbash64::budget {
-void OutputStream::save(Account &primary,
-                        const std::vector<Account *> &secondaries) {
+void WritesSessionToStream::save(Account &primary,
+                                 const std::vector<Account *> &secondaries) {
   const auto streamGuard{ioStreamFactory.makeOutput()};
   stream = streamGuard.get();
   primary.save(*this);
@@ -39,9 +39,9 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void OutputStream::saveAccount(std::string_view name,
-                               const std::vector<Transaction> &credits,
-                               const std::vector<Transaction> &debits) {
+void WritesSessionToStream::saveAccount(
+    std::string_view name, const std::vector<Transaction> &credits,
+    const std::vector<Transaction> &debits) {
   *stream << name << '\n';
   *stream << "credits";
   for (const auto &credit : credits) {
@@ -97,8 +97,8 @@ static void loadTransaction(std::istream &input, std::string &line,
   getline(input, line);
 }
 
-void InputStream::loadAccount(std::vector<Transaction> &credits,
-                              std::vector<Transaction> &debits) {
+void ReadsSessionFromStream::loadAccount(std::vector<Transaction> &credits,
+                                         std::vector<Transaction> &debits) {
   std::string line;
   getline(*stream, line);
   getline(*stream, line);
@@ -111,7 +111,7 @@ void InputStream::loadAccount(std::vector<Transaction> &credits,
   }
 }
 
-void InputStream::load(
+void ReadsSessionFromStream::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
   const auto streamGuard{ioStreamFactory.makeInput()};
@@ -127,9 +127,9 @@ void InputStream::load(
   }
 }
 
-InputStream::InputStream(IoStreamFactory &ioStreamFactory)
+ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)
     : ioStreamFactory{ioStreamFactory} {}
 
-OutputStream::OutputStream(IoStreamFactory &ioStreamFactory)
+WritesSessionToStream::WritesSessionToStream(IoStreamFactory &ioStreamFactory)
     : ioStreamFactory{ioStreamFactory} {}
 } // namespace sbash64::budget

@@ -12,8 +12,8 @@ public:
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
-  void save(OutputPersistentMemory &) override;
-  void load(InputPersistentMemory &) override;
+  void save(SessionSerialization &) override;
+  void load(SessionDeserialization &) override;
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
 
