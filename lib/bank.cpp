@@ -1,8 +1,29 @@
 #include "bank.hpp"
+#include <initializer_list>
 
 namespace sbash64::budget {
-constexpr auto masterAccountName{"master"};
-constexpr auto transferDescription{"transfer"};
+// https://stackoverflow.com/a/65440575
+
+// we cannot return a char array from a function, therefore we need a wrapper
+template <unsigned N> struct String { char c[N]; };
+
+template <unsigned... Len>
+constexpr auto concatenate(const char (&...strings)[Len]) {
+  constexpr auto N{(... + Len) - sizeof...(Len)};
+  String<N + 1> result = {};
+  result.c[N] = '\0';
+
+  auto *dst{result.c};
+  for (const auto *src : {strings...})
+    for (; *src != '\0'; src++, dst++)
+      *dst = *src;
+  return result;
+}
+
+constexpr const char masterAccountName[]{"master"};
+constexpr const char transferDescription[]{"transfer"};
+constexpr auto transferFromMaster{
+    concatenate(transferDescription, " from ", masterAccountName)};
 
 static void credit(const std::shared_ptr<Account> &account,
                    const Transaction &t) {
@@ -60,27 +81,21 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(accounts, factory, accountName);
   budget::debit(masterAccount,
                 Transaction{amount,
-                            std::string{transferDescription} + " to " +
+                            concatenate(transferDescription, " to ").c +
                                 std::string{accountName},
                             date});
   budget::credit(accounts.at(std::string{accountName}),
-                 Transaction{amount,
-                             std::string{transferDescription} + " from " +
-                                 std::string{masterAccountName},
-                             date});
+                 Transaction{amount, transferFromMaster.c, date});
 }
 
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
   budget::removeDebit(masterAccount,
                       Transaction{amount,
-                                  std::string{transferDescription} + " to " +
+                                  concatenate(transferDescription, " to ").c +
                                       std::string{accountName},
                                   date});
   budget::removeCredit(accounts.at(std::string{accountName}),
-                       Transaction{amount,
-                                   std::string{transferDescription} + " from " +
-                                       std::string{masterAccountName},
-                                   date});
+                       Transaction{amount, transferFromMaster.c, date});
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
