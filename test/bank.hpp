@@ -6,7 +6,7 @@
 namespace sbash64::budget::bank {
 void createsMasterAccountOnConstruction(testcpplite::TestResult &);
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
-void debitsNonexistentAccount(testcpplite::TestResult &);
+void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &);
 void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &);

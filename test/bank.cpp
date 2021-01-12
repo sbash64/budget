@@ -107,7 +107,7 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   });
 }
 
-void debitsNonexistentAccount(testcpplite::TestResult &result) {
+void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
