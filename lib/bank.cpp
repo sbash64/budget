@@ -66,6 +66,7 @@ void Bank::load(InputPersistentMemory &persistentMemory) {
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
-  accounts.at(std::string{accountName})->removeDebit(t);
+  if (accounts.count(accountName) != 0)
+    accounts.at(std::string{accountName})->removeDebit(t);
 }
 } // namespace sbash64::budget

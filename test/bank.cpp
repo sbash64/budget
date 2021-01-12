@@ -102,7 +102,7 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   });
 }
 
-void debitsNonexistantAccount(testcpplite::TestResult &result) {
+void debitsNonexistentAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
@@ -219,7 +219,7 @@ void loadLoadsAccounts(testcpplite::TestResult &result) {
   });
 }
 
-void removesTransactionsFromAccounts(testcpplite::TestResult &result) {
+void removesDebitFromAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};
@@ -230,6 +230,16 @@ void removesTransactionsFromAccounts(testcpplite::TestResult &result) {
     assertEqual(result,
                 Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
                 account->removedDebit());
+  });
+}
+
+void removeDebitFromNonexistentAccountDoesNothing(testcpplite::TestResult &) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                            Date{2013, Month::April, 3}});
   });
 }
 } // namespace sbash64::budget::bank
