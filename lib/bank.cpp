@@ -14,10 +14,24 @@ static void debit(const std::shared_ptr<Account> &account,
   account->debit(t);
 }
 
+static void removeCredit(const std::shared_ptr<Account> &account,
+                         const Transaction &t) {
+  account->removeCredit(t);
+}
+
+static void removeDebit(const std::shared_ptr<Account> &account,
+                        const Transaction &t) {
+  account->removeDebit(t);
+}
+
 Bank::Bank(Account::Factory &factory)
     : factory{factory}, masterAccount{factory.make(masterAccountName)} {}
 
 void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
+
+void Bank::removeCredit(const Transaction &t) {
+  budget::removeCredit(masterAccount, t);
+}
 
 static auto
 contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
@@ -37,6 +51,11 @@ void Bank::debit(std::string_view accountName, const Transaction &t) {
   budget::debit(accounts.at(std::string{accountName}), t);
 }
 
+void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
+  if (contains(accounts, accountName))
+    budget::removeDebit(accounts.at(std::string{accountName}), t);
+}
+
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(accounts, factory, accountName);
   budget::debit(masterAccount,
@@ -49,6 +68,19 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
                              std::string{transferDescription} + " from " +
                                  std::string{masterAccountName},
                              date});
+}
+
+void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
+  budget::removeDebit(masterAccount,
+                      Transaction{amount,
+                                  std::string{transferDescription} + " to " +
+                                      std::string{accountName},
+                                  date});
+  budget::removeCredit(accounts.at(std::string{accountName}),
+                       Transaction{amount,
+                                   std::string{transferDescription} + " from " +
+                                       std::string{masterAccountName},
+                                   date});
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
@@ -69,26 +101,5 @@ void Bank::save(OutputPersistentMemory &persistentMemory) {
 
 void Bank::load(InputPersistentMemory &persistentMemory) {
   persistentMemory.load(factory, masterAccount, accounts);
-}
-
-void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
-  if (contains(accounts, accountName))
-    accounts.at(std::string{accountName})->removeDebit(t);
-}
-
-void Bank::removeCredit(const Transaction &t) {
-  masterAccount->removeCredit(t);
-}
-
-void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
-  masterAccount->removeDebit(Transaction{amount,
-                                         std::string{transferDescription} +
-                                             " to " + std::string{accountName},
-                                         date});
-  accounts.at(std::string{accountName})
-      ->removeCredit(Transaction{amount,
-                                 std::string{transferDescription} + " from " +
-                                     std::string{masterAccountName},
-                                 date});
 }
 } // namespace sbash64::budget
