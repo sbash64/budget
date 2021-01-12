@@ -60,10 +60,8 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
   assertEqual(
       result,
       {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
-       printableCredit(
-           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-       printableCredit(
-           Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+       credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
       printer.accountTransactions());
 }
 
@@ -88,8 +86,7 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
   assertEqual(
       result,
       {debit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-       printableCredit(
-           Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
       printer.accountTransactions());
 }
 
@@ -129,13 +126,12 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
       result,
       debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
       printer.accountTransactions().at(0));
+  assertEqual(
+      result,
+      credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+      printer.accountTransactions().at(1));
   assertEqual(result,
-              printableCredit(Transaction{789_cents, "chimpanzee",
-                                          Date{2020, Month::June, 1}}),
-              printer.accountTransactions().at(1));
-  assertEqual(result,
-              printableCredit(
-                  Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
+              credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
               printer.accountTransactions().at(2));
 }
 } // namespace sbash64::budget::account
