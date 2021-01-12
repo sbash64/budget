@@ -29,6 +29,8 @@ constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
 constexpr auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
+constexpr auto operator-(USD a) -> USD { return USD{-a.cents}; }
+
 enum class Month {
   January = 1,
   February,

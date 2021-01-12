@@ -8,6 +8,7 @@ void formatZeroDollars(testcpplite::TestResult &);
 void formatOneDollar(testcpplite::TestResult &);
 void formatOneCent(testcpplite::TestResult &);
 void formatTenCents(testcpplite::TestResult &);
+void formatNegativeDollarThirtyFour(testcpplite::TestResult &);
 void accounts(testcpplite::TestResult &);
 void account(testcpplite::TestResult &);
 } // namespace sbash64::budget::print

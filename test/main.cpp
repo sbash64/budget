@@ -59,6 +59,7 @@ static auto runAllTests() -> int {
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
        {print::formatTenCents, "format ten cents"},
+       {print::formatNegativeDollarThirtyFour, "format negative ten cents"},
        {print::accounts, "print accounts"},
        {print::account, "print account"},
        {file::savesAccounts, "file saves accounts"},

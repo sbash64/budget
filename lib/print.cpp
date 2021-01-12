@@ -1,5 +1,6 @@
 #include "print.hpp"
 #include <cstdio>
+#include <cstdlib>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -8,7 +9,7 @@ namespace sbash64::budget {
 static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
   const auto fill{stream.fill()};
   return stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
-                << usd.cents % 100 << std::setfill(fill);
+                << std::abs(usd.cents % 100) << std::setfill(fill);
 }
 
 static auto formatWithoutDollarSign(USD usd) -> std::string {

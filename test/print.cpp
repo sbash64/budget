@@ -44,6 +44,10 @@ void formatTenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, 10_cents, "$0.10");
 }
 
+void formatNegativeDollarThirtyFour(testcpplite::TestResult &result) {
+  assertFormatYields(result, -134_cents, "$-1.34");
+}
+
 void accounts(testcpplite::TestResult &result) {
   std::stringstream stream;
   StreamView printer{stream};
