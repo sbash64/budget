@@ -233,7 +233,8 @@ void removesDebitFromAccount(testcpplite::TestResult &result) {
   });
 }
 
-void removeDebitFromNonexistentAccountDoesNothing(testcpplite::TestResult &) {
+void doesNothingWhenRemovingDebitFromNonexistentAccount(
+    testcpplite::TestResult &) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto account{std::make_shared<AccountStub>()};

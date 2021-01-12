@@ -13,7 +13,8 @@ void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &);
 void saveSavesAccounts(testcpplite::TestResult &);
 void loadLoadsAccounts(testcpplite::TestResult &);
 void removesDebitFromAccount(testcpplite::TestResult &);
-void removeDebitFromNonexistentAccountDoesNothing(testcpplite::TestResult &);
+void doesNothingWhenRemovingDebitFromNonexistentAccount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif
