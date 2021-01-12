@@ -11,6 +11,8 @@ public:
       : stream{stream}, name{std::move(name)} {}
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
+  void removeCredit(const Transaction &) override {}
+  void removeDebit(const Transaction &) override {}
   void show(View &) override { stream << name; }
   void save(OutputPersistentMemory &) override {}
   void load(InputPersistentMemory &) override {}

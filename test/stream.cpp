@@ -29,6 +29,8 @@ public:
 
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
+  void removeCredit(const Transaction &) override {}
+  void removeDebit(const Transaction &) override {}
   void show(View &) override {}
   void load(InputPersistentMemory &) override {}
 
@@ -50,6 +52,8 @@ public:
 
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
+  void removeCredit(const Transaction &) override {}
+  void removeDebit(const Transaction &) override {}
   void show(View &) override {}
   void save(OutputPersistentMemory &) override {}
   void load(InputPersistentMemory &p) override {

@@ -26,7 +26,7 @@ public:
 
   auto removedCredit() -> Transaction { return removedCredit_; }
 
-  void removeCredit(const Transaction &t) { removedCredit_ = t; }
+  void removeCredit(const Transaction &t) override { removedCredit_ = t; }
 
   void show(View &) override {}
 
