@@ -9,7 +9,7 @@ void InMemoryAccount::credit(const Transaction &t) { credits.push_back(t); }
 void InMemoryAccount::debit(const Transaction &t) { debits.push_back(t); }
 
 static auto balance(const std::vector<Transaction> &transactions) -> USD {
-  return std::accumulate(
+  return accumulate(
       transactions.begin(), transactions.end(), USD{0},
       [](USD total, const Transaction &t) { return total + t.amount; });
 }
@@ -29,10 +29,10 @@ dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
     transactions.push_back(printableCredit(c));
   for (const auto &d : debits)
     transactions.push_back(printableDebit(d));
-  std::sort(transactions.begin(), transactions.end(),
-            [](const PrintableTransaction &a, const PrintableTransaction &b) {
-              return a.transaction.date < b.transaction.date;
-            });
+  sort(transactions.begin(), transactions.end(),
+       [](const PrintableTransaction &a, const PrintableTransaction &b) {
+         return a.transaction.date < b.transaction.date;
+       });
   return transactions;
 }
 
@@ -55,15 +55,15 @@ auto InMemoryAccount::Factory::make(std::string_view name)
 void InMemoryAccount::load(SessionDeserialization &persistentMemory) {
   persistentMemory.loadAccount(credits, debits);
 }
-void InMemoryAccount::removeDebit(const Transaction &t) {
-  const auto it{std::find(debits.begin(), debits.end(), t)};
-  if (it != debits.end())
-    debits.erase(it);
+
+static void remove(std::vector<Transaction> &transactions,
+                   const Transaction &t) {
+  const auto it{find(transactions.begin(), transactions.end(), t)};
+  if (it != transactions.end())
+    transactions.erase(it);
 }
 
-void InMemoryAccount::removeCredit(const Transaction &t) {
-  const auto it{std::find(credits.begin(), credits.end(), t)};
-  if (it != credits.end())
-    credits.erase(it);
-}
+void InMemoryAccount::removeDebit(const Transaction &t) { remove(debits, t); }
+
+void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
 } // namespace sbash64::budget
