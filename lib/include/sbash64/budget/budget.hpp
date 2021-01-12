@@ -23,11 +23,11 @@ struct USD {
   std::int_least64_t cents;
 };
 
-inline auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
+constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 
-inline auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
+constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
 
-inline auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
+constexpr auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
 enum class Month {
   January = 1,
@@ -50,11 +50,11 @@ struct Date {
   int day;
 };
 
-inline auto operator==(const Date &a, const Date &b) -> bool {
+constexpr auto operator==(const Date &a, const Date &b) -> bool {
   return a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
-inline auto operator<(const Date &a, const Date &b) -> bool {
+constexpr auto operator<(const Date &a, const Date &b) -> bool {
   if (a.year != b.year)
     return a.year < b.year;
   if (a.month != b.month)
@@ -70,7 +70,7 @@ struct Transaction {
   enum class Type { credit, debit };
 };
 
-inline auto operator==(const Transaction &a, const Transaction &b) -> bool {
+constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
   return a.amount == b.amount && a.description == b.description &&
          a.date == b.date;
 }
@@ -80,12 +80,14 @@ struct PrintableTransaction {
   Transaction::Type type{};
 };
 
-inline auto printableDebit(Transaction transaction) -> PrintableTransaction {
-  return {std::move(transaction), Transaction::Type::debit};
+template <typename T>
+auto printableDebit(T &&transaction) -> PrintableTransaction {
+  return {std::forward<T>(transaction), Transaction::Type::debit};
 }
 
-inline auto printableCredit(Transaction transaction) -> PrintableTransaction {
-  return {std::move(transaction), Transaction::Type::credit};
+template <typename T>
+auto printableCredit(T &&transaction) -> PrintableTransaction {
+  return {std::forward<T>(transaction), Transaction::Type::credit};
 }
 
 class View;
