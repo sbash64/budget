@@ -70,12 +70,12 @@ void account(testcpplite::TestResult &result) {
   StreamView printer{stream};
   printer.showAccountSummary(
       "Checking", 1234_cents,
-      {printableDebit(Transaction{2500_cents, "Sam's 24th",
-                                  Date{2020, Month::December, 27}}),
+      {debit(Transaction{2500_cents, "Sam's 24th",
+                         Date{2020, Month::December, 27}}),
        printableCredit(Transaction{2734_cents, "Birthday present",
                                    Date{2021, Month::October, 20}}),
-       printableDebit(Transaction{2410_cents, "Hannah's 30th",
-                                  Date{2021, Month::March, 18}})});
+       debit(Transaction{2410_cents, "Hannah's 30th",
+                         Date{2021, Month::March, 18}})});
   assertEqual(result, R"(
 ----
 Checking

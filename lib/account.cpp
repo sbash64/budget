@@ -28,7 +28,7 @@ dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
   for (const auto &c : credits)
     transactions.push_back(printableCredit(c));
   for (const auto &d : debits)
-    transactions.push_back(printableDebit(d));
+    transactions.push_back(debit(d));
   sort(transactions.begin(), transactions.end(),
        [](const TransactionWithType &a, const TransactionWithType &b) {
          return a.transaction.date < b.transaction.date;

@@ -80,8 +80,7 @@ struct TransactionWithType {
   Transaction::Type type{};
 };
 
-template <typename T>
-auto printableDebit(T &&transaction) -> TransactionWithType {
+template <typename T> auto debit(T &&transaction) -> TransactionWithType {
   return {std::forward<T>(transaction), Transaction::Type::debit};
 }
 

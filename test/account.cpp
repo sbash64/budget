@@ -57,14 +57,14 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
   assertEqual(result, "joe", printer.accountName());
   assertEqual(result, 123_cents - 456_cents + 789_cents,
               printer.accountBalance());
-  assertEqual(result,
-              {printableDebit(Transaction{456_cents, "gorilla",
-                                          Date{2020, Month::January, 20}}),
-               printableCredit(Transaction{789_cents, "chimpanzee",
-                                           Date{2020, Month::June, 1}}),
-               printableCredit(
-                   Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-              printer.accountTransactions());
+  assertEqual(
+      result,
+      {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
+       printableCredit(
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+       printableCredit(
+           Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+      printer.accountTransactions());
 }
 
 void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
@@ -85,12 +85,12 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
   account.show(printer);
   assertEqual(result, "joe", printer.accountName());
   assertEqual(result, 123_cents - 789_cents, printer.accountBalance());
-  assertEqual(result,
-              {printableDebit(Transaction{789_cents, "chimpanzee",
-                                          Date{2020, Month::June, 1}}),
-               printableCredit(
-                   Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-              printer.accountTransactions());
+  assertEqual(
+      result,
+      {debit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+       printableCredit(
+           Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+      printer.accountTransactions());
 }
 
 void saveSavesAllTransactions(testcpplite::TestResult &result) {
@@ -125,10 +125,10 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
   account.load(persistentMemory);
   ViewStub printer;
   account.show(printer);
-  assertEqual(result,
-              printableDebit(Transaction{456_cents, "gorilla",
-                                         Date{2020, Month::January, 20}}),
-              printer.accountTransactions().at(0));
+  assertEqual(
+      result,
+      debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
+      printer.accountTransactions().at(0));
   assertEqual(result,
               printableCredit(Transaction{789_cents, "chimpanzee",
                                           Date{2020, Month::June, 1}}),
