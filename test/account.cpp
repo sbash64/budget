@@ -13,8 +13,8 @@ constexpr auto to_integral(Transaction::Type e) ->
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const PrintableTransaction &expected,
-                        const PrintableTransaction &actual) {
+                        const TransactionWithType &expected,
+                        const TransactionWithType &actual) {
   assertEqual(result, expected.transaction, actual.transaction);
   assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
@@ -36,10 +36,10 @@ static void assertContainsDebit(testcpplite::TestResult &result,
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<PrintableTransaction> &expected,
-                        const std::vector<PrintableTransaction> &actual) {
+                        const std::vector<TransactionWithType> &expected,
+                        const std::vector<TransactionWithType> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<PrintableTransaction>::size_type i{0}; i < expected.size();
+  for (std::vector<TransactionWithType>::size_type i{0}; i < expected.size();
        ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }

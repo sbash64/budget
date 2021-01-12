@@ -60,7 +60,7 @@ void StreamView::show(Account &primary,
 
 void StreamView::showAccountSummary(
     std::string_view name, USD balance,
-    const std::vector<PrintableTransaction> &transactions) {
+    const std::vector<TransactionWithType> &transactions) {
   stream << "----" << '\n';
   stream << name << '\n';
   putWithDollarSign(stream, balance) << '\n';

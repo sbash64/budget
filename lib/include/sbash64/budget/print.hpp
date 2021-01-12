@@ -14,7 +14,7 @@ public:
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void showAccountSummary(std::string_view name, USD balance,
-                          const std::vector<PrintableTransaction> &) override;
+                          const std::vector<TransactionWithType> &) override;
 
 private:
   std::ostream &stream;

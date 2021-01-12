@@ -22,15 +22,15 @@ static auto balance(const std::vector<Transaction> &credits,
 static auto
 dateSortedPrintableTransactions(const std::vector<Transaction> &credits,
                                 const std::vector<Transaction> &debits)
-    -> std::vector<PrintableTransaction> {
-  std::vector<PrintableTransaction> transactions;
+    -> std::vector<TransactionWithType> {
+  std::vector<TransactionWithType> transactions;
   transactions.reserve(credits.size() + debits.size());
   for (const auto &c : credits)
     transactions.push_back(printableCredit(c));
   for (const auto &d : debits)
     transactions.push_back(printableDebit(d));
   sort(transactions.begin(), transactions.end(),
-       [](const PrintableTransaction &a, const PrintableTransaction &b) {
+       [](const TransactionWithType &a, const TransactionWithType &b) {
          return a.transaction.date < b.transaction.date;
        });
   return transactions;

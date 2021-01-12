@@ -75,18 +75,18 @@ constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
          a.date == b.date;
 }
 
-struct PrintableTransaction {
+struct TransactionWithType {
   Transaction transaction;
   Transaction::Type type{};
 };
 
 template <typename T>
-auto printableDebit(T &&transaction) -> PrintableTransaction {
+auto printableDebit(T &&transaction) -> TransactionWithType {
   return {std::forward<T>(transaction), Transaction::Type::debit};
 }
 
 template <typename T>
-auto printableCredit(T &&transaction) -> PrintableTransaction {
+auto printableCredit(T &&transaction) -> TransactionWithType {
   return {std::forward<T>(transaction), Transaction::Type::credit};
 }
 
@@ -119,7 +119,7 @@ public:
                     const std::vector<Account *> &secondaries) = 0;
   virtual void
   showAccountSummary(std::string_view name, USD balance,
-                     const std::vector<PrintableTransaction> &transactions) = 0;
+                     const std::vector<TransactionWithType> &transactions) = 0;
 };
 
 class SessionSerialization {
