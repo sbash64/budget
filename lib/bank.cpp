@@ -19,10 +19,16 @@ Bank::Bank(Account::Factory &factory)
 
 void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
 
+static auto
+contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+         std::string_view accountName) -> bool {
+  return accounts.count(accountName) != 0;
+}
+
 static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
     Account::Factory &factory, std::string_view accountName) {
-  if (accounts.count(accountName) == 0)
+  if (!contains(accounts, accountName))
     accounts[std::string{accountName}] = factory.make(accountName);
 }
 
@@ -66,7 +72,7 @@ void Bank::load(InputPersistentMemory &persistentMemory) {
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
-  if (accounts.count(accountName) != 0)
+  if (contains(accounts, accountName))
     accounts.at(std::string{accountName})->removeDebit(t);
 }
 } // namespace sbash64::budget
