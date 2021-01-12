@@ -36,6 +36,8 @@ static auto runAllTests() -> int {
         "bank removes transactions from accounts"},
        {bank::doesNothingWhenRemovingDebitFromNonexistentAccount,
         "bank does nothing when removing debit from nonexistent account"},
+       {bank::removesFromMasterAccountWhenRemovingCredit,
+        "bank removes from master account when removing credit"},
        {bank::transferDebitsMasterAndCreditsOther,
         "bank transfer debits master and credits other"},
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},

@@ -101,6 +101,7 @@ public:
   virtual void save(OutputPersistentMemory &) = 0;
   virtual void load(InputPersistentMemory &) = 0;
   virtual void removeDebit(const Transaction &) {}
+  virtual void removeCredit(const Transaction &) {}
 
   class Factory {
   public:

@@ -22,7 +22,11 @@ public:
 
   auto removedDebit() -> Transaction { return removedDebit_; }
 
-  void removeDebit(const Transaction &t) { removedDebit_ = t; }
+  void removeDebit(const Transaction &t) override { removedDebit_ = t; }
+
+  auto removedCredit() -> Transaction { return removedCredit_; }
+
+  void removeCredit(const Transaction &t) { removedCredit_ = t; }
 
   void show(View &) override {}
 
@@ -34,6 +38,7 @@ private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
+  Transaction removedCredit_;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -241,6 +246,18 @@ void doesNothingWhenRemovingDebitFromNonexistentAccount(
     add(factory, account, "giraffe");
     bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
                                             Date{2013, Month::April, 3}});
+  });
+}
+
+void removesFromMasterAccountWhenRemovingCredit(
+    testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    bank.removeCredit(
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertEqual(result,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
+                masterAccount->removedCredit());
   });
 }
 } // namespace sbash64::budget::bank

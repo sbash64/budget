@@ -75,4 +75,8 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
   if (contains(accounts, accountName))
     accounts.at(std::string{accountName})->removeDebit(t);
 }
+
+void Bank::removeCredit(const Transaction &t) {
+  masterAccount->removeCredit(t);
+}
 } // namespace sbash64::budget

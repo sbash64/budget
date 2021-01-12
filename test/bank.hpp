@@ -15,6 +15,7 @@ void loadLoadsAccounts(testcpplite::TestResult &);
 void removesDebitFromAccount(testcpplite::TestResult &);
 void doesNothingWhenRemovingDebitFromNonexistentAccount(
     testcpplite::TestResult &);
+void removesFromMasterAccountWhenRemovingCredit(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif
