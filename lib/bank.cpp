@@ -22,8 +22,9 @@ constexpr auto concatenate(const char (&...strings)[Len]) {
 
 constexpr const char masterAccountName[]{"master"};
 constexpr const char transferDescription[]{"transfer"};
-constexpr auto transferFromMaster{
+constexpr auto transferFromMasterString{
     concatenate(transferDescription, " from ", masterAccountName)};
+constexpr auto transferToString{concatenate(transferDescription, " to ")};
 
 static void credit(const std::shared_ptr<Account> &account,
                    const Transaction &t) {
@@ -79,23 +80,19 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(accounts, factory, accountName);
-  budget::debit(masterAccount,
-                Transaction{amount,
-                            concatenate(transferDescription, " to ").c +
-                                std::string{accountName},
-                            date});
+  budget::debit(
+      masterAccount,
+      Transaction{amount, transferToString.c + std::string{accountName}, date});
   budget::credit(accounts.at(std::string{accountName}),
-                 Transaction{amount, transferFromMaster.c, date});
+                 Transaction{amount, transferFromMasterString.c, date});
 }
 
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
-  budget::removeDebit(masterAccount,
-                      Transaction{amount,
-                                  concatenate(transferDescription, " to ").c +
-                                      std::string{accountName},
-                                  date});
+  budget::removeDebit(
+      masterAccount,
+      Transaction{amount, transferToString.c + std::string{accountName}, date});
   budget::removeCredit(accounts.at(std::string{accountName}),
-                       Transaction{amount, transferFromMaster.c, date});
+                       Transaction{amount, transferFromMasterString.c, date});
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
