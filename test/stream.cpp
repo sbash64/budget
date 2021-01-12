@@ -182,16 +182,16 @@ static void assertEqual(testcpplite::TestResult &result,
 }
 
 void loadsAccounts(testcpplite::TestResult &result) {
-  auto input{std::make_shared<std::stringstream>(
+  const auto input{std::make_shared<std::stringstream>(
       R"(jeff
 credits
 50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
+25 transfer from master 4/12/2021
+13.80 transfer from master 2/8/2021
 debits
 27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
+9.87 walmart 6/15/2021
+3.24 hyvee 2/8/2020
 
 steve
 credits
@@ -205,22 +205,22 @@ debits
 
 sue
 credits
-50 transfer from master 1/10/2021
+75 transfer from master 1/10/2021
 25 transfer from master 3/12/2021
 25 transfer from master 2/8/2021
 debits
-27.34 hyvee 1/12/2021
+27.34 bakers 1/12/2021
 12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
 
 allen
 credits
 50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
+32 transfer from master 3/12/2021
 25 transfer from master 2/8/2021
 debits
 27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
+12.56 walmart 6/15/1984
 3.24 hyvee 2/8/2021
 )")};
   IoStreamFactoryStub factory{input};
@@ -255,14 +255,14 @@ debits
               {Transaction{5000_cents, "transfer from master",
                            Date{2021, Month::January, 10}},
                Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::March, 12}},
-               Transaction{2500_cents, "transfer from master",
+                           Date{2021, Month::April, 12}},
+               Transaction{1380_cents, "transfer from master",
                            Date{2021, Month::February, 8}}},
               creditsJeff);
   assertEqual(result,
               {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+               Transaction{987_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{324_cents, "hyvee", Date{2020, Month::February, 8}}},
               debitsJeff);
   assertEqual(result,
               {Transaction{5000_cents, "transfer from master",
@@ -278,29 +278,30 @@ debits
                Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
               debitsSteve);
   assertEqual(result,
-              {Transaction{5000_cents, "transfer from master",
+              {Transaction{7500_cents, "transfer from master",
                            Date{2021, Month::January, 10}},
                Transaction{2500_cents, "transfer from master",
                            Date{2021, Month::March, 12}},
                Transaction{2500_cents, "transfer from master",
                            Date{2021, Month::February, 8}}},
               creditsSue);
-  assertEqual(result,
-              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
-              debitsSue);
+  assertEqual(
+      result,
+      {Transaction{2734_cents, "bakers", Date{2021, Month::January, 12}},
+       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+      debitsSue);
   assertEqual(result,
               {Transaction{5000_cents, "transfer from master",
                            Date{2021, Month::January, 10}},
-               Transaction{2500_cents, "transfer from master",
+               Transaction{3200_cents, "transfer from master",
                            Date{2021, Month::March, 12}},
                Transaction{2500_cents, "transfer from master",
                            Date{2021, Month::February, 8}}},
               creditsAllen);
   assertEqual(result,
               {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
+               Transaction{1256_cents, "walmart", Date{1984, Month::June, 15}},
                Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
               debitsAllen);
 }
