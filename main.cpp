@@ -28,15 +28,15 @@ static void repl() {
   ReadsSessionFromStream inputStream{streamFactory};
   for (;;) {
     std::string line;
-    std::getline(std::cin, line);
+    getline(std::cin, line);
     if (line == "exit")
       break;
-    if (line == "save") {
+    if (line == "save")
       bank.save(outputStream);
-    } else if (line == "load") {
+    else if (line == "load")
       bank.load(inputStream);
-    } else
-      sbash64::budget::command(controller, bank, printer, line);
+    else
+      command(controller, bank, printer, line);
   }
 }
 } // namespace sbash64::budget
