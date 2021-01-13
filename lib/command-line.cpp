@@ -150,10 +150,10 @@ static auto operator<<(std::ostream &stream, const Date &date)
                 << date.day << '/' << date.year << std::setfill(fill);
 }
 
-StreamView::StreamView(std::ostream &stream) : stream{stream} {}
+CommandLineStream::CommandLineStream(std::ostream &stream) : stream{stream} {}
 
-void StreamView::show(Account &primary,
-                      const std::vector<Account *> &secondaries) {
+void CommandLineStream::show(Account &primary,
+                             const std::vector<Account *> &secondaries) {
   primary.show(*this);
   for (auto *account : secondaries) {
     stream << "\n\n";
@@ -162,7 +162,7 @@ void StreamView::show(Account &primary,
   stream << '\n';
 }
 
-void StreamView::showAccountSummary(
+void CommandLineStream::showAccountSummary(
     std::string_view name, USD balance,
     const std::vector<TransactionWithType> &transactions) {
   stream << "----" << '\n';
@@ -186,9 +186,9 @@ void StreamView::showAccountSummary(
   stream << '\n' << "----";
 }
 
-void StreamView::prompt(std::string_view s) { stream << s << ' '; }
+void CommandLineStream::prompt(std::string_view s) { stream << s << ' '; }
 
-void StreamView::show(const Transaction &t, std::string_view suffix) {
+void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
   putWithDollarSign(stream, t.amount)
       << ' ' << t.date.month << '/' << t.date.day << '/' << t.date.year << ' '
       << t.description << ' ' << suffix << '\n';

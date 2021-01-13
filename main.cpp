@@ -21,7 +21,7 @@ static void repl() {
   CommandLineInterpreter controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
-  StreamView view{std::cout};
+  CommandLineStream view{std::cout};
   FileStreamFactory streamFactory;
   WritesSessionToStream serialization{streamFactory};
   ReadsSessionFromStream deserialization{streamFactory};

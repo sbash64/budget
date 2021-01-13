@@ -34,9 +34,9 @@ void command(CommandLineInterpreter &, Model &, CommandLineInterface &,
 
 auto format(USD) -> std::string;
 
-class StreamView : public CommandLineInterface {
+class CommandLineStream : public CommandLineInterface {
 public:
-  explicit StreamView(std::ostream &);
+  explicit CommandLineStream(std::ostream &);
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override;
   void showAccountSummary(std::string_view name, USD balance,

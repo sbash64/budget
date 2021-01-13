@@ -50,7 +50,7 @@ void formatNegativeDollarThirtyFour(testcpplite::TestResult &result) {
 
 void accounts(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamView printer{stream};
+  CommandLineStream printer{stream};
   AccountStub jeff{stream, "jeff"};
   AccountStub steve{stream, "steve"};
   AccountStub sue{stream, "sue"};
@@ -71,7 +71,7 @@ allen
 
 void account(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamView printer{stream};
+  CommandLineStream printer{stream};
   printer.showAccountSummary(
       "Checking", 1234_cents,
       {debit(Transaction{2500_cents, "Sam's 24th",
@@ -96,14 +96,14 @@ Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
 
 void prompt(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamView printer{stream};
+  CommandLineStream printer{stream};
   printer.prompt("hello");
   assertEqual(result, "hello ", stream.str());
 }
 
 void transactionWithSuffix(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamView printer{stream};
+  CommandLineStream printer{stream};
   printer.show(Transaction{123_cents, "nope", Date{2020, Month::July, 5}},
                "hello");
   assertEqual(result, "$1.23 7/5/2020 nope hello\n", stream.str());
