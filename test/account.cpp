@@ -44,37 +44,42 @@ static void assertEqual(testcpplite::TestResult &result,
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
+static void credit(Account &account, const Transaction &t) {
+  account.credit(t);
+}
+
+static void debit(Account &account, const Transaction &t) { account.debit(t); }
+
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
-  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.debit(
-      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-  account.credit(
-      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-  ViewStub printer;
-  account.show(printer);
-  assertEqual(result, "joe", printer.accountName());
-  assertEqual(result, 123_cents - 456_cents + 789_cents,
-              printer.accountBalance());
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  credit(account,
+         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  ViewStub view;
+  account.show(view);
+  assertEqual(result, "joe", view.accountName());
+  assertEqual(result, 123_cents - 456_cents + 789_cents, view.accountBalance());
   assertEqual(
       result,
       {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
        credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-      printer.accountTransactions());
+      view.accountTransactions());
 }
 
 void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
-  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.debit(
-      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-  account.credit(
-      Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-  account.debit(
-      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  credit(account,
+         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+  debit(account,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
   account.removeDebit(
       Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   account.removeCredit(
@@ -92,11 +97,11 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
 
 void saveSavesAllTransactions(testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
-  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.debit(
-      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-  account.credit(
-      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  credit(account,
+         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
   PersistentMemoryStub persistentMemory;
   account.save(persistentMemory);
   assertEqual(result, "joe", persistentMemory.accountName());
