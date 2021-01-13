@@ -1,5 +1,5 @@
-#ifndef SBASH64_BUDGET_PRINT_HPP_
-#define SBASH64_BUDGET_PRINT_HPP_
+#ifndef SBASH64_BUDGET_VIEW_HPP_
+#define SBASH64_BUDGET_VIEW_HPP_
 
 #include "budget.hpp"
 #include <ostream>
