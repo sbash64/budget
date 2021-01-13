@@ -74,7 +74,7 @@ void Controller::command(Model &bank, Prompt &view,
       }
       amount = usd(next(stream));
       state = State::readyForDate;
-      view.prompt("date");
+      view.prompt("date [month day year]");
     }
     break;
   case State::readyForDate:

@@ -235,7 +235,7 @@ void debitPromptsForDate(testcpplite::TestResult &result) {
   testController(
       [&](Controller &, ModelStub &, PromptStub &view, SerializationStub &,
           DeserializationStub &) {
-        assertEqual(result, "date", view.prompt());
+        assertEqual(result, "date [month day year]", view.prompt());
       },
       "debit Groceries 40");
 }
