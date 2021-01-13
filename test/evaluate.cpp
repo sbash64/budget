@@ -69,20 +69,19 @@ private:
 
 class SerializationStub : public SessionSerialization {
 public:
-  void save(Account &primary,
-            const std::vector<Account *> &secondaries) override {}
-  void saveAccount(std::string_view name,
-                   const std::vector<Transaction> &credits,
-                   const std::vector<Transaction> &debits) override {}
+  void save(Account &, const std::vector<Account *> &) override {}
+  void saveAccount(std::string_view, const std::vector<Transaction> &,
+                   const std::vector<Transaction> &) override {}
 };
 
 class DeserializationStub : public SessionDeserialization {
 public:
-  void loadAccount(std::vector<Transaction> &credits,
-                   std::vector<Transaction> &debits) override {}
-  void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
-            std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                &secondaries) override {}
+  void loadAccount(std::vector<Transaction> &,
+                   std::vector<Transaction> &) override {}
+  void load(
+      Account::Factory &, std::shared_ptr<Account> &,
+      std::map<std::string, std::shared_ptr<Account>, std::less<>> &) override {
+  }
 };
 } // namespace
 
@@ -201,7 +200,7 @@ void transferTo(testcpplite::TestResult &result) {
 
 void save(testcpplite::TestResult &result) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &view,
+      [&](Controller &, ModelStub &model, ViewStub &,
           SerializationStub &serialization, DeserializationStub &) {
         assertEqual(result, &serialization, model.serialization());
       },
