@@ -82,4 +82,6 @@ void StreamView::showAccountSummary(
   }
   stream << '\n' << "----";
 }
+
+void StreamView::prompt(std::string_view s) { stream << s << ' '; }
 } // namespace sbash64::budget

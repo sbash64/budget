@@ -11,6 +11,7 @@ void formatTenCents(testcpplite::TestResult &);
 void formatNegativeDollarThirtyFour(testcpplite::TestResult &);
 void accounts(testcpplite::TestResult &);
 void account(testcpplite::TestResult &);
+void prompt(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif

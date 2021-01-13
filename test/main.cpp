@@ -65,6 +65,7 @@ static auto runAllTests() -> int {
        {print::formatNegativeDollarThirtyFour, "format negative ten cents"},
        {print::accounts, "print accounts"},
        {print::account, "print account"},
+       {print::prompt, "print prompt"},
        {file::savesAccounts, "file saves accounts"},
        {file::loadsAccounts, "file loads accounts"}},
       std::cout);

@@ -93,4 +93,11 @@ Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
 )",
               '\n' + stream.str() + '\n');
 }
+
+void prompt(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  StreamView printer{stream};
+  printer.prompt("hello");
+  assertEqual(result, "hello ", stream.str());
+}
 } // namespace sbash64::budget::print
