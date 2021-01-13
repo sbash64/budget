@@ -1,6 +1,6 @@
 #include "account.hpp"
 #include "bank.hpp"
-#include "evaluate.hpp"
+#include "command-line.hpp"
 #include "parse.hpp"
 #include "print.hpp"
 #include "stream.hpp"
