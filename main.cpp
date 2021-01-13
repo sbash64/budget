@@ -22,16 +22,16 @@ static void repl() {
   Controller controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
-  StreamView printer{std::cout};
+  StreamView view{std::cout};
   FileStreamFactory streamFactory;
-  WritesSessionToStream outputStream{streamFactory};
-  ReadsSessionFromStream inputStream{streamFactory};
+  WritesSessionToStream serialization{streamFactory};
+  ReadsSessionFromStream deserialization{streamFactory};
   for (;;) {
     std::string line;
     getline(std::cin, line);
     if (line == "exit")
       break;
-    command(controller, bank, printer, outputStream, inputStream, line);
+    command(controller, bank, view, serialization, deserialization, line);
   }
 }
 } // namespace sbash64::budget
