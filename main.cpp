@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <sbash64/budget/account.hpp>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/command-line.hpp>
 #include <sbash64/budget/serialization.hpp>
