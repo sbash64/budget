@@ -17,6 +17,7 @@ public:
   void showAccountSummary(std::string_view name, USD balance,
                           const std::vector<TransactionWithType> &) override;
   void prompt(std::string_view) override;
+  void show(const Transaction &, std::string_view suffix) override;
 
 private:
   std::ostream &stream;

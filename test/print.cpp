@@ -100,4 +100,12 @@ void prompt(testcpplite::TestResult &result) {
   printer.prompt("hello");
   assertEqual(result, "hello ", stream.str());
 }
+
+void transactionWithSuffix(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  StreamView printer{stream};
+  printer.show(Transaction{123_cents, "nope", Date{2020, Month::July, 5}},
+               "hello");
+  assertEqual(result, "$1.23 7/5/2020 nope hello", stream.str());
+}
 } // namespace sbash64::budget::print

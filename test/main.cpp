@@ -69,6 +69,7 @@ static auto runAllTests() -> int {
        {print::accounts, "print accounts"},
        {print::account, "print account"},
        {print::prompt, "print prompt"},
+       {print::transactionWithSuffix, "print transaction with suffix"},
        {file::savesAccounts, "file saves accounts"},
        {file::loadsAccounts, "file loads accounts"}},
       std::cout);

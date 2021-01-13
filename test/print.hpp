@@ -12,6 +12,7 @@ void formatNegativeDollarThirtyFour(testcpplite::TestResult &);
 void accounts(testcpplite::TestResult &);
 void account(testcpplite::TestResult &);
 void prompt(testcpplite::TestResult &);
+void transactionWithSuffix(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif
