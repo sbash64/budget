@@ -47,7 +47,8 @@ static auto date(std::string_view s) -> Date {
 
 void Controller::command(Model &bank, View &view,
                          SessionSerialization &serialization,
-                         SessionDeserialization &, std::string_view input) {
+                         SessionDeserialization &deserialization,
+                         std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   switch (state) {
@@ -57,6 +58,8 @@ void Controller::command(Model &bank, View &view,
       bank.show(view);
     } else if (commandName == "save") {
       bank.save(serialization);
+    } else if (commandName == "load") {
+      bank.load(deserialization);
     } else {
       if (commandName == "transferto") {
         accountName = next(stream);

@@ -46,7 +46,11 @@ public:
     return serialization_;
   }
 
-  void load(SessionDeserialization &) override {}
+  void load(SessionDeserialization &s) override { deserialization_ = &s; }
+
+  auto deserialization() -> const SessionDeserialization * {
+    return deserialization_;
+  }
 
   auto transferredAmount() -> USD { return transferredAmount_; }
 
@@ -62,6 +66,7 @@ private:
   std::string debitedAccountName_;
   const View *printer_{};
   const SessionSerialization *serialization_{};
+  const SessionDeserialization *deserialization_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
   Date transferDate_{};
@@ -205,5 +210,14 @@ void save(testcpplite::TestResult &result) {
         assertEqual(result, &serialization, model.serialization());
       },
       "save");
+}
+
+void load(testcpplite::TestResult &result) {
+  testController(
+      [&](Controller &, ModelStub &model, ViewStub &, SerializationStub &,
+          DeserializationStub &deserialization) {
+        assertEqual(result, &deserialization, model.deserialization());
+      },
+      "load");
 }
 } // namespace sbash64::budget::evaluate
