@@ -1,6 +1,6 @@
 #include "print.hpp"
 #include "usd.hpp"
-#include <sbash64/budget/view.hpp>
+#include <sbash64/budget/command-line.hpp>
 #include <sstream>
 
 namespace sbash64::budget::print {

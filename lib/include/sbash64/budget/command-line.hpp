@@ -31,6 +31,22 @@ private:
 void command(CommandLineInterpreter &, Model &, CommandLineInterface &,
              SessionSerialization &, SessionDeserialization &,
              std::string_view);
+
+auto format(USD) -> std::string;
+
+class StreamView : public CommandLineInterface {
+public:
+  explicit StreamView(std::ostream &);
+  void show(Account &primary,
+            const std::vector<Account *> &secondaries) override;
+  void showAccountSummary(std::string_view name, USD balance,
+                          const std::vector<TransactionWithType> &) override;
+  void prompt(std::string_view) override;
+  void show(const Transaction &, std::string_view suffix) override;
+
+private:
+  std::ostream &stream;
+};
 } // namespace sbash64::budget
 
 #endif

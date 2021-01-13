@@ -4,7 +4,6 @@
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/command-line.hpp>
 #include <sbash64/budget/serialization.hpp>
-#include <sbash64/budget/view.hpp>
 
 namespace sbash64::budget {
 class FileStreamFactory : public IoStreamFactory {
