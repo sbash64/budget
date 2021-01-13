@@ -99,6 +99,8 @@ void Controller::command(Model &bank, Prompt &view,
       bank.debit(accountName, Transaction{amount, std::string{input}, date});
       break;
     }
+    view.show(Transaction{amount, std::string{input}, date},
+              "-> " + accountName);
     state = State::normal;
     break;
   }

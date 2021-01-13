@@ -9,6 +9,7 @@ namespace sbash64::budget {
 class Prompt : public virtual View {
 public:
   virtual void prompt(std::string_view) = 0;
+  virtual void show(const Transaction &t, std::string_view suffix) {}
 };
 
 class Controller {

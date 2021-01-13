@@ -28,6 +28,7 @@ static auto runAllTests() -> int {
        {evaluate::debitPromptsForDate, "evaluate debit prompts for date"},
        {evaluate::debitPromptsForDesriptionAfterDateEntered,
         "evaluate debit prompts for description after date entered"},
+       {evaluate::debitShowsTransaction, "evaluate debit shows transaction"},
        {evaluate::credit, "evaluate credit"},
        {evaluate::save, "evaluate save"},
        {evaluate::load, "evaluate load"},

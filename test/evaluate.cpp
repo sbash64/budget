@@ -95,8 +95,19 @@ public:
 
   void prompt(std::string_view s) override { prompt_ = s; }
 
+  auto transaction() -> Transaction { return transaction_; }
+
+  auto transactionSuffix() -> std::string { return transactionSuffix_; }
+
+  void show(const Transaction &t, std::string_view suffix) {
+    transaction_ = t;
+    transactionSuffix_ = suffix;
+  }
+
 private:
+  Transaction transaction_;
   std::string prompt_;
+  std::string transactionSuffix_;
 };
 } // namespace
 
@@ -165,6 +176,19 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
       [&](Controller &, ModelStub &model, ViewStub &) {
         assertEqual(result, expectedAccountName, model.debitedAccountName());
         assertEqual(result, expectedTransaction, model.debitedTransaction());
+      },
+      input);
+}
+
+static void assertShowsTransaction(testcpplite::TestResult &result,
+                                   const std::vector<std::string> &input,
+                                   const std::string &expectedAccountName,
+                                   const Transaction &expectedTransaction) {
+  testController(
+      [&](Controller &, ModelStub &model, PromptStub &view) {
+        assertEqual(result, expectedTransaction, view.transaction());
+        assertEqual(result, "-> " + expectedAccountName,
+                    view.transactionSuffix());
       },
       input);
 }
@@ -247,5 +271,11 @@ void debitPromptsForDesriptionAfterDateEntered(
         assertEqual(result, "description [anything]", view.prompt());
       },
       {"debit Groceries 40", "1 13 14"});
+}
+
+void debitShowsTransaction(testcpplite::TestResult &result) {
+  assertShowsTransaction(
+      result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
+      Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 } // namespace sbash64::budget::evaluate
