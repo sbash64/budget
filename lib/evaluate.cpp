@@ -18,8 +18,10 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &c, Model &b, View &p, std::string_view s) {
-  c.command(b, p, s);
+void command(Controller &controller, Model &model, View &view,
+             SessionSerialization &serialization,
+             SessionDeserialization &deserialization, std::string_view input) {
+  controller.command(model, view, serialization, deserialization, input);
 }
 
 static auto next(std::stringstream &stream) -> std::string {
@@ -43,7 +45,9 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, View &view, std::string_view input) {
+void Controller::command(Model &bank, View &view,
+                         SessionSerialization &serialization,
+                         SessionDeserialization &, std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   switch (state) {
@@ -51,6 +55,8 @@ void Controller::command(Model &bank, View &view, std::string_view input) {
     stream >> commandName;
     if (commandName == "print") {
       bank.show(view);
+    } else if (commandName == "save") {
+      bank.save(serialization);
     } else {
       if (commandName == "transferto") {
         accountName = next(stream);

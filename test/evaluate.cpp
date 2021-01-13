@@ -1,5 +1,6 @@
 #include "evaluate.hpp"
 #include "persistent-memory-stub.hpp"
+#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
@@ -39,7 +40,11 @@ public:
 
   auto view() -> const View * { return printer_; }
 
-  void save(SessionSerialization &) override {}
+  void save(SessionSerialization &s) override { serialization_ = &s; }
+
+  auto serialization() -> const SessionSerialization * {
+    return serialization_;
+  }
 
   void load(SessionDeserialization &) override {}
 
@@ -56,25 +61,62 @@ private:
   Transaction creditedTransaction_;
   std::string debitedAccountName_;
   const View *printer_{};
+  const SessionSerialization *serialization_{};
   USD transferredAmount_{};
   std::string accountNameTransferredTo_;
   Date transferDate_{};
 };
+
+class SerializationStub : public SessionSerialization {
+public:
+  void save(Account &primary,
+            const std::vector<Account *> &secondaries) override {}
+  void saveAccount(std::string_view name,
+                   const std::vector<Transaction> &credits,
+                   const std::vector<Transaction> &debits) override {}
+};
+
+class DeserializationStub : public SessionDeserialization {
+public:
+  void loadAccount(std::vector<Transaction> &credits,
+                   std::vector<Transaction> &debits) override {}
+  void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
+            std::map<std::string, std::shared_ptr<Account>, std::less<>>
+                &secondaries) override {}
+};
 } // namespace
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f) {
+    const std::function<void(Controller &, ModelStub &, ViewStub &,
+                             SerializationStub &, DeserializationStub &)> &f) {
   Controller controller;
   ModelStub model;
   ViewStub view;
-  f(controller, model, view);
+  SerializationStub serialization;
+  DeserializationStub deserialization;
+  f(controller, model, view, serialization, deserialization);
+}
+
+static void testController(
+    const std::function<void(Controller &, ModelStub &, ViewStub &,
+                             SerializationStub &, DeserializationStub &)> &f,
+    std::string_view input) {
+  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+                     SerializationStub &serialization,
+                     DeserializationStub &deserialization) {
+    command(controller, model, view, serialization, deserialization, input);
+    f(controller, model, view, serialization, deserialization);
+  });
 }
 
 static void testController(
     const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
     std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view) {
-    command(controller, model, view, input);
+  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+                     SerializationStub &, DeserializationStub &) {
+    SerializationStub serialization;
+    DeserializationStub deserialization;
+    command(controller, model, view, serialization, deserialization, input);
     f(controller, model, view);
   });
 }
@@ -82,9 +124,12 @@ static void testController(
 static void testController(
     const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
     const std::vector<std::string> &input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view) {
+  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+                     SerializationStub &, DeserializationStub &) {
+    SerializationStub serialization;
+    DeserializationStub deserialization;
     for (const auto &x : input)
-      command(controller, model, view, x);
+      command(controller, model, view, serialization, deserialization, x);
     f(controller, model, view);
   });
 }
@@ -152,5 +197,14 @@ void credit(testcpplite::TestResult &result) {
 void transferTo(testcpplite::TestResult &result) {
   assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
                            5000_cents, "Groceries", Date{2021, Month::June, 3});
+}
+
+void save(testcpplite::TestResult &result) {
+  testController(
+      [&](Controller &, ModelStub &model, ViewStub &view,
+          SerializationStub &serialization, DeserializationStub &) {
+        assertEqual(result, &serialization, model.serialization());
+      },
+      "save");
 }
 } // namespace sbash64::budget::evaluate
