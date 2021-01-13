@@ -9,7 +9,7 @@
 namespace sbash64::budget {
 auto format(USD) -> std::string;
 
-class StreamView : public command_line::Interface {
+class StreamView : public CommandLineInterface {
 public:
   explicit StreamView(std::ostream &);
   void show(Account &primary,

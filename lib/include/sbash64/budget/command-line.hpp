@@ -5,16 +5,16 @@
 #include <string>
 #include <string_view>
 
-namespace sbash64::budget::command_line {
-class Interface : public virtual View {
+namespace sbash64::budget {
+class CommandLineInterface : public virtual View {
 public:
   virtual void prompt(std::string_view) = 0;
   virtual void show(const Transaction &t, std::string_view suffix) = 0;
 };
 
-class Interpreter {
+class CommandLineInterpreter {
 public:
-  void command(Model &, Interface &, SessionSerialization &,
+  void command(Model &, CommandLineInterface &, SessionSerialization &,
                SessionDeserialization &, std::string_view);
 
 private:
@@ -28,8 +28,9 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(Interpreter &, Model &, Interface &, SessionSerialization &,
-             SessionDeserialization &, std::string_view);
-} // namespace sbash64::budget::command_line
+void command(CommandLineInterpreter &, Model &, CommandLineInterface &,
+             SessionSerialization &, SessionDeserialization &,
+             std::string_view);
+} // namespace sbash64::budget
 
 #endif
