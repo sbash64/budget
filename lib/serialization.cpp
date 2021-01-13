@@ -1,5 +1,4 @@
 #include "serialization.hpp"
-#include "parse.hpp"
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -71,6 +70,19 @@ static auto date(std::string_view s) -> Date {
   int year = 0;
   stream >> year;
   return Date{year, Month{month}, day};
+}
+
+static auto usd(std::string_view s) -> USD {
+  USD usd{};
+  std::istringstream stream{std::string{s}};
+  stream >> usd.cents;
+  usd.cents *= 100;
+  if (stream.get() == '.') {
+    int cents = 0;
+    stream >> cents;
+    usd.cents += cents;
+  }
+  return usd;
 }
 
 static void loadTransaction(std::istream &input, std::string &line,
