@@ -99,7 +99,7 @@ public:
 
   auto transactionSuffix() -> std::string { return transactionSuffix_; }
 
-  void show(const Transaction &t, std::string_view suffix) {
+  void show(const Transaction &t, std::string_view suffix) override {
     transaction_ = t;
     transactionSuffix_ = suffix;
   }
@@ -185,7 +185,7 @@ static void assertShowsTransaction(testcpplite::TestResult &result,
                                    const std::string &expectedAccountName,
                                    const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &model, PromptStub &view) {
+      [&](Controller &, ModelStub &, PromptStub &view) {
         assertEqual(result, expectedTransaction, view.transaction());
         assertEqual(result, "-> " + expectedAccountName,
                     view.transactionSuffix());
