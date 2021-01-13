@@ -88,6 +88,6 @@ void StreamView::prompt(std::string_view s) { stream << s << ' '; }
 void StreamView::show(const Transaction &t, std::string_view suffix) {
   putWithDollarSign(stream, t.amount)
       << ' ' << t.date.month << '/' << t.date.day << '/' << t.date.year << ' '
-      << t.description << ' ' << suffix;
+      << t.description << ' ' << suffix << '\n';
 }
 } // namespace sbash64::budget
