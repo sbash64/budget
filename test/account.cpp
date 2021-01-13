@@ -19,20 +19,23 @@ static void assertEqual(testcpplite::TestResult &result,
   assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
 
+static void assertContains(testcpplite::TestResult &result,
+                           const Transactions &transactions,
+                           const Transaction &transaction) {
+  assertTrue(result, std::find(transactions.begin(), transactions.end(),
+                               transaction) != transactions.end());
+}
+
 static void assertContainsCredit(testcpplite::TestResult &result,
                                  PersistentMemoryStub &persistentMemory,
                                  const Transaction &transaction) {
-  assertTrue(result, std::find(persistentMemory.credits().begin(),
-                               persistentMemory.credits().end(), transaction) !=
-                         persistentMemory.credits().end());
+  assertContains(result, persistentMemory.credits(), transaction);
 }
 
 static void assertContainsDebit(testcpplite::TestResult &result,
                                 PersistentMemoryStub &persistentMemory,
                                 const Transaction &transaction) {
-  assertTrue(result, std::find(persistentMemory.debits().begin(),
-                               persistentMemory.debits().end(),
-                               transaction) != persistentMemory.debits().end());
+  assertContains(result, persistentMemory.debits(), transaction);
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -50,6 +53,8 @@ static void credit(Account &account, const Transaction &t) {
 
 static void debit(Account &account, const Transaction &t) { account.debit(t); }
 
+static void show(Account &account, View &view) { account.show(view); }
+
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
@@ -59,7 +64,7 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
   credit(account,
          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
   ViewStub view;
-  account.show(view);
+  show(account, view);
   assertEqual(result, "joe", view.accountName());
   assertEqual(result, 123_cents - 456_cents + 789_cents, view.accountBalance());
   assertEqual(
@@ -84,15 +89,15 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
       Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   account.removeCredit(
       Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-  ViewStub printer;
-  account.show(printer);
-  assertEqual(result, "joe", printer.accountName());
-  assertEqual(result, 123_cents - 789_cents, printer.accountBalance());
+  ViewStub view;
+  show(account, view);
+  assertEqual(result, "joe", view.accountName());
+  assertEqual(result, 123_cents - 789_cents, view.accountBalance());
   assertEqual(
       result,
       {debit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-      printer.accountTransactions());
+      view.accountTransactions());
 }
 
 void saveSavesAllTransactions(testcpplite::TestResult &result) {
@@ -125,18 +130,13 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
       {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}});
   InMemoryAccount account{""};
   account.load(persistentMemory);
-  ViewStub printer;
-  account.show(printer);
+  ViewStub view;
+  show(account, view);
   assertEqual(
       result,
-      debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
-      printer.accountTransactions().at(0));
-  assertEqual(
-      result,
-      credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-      printer.accountTransactions().at(1));
-  assertEqual(result,
-              credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}}),
-              printer.accountTransactions().at(2));
+      {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
+       credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
+      view.accountTransactions());
 }
 } // namespace sbash64::budget::account
