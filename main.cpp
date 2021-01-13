@@ -31,12 +31,7 @@ static void repl() {
     getline(std::cin, line);
     if (line == "exit")
       break;
-    if (line == "save")
-      bank.save(outputStream);
-    else if (line == "load")
-      bank.load(inputStream);
-    else
-      command(controller, bank, printer, line);
+    command(controller, bank, printer, outputStream, inputStream, line);
   }
 }
 } // namespace sbash64::budget
