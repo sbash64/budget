@@ -81,14 +81,18 @@ static void debit(Bank &bank, std::string_view accountName,
   bank.debit(accountName, t);
 }
 
+static void assertContains(testcpplite::TestResult &result,
+                           const std::vector<Account *> &accounts,
+                           const std::shared_ptr<Account> &account) {
+  assertTrue(result, std::find(accounts.begin(), accounts.end(),
+                               account.get()) != accounts.end());
+}
+
 static void
 assertContainsSecondaryAccount(testcpplite::TestResult &result,
                                PersistentMemoryStub &persistentMemory,
                                const std::shared_ptr<Account> &account) {
-  assertTrue(result, std::find(persistentMemory.secondaryAccounts().begin(),
-                               persistentMemory.secondaryAccounts().end(),
-                               account.get()) !=
-                         persistentMemory.secondaryAccounts().end());
+  assertContains(result, persistentMemory.secondaryAccounts(), account);
 }
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
