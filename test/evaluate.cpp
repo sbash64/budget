@@ -239,4 +239,13 @@ void debitPromptsForDate(testcpplite::TestResult &result) {
       },
       "debit Groceries 40");
 }
+
+void debitPromptsForDesriptionAfterDateEntered(
+    testcpplite::TestResult &result) {
+  testController(
+      [&](Controller &, ModelStub &, PromptStub &view) {
+        assertEqual(result, "description [anything]", view.prompt());
+      },
+      {"debit Groceries 40", "1 13 14"});
+}
 } // namespace sbash64::budget::evaluate

@@ -26,6 +26,8 @@ static auto runAllTests() -> int {
        {evaluate::transferTo, "evaluate transfer to command"},
        {evaluate::debit, "evaluate debit"},
        {evaluate::debitPromptsForDate, "evaluate debit prompts for date"},
+       {evaluate::debitPromptsForDesriptionAfterDateEntered,
+        "evaluate debit prompts for description after date entered"},
        {evaluate::credit, "evaluate credit"},
        {evaluate::save, "evaluate save"},
        {evaluate::load, "evaluate load"},

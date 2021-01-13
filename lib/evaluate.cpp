@@ -82,6 +82,7 @@ void Controller::command(Model &bank, Prompt &view,
     switch (commandType) {
     case CommandType::transaction:
       state = State::readyForDescription;
+      view.prompt("description [anything]");
       break;
     case CommandType::transfer:
       bank.transferTo(accountName, amount, date);
