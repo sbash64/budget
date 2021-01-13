@@ -18,7 +18,7 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &controller, Model &model, View &view,
+void command(Controller &controller, Model &model, Prompt &view,
              SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
   controller.command(model, view, serialization, deserialization, input);
@@ -45,7 +45,7 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, View &view,
+void Controller::command(Model &bank, Prompt &view,
                          SessionSerialization &serialization,
                          SessionDeserialization &deserialization,
                          std::string_view input) {
@@ -74,6 +74,7 @@ void Controller::command(Model &bank, View &view,
       }
       amount = usd(next(stream));
       state = State::readyForDate;
+      view.prompt("date");
     }
     break;
   case State::readyForDate:

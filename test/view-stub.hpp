@@ -4,7 +4,7 @@
 #include <sbash64/budget/budget.hpp>
 
 namespace sbash64::budget {
-class ViewStub : public View {
+class ViewStub : public virtual View {
 public:
   auto accountBalance() -> USD { return accountBalance_; }
 

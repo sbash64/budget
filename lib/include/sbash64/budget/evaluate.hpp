@@ -6,9 +6,14 @@
 #include <string_view>
 
 namespace sbash64::budget {
+class Prompt : public virtual View {
+public:
+  virtual void prompt(std::string_view) = 0;
+};
+
 class Controller {
 public:
-  void command(Model &, View &, SessionSerialization &,
+  void command(Model &, Prompt &, SessionSerialization &,
                SessionDeserialization &, std::string_view);
 
 private:
@@ -22,7 +27,7 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(Controller &, Model &, View &, SessionSerialization &,
+void command(Controller &, Model &, Prompt &, SessionSerialization &,
              SessionDeserialization &, std::string_view);
 } // namespace sbash64::budget
 

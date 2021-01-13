@@ -88,24 +88,34 @@ public:
       std::map<std::string, std::shared_ptr<Account>, std::less<>> &) override {
   }
 };
+
+class PromptStub : public ViewStub, public Prompt {
+public:
+  auto prompt() -> std::string { return prompt_; }
+
+  void prompt(std::string_view s) override { prompt_ = s; }
+
+private:
+  std::string prompt_;
+};
 } // namespace
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, ViewStub &,
+    const std::function<void(Controller &, ModelStub &, PromptStub &,
                              SerializationStub &, DeserializationStub &)> &f) {
   Controller controller;
   ModelStub model;
-  ViewStub view;
+  PromptStub view;
   SerializationStub serialization;
   DeserializationStub deserialization;
   f(controller, model, view, serialization, deserialization);
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, ViewStub &,
+    const std::function<void(Controller &, ModelStub &, PromptStub &,
                              SerializationStub &, DeserializationStub &)> &f,
     std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
                      SerializationStub &serialization,
                      DeserializationStub &deserialization) {
     command(controller, model, view, serialization, deserialization, input);
@@ -114,9 +124,9 @@ static void testController(
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
+    const std::function<void(Controller &, ModelStub &, PromptStub &)> &f,
     std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
                      SerializationStub &, DeserializationStub &) {
     SerializationStub serialization;
     DeserializationStub deserialization;
@@ -126,9 +136,9 @@ static void testController(
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, ViewStub &)> &f,
+    const std::function<void(Controller &, ModelStub &, PromptStub &)> &f,
     const std::vector<std::string> &input) {
-  testController([&](Controller &controller, ModelStub &model, ViewStub &view,
+  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
                      SerializationStub &, DeserializationStub &) {
     SerializationStub serialization;
     DeserializationStub deserialization;
@@ -219,5 +229,14 @@ void load(testcpplite::TestResult &result) {
         assertEqual(result, &deserialization, model.deserialization());
       },
       "load");
+}
+
+void debitPromptsForDate(testcpplite::TestResult &result) {
+  testController(
+      [&](Controller &, ModelStub &, PromptStub &view, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result, "date", view.prompt());
+      },
+      "debit Groceries 40");
 }
 } // namespace sbash64::budget::evaluate

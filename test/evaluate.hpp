@@ -10,6 +10,7 @@ void credit(testcpplite::TestResult &);
 void transferTo(testcpplite::TestResult &);
 void save(testcpplite::TestResult &);
 void load(testcpplite::TestResult &);
+void debitPromptsForDate(testcpplite::TestResult &);
 } // namespace sbash64::budget::evaluate
 
 #endif
