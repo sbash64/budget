@@ -19,7 +19,7 @@ public:
 };
 
 static void repl() {
-  Controller controller;
+  Interpreter controller;
   InMemoryAccount::Factory accountFactory;
   Bank bank{accountFactory};
   StreamView view{std::cout};

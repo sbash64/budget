@@ -9,7 +9,7 @@
 #include <sstream>
 #include <string_view>
 
-namespace sbash64::budget::evaluate {
+namespace sbash64::budget::command_line::evaluate {
 namespace {
 class ModelStub : public Model {
 public:
@@ -89,7 +89,7 @@ public:
   }
 };
 
-class PromptStub : public ViewStub, public CommandLineInterface {
+class PromptStub : public ViewStub, public Interface {
 public:
   auto prompt() -> std::string { return prompt_; }
 
@@ -112,9 +112,9 @@ private:
 } // namespace
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, PromptStub &,
+    const std::function<void(Interpreter &, ModelStub &, PromptStub &,
                              SerializationStub &, DeserializationStub &)> &f) {
-  Controller controller;
+  Interpreter controller;
   ModelStub model;
   PromptStub view;
   SerializationStub serialization;
@@ -123,11 +123,11 @@ static void testController(
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, PromptStub &,
+    const std::function<void(Interpreter &, ModelStub &, PromptStub &,
                              SerializationStub &, DeserializationStub &)> &f,
     std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
-                     SerializationStub &serialization,
+  testController([&](Interpreter &controller, ModelStub &model,
+                     PromptStub &view, SerializationStub &serialization,
                      DeserializationStub &deserialization) {
     command(controller, model, view, serialization, deserialization, input);
     f(controller, model, view, serialization, deserialization);
@@ -135,10 +135,11 @@ static void testController(
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, PromptStub &)> &f,
+    const std::function<void(Interpreter &, ModelStub &, PromptStub &)> &f,
     std::string_view input) {
-  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
-                     SerializationStub &, DeserializationStub &) {
+  testController([&](Interpreter &controller, ModelStub &model,
+                     PromptStub &view, SerializationStub &,
+                     DeserializationStub &) {
     SerializationStub serialization;
     DeserializationStub deserialization;
     command(controller, model, view, serialization, deserialization, input);
@@ -147,10 +148,11 @@ static void testController(
 }
 
 static void testController(
-    const std::function<void(Controller &, ModelStub &, PromptStub &)> &f,
+    const std::function<void(Interpreter &, ModelStub &, PromptStub &)> &f,
     const std::vector<std::string> &input) {
-  testController([&](Controller &controller, ModelStub &model, PromptStub &view,
-                     SerializationStub &, DeserializationStub &) {
+  testController([&](Interpreter &controller, ModelStub &model,
+                     PromptStub &view, SerializationStub &,
+                     DeserializationStub &) {
     SerializationStub serialization;
     DeserializationStub deserialization;
     for (const auto &x : input)
@@ -162,7 +164,7 @@ static void testController(
 static void assertPrints(testcpplite::TestResult &result,
                          std::string_view input) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &view) {
+      [&](Interpreter &, ModelStub &model, ViewStub &view) {
         assertEqual(result, &view, model.view());
       },
       input);
@@ -173,7 +175,7 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &) {
+      [&](Interpreter &, ModelStub &model, ViewStub &) {
         assertEqual(result, expectedAccountName, model.debitedAccountName());
         assertEqual(result, expectedTransaction, model.debitedTransaction());
       },
@@ -185,7 +187,7 @@ static void assertShowsTransaction(testcpplite::TestResult &result,
                                    const std::string &expectedAccountName,
                                    const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &, PromptStub &view) {
+      [&](Interpreter &, ModelStub &, PromptStub &view) {
         assertEqual(result, expectedTransaction, view.transaction());
         assertEqual(result, "-> " + expectedAccountName,
                     view.transactionSuffix());
@@ -197,7 +199,7 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
   testController(
-      [&](Controller &, ModelStub &bank, ViewStub &) {
+      [&](Interpreter &, ModelStub &bank, ViewStub &) {
         assertEqual(result, expectedTransaction, bank.creditedTransaction());
       },
       input);
@@ -209,7 +211,7 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      std::string_view expectedAccountName,
                                      const Date &expectedDate) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &) {
+      [&](Interpreter &, ModelStub &model, ViewStub &) {
         assertEqual(result, expectedAmount, model.transferredAmount());
         assertEqual(result, std::string{expectedAccountName},
                     model.accountNameTransferredTo());
@@ -239,7 +241,7 @@ void transferTo(testcpplite::TestResult &result) {
 
 void save(testcpplite::TestResult &result) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &,
+      [&](Interpreter &, ModelStub &model, ViewStub &,
           SerializationStub &serialization, DeserializationStub &) {
         assertEqual(result, &serialization, model.serialization());
       },
@@ -248,7 +250,7 @@ void save(testcpplite::TestResult &result) {
 
 void load(testcpplite::TestResult &result) {
   testController(
-      [&](Controller &, ModelStub &model, ViewStub &, SerializationStub &,
+      [&](Interpreter &, ModelStub &model, ViewStub &, SerializationStub &,
           DeserializationStub &deserialization) {
         assertEqual(result, &deserialization, model.deserialization());
       },
@@ -257,7 +259,7 @@ void load(testcpplite::TestResult &result) {
 
 void debitPromptsForDate(testcpplite::TestResult &result) {
   testController(
-      [&](Controller &, ModelStub &, PromptStub &view, SerializationStub &,
+      [&](Interpreter &, ModelStub &, PromptStub &view, SerializationStub &,
           DeserializationStub &) {
         assertEqual(result, "date [month day year]", view.prompt());
       },
@@ -267,7 +269,7 @@ void debitPromptsForDate(testcpplite::TestResult &result) {
 void debitPromptsForDesriptionAfterDateEntered(
     testcpplite::TestResult &result) {
   testController(
-      [&](Controller &, ModelStub &, PromptStub &view) {
+      [&](Interpreter &, ModelStub &, PromptStub &view) {
         assertEqual(result, "description [anything]", view.prompt());
       },
       {"debit Groceries 40", "1 13 14"});
@@ -278,4 +280,4 @@ void debitShowsTransaction(testcpplite::TestResult &result) {
       result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
-} // namespace sbash64::budget::evaluate
+} // namespace sbash64::budget::command_line::evaluate

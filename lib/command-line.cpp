@@ -2,7 +2,7 @@
 #include "parse.hpp"
 #include <sstream>
 
-namespace sbash64::budget {
+namespace sbash64::budget::command_line {
 constexpr auto multiWordArgumentDelimiter{'"'};
 
 static auto nextArgument(std::stringstream &stream) -> std::string {
@@ -18,7 +18,7 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &controller, Model &model, CommandLineInterface &view,
+void command(Interpreter &controller, Model &model, Interface &view,
              SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
   controller.command(model, view, serialization, deserialization, input);
@@ -45,10 +45,10 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, CommandLineInterface &view,
-                         SessionSerialization &serialization,
-                         SessionDeserialization &deserialization,
-                         std::string_view input) {
+void Interpreter::command(Model &bank, Interface &view,
+                          SessionSerialization &serialization,
+                          SessionDeserialization &deserialization,
+                          std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   switch (state) {
@@ -78,7 +78,7 @@ void Controller::command(Model &bank, CommandLineInterface &view,
     }
     break;
   case State::readyForDate:
-    date = budget::date(input);
+    date = command_line::date(input);
     switch (commandType) {
     case CommandType::transaction:
       state = State::readyForDescription;
@@ -105,4 +105,4 @@ void Controller::command(Model &bank, CommandLineInterface &view,
     break;
   }
 }
-} // namespace sbash64::budget
+} // namespace sbash64::budget::command_line

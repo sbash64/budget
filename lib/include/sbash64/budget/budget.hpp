@@ -122,21 +122,21 @@ public:
                      const std::vector<TransactionWithType> &transactions) = 0;
 };
 
+using Transactions = std::vector<Transaction>;
+
 class SessionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void saveAccount(std::string_view name,
-                           const std::vector<Transaction> &credits,
-                           const std::vector<Transaction> &debits) = 0;
+  virtual void saveAccount(std::string_view name, const Transactions &credits,
+                           const Transactions &debits) = 0;
 };
 
 class SessionDeserialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
-  virtual void loadAccount(std::vector<Transaction> &credits,
-                           std::vector<Transaction> &debits) = 0;
+  virtual void loadAccount(Transactions &credits, Transactions &debits) = 0;
   virtual void load(Account::Factory &factory,
                     std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>
