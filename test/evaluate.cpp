@@ -4,7 +4,7 @@
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
-#include <sbash64/budget/evaluate.hpp>
+#include <sbash64/budget/command-line.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <sstream>
 #include <string_view>
@@ -89,7 +89,7 @@ public:
   }
 };
 
-class PromptStub : public ViewStub, public Prompt {
+class PromptStub : public ViewStub, public CommandLineInterface {
 public:
   auto prompt() -> std::string { return prompt_; }
 

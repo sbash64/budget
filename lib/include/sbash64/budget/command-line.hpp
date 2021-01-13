@@ -1,20 +1,20 @@
-#ifndef SBASH64_BUDGET_EVALUATE_HPP_
-#define SBASH64_BUDGET_EVALUATE_HPP_
+#ifndef SBASH64_BUDGET_COMMAND_LINE_HPP_
+#define SBASH64_BUDGET_COMMAND_LINE_HPP_
 
 #include "budget.hpp"
 #include <string>
 #include <string_view>
 
 namespace sbash64::budget {
-class Prompt : public virtual View {
+class CommandLineInterface : public virtual View {
 public:
   virtual void prompt(std::string_view) = 0;
-  virtual void show(const Transaction &t, std::string_view suffix) {}
+  virtual void show(const Transaction &t, std::string_view suffix) = 0;
 };
 
 class Controller {
 public:
-  void command(Model &, Prompt &, SessionSerialization &,
+  void command(Model &, CommandLineInterface &, SessionSerialization &,
                SessionDeserialization &, std::string_view);
 
 private:
@@ -28,8 +28,9 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(Controller &, Model &, Prompt &, SessionSerialization &,
-             SessionDeserialization &, std::string_view);
+void command(Controller &, Model &, CommandLineInterface &,
+             SessionSerialization &, SessionDeserialization &,
+             std::string_view);
 } // namespace sbash64::budget
 
 #endif

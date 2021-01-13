@@ -2,14 +2,14 @@
 #define SBASH64_BUDGET_VIEW_HPP_
 
 #include "budget.hpp"
-#include "evaluate.hpp"
+#include "command-line.hpp"
 #include <ostream>
 #include <string>
 
 namespace sbash64::budget {
 auto format(USD) -> std::string;
 
-class StreamView : public Prompt {
+class StreamView : public CommandLineInterface {
 public:
   explicit StreamView(std::ostream &);
   void show(Account &primary,

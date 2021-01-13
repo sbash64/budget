@@ -1,4 +1,4 @@
-#include "evaluate.hpp"
+#include "command-line.hpp"
 #include "parse.hpp"
 #include <sstream>
 
@@ -18,7 +18,7 @@ static auto nextArgument(std::stringstream &stream) -> std::string {
   return argument;
 }
 
-void command(Controller &controller, Model &model, Prompt &view,
+void command(Controller &controller, Model &model, CommandLineInterface &view,
              SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
   controller.command(model, view, serialization, deserialization, input);
@@ -45,7 +45,7 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-void Controller::command(Model &bank, Prompt &view,
+void Controller::command(Model &bank, CommandLineInterface &view,
                          SessionSerialization &serialization,
                          SessionDeserialization &deserialization,
                          std::string_view input) {
