@@ -1,5 +1,6 @@
 #include "bank.hpp"
 #include "persistent-memory-stub.hpp"
+#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
@@ -36,7 +37,7 @@ public:
 
   auto newName() -> std::string { return newName_; }
 
-  void rename(std::string_view s) { newName_ = s; }
+  void rename(std::string_view s) override { newName_ = s; }
 
 private:
   Transaction creditedTransaction_;
@@ -100,6 +101,12 @@ assertContainsSecondaryAccount(testcpplite::TestResult &result,
   assertContains(result, persistentMemory.secondaryAccounts(), account);
 }
 
+static void assertDebited(testcpplite::TestResult &result,
+                          const std::shared_ptr<AccountStub> &account,
+                          const Transaction &t) {
+  assertEqual(result, t, account->debitedTransaction());
+}
+
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &,
@@ -123,9 +130,9 @@ void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &result) {
     add(factory, account, "giraffe");
     debit(bank, "giraffe",
           Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-    assertEqual(result,
-                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
-                account->debitedTransaction());
+    assertDebited(
+        result, account,
+        Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
   });
 }
 
@@ -139,9 +146,9 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
     add(factory, nullptr, "giraffe");
     debit(bank, "giraffe",
           Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertEqual(result,
-                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-                account->debitedTransaction());
+    assertDebited(
+        result, account,
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
 }
 
@@ -155,10 +162,9 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
                 Transaction{456_cents, "transfer from master",
                             Date{1776, Month::July, 4}},
                 account->creditedTransaction());
-    assertEqual(result,
-                Transaction{456_cents, "transfer to giraffe",
-                            Date{1776, Month::July, 4}},
-                masterAccount->debitedTransaction());
+    assertDebited(result, masterAccount,
+                  Transaction{456_cents, "transfer to giraffe",
+                              Date{1776, Month::July, 4}});
   });
 }
 
