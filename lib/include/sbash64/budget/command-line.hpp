@@ -21,9 +21,9 @@ public:
   enum class CommandType : int;
 
 private:
-  Date date;
+  Date date{};
   std::string accountName;
-  USD amount;
+  USD amount{};
   State state;
   CommandType commandType;
   Transaction::Type transactionType;

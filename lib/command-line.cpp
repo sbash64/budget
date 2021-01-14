@@ -52,7 +52,9 @@ static void f(Model &model, CommandLineInterface &interface,
   state = CommandLineInterpreter::State::normal;
 }
 
-CommandLineInterpreter::CommandLineInterpreter() : state{State::normal} {}
+CommandLineInterpreter::CommandLineInterpreter()
+    : state{State::normal}, commandType{CommandType::transaction},
+      transactionType{Transaction::Type::credit} {}
 
 void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
                                      SessionSerialization &serialization,
