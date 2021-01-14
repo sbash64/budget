@@ -14,16 +14,17 @@ public:
 
 class CommandLineInterpreter {
 public:
+  CommandLineInterpreter();
   void command(Model &, CommandLineInterface &, SessionSerialization &,
                SessionDeserialization &, std::string_view);
+  enum class State : int;
+  enum class CommandType : int;
 
 private:
-  enum class State { normal, readyForDate, readyForDescription };
-  enum class CommandType { transaction, transfer };
-  USD amount;
   Date date;
   std::string accountName;
-  State state{State::normal};
+  USD amount;
+  State state;
   CommandType commandType;
   Transaction::Type transactionType;
 };

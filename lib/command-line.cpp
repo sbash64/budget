@@ -5,6 +5,14 @@
 #include <sstream>
 
 namespace sbash64::budget {
+enum class CommandLineInterpreter::State {
+  normal,
+  readyForDate,
+  readyForDescription
+};
+
+enum class CommandLineInterpreter::CommandType { transaction, transfer };
+
 void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &view, SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
@@ -25,6 +33,26 @@ static auto date(std::string_view s) -> Date {
   date.year = year + 2000;
   return date;
 }
+
+static void f(Model &model, CommandLineInterface &interface,
+              CommandLineInterpreter::State &state,
+              Transaction::Type transactionType, USD amount,
+              std::string_view accountName, const Date &date,
+              std::string_view input) {
+  switch (transactionType) {
+  case Transaction::Type::credit:
+    model.credit(Transaction{amount, std::string{input}, date});
+    break;
+  case Transaction::Type::debit:
+    model.debit(accountName, Transaction{amount, std::string{input}, date});
+    break;
+  }
+  interface.show(Transaction{amount, std::string{input}, date},
+                 "-> " + std::string{accountName});
+  state = CommandLineInterpreter::State::normal;
+}
+
+CommandLineInterpreter::CommandLineInterpreter() : state{State::normal} {}
 
 void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
                                      SessionSerialization &serialization,
@@ -102,17 +130,7 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
     }
     break;
   case State::readyForDescription:
-    switch (transactionType) {
-    case Transaction::Type::credit:
-      bank.credit(Transaction{amount, std::string{input}, date});
-      break;
-    case Transaction::Type::debit:
-      bank.debit(accountName, Transaction{amount, std::string{input}, date});
-      break;
-    }
-    view.show(Transaction{amount, std::string{input}, date},
-              "-> " + accountName);
-    state = State::normal;
+    f(bank, view, state, transactionType, amount, accountName, date, input);
     break;
   }
 }
