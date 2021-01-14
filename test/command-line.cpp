@@ -247,13 +247,13 @@ void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
 
 void debit(testcpplite::TestResult &result) {
   assertDebitsAccount(
-      result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
+      result, {"debit", "Gifts", "25", "12 27 20", "Sam's 24th"}, "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 
 void debitMultiWordAccount(testcpplite::TestResult &result) {
   assertDebitsAccount(
-      result, {"debit Seth's Car Loan 321.24", "12 27 20", "honda"},
+      result, {"debit", "Seth's Car Loan", "321.24", "12 27 20", "honda"},
       "Seth's Car Loan",
       Transaction{32124_cents, "honda", Date{2020, Month::December, 27}});
 }
@@ -306,12 +306,12 @@ void debitPromptsForDesriptionAfterDateEntered(
           CommandLineInterfaceStub &interface) {
         assertEqual(result, "description [anything]", interface.prompt());
       },
-      {"debit Groceries 40", "1 13 14"});
+      {"debit", "Groceries", "40", "1 13 14"});
 }
 
 void debitShowsTransaction(testcpplite::TestResult &result) {
   assertShowsTransaction(
-      result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
+      result, {"debit", "Gifts", "25", "12 27 20", "Sam's 24th"}, "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 

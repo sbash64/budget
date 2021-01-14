@@ -7,6 +7,8 @@
 namespace sbash64::budget {
 enum class CommandLineInterpreter::State {
   normal,
+  readyForAccountName,
+  readyForAmount,
   readyForDate,
   readyForDescription,
   readyForNewName
@@ -105,9 +107,6 @@ static void executeFirstLineOfMultiLineCommand(
     accountName = accountName_;
     if (commandName == "transferto") {
       commandType = CommandLineInterpreter::CommandType::transfer;
-    } else if (commandName == "debit") {
-      transactionType = Transaction::Type::debit;
-      commandType = CommandLineInterpreter::CommandType::transaction;
     }
   }
   amount = usd(eventuallyAmount);
@@ -136,6 +135,12 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     stream >> accountName;
     state = CommandLineInterpreter::State::readyForNewName;
     interface.prompt("new name [anything]");
+  } else if (commandName == "debit") {
+    stream >> accountName;
+    transactionType = Transaction::Type::debit;
+    commandType = CommandLineInterpreter::CommandType::transaction;
+    state = CommandLineInterpreter::State::readyForAccountName;
+    interface.prompt("date [month day year]");
   } else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,
@@ -156,6 +161,14 @@ void CommandLineInterpreter::execute(Model &model,
     return executeCommand(model, interface, serialization, deserialization,
                           accountName, amount, state, commandType,
                           transactionType, input);
+  case State::readyForAccountName:
+    accountName = input;
+    state = State::readyForAmount;
+    break;
+  case State::readyForAmount:
+    amount = usd(input);
+    state = State::readyForDate;
+    break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,
                      commandType, input);
