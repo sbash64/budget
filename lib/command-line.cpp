@@ -35,22 +35,30 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-static void parseDescription(Model &model, CommandLineInterface &interface,
+static auto description(std::string_view s) -> std::string {
+  return std::string{s};
+}
+
+static auto transaction(USD amount, const Date &date, std::string_view input)
+    -> Transaction {
+  return Transaction{amount, description(input), date};
+}
+
+static void enterTransaction(Model &model, CommandLineInterface &interface,
                              CommandLineInterpreter::State &state,
                              Transaction::Type transactionType, USD amount,
                              std::string_view accountName, const Date &date,
                              std::string_view input) {
-  const auto description{std::string{input}};
-  const auto transaction{Transaction{amount, description, date}};
   switch (transactionType) {
   case Transaction::Type::credit:
-    model.credit(transaction);
+    model.credit(transaction(amount, date, input));
     break;
   case Transaction::Type::debit:
-    model.debit(accountName, transaction);
+    model.debit(accountName, transaction(amount, date, input));
     break;
   }
-  interface.show(transaction, "-> " + std::string{accountName});
+  interface.show(transaction(amount, date, input),
+                 "-> " + std::string{accountName});
   state = CommandLineInterpreter::State::normal;
 }
 
@@ -59,14 +67,14 @@ static void parseDate(Model &model, CommandLineInterface &interface,
                       USD amount, std::string_view accountName,
                       CommandLineInterpreter::CommandType commandType,
                       std::string_view input) {
-  date = budget::date(input);
   switch (commandType) {
   case CommandLineInterpreter::CommandType::transaction:
+    date = budget::date(input);
     state = CommandLineInterpreter::State::readyForDescription;
     interface.prompt("description [anything]");
     break;
   case CommandLineInterpreter::CommandType::transfer:
-    model.transferTo(accountName, amount, date);
+    model.transferTo(accountName, amount, budget::date(input));
     state = CommandLineInterpreter::State::normal;
   }
 }
@@ -154,7 +162,7 @@ void CommandLineInterpreter::execute(Model &model,
     return parseDate(model, interface, state, date, amount, accountName,
                      commandType, input);
   case State::readyForDescription:
-    return parseDescription(model, interface, state, transactionType, amount,
+    return enterTransaction(model, interface, state, transactionType, amount,
                             accountName, date, input);
   }
 }
