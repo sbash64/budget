@@ -55,6 +55,11 @@ static void debit(Account &account, const Transaction &t) { account.debit(t); }
 
 static void show(Account &account, View &view) { account.show(view); }
 
+static void assertAccountName(testcpplite::TestResult &result, ViewStub &view,
+                              std::string_view expected) {
+  assertEqual(result, std::string{expected}, view.accountName());
+}
+
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
@@ -65,7 +70,7 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
   ViewStub view;
   show(account, view);
-  assertEqual(result, "joe", view.accountName());
+  assertAccountName(result, view, "joe");
   assertEqual(result, 123_cents - 456_cents + 789_cents, view.accountBalance());
   assertEqual(
       result,
@@ -91,7 +96,7 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
       Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
   ViewStub view;
   show(account, view);
-  assertEqual(result, "joe", view.accountName());
+  assertAccountName(result, view, "joe");
   assertEqual(result, 123_cents - 789_cents, view.accountBalance());
   assertEqual(
       result,
@@ -145,6 +150,6 @@ void rename(testcpplite::TestResult &result) {
   account.rename("mike");
   ViewStub view;
   show(account, view);
-  assertEqual(result, "mike", view.accountName());
+  assertAccountName(result, view, "mike");
 }
 } // namespace sbash64::budget::account
