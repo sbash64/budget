@@ -40,6 +40,7 @@ public:
   void load(SessionDeserialization &) override;
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
+  void rename(std::string_view) override;
 
   class Factory : public Account::Factory {
   public:

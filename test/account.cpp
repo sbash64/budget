@@ -139,4 +139,12 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
       view.accountTransactions());
 }
+
+void rename(testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  account.rename("mike");
+  ViewStub view;
+  show(account, view);
+  assertEqual(result, "mike", view.accountName());
+}
 } // namespace sbash64::budget::account

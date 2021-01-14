@@ -10,6 +10,7 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
 void saveSavesAllTransactions(testcpplite::TestResult &);
 void loadLoadsAllTransactions(testcpplite::TestResult &);
+void rename(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

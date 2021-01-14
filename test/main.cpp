@@ -65,6 +65,7 @@ static auto runAllTests() -> int {
         "account save saves all transactions"},
        {account::loadLoadsAllTransactions,
         "account load loads all transactions"},
+       {account::rename, "account rename"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},
