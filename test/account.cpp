@@ -60,6 +60,11 @@ static void assertAccountName(testcpplite::TestResult &result, ViewStub &view,
   assertEqual(result, std::string{expected}, view.accountName());
 }
 
+static void assertShown(testcpplite::TestResult &result, ViewStub &view,
+                        const std::vector<TransactionWithType> &t) {
+  assertEqual(result, t, view.accountTransactions());
+}
+
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
@@ -72,12 +77,11 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
   show(account, view);
   assertAccountName(result, view, "joe");
   assertEqual(result, 123_cents - 456_cents + 789_cents, view.accountBalance());
-  assertEqual(
-      result,
+  assertShown(
+      result, view,
       {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
        credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-      view.accountTransactions());
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
 void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
@@ -98,11 +102,10 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
   show(account, view);
   assertAccountName(result, view, "joe");
   assertEqual(result, 123_cents - 789_cents, view.accountBalance());
-  assertEqual(
-      result,
+  assertShown(
+      result, view,
       {debit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-      view.accountTransactions());
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
 void saveSavesAllTransactions(testcpplite::TestResult &result) {
@@ -137,12 +140,11 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
   account.load(persistentMemory);
   ViewStub view;
   show(account, view);
-  assertEqual(
-      result,
+  assertShown(
+      result, view,
       {debit(Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
        credit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})},
-      view.accountTransactions());
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
 void rename(testcpplite::TestResult &result) {
