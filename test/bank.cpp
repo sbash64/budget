@@ -1,6 +1,5 @@
 #include "bank.hpp"
 #include "persistent-memory-stub.hpp"
-#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
@@ -107,6 +106,12 @@ static void assertDebited(testcpplite::TestResult &result,
   assertEqual(result, t, account->debitedTransaction());
 }
 
+static void assertCredited(testcpplite::TestResult &result,
+                           const std::shared_ptr<AccountStub> &account,
+                           const Transaction &t) {
+  assertEqual(result, t, account->creditedTransaction());
+}
+
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &,
@@ -117,9 +122,9 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &,
                const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
     bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertEqual(result,
-                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-                masterAccount->creditedTransaction());
+    assertCredited(
+        result, masterAccount,
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
 }
 
@@ -158,10 +163,9 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
     bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
-    assertEqual(result,
-                Transaction{456_cents, "transfer from master",
-                            Date{1776, Month::July, 4}},
-                account->creditedTransaction());
+    assertCredited(result, account,
+                   Transaction{456_cents, "transfer from master",
+                               Date{1776, Month::July, 4}});
     assertDebited(result, masterAccount,
                   Transaction{456_cents, "transfer to giraffe",
                               Date{1776, Month::July, 4}});
