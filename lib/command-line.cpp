@@ -97,13 +97,11 @@ static void rename(Model &model, std::stringstream &stream) {
   model.renameAccount(from, to);
 }
 
-static void prepareForNextLine(CommandLineInterface &interface,
-                               std::stringstream &stream,
-                               std::string &accountName, USD &amount,
-                               CommandLineInterpreter::State &state,
-                               CommandLineInterpreter::CommandType &commandType,
-                               Transaction::Type &transactionType,
-                               std::string_view commandName) {
+static void executeFirstLineOfMultiLineCommand(
+    CommandLineInterface &interface, std::stringstream &stream,
+    std::string &accountName, USD &amount, CommandLineInterpreter::State &state,
+    CommandLineInterpreter::CommandType &commandType,
+    Transaction::Type &transactionType, std::string_view commandName) {
   std::string eventuallyAmount;
   stream >> eventuallyAmount;
   if (commandName == "credit") {
@@ -154,8 +152,9 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "rename")
     rename(model, stream);
   else
-    prepareForNextLine(interface, stream, accountName, amount, state,
-                       commandType, transactionType, commandName);
+    executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
+                                       state, commandType, transactionType,
+                                       commandName);
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
