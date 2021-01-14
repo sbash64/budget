@@ -139,7 +139,8 @@ static auto operator<<(std::ostream &stream, const Date &date)
     -> std::ostream & {
   const auto fill{stream.fill()};
   return stream << std::setw(2) << std::setfill('0') << date.month << '/'
-                << date.day << '/' << date.year << std::setfill(fill);
+                << std::setw(2) << std::setfill('0') << date.day << '/'
+                << date.year << std::setfill(fill);
 }
 
 CommandLineStream::CommandLineStream(std::ostream &stream) : stream{stream} {}
