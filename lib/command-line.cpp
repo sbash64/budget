@@ -5,31 +5,10 @@
 #include <sstream>
 
 namespace sbash64::budget {
-constexpr auto multiWordArgumentDelimiter{'"'};
-
-static auto nextArgument(std::stringstream &stream) -> std::string {
-  stream >> std::ws;
-  std::string argument;
-  if (stream.peek() == multiWordArgumentDelimiter) {
-    stream.get();
-    getline(stream, argument, multiWordArgumentDelimiter);
-    stream.get();
-  } else {
-    stream >> argument;
-  }
-  return argument;
-}
-
 void command(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &view, SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
   controller.command(model, view, serialization, deserialization, input);
-}
-
-static auto next(std::stringstream &stream) -> std::string {
-  std::string next;
-  stream >> next;
-  return next;
 }
 
 static auto date(std::string_view s) -> Date {
@@ -63,8 +42,8 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
     } else if (commandName == "load") {
       bank.load(deserialization);
     } else {
-      std::string next;
-      stream >> next;
+      std::string eventuallyAmount;
+      stream >> eventuallyAmount;
       if (commandName == "credit") {
         transactionType = Transaction::Type::credit;
         commandType = CommandType::transaction;
@@ -75,8 +54,8 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
         while (!stream.eof()) {
           if (!first)
             accountName_ += ' ';
-          accountName_ += next;
-          stream >> next;
+          accountName_ += eventuallyAmount;
+          stream >> eventuallyAmount;
           stream >> std::ws;
           first = false;
         }
@@ -88,7 +67,7 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
           commandType = CommandType::transaction;
         }
       }
-      amount = usd(next);
+      amount = usd(eventuallyAmount);
       state = State::readyForDate;
       view.prompt("date [month day year]");
     }
