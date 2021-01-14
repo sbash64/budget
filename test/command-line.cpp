@@ -341,4 +341,13 @@ void debitPromptsForAccountName(testcpplite::TestResult &result) {
       },
       "debit");
 }
+
+void debitPromptsForAmount(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface) {
+        assertEqual(result, "how much? [amount ($)]", interface.prompt());
+      },
+      {"debit", "Groceries"});
+}
 } // namespace sbash64::budget::command_line

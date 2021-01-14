@@ -146,10 +146,12 @@ void CommandLineInterpreter::execute(Model &model,
                           state, commandType, transactionType, input);
   case State::readyForAccountName:
     accountName = input;
-    state = State::readyForAmount;
     if (commandType == CommandType::rename) {
       state = CommandLineInterpreter::State::readyForNewName;
       interface.prompt("new name [anything]");
+    } else {
+      state = State::readyForAmount;
+      interface.prompt("how much? [amount ($)]");
     }
     break;
   case State::readyForAmount:
