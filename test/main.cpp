@@ -25,6 +25,8 @@ static auto runAllTests() -> int {
        {command_line::print, "evaluate print command"},
        {command_line::transferTo, "evaluate transfer to command"},
        {command_line::debit, "evaluate debit"},
+       {command_line::debitMultiWordAccount,
+        "evaluate debit multi-word account"},
        {command_line::debitPromptsForDate, "evaluate debit prompts for date"},
        {command_line::debitPromptsForDesriptionAfterDateEntered,
         "evaluate debit prompts for description after date entered"},

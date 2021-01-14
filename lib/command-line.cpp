@@ -63,18 +63,32 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
     } else if (commandName == "load") {
       bank.load(deserialization);
     } else {
-      if (commandName == "transferto") {
-        accountName = next(stream);
-        commandType = CommandType::transfer;
-      } else if (commandName == "debit") {
-        accountName = next(stream);
-        transactionType = Transaction::Type::debit;
-        commandType = CommandType::transaction;
-      } else if (commandName == "credit") {
+      std::string next;
+      stream >> next;
+      if (commandName == "credit") {
         transactionType = Transaction::Type::credit;
         commandType = CommandType::transaction;
+      } else {
+        std::string accountName_;
+        stream >> std::ws;
+        auto first{true};
+        while (!stream.eof()) {
+          if (!first)
+            accountName_ += ' ';
+          accountName_ += next;
+          stream >> next;
+          stream >> std::ws;
+          first = false;
+        }
+        accountName = accountName_;
+        if (commandName == "transferto") {
+          commandType = CommandType::transfer;
+        } else if (commandName == "debit") {
+          transactionType = Transaction::Type::debit;
+          commandType = CommandType::transaction;
+        }
       }
-      amount = usd(next(stream));
+      amount = usd(next);
       state = State::readyForDate;
       view.prompt("date [month day year]");
     }

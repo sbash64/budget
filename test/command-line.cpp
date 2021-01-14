@@ -232,6 +232,13 @@ void debit(testcpplite::TestResult &result) {
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 
+void debitMultiWordAccount(testcpplite::TestResult &result) {
+  assertDebitsAccount(
+      result, {"debit Seth's Car Loan 321.24", "12 27 20", "honda"},
+      "Seth's Car Loan",
+      Transaction{32124_cents, "honda", Date{2020, Month::December, 27}});
+}
+
 void credit(testcpplite::TestResult &result) {
   assertCreditsAccount(
       result, {"credit 2134.35", "11 22 19", "btnrh"},
