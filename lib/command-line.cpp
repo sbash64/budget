@@ -79,6 +79,60 @@ static void parseDate(Model &model, CommandLineInterface &interface,
   }
 }
 
+static void rename(Model &model, std::stringstream &stream) {
+  std::string from;
+  std::string next;
+  stream >> next;
+  auto first{true};
+  while (next != "->") {
+    if (!first)
+      from += ' ';
+    from += next;
+    stream >> next;
+    first = false;
+  }
+  stream >> std::ws;
+  std::string to;
+  getline(stream, to);
+  model.renameAccount(from, to);
+}
+
+static void f(CommandLineInterface &interface, std::stringstream &stream,
+              std::string &accountName, USD &amount,
+              CommandLineInterpreter::State &state,
+              CommandLineInterpreter::CommandType &commandType,
+              Transaction::Type &transactionType,
+              std::string_view commandName) {
+  std::string eventuallyAmount;
+  stream >> eventuallyAmount;
+  if (commandName == "credit") {
+    transactionType = Transaction::Type::credit;
+    commandType = CommandLineInterpreter::CommandType::transaction;
+  } else {
+    std::string accountName_;
+    stream >> std::ws;
+    auto first{true};
+    while (!stream.eof()) {
+      if (!first)
+        accountName_ += ' ';
+      accountName_ += eventuallyAmount;
+      stream >> eventuallyAmount;
+      stream >> std::ws;
+      first = false;
+    }
+    accountName = accountName_;
+    if (commandName == "transferto") {
+      commandType = CommandLineInterpreter::CommandType::transfer;
+    } else if (commandName == "debit") {
+      transactionType = Transaction::Type::debit;
+      commandType = CommandLineInterpreter::CommandType::transaction;
+    }
+  }
+  amount = usd(eventuallyAmount);
+  state = CommandLineInterpreter::State::readyForDate;
+  interface.prompt("date [month day year]");
+}
+
 static void executeCommand(Model &model, CommandLineInterface &interface,
                            SessionSerialization &serialization,
                            SessionDeserialization &deserialization,
@@ -97,50 +151,10 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   } else if (commandName == "load") {
     model.load(deserialization);
   } else if (commandName == "rename") {
-    std::string from;
-    std::string next;
-    stream >> next;
-    auto first{true};
-    while (next != "->") {
-      if (!first)
-        from += ' ';
-      from += next;
-      stream >> next;
-      first = false;
-    }
-    stream >> std::ws;
-    std::string to;
-    getline(stream, to);
-    model.renameAccount(from, to);
+    rename(model, stream);
   } else {
-    std::string eventuallyAmount;
-    stream >> eventuallyAmount;
-    if (commandName == "credit") {
-      transactionType = Transaction::Type::credit;
-      commandType = CommandLineInterpreter::CommandType::transaction;
-    } else {
-      std::string accountName_;
-      stream >> std::ws;
-      auto first{true};
-      while (!stream.eof()) {
-        if (!first)
-          accountName_ += ' ';
-        accountName_ += eventuallyAmount;
-        stream >> eventuallyAmount;
-        stream >> std::ws;
-        first = false;
-      }
-      accountName = accountName_;
-      if (commandName == "transferto") {
-        commandType = CommandLineInterpreter::CommandType::transfer;
-      } else if (commandName == "debit") {
-        transactionType = Transaction::Type::debit;
-        commandType = CommandLineInterpreter::CommandType::transaction;
-      }
-    }
-    amount = usd(eventuallyAmount);
-    state = CommandLineInterpreter::State::readyForDate;
-    interface.prompt("date [month day year]");
+    f(interface, stream, accountName, amount, state, commandType,
+      transactionType, commandName);
   }
 }
 
