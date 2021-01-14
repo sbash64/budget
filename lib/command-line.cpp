@@ -89,25 +89,22 @@ static void parseDate(Model &model, CommandLineInterface &interface,
 }
 
 static void executeFirstLineOfMultiLineCommand(
-    CommandLineInterface &interface, std::stringstream &stream,
-    std::string &accountName, USD &amount, CommandLineInterpreter::State &state,
+    CommandLineInterface &interface, CommandLineInterpreter::State &state,
     CommandLineInterpreter::CommandType &commandType,
     Transaction::Type &transactionType, std::string_view commandName) {
-  if (commandName == "rename") {
-    commandType = CommandLineInterpreter::CommandType::rename;
-    state = CommandLineInterpreter::State::readyForAccountName;
-    interface.prompt("which account? [name]");
-  } else if (commandName == "debit") {
-    transactionType = Transaction::Type::debit;
-    commandType = CommandLineInterpreter::CommandType::transaction;
-    state = CommandLineInterpreter::State::readyForAccountName;
-    interface.prompt("which account? [name]");
-  } else if (commandName == "credit") {
+  if (commandName == "credit") {
     transactionType = Transaction::Type::credit;
     commandType = CommandLineInterpreter::CommandType::transaction;
     state = CommandLineInterpreter::State::readyForAmount;
-  } else if (commandName == "transferto") {
-    commandType = CommandLineInterpreter::CommandType::transfer;
+  } else {
+    if (commandName == "rename") {
+      commandType = CommandLineInterpreter::CommandType::rename;
+    } else if (commandName == "debit") {
+      transactionType = Transaction::Type::debit;
+      commandType = CommandLineInterpreter::CommandType::transaction;
+    } else if (commandName == "transferto") {
+      commandType = CommandLineInterpreter::CommandType::transfer;
+    }
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
   }
@@ -116,7 +113,6 @@ static void executeFirstLineOfMultiLineCommand(
 static void executeCommand(Model &model, CommandLineInterface &interface,
                            SessionSerialization &serialization,
                            SessionDeserialization &deserialization,
-                           std::string &accountName, USD &amount,
                            CommandLineInterpreter::State &state,
                            CommandLineInterpreter::CommandType &commandType,
                            Transaction::Type &transactionType,
@@ -131,9 +127,8 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "load")
     model.load(deserialization);
   else
-    executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
-                                       state, commandType, transactionType,
-                                       commandName);
+    executeFirstLineOfMultiLineCommand(interface, state, commandType,
+                                       transactionType, commandName);
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
@@ -148,8 +143,7 @@ void CommandLineInterpreter::execute(Model &model,
   switch (state) {
   case State::normal:
     return executeCommand(model, interface, serialization, deserialization,
-                          accountName, amount, state, commandType,
-                          transactionType, input);
+                          state, commandType, transactionType, input);
   case State::readyForAccountName:
     accountName = input;
     state = State::readyForAmount;
