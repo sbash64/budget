@@ -265,7 +265,7 @@ void credit(testcpplite::TestResult &result) {
 }
 
 void transferTo(testcpplite::TestResult &result) {
-  assertTransfersToAccount(result, {"transferto Groceries 50", "6 3 21"},
+  assertTransfersToAccount(result, {"transferto", "Groceries", "50", "6 3 21"},
                            5000_cents, "Groceries", Date{2021, Month::June, 3});
 }
 

@@ -133,7 +133,6 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     state = CommandLineInterpreter::State::readyForNewName;
     interface.prompt("new name [anything]");
   } else if (commandName == "debit") {
-    stream >> accountName;
     transactionType = Transaction::Type::debit;
     commandType = CommandLineInterpreter::CommandType::transaction;
     state = CommandLineInterpreter::State::readyForAccountName;
@@ -141,6 +140,9 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     transactionType = Transaction::Type::credit;
     commandType = CommandLineInterpreter::CommandType::transaction;
     state = CommandLineInterpreter::State::readyForAmount;
+  } else if (commandName == "transferto") {
+    commandType = CommandLineInterpreter::CommandType::transfer;
+    state = CommandLineInterpreter::State::readyForAccountName;
   } else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,
