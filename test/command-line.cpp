@@ -318,11 +318,10 @@ void debitShowsTransaction(testcpplite::TestResult &result) {
 void renameAccount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &, SerializationStub &,
-          DeserializationStub &) {
+          CommandLineInterfaceStub &) {
         assertEqual(result, "SethsRent", model.accountRenaming());
         assertEqual(result, "Seth's Rent", model.accountRenamed());
       },
-      "rename SethsRent -> Seth's Rent");
+      {"rename SethsRent", "Seth's Rent"});
 }
 } // namespace sbash64::budget::command_line

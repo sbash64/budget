@@ -8,7 +8,8 @@ namespace sbash64::budget {
 enum class CommandLineInterpreter::State {
   normal,
   readyForDate,
-  readyForDescription
+  readyForDescription,
+  readyForNewName
 };
 
 enum class CommandLineInterpreter::CommandType { transaction, transfer };
@@ -149,9 +150,10 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     model.save(serialization);
   else if (commandName == "load")
     model.load(deserialization);
-  else if (commandName == "rename")
-    rename(model, stream);
-  else
+  else if (commandName == "rename") {
+    stream >> accountName;
+    state = CommandLineInterpreter::State::readyForNewName;
+  } else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,
                                        commandName);
@@ -177,6 +179,9 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForDescription:
     return enterTransaction(model, interface, state, transactionType, amount,
                             accountName, date, input);
+  case State::readyForNewName:
+    model.renameAccount(accountName, input);
+    state = State::normal;
   }
 }
 
