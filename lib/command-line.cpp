@@ -17,7 +17,7 @@ void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &interface,
              SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
-  controller.command(model, interface, serialization, deserialization, input);
+  controller.execute(model, interface, serialization, deserialization, input);
 }
 
 static auto date(std::string_view s) -> Date {
@@ -35,25 +35,26 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-static void enterTransaction(CommandLineInterface &interface, Model &model,
+static void parseDescription(Model &model, CommandLineInterface &interface,
                              CommandLineInterpreter::State &state,
                              Transaction::Type transactionType, USD amount,
                              std::string_view accountName, const Date &date,
                              std::string_view input) {
+  const auto description{std::string{input}};
+  const auto transaction{Transaction{amount, description, date}};
   switch (transactionType) {
   case Transaction::Type::credit:
-    model.credit(Transaction{amount, std::string{input}, date});
+    model.credit(transaction);
     break;
   case Transaction::Type::debit:
-    model.debit(accountName, Transaction{amount, std::string{input}, date});
+    model.debit(accountName, transaction);
     break;
   }
-  interface.show(Transaction{amount, std::string{input}, date},
-                 "-> " + std::string{accountName});
+  interface.show(transaction, "-> " + std::string{accountName});
   state = CommandLineInterpreter::State::normal;
 }
 
-static void parseDate(CommandLineInterface &interface, Model &model,
+static void parseDate(Model &model, CommandLineInterface &interface,
                       CommandLineInterpreter::State &state, Date &date,
                       USD amount, std::string_view accountName,
                       CommandLineInterpreter::CommandType commandType,
@@ -70,12 +71,14 @@ static void parseDate(CommandLineInterface &interface, Model &model,
   }
 }
 
-static void f(Model &model, CommandLineInterface &interface,
-              SessionSerialization &serialization,
-              SessionDeserialization &deserialization, std::string &accountName,
-              USD &amount, CommandLineInterpreter::State &state,
-              CommandLineInterpreter::CommandType &commandType,
-              Transaction::Type &transactionType, std::string_view input) {
+static void executeCommand(Model &model, CommandLineInterface &interface,
+                           SessionSerialization &serialization,
+                           SessionDeserialization &deserialization,
+                           std::string &accountName, USD &amount,
+                           CommandLineInterpreter::State &state,
+                           CommandLineInterpreter::CommandType &commandType,
+                           Transaction::Type &transactionType,
+                           std::string_view input) {
   std::stringstream stream{std::string{input}};
   std::string commandName;
   stream >> commandName;
@@ -137,24 +140,22 @@ CommandLineInterpreter::CommandLineInterpreter()
     : state{State::normal}, commandType{CommandType::transaction},
       transactionType{Transaction::Type::credit} {}
 
-void CommandLineInterpreter::command(Model &model,
+void CommandLineInterpreter::execute(Model &model,
                                      CommandLineInterface &interface,
                                      SessionSerialization &serialization,
                                      SessionDeserialization &deserialization,
                                      std::string_view input) {
   switch (state) {
   case State::normal:
-    f(model, interface, serialization, deserialization, accountName, amount,
-      state, commandType, transactionType, input);
-    break;
+    return executeCommand(model, interface, serialization, deserialization,
+                          accountName, amount, state, commandType,
+                          transactionType, input);
   case State::readyForDate:
-    parseDate(interface, model, state, date, amount, accountName, commandType,
-              input);
-    break;
+    return parseDate(model, interface, state, date, amount, accountName,
+                     commandType, input);
   case State::readyForDescription:
-    enterTransaction(interface, model, state, transactionType, amount,
-                     accountName, date, input);
-    break;
+    return parseDescription(model, interface, state, transactionType, amount,
+                            accountName, date, input);
   }
 }
 

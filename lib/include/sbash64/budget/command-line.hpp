@@ -15,7 +15,7 @@ public:
 class CommandLineInterpreter {
 public:
   CommandLineInterpreter();
-  void command(Model &, CommandLineInterface &, SessionSerialization &,
+  void execute(Model &, CommandLineInterface &, SessionSerialization &,
                SessionDeserialization &, std::string_view);
   enum class State : int;
   enum class CommandType : int;
