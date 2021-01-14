@@ -96,6 +96,7 @@ static void executeFirstLineOfMultiLineCommand(
     transactionType = Transaction::Type::credit;
     commandType = CommandLineInterpreter::CommandType::transaction;
     state = CommandLineInterpreter::State::readyForAmount;
+    interface.prompt("how much? [amount ($)]");
   } else {
     if (commandName == "rename") {
       commandType = CommandLineInterpreter::CommandType::rename;
