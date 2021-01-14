@@ -60,16 +60,27 @@ public:
 
   auto transferDate() -> Date { return transferDate_; }
 
+  auto accountRenaming() -> std::string { return accountRenaming_; }
+
+  auto accountRenamed() -> std::string { return accountRenamed_; }
+
+  void renameAccount(std::string_view from, std::string_view to) {
+    accountRenaming_ = from;
+    accountRenamed_ = to;
+  }
+
 private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
+  Date transferDate_{};
   std::string debitedAccountName_;
+  std::string accountRenaming_;
+  std::string accountRenamed_;
+  std::string accountNameTransferredTo_;
   const View *printer_{};
   const SessionSerialization *serialization_{};
   const SessionDeserialization *deserialization_{};
   USD transferredAmount_{};
-  std::string accountNameTransferredTo_;
-  Date transferDate_{};
 };
 
 class SerializationStub : public SessionSerialization {
@@ -302,5 +313,16 @@ void debitShowsTransaction(testcpplite::TestResult &result) {
   assertShowsTransaction(
       result, {"debit Gifts 25", "12 27 20", "Sam's 24th"}, "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
+}
+
+void renameAccount(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result, "SethsRent", model.accountRenaming());
+        assertEqual(result, "Seth's Rent", model.accountRenamed());
+      },
+      "rename SethsRent -> Seth's Rent");
 }
 } // namespace sbash64::budget::command_line

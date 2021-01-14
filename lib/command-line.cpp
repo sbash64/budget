@@ -41,6 +41,22 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
       bank.save(serialization);
     } else if (commandName == "load") {
       bank.load(deserialization);
+    } else if (commandName == "rename") {
+      std::string from;
+      std::string next;
+      stream >> next;
+      auto first{true};
+      while (next != "->") {
+        if (!first)
+          from += ' ';
+        from += next;
+        stream >> next;
+        first = false;
+      }
+      stream >> std::ws;
+      std::string to;
+      getline(stream, to);
+      bank.renameAccount(from, to);
     } else {
       std::string eventuallyAmount;
       stream >> eventuallyAmount;
