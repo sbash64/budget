@@ -85,30 +85,27 @@ static void parseDate(Model &model, CommandLineInterface &interface,
 static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, std::stringstream &stream,
     std::string &accountName, USD &amount, CommandLineInterpreter::State &state,
-    CommandLineInterpreter::CommandType &commandType,
-    Transaction::Type &transactionType, std::string_view commandName) {
+    CommandLineInterpreter::CommandType &commandType, Transaction::Type &,
+    std::string_view commandName) {
   std::string eventuallyAmount;
   stream >> eventuallyAmount;
-  if (commandName == "credit") {
-    transactionType = Transaction::Type::credit;
-    commandType = CommandLineInterpreter::CommandType::transaction;
-  } else {
-    std::string accountName_;
+
+  std::string accountName_;
+  stream >> std::ws;
+  auto first{true};
+  while (!stream.eof()) {
+    if (!first)
+      accountName_ += ' ';
+    accountName_ += eventuallyAmount;
+    stream >> eventuallyAmount;
     stream >> std::ws;
-    auto first{true};
-    while (!stream.eof()) {
-      if (!first)
-        accountName_ += ' ';
-      accountName_ += eventuallyAmount;
-      stream >> eventuallyAmount;
-      stream >> std::ws;
-      first = false;
-    }
-    accountName = accountName_;
-    if (commandName == "transferto") {
-      commandType = CommandLineInterpreter::CommandType::transfer;
-    }
+    first = false;
   }
+  accountName = accountName_;
+  if (commandName == "transferto") {
+    commandType = CommandLineInterpreter::CommandType::transfer;
+  }
+
   amount = usd(eventuallyAmount);
   state = CommandLineInterpreter::State::readyForDate;
   interface.prompt("date [month day year]");
@@ -140,7 +137,10 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     transactionType = Transaction::Type::debit;
     commandType = CommandLineInterpreter::CommandType::transaction;
     state = CommandLineInterpreter::State::readyForAccountName;
-    interface.prompt("date [month day year]");
+  } else if (commandName == "credit") {
+    transactionType = Transaction::Type::credit;
+    commandType = CommandLineInterpreter::CommandType::transaction;
+    state = CommandLineInterpreter::State::readyForAmount;
   } else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,
@@ -168,6 +168,7 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForAmount:
     amount = usd(input);
     state = State::readyForDate;
+    interface.prompt("date [month day year]");
     break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,

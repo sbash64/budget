@@ -260,7 +260,7 @@ void debitMultiWordAccount(testcpplite::TestResult &result) {
 
 void credit(testcpplite::TestResult &result) {
   assertCreditsAccount(
-      result, {"credit 2134.35", "11 22 19", "btnrh"},
+      result, {"credit", "2134.35", "11 22 19", "btnrh"},
       Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
 }
 
@@ -292,11 +292,10 @@ void load(testcpplite::TestResult &result) {
 void debitPromptsForDate(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface, SerializationStub &,
-          DeserializationStub &) {
+          CommandLineInterfaceStub &interface) {
         assertEqual(result, "date [month day year]", interface.prompt());
       },
-      "debit Groceries 40");
+      {"debit", "Groceries", "40"});
 }
 
 void debitPromptsForDesriptionAfterDateEntered(
