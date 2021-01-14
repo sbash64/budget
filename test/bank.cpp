@@ -34,11 +34,16 @@ public:
 
   void load(SessionDeserialization &) override {}
 
+  auto newName() -> std::string { return newName_; }
+
+  void rename(std::string_view s) { newName_ = s; }
+
 private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
+  std::string newName_;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -281,6 +286,17 @@ void removeTransferRemovesDebitFromMasterAndCreditFromOther(
                 Transaction{456_cents, "transfer to giraffe",
                             Date{1776, Month::July, 4}},
                 masterAccount->removedDebit());
+  });
+}
+
+void renameAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.renameAccount("giraffe", "zebra");
+    assertEqual(result, "zebra", giraffe->newName());
   });
 }
 } // namespace sbash64::budget::bank

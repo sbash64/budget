@@ -55,6 +55,7 @@ static auto runAllTests() -> int {
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},
        {bank::saveSavesAccounts, "bank save saves accounts"},
        {bank::loadLoadsAccounts, "bank load loads accounts"},
+       {bank::renameAccount, "bank rename account"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
        {account::

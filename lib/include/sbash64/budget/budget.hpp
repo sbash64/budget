@@ -104,6 +104,7 @@ public:
   virtual void load(SessionDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
+  virtual void rename(std::string_view) {}
 
   class Factory {
   public:

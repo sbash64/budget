@@ -22,6 +22,7 @@ public:
   void show(View &) override;
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;
+  void renameAccount(std::string_view from, std::string_view to);
 
 private:
   Account::Factory &factory;

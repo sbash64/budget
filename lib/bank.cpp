@@ -118,6 +118,10 @@ void Bank::load(SessionDeserialization &persistentMemory) {
   persistentMemory.load(factory, masterAccount, accounts);
 }
 
+void Bank::renameAccount(std::string_view from, std::string_view to) {
+  accounts.at(std::string{from})->rename(to);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
 void InMemoryAccount::credit(const Transaction &t) { credits.push_back(t); }
