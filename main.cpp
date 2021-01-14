@@ -29,7 +29,7 @@ static void repl() {
     getline(std::cin, line);
     if (line == "exit")
       break;
-    command(controller, bank, view, serialization, deserialization, line);
+    execute(controller, bank, view, serialization, deserialization, line);
   }
 }
 } // namespace sbash64::budget

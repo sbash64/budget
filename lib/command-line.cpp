@@ -5,7 +5,7 @@
 #include <sstream>
 
 namespace sbash64::budget {
-void command(CommandLineInterpreter &controller, Model &model,
+void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &view, SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
   controller.command(model, view, serialization, deserialization, input);

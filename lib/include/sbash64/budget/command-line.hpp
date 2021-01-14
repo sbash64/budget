@@ -28,7 +28,7 @@ private:
   Transaction::Type transactionType;
 };
 
-void command(CommandLineInterpreter &, Model &, CommandLineInterface &,
+void execute(CommandLineInterpreter &, Model &, CommandLineInterface &,
              SessionSerialization &, SessionDeserialization &,
              std::string_view);
 
