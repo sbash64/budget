@@ -80,24 +80,6 @@ static void parseDate(Model &model, CommandLineInterface &interface,
   }
 }
 
-static void rename(Model &model, std::stringstream &stream) {
-  std::string from;
-  std::string next;
-  stream >> next;
-  auto first{true};
-  while (next != "->") {
-    if (!first)
-      from += ' ';
-    from += next;
-    stream >> next;
-    first = false;
-  }
-  stream >> std::ws;
-  std::string to;
-  getline(stream, to);
-  model.renameAccount(from, to);
-}
-
 static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, std::stringstream &stream,
     std::string &accountName, USD &amount, CommandLineInterpreter::State &state,
