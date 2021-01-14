@@ -97,12 +97,13 @@ static void rename(Model &model, std::stringstream &stream) {
   model.renameAccount(from, to);
 }
 
-static void f(CommandLineInterface &interface, std::stringstream &stream,
-              std::string &accountName, USD &amount,
-              CommandLineInterpreter::State &state,
-              CommandLineInterpreter::CommandType &commandType,
-              Transaction::Type &transactionType,
-              std::string_view commandName) {
+static void prepareForNextLine(CommandLineInterface &interface,
+                               std::stringstream &stream,
+                               std::string &accountName, USD &amount,
+                               CommandLineInterpreter::State &state,
+                               CommandLineInterpreter::CommandType &commandType,
+                               Transaction::Type &transactionType,
+                               std::string_view commandName) {
   std::string eventuallyAmount;
   stream >> eventuallyAmount;
   if (commandName == "credit") {
@@ -144,18 +145,17 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   std::stringstream stream{std::string{input}};
   std::string commandName;
   stream >> commandName;
-  if (commandName == "print") {
+  if (commandName == "print")
     model.show(interface);
-  } else if (commandName == "save") {
+  else if (commandName == "save")
     model.save(serialization);
-  } else if (commandName == "load") {
+  else if (commandName == "load")
     model.load(deserialization);
-  } else if (commandName == "rename") {
+  else if (commandName == "rename")
     rename(model, stream);
-  } else {
-    f(interface, stream, accountName, amount, state, commandType,
-      transactionType, commandName);
-  }
+  else
+    prepareForNextLine(interface, stream, accountName, amount, state,
+                       commandType, transactionType, commandName);
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
