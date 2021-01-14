@@ -324,4 +324,14 @@ void renameAccount(testcpplite::TestResult &result) {
       },
       {"rename SethsRent", "Seth's Rent"});
 }
+
+void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result, "new name [anything]", interface.prompt());
+      },
+      "rename whatever");
+}
 } // namespace sbash64::budget::command_line

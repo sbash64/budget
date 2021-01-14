@@ -135,6 +135,7 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "rename") {
     stream >> accountName;
     state = CommandLineInterpreter::State::readyForNewName;
+    interface.prompt("new name [anything]");
   } else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,

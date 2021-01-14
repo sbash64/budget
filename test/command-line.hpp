@@ -15,6 +15,7 @@ void debitPromptsForDesriptionAfterDateEntered(testcpplite::TestResult &);
 void debitShowsTransaction(testcpplite::TestResult &);
 void debitMultiWordAccount(testcpplite::TestResult &);
 void renameAccount(testcpplite::TestResult &);
+void renameAccountPromptsForNewName(testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif

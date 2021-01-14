@@ -36,6 +36,8 @@ static auto runAllTests() -> int {
        {command_line::save, "evaluate save"},
        {command_line::load, "evaluate load"},
        {command_line::renameAccount, "evaluate rename"},
+       {command_line::renameAccountPromptsForNewName,
+        "evaluate rename prompts for new name"},
        {bank::createsMasterAccountOnConstruction,
         "bank creates master account on construction"},
        {bank::creditsMasterAccountWhenCredited,
