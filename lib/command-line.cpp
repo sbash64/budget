@@ -14,7 +14,11 @@ enum class CommandLineInterpreter::State {
   readyForNewName
 };
 
-enum class CommandLineInterpreter::CommandType { transaction, transfer };
+enum class CommandLineInterpreter::CommandType {
+  transaction,
+  transfer,
+  rename
+};
 
 void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &interface,
@@ -76,6 +80,8 @@ static void parseDate(Model &model, CommandLineInterface &interface,
     state = CommandLineInterpreter::State::readyForDescription;
     interface.prompt("description [anything]");
     break;
+  case CommandLineInterpreter::CommandType::rename:
+    break;
   case CommandLineInterpreter::CommandType::transfer:
     model.transferTo(accountName, amount, budget::date(input));
     state = CommandLineInterpreter::State::normal;
@@ -129,9 +135,8 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "load")
     model.load(deserialization);
   else if (commandName == "rename") {
-    stream >> accountName;
-    state = CommandLineInterpreter::State::readyForNewName;
-    interface.prompt("new name [anything]");
+    commandType = CommandLineInterpreter::CommandType::rename;
+    state = CommandLineInterpreter::State::readyForAccountName;
   } else if (commandName == "debit") {
     transactionType = Transaction::Type::debit;
     commandType = CommandLineInterpreter::CommandType::transaction;
@@ -166,6 +171,10 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForAccountName:
     accountName = input;
     state = State::readyForAmount;
+    if (commandType == CommandType::rename) {
+      state = CommandLineInterpreter::State::readyForNewName;
+      interface.prompt("new name [anything]");
+    }
     break;
   case State::readyForAmount:
     amount = usd(input);

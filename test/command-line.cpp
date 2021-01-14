@@ -321,16 +321,15 @@ void renameAccount(testcpplite::TestResult &result) {
         assertEqual(result, "SethsRent", model.accountRenaming());
         assertEqual(result, "Seth's Rent", model.accountRenamed());
       },
-      {"rename SethsRent", "Seth's Rent"});
+      {"rename", "SethsRent", "Seth's Rent"});
 }
 
 void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface, SerializationStub &,
-          DeserializationStub &) {
+          CommandLineInterfaceStub &interface) {
         assertEqual(result, "new name [anything]", interface.prompt());
       },
-      "rename whatever");
+      {"rename", "whatever"});
 }
 } // namespace sbash64::budget::command_line
