@@ -112,6 +112,18 @@ static void assertCredited(testcpplite::TestResult &result,
   assertEqual(result, t, account->creditedTransaction());
 }
 
+static void assertCreditRemoved(testcpplite::TestResult &result,
+                                const std::shared_ptr<AccountStub> &account,
+                                const Transaction &t) {
+  assertEqual(result, t, account->removedCredit());
+}
+
+static void assertDebitRemoved(testcpplite::TestResult &result,
+                               const std::shared_ptr<AccountStub> &account,
+                               const Transaction &t) {
+  assertEqual(result, t, account->removedDebit());
+}
+
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &,
@@ -251,9 +263,9 @@ void removesDebitFromAccount(testcpplite::TestResult &result) {
     debit(bank, "giraffe", {});
     bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
                                             Date{2013, Month::April, 3}});
-    assertEqual(result,
-                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-                account->removedDebit());
+    assertDebitRemoved(
+        result, account,
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
 }
 
@@ -274,9 +286,9 @@ void removesFromMasterAccountWhenRemovingCredit(
                const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
     bank.removeCredit(
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertEqual(result,
-                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}},
-                masterAccount->removedCredit());
+    assertCreditRemoved(
+        result, masterAccount,
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
 }
 
@@ -288,14 +300,12 @@ void removeTransferRemovesDebitFromMasterAndCreditFromOther(
     add(factory, account, "giraffe");
     debit(bank, "giraffe", {});
     bank.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
-    assertEqual(result,
-                Transaction{456_cents, "transfer from master",
-                            Date{1776, Month::July, 4}},
-                account->removedCredit());
-    assertEqual(result,
-                Transaction{456_cents, "transfer to giraffe",
-                            Date{1776, Month::July, 4}},
-                masterAccount->removedDebit());
+    assertCreditRemoved(result, account,
+                        Transaction{456_cents, "transfer from master",
+                                    Date{1776, Month::July, 4}});
+    assertDebitRemoved(result, masterAccount,
+                       Transaction{456_cents, "transfer to giraffe",
+                                   Date{1776, Month::July, 4}});
   });
 }
 
