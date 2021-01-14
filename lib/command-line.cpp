@@ -14,9 +14,10 @@ enum class CommandLineInterpreter::State {
 enum class CommandLineInterpreter::CommandType { transaction, transfer };
 
 void execute(CommandLineInterpreter &controller, Model &model,
-             CommandLineInterface &view, SessionSerialization &serialization,
+             CommandLineInterface &interface,
+             SessionSerialization &serialization,
              SessionDeserialization &deserialization, std::string_view input) {
-  controller.command(model, view, serialization, deserialization, input);
+  controller.command(model, interface, serialization, deserialization, input);
 }
 
 static auto date(std::string_view s) -> Date {
@@ -34,11 +35,11 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-static void f(Model &model, CommandLineInterface &interface,
-              CommandLineInterpreter::State &state,
-              Transaction::Type transactionType, USD amount,
-              std::string_view accountName, const Date &date,
-              std::string_view input) {
+static void enterTransaction(CommandLineInterface &interface, Model &model,
+                             CommandLineInterpreter::State &state,
+                             Transaction::Type transactionType, USD amount,
+                             std::string_view accountName, const Date &date,
+                             std::string_view input) {
   switch (transactionType) {
   case Transaction::Type::credit:
     model.credit(Transaction{amount, std::string{input}, date});
@@ -52,11 +53,29 @@ static void f(Model &model, CommandLineInterface &interface,
   state = CommandLineInterpreter::State::normal;
 }
 
+static void parseDate(CommandLineInterface &interface, Model &model,
+                      CommandLineInterpreter::State &state, Date &date,
+                      USD amount, std::string_view accountName,
+                      CommandLineInterpreter::CommandType commandType,
+                      std::string_view input) {
+  date = budget::date(input);
+  switch (commandType) {
+  case CommandLineInterpreter::CommandType::transaction:
+    state = CommandLineInterpreter::State::readyForDescription;
+    interface.prompt("description [anything]");
+    break;
+  case CommandLineInterpreter::CommandType::transfer:
+    model.transferTo(accountName, amount, date);
+    state = CommandLineInterpreter::State::normal;
+  }
+}
+
 CommandLineInterpreter::CommandLineInterpreter()
     : state{State::normal}, commandType{CommandType::transaction},
       transactionType{Transaction::Type::credit} {}
 
-void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
+void CommandLineInterpreter::command(Model &model,
+                                     CommandLineInterface &interface,
                                      SessionSerialization &serialization,
                                      SessionDeserialization &deserialization,
                                      std::string_view input) {
@@ -66,11 +85,11 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
   case State::normal:
     stream >> commandName;
     if (commandName == "print") {
-      bank.show(view);
+      model.show(interface);
     } else if (commandName == "save") {
-      bank.save(serialization);
+      model.save(serialization);
     } else if (commandName == "load") {
-      bank.load(deserialization);
+      model.load(deserialization);
     } else if (commandName == "rename") {
       std::string from;
       std::string next;
@@ -86,7 +105,7 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
       stream >> std::ws;
       std::string to;
       getline(stream, to);
-      bank.renameAccount(from, to);
+      model.renameAccount(from, to);
     } else {
       std::string eventuallyAmount;
       stream >> eventuallyAmount;
@@ -115,24 +134,16 @@ void CommandLineInterpreter::command(Model &bank, CommandLineInterface &view,
       }
       amount = usd(eventuallyAmount);
       state = State::readyForDate;
-      view.prompt("date [month day year]");
+      interface.prompt("date [month day year]");
     }
     break;
   case State::readyForDate:
-    date = budget::date(input);
-    switch (commandType) {
-    case CommandType::transaction:
-      state = State::readyForDescription;
-      view.prompt("description [anything]");
-      break;
-    case CommandType::transfer:
-      bank.transferTo(accountName, amount, date);
-      state = State::normal;
-      break;
-    }
+    parseDate(interface, model, state, date, amount, accountName, commandType,
+              input);
     break;
   case State::readyForDescription:
-    f(bank, view, state, transactionType, amount, accountName, date, input);
+    enterTransaction(interface, model, state, transactionType, amount,
+                     accountName, date, input);
     break;
   }
 }
