@@ -64,7 +64,7 @@ public:
 
   auto accountRenamed() -> std::string { return accountRenamed_; }
 
-  void renameAccount(std::string_view from, std::string_view to) {
+  void renameAccount(std::string_view from, std::string_view to) override {
     accountRenaming_ = from;
     accountRenamed_ = to;
   }
