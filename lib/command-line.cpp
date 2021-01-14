@@ -91,30 +91,26 @@ static void parseDate(Model &model, CommandLineInterface &interface,
 static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, std::stringstream &stream,
     std::string &accountName, USD &amount, CommandLineInterpreter::State &state,
-    CommandLineInterpreter::CommandType &commandType, Transaction::Type &,
-    std::string_view commandName) {
-  std::string eventuallyAmount;
-  stream >> eventuallyAmount;
-
-  std::string accountName_;
-  stream >> std::ws;
-  auto first{true};
-  while (!stream.eof()) {
-    if (!first)
-      accountName_ += ' ';
-    accountName_ += eventuallyAmount;
-    stream >> eventuallyAmount;
-    stream >> std::ws;
-    first = false;
-  }
-  accountName = accountName_;
-  if (commandName == "transferto") {
+    CommandLineInterpreter::CommandType &commandType,
+    Transaction::Type &transactionType, std::string_view commandName) {
+  if (commandName == "rename") {
+    commandType = CommandLineInterpreter::CommandType::rename;
+    state = CommandLineInterpreter::State::readyForAccountName;
+    interface.prompt("which account? [name]");
+  } else if (commandName == "debit") {
+    transactionType = Transaction::Type::debit;
+    commandType = CommandLineInterpreter::CommandType::transaction;
+    state = CommandLineInterpreter::State::readyForAccountName;
+    interface.prompt("which account? [name]");
+  } else if (commandName == "credit") {
+    transactionType = Transaction::Type::credit;
+    commandType = CommandLineInterpreter::CommandType::transaction;
+    state = CommandLineInterpreter::State::readyForAmount;
+  } else if (commandName == "transferto") {
     commandType = CommandLineInterpreter::CommandType::transfer;
+    state = CommandLineInterpreter::State::readyForAccountName;
+    interface.prompt("which account? [name]");
   }
-
-  amount = usd(eventuallyAmount);
-  state = CommandLineInterpreter::State::readyForDate;
-  interface.prompt("date [month day year]");
 }
 
 static void executeCommand(Model &model, CommandLineInterface &interface,
@@ -134,21 +130,7 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     model.save(serialization);
   else if (commandName == "load")
     model.load(deserialization);
-  else if (commandName == "rename") {
-    commandType = CommandLineInterpreter::CommandType::rename;
-    state = CommandLineInterpreter::State::readyForAccountName;
-  } else if (commandName == "debit") {
-    transactionType = Transaction::Type::debit;
-    commandType = CommandLineInterpreter::CommandType::transaction;
-    state = CommandLineInterpreter::State::readyForAccountName;
-  } else if (commandName == "credit") {
-    transactionType = Transaction::Type::credit;
-    commandType = CommandLineInterpreter::CommandType::transaction;
-    state = CommandLineInterpreter::State::readyForAmount;
-  } else if (commandName == "transferto") {
-    commandType = CommandLineInterpreter::CommandType::transfer;
-    state = CommandLineInterpreter::State::readyForAccountName;
-  } else
+  else
     executeFirstLineOfMultiLineCommand(interface, stream, accountName, amount,
                                        state, commandType, transactionType,
                                        commandName);

@@ -28,6 +28,8 @@ static auto runAllTests() -> int {
        {command_line::debitMultiWordAccount,
         "evaluate debit multi-word account"},
        {command_line::debitPromptsForDate, "evaluate debit prompts for date"},
+       {command_line::debitPromptsForAccountName,
+        "evaluate debit prompts for account name"},
        {command_line::debitPromptsForDesriptionAfterDateEntered,
         "evaluate debit prompts for description after date entered"},
        {command_line::debitShowsTransaction,

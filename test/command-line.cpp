@@ -332,4 +332,13 @@ void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
       },
       {"rename", "whatever"});
 }
+
+void debitPromptsForAccountName(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface) {
+        assertEqual(result, "which account? [name]", interface.prompt());
+      },
+      "debit");
+}
 } // namespace sbash64::budget::command_line
