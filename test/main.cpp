@@ -46,6 +46,7 @@ static auto runAllTests() -> int {
         "evaluate rename prompts for new name"},
        {command_line::removeDebit, "evaluate remove debit"},
        {command_line::removeCredit, "evaluate remove credit"},
+       {command_line::removeTransfer, "evaluate remove transfer"},
        {command_line::unrecognizedCommandPrintsMessage,
         "evaluate unrecognized command prints message"},
        {bank::createsMasterAccountOnConstruction,

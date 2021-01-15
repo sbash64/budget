@@ -13,6 +13,14 @@ namespace sbash64::budget::command_line {
 namespace {
 class ModelStub : public Model {
 public:
+  auto removedTransferAmount() -> USD { return removedTransferAmount_; }
+
+  auto removedTransferAccountName() -> std::string {
+    return removedTransferAccountName_;
+  }
+
+  auto removedTransferDate() -> Date { return removedTransferDate_; }
+
   auto removedDebit() -> Transaction { return removedDebit_; }
 
   auto removedDebitAccountName() -> std::string {
@@ -39,7 +47,7 @@ public:
     removedDebit_ = transaction;
   }
 
-  void removeCredit(const Transaction &transaction) {
+  void removeCredit(const Transaction &transaction) override {
     removedCredit_ = transaction;
   }
 
@@ -52,6 +60,12 @@ public:
     transferredAmount_ = amount;
     accountNameTransferredTo_ = accountName;
     transferDate_ = date;
+  }
+
+  void removeTransfer(std::string_view accountName, USD amount, Date date) {
+    removedTransferAmount_ = amount;
+    removedTransferAccountName_ = accountName;
+    removedTransferDate_ = date;
   }
 
   void show(View &p) override { printer_ = &p; }
@@ -93,15 +107,18 @@ private:
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   Date transferDate_{};
+  Date removedTransferDate_{};
   std::string removedDebitAccountName_;
   std::string debitedAccountName_;
   std::string accountRenaming_;
   std::string accountRenamed_;
   std::string accountNameTransferredTo_;
+  std::string removedTransferAccountName_;
   const View *printer_{};
   const SessionSerialization *serialization_{};
   const SessionDeserialization *deserialization_{};
   USD transferredAmount_{};
+  USD removedTransferAmount_{};
 };
 
 class SerializationStub : public SessionSerialization {
@@ -418,5 +435,17 @@ void removeCredit(testcpplite::TestResult &result) {
             model.removedCredit());
       },
       {"remove-credit", "2000", "3 26 23", "income"});
+}
+
+void removeTransfer(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &) {
+        assertEqual(result, 50000_cents, model.removedTransferAmount());
+        assertEqual(result, "Groceries", model.removedTransferAccountName());
+        assertEqual(result, Date{2013, Month::July, 1},
+                    model.removedTransferDate());
+      },
+      {"remove-transfer", "Groceries", "500", "7 1 13"});
 }
 } // namespace sbash64::budget::command_line

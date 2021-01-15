@@ -16,9 +16,9 @@ public:
   void debit(std::string_view accountName, const Transaction &) override;
   void removeDebit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
-  void removeCredit(const Transaction &);
+  void removeCredit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount, Date) override;
-  void removeTransfer(std::string_view accountName, USD amount, Date);
+  void removeTransfer(std::string_view accountName, USD amount, Date) override;
   void show(View &) override;
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;

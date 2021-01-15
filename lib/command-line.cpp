@@ -17,8 +17,9 @@ enum class CommandLineInterpreter::State {
 
 enum class CommandLineInterpreter::CommandType {
   addTransaction,
-  transfer,
   removeTransaction,
+  transfer,
+  removeTransfer,
   renameAccount
 };
 
@@ -91,6 +92,10 @@ static void parseDate(Model &model, CommandLineInterface &interface,
     model.transferTo(accountName, amount, budget::date(input));
     state = CommandLineInterpreter::State::normal;
     break;
+  case CommandLineInterpreter::CommandType::removeTransfer:
+    model.removeTransfer(accountName, amount, budget::date(input));
+    state = CommandLineInterpreter::State::normal;
+    break;
   case CommandLineInterpreter::CommandType::renameAccount:
     break;
   }
@@ -118,6 +123,8 @@ static void executeFirstLineOfMultiLineCommand(
       commandType = CommandLineInterpreter::CommandType::renameAccount;
     else if (commandName == "transfer-to")
       commandType = CommandLineInterpreter::CommandType::transfer;
+    else if (commandName == "remove-transfer")
+      commandType = CommandLineInterpreter::CommandType::removeTransfer;
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
   }
@@ -141,7 +148,8 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     model.load(deserialization);
   else if (commandName == "credit" || commandName == "debit" ||
            commandName == "rename" || commandName == "transfer-to" ||
-           commandName == "remove-debit" || commandName == "remove-credit")
+           commandName == "remove-transfer" || commandName == "remove-debit" ||
+           commandName == "remove-credit")
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
