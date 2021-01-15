@@ -116,7 +116,7 @@ static void executeFirstLineOfMultiLineCommand(
       transactionType = Transaction::Type::debit;
     } else if (commandName == "rename")
       commandType = CommandLineInterpreter::CommandType::renameAccount;
-    else if (commandName == "transferto")
+    else if (commandName == "transfer-to")
       commandType = CommandLineInterpreter::CommandType::transfer;
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
@@ -140,7 +140,7 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "load")
     model.load(deserialization);
   else if (commandName == "credit" || commandName == "debit" ||
-           commandName == "rename" || commandName == "transferto" ||
+           commandName == "rename" || commandName == "transfer-to" ||
            commandName == "remove-debit" || commandName == "remove-credit")
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
