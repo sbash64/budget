@@ -21,6 +21,7 @@ void debitPromptsForAmount(testcpplite::TestResult &);
 void creditPromptsForAmount(testcpplite::TestResult &);
 void unrecognizedCommandPrintsMessage(testcpplite::TestResult &);
 void removeDebit(testcpplite::TestResult &);
+void removeCredit(testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif

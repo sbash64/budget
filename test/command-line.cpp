@@ -19,6 +19,8 @@ public:
     return removedDebitAccountName_;
   }
 
+  auto removedCredit() -> Transaction { return removedCredit_; }
+
   auto debitedAccountName() -> std::string { return debitedAccountName_; }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
@@ -32,9 +34,13 @@ public:
   }
 
   void removeDebit(std::string_view accountName,
-                   const Transaction &transaction) {
+                   const Transaction &transaction) override {
     removedDebitAccountName_ = accountName;
     removedDebit_ = transaction;
+  }
+
+  void removeCredit(const Transaction &transaction) {
+    removedCredit_ = transaction;
   }
 
   void credit(const Transaction &transaction) override {
@@ -82,6 +88,7 @@ public:
   }
 
 private:
+  Transaction removedCredit_;
   Transaction removedDebit_;
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
@@ -399,5 +406,17 @@ void removeDebit(testcpplite::TestResult &result) {
                     model.removedDebit());
       },
       {"remove-debit", "Gifts", "25", "12 27 20", "Sam's 24th"});
+}
+
+void removeCredit(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &) {
+        assertEqual(
+            result,
+            Transaction{200000_cents, "income", Date{2023, Month::March, 26}},
+            model.removedCredit());
+      },
+      {"remove-credit", "2000", "3 26 23", "income"});
 }
 } // namespace sbash64::budget::command_line

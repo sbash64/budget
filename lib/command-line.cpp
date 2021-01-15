@@ -59,9 +59,12 @@ static void enterTransaction(Model &model, CommandLineInterface &interface,
                              CommandLineInterpreter::CommandType commandType,
                              USD amount, std::string_view accountName,
                              const Date &date, std::string_view input) {
-  if (transactionType == Transaction::Type::credit)
-    model.credit(transaction(amount, date, input));
-  else {
+  if (transactionType == Transaction::Type::credit) {
+    if (commandType == CommandLineInterpreter::CommandType::addTransaction)
+      model.credit(transaction(amount, date, input));
+    else
+      model.removeCredit(transaction(amount, date, input));
+  } else {
     if (commandType == CommandLineInterpreter::CommandType::addTransaction)
       model.debit(accountName, transaction(amount, date, input));
     else
@@ -102,6 +105,11 @@ static void executeFirstLineOfMultiLineCommand(
     commandType = CommandLineInterpreter::CommandType::addTransaction;
     state = CommandLineInterpreter::State::readyForAmount;
     interface.prompt("how much? [amount ($)]");
+  } else if (commandName == "remove-credit") {
+    transactionType = Transaction::Type::credit;
+    commandType = CommandLineInterpreter::CommandType::removeTransaction;
+    state = CommandLineInterpreter::State::readyForAmount;
+    interface.prompt("how much? [amount ($)]");
   } else {
     if (commandName == "rename") {
       commandType = CommandLineInterpreter::CommandType::renameAccount;
@@ -137,7 +145,7 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     model.load(deserialization);
   else if (commandName == "credit" || commandName == "debit" ||
            commandName == "rename" || commandName == "transferto" ||
-           commandName == "remove-debit")
+           commandName == "remove-debit" || commandName == "remove-credit")
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
