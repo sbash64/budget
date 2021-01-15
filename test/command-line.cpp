@@ -115,10 +115,15 @@ public:
     transactionSuffix_ = suffix;
   }
 
+  auto message() -> std::string { return message_; }
+
+  void show(std::string_view m) { message_ = m; }
+
 private:
   Transaction transaction_;
   std::string prompt_;
   std::string transactionSuffix_;
+  std::string message_;
 };
 } // namespace
 
@@ -358,5 +363,14 @@ void creditPromptsForAmount(testcpplite::TestResult &result) {
         assertEqual(result, "how much? [amount ($)]", interface.prompt());
       },
       "credit");
+}
+
+void unrecognizedCommandPrintsMessage(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface) {
+        assertEqual(result, "unknown command \"oops\"", interface.message());
+      },
+      "oops");
 }
 } // namespace sbash64::budget::command_line

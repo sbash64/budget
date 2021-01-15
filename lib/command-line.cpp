@@ -127,9 +127,12 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
     model.save(serialization);
   else if (commandName == "load")
     model.load(deserialization);
-  else
+  else if (commandName == "credit" || commandName == "debit" ||
+           commandName == "rename" || commandName == "transferto")
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
+  else
+    interface.show("unknown command \"" + commandName + '"');
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
@@ -276,4 +279,5 @@ auto usd(std::string_view s) -> USD {
   }
   return usd;
 }
+void CommandLineStream::show(std::string_view message) {}
 } // namespace sbash64::budget

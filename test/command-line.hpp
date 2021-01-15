@@ -19,6 +19,7 @@ void renameAccountPromptsForNewName(testcpplite::TestResult &);
 void debitPromptsForAccountName(testcpplite::TestResult &);
 void debitPromptsForAmount(testcpplite::TestResult &);
 void creditPromptsForAmount(testcpplite::TestResult &);
+void unrecognizedCommandPrintsMessage(testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif
