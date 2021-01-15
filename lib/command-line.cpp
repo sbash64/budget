@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iomanip>
+#include <ostream>
 #include <sstream>
 
 namespace sbash64::budget {
@@ -205,40 +206,47 @@ constexpr auto to_integral(Month e) ->
 
 static auto operator<<(std::ostream &stream, const Month &month)
     -> std::ostream & {
-  stream << to_integral(month);
-  return stream;
+  return stream << to_integral(month);
+}
+
+static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {
+  return stream << std::setw(2) << std::setfill('0');
 }
 
 static auto operator<<(std::ostream &stream, const Date &date)
     -> std::ostream & {
   const auto fill{stream.fill()};
-  return stream << std::setw(2) << std::setfill('0') << date.month << '/'
-                << std::setw(2) << std::setfill('0') << date.day << '/'
-                << date.year << std::setfill(fill);
+  return prepareLengthTwoInteger(prepareLengthTwoInteger(stream)
+                                 << date.month << '/')
+         << date.day << '/' << date.year << std::setfill(fill);
 }
 
 CommandLineStream::CommandLineStream(std::ostream &stream) : stream{stream} {}
+
+static auto putNewLine(std::ostream &stream) -> std::ostream & {
+  return stream << '\n';
+}
 
 void CommandLineStream::show(Account &primary,
                              const std::vector<Account *> &secondaries) {
   primary.show(*this);
   for (auto *account : secondaries) {
-    stream << "\n\n";
+    putNewLine(putNewLine(stream));
     account->show(*this);
   }
-  stream << '\n';
+  putNewLine(stream);
 }
 
 void CommandLineStream::showAccountSummary(
     std::string_view name, USD balance,
     const std::vector<TransactionWithType> &transactions) {
-  stream << "----" << '\n';
-  stream << name << '\n';
-  putWithDollarSign(stream, balance) << '\n';
-  stream << '\n';
+  putNewLine(stream << "----");
+  putNewLine(stream << name);
+  putNewLine(putWithDollarSign(stream, balance));
+  putNewLine(stream);
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
-    stream << '\n';
+    putNewLine(stream);
     if (transaction.type == Transaction::Type::credit) {
       stream << std::setw(12) << "";
       stream << std::setw(13);
@@ -250,15 +258,19 @@ void CommandLineStream::showAccountSummary(
            << std::right << transaction.transaction.date << std::setw(10) << ""
            << transaction.transaction.description;
   }
-  stream << '\n' << "----";
+  putNewLine(stream) << "----";
 }
 
 void CommandLineStream::prompt(std::string_view s) { stream << s << ' '; }
 
 void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
-  putWithDollarSign(stream, t.amount)
-      << ' ' << t.date.month << '/' << t.date.day << '/' << t.date.year << ' '
-      << t.description << ' ' << suffix << '\n';
+  putNewLine(putWithDollarSign(stream, t.amount)
+             << ' ' << t.date.month << '/' << t.date.day << '/' << t.date.year
+             << ' ' << t.description << ' ' << suffix);
+}
+
+void CommandLineStream::show(std::string_view message) {
+  putNewLine(stream << message);
 }
 
 auto usd(std::string_view s) -> USD {
@@ -278,9 +290,5 @@ auto usd(std::string_view s) -> USD {
     usd.cents += cents;
   }
   return usd;
-}
-
-void CommandLineStream::show(std::string_view message) {
-  stream << message << '\n';
 }
 } // namespace sbash64::budget
