@@ -14,7 +14,7 @@ class Bank : public Model {
 public:
   explicit Bank(Account::Factory &);
   void debit(std::string_view accountName, const Transaction &) override;
-  void removeDebit(std::string_view accountName, const Transaction &);
+  void removeDebit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
   void removeCredit(const Transaction &);
   void transferTo(std::string_view accountName, USD amount, Date) override;
@@ -22,7 +22,7 @@ public:
   void show(View &) override;
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;
-  void renameAccount(std::string_view from, std::string_view to);
+  void renameAccount(std::string_view from, std::string_view to) override;
 
 private:
   Account::Factory &factory;

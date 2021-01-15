@@ -13,6 +13,12 @@ namespace sbash64::budget::command_line {
 namespace {
 class ModelStub : public Model {
 public:
+  auto removedDebit() -> Transaction { return removedDebit_; }
+
+  auto removedDebitAccountName() -> std::string {
+    return removedDebitAccountName_;
+  }
+
   auto debitedAccountName() -> std::string { return debitedAccountName_; }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
@@ -23,6 +29,12 @@ public:
              const Transaction &transaction) override {
     debitedAccountName_ = accountName;
     debitedTransaction_ = transaction;
+  }
+
+  void removeDebit(std::string_view accountName,
+                   const Transaction &transaction) {
+    removedDebitAccountName_ = accountName;
+    removedDebit_ = transaction;
   }
 
   void credit(const Transaction &transaction) override {
@@ -70,9 +82,11 @@ public:
   }
 
 private:
+  Transaction removedDebit_;
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   Date transferDate_{};
+  std::string removedDebitAccountName_;
   std::string debitedAccountName_;
   std::string accountRenaming_;
   std::string accountRenamed_;
@@ -372,5 +386,18 @@ void unrecognizedCommandPrintsMessage(testcpplite::TestResult &result) {
         assertEqual(result, "unknown command \"oops\"", interface.message());
       },
       "oops");
+}
+
+void removeDebit(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &) {
+        assertEqual(result, "Gifts", model.removedDebitAccountName());
+        assertEqual(result,
+                    Transaction{2500_cents, "Sam's 24th",
+                                Date{2020, Month::December, 27}},
+                    model.removedDebit());
+      },
+      {"remove-debit", "Gifts", "25", "12 27 20", "Sam's 24th"});
 }
 } // namespace sbash64::budget::command_line
