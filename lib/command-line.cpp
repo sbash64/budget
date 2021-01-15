@@ -176,10 +176,14 @@ void CommandLineInterpreter::execute(Model &model,
   }
 }
 
+static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {
+  return stream << std::setw(2) << std::setfill('0');
+}
+
 static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
   const auto fill{stream.fill()};
-  return stream << usd.cents / 100 << '.' << std::setw(2) << std::setfill('0')
-                << std::abs(usd.cents % 100) << std::setfill(fill);
+  return prepareLengthTwoInteger(stream << usd.cents / 100 << '.')
+         << std::abs(usd.cents % 100) << std::setfill(fill);
 }
 
 static auto formatWithoutDollarSign(USD usd) -> std::string {
@@ -189,8 +193,7 @@ static auto formatWithoutDollarSign(USD usd) -> std::string {
 }
 
 static auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
-  stream << '$' << usd;
-  return stream;
+  return stream << '$' << usd;
 }
 
 auto format(USD usd) -> std::string {
@@ -207,10 +210,6 @@ constexpr auto to_integral(Month e) ->
 static auto operator<<(std::ostream &stream, const Month &month)
     -> std::ostream & {
   return stream << to_integral(month);
-}
-
-static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {
-  return stream << std::setw(2) << std::setfill('0');
 }
 
 static auto operator<<(std::ostream &stream, const Date &date)
@@ -237,6 +236,10 @@ void CommandLineStream::show(Account &primary,
   putNewLine(stream);
 }
 
+static auto putSpaces(std::ostream &stream, int n) -> std::ostream & {
+  return stream << std::setw(n) << "";
+}
+
 void CommandLineStream::showAccountSummary(
     std::string_view name, USD balance,
     const std::vector<TransactionWithType> &transactions) {
@@ -247,26 +250,33 @@ void CommandLineStream::showAccountSummary(
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
     putNewLine(stream);
+    auto width{25};
     if (transaction.type == Transaction::Type::credit) {
-      stream << std::setw(12) << "";
-      stream << std::setw(13);
-    } else {
-      stream << std::setw(25);
+      const auto spaces{12};
+      putSpaces(stream, spaces);
+      width -= spaces;
     }
-    stream << std::left
-           << formatWithoutDollarSign(transaction.transaction.amount)
-           << std::right << transaction.transaction.date << std::setw(10) << ""
-           << transaction.transaction.description;
+    putSpaces(stream << std::setw(width) << std::left
+                     << formatWithoutDollarSign(transaction.transaction.amount)
+                     << std::right << transaction.transaction.date,
+              10)
+        << transaction.transaction.description;
   }
   putNewLine(stream) << "----";
 }
 
 void CommandLineStream::prompt(std::string_view s) { stream << s << ' '; }
 
+static auto putSpace(std::ostream &stream) -> std::ostream & {
+  return stream << ' ';
+}
+
 void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
-  putNewLine(putWithDollarSign(stream, t.amount)
-             << ' ' << t.date.month << '/' << t.date.day << '/' << t.date.year
-             << ' ' << t.description << ' ' << suffix);
+  putNewLine(putSpace(putSpace(putSpace(putWithDollarSign(stream, t.amount))
+                               << t.date.month << '/' << t.date.day << '/'
+                               << t.date.year)
+                      << t.description)
+             << suffix);
 }
 
 void CommandLineStream::show(std::string_view message) {
