@@ -100,28 +100,24 @@ static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, CommandLineInterpreter::State &state,
     CommandLineInterpreter::CommandType &commandType,
     Transaction::Type &transactionType, std::string_view commandName) {
-  if (commandName == "credit") {
+  if (commandName == "credit" || commandName == "remove-credit") {
+    commandType = commandName == "credit"
+                      ? CommandLineInterpreter::CommandType::addTransaction
+                      : CommandLineInterpreter::CommandType::removeTransaction;
     transactionType = Transaction::Type::credit;
-    commandType = CommandLineInterpreter::CommandType::addTransaction;
-    state = CommandLineInterpreter::State::readyForAmount;
-    interface.prompt("how much? [amount ($)]");
-  } else if (commandName == "remove-credit") {
-    transactionType = Transaction::Type::credit;
-    commandType = CommandLineInterpreter::CommandType::removeTransaction;
     state = CommandLineInterpreter::State::readyForAmount;
     interface.prompt("how much? [amount ($)]");
   } else {
-    if (commandName == "rename") {
+    if (commandName == "debit" || commandName == "remove-debit") {
+      commandType =
+          commandName == "debit"
+              ? CommandLineInterpreter::CommandType::addTransaction
+              : CommandLineInterpreter::CommandType::removeTransaction;
+      transactionType = Transaction::Type::debit;
+    } else if (commandName == "rename")
       commandType = CommandLineInterpreter::CommandType::renameAccount;
-    } else if (commandName == "debit") {
-      transactionType = Transaction::Type::debit;
-      commandType = CommandLineInterpreter::CommandType::addTransaction;
-    } else if (commandName == "remove-debit") {
-      transactionType = Transaction::Type::debit;
-      commandType = CommandLineInterpreter::CommandType::removeTransaction;
-    } else if (commandName == "transferto") {
+    else if (commandName == "transferto")
       commandType = CommandLineInterpreter::CommandType::transfer;
-    }
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
   }
