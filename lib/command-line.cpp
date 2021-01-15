@@ -265,11 +265,11 @@ void CommandLineStream::showAccountSummary(
   putNewLine(stream) << "----";
 }
 
-void CommandLineStream::prompt(std::string_view s) { stream << s << ' '; }
-
 static auto putSpace(std::ostream &stream) -> std::ostream & {
   return stream << ' ';
 }
+
+void CommandLineStream::prompt(std::string_view s) { putSpace(stream << s); }
 
 void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
   putNewLine(putSpace(putSpace(putSpace(putWithDollarSign(stream, t.amount))
