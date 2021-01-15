@@ -279,5 +279,8 @@ auto usd(std::string_view s) -> USD {
   }
   return usd;
 }
-void CommandLineStream::show(std::string_view message) {}
+
+void CommandLineStream::show(std::string_view message) {
+  stream << message << '\n';
+}
 } // namespace sbash64::budget

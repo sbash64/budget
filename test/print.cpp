@@ -108,4 +108,11 @@ void transactionWithSuffix(testcpplite::TestResult &result) {
                "hello");
   assertEqual(result, "$1.23 7/5/2020 nope hello\n", stream.str());
 }
+
+void message(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  CommandLineStream printer{stream};
+  printer.show("hello");
+  assertEqual(result, "hello\n", stream.str());
+}
 } // namespace sbash64::budget::print
