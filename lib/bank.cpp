@@ -1,5 +1,6 @@
 #include "bank.hpp"
 #include <algorithm>
+#include <functional>
 #include <initializer_list>
 #include <memory>
 #include <numeric>
@@ -181,11 +182,25 @@ void InMemoryAccount::load(SessionDeserialization &deserialization) {
   deserialization.loadAccount(credits, debits);
 }
 
-static void remove(VerifiableTransactions &transactions, const Transaction &t) {
+static void
+executeIfFound(VerifiableTransactions &transactions, const Transaction &t,
+               const std::function<void(VerifiableTransactions::iterator)> &f) {
   const auto it{find(transactions.begin(), transactions.end(),
                      VerifiableTransaction{t, false})};
   if (it != transactions.end())
+    f(it);
+}
+
+static void remove(VerifiableTransactions &transactions, const Transaction &t) {
+  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
     transactions.erase(it);
+  });
+}
+
+static void verify(VerifiableTransactions &transactions, const Transaction &t) {
+  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
+    it->verified = true;
+  });
 }
 
 void InMemoryAccount::removeDebit(const Transaction &t) { remove(debits, t); }
@@ -194,17 +209,7 @@ void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 
-void InMemoryAccount::verifyCredit(const Transaction &t) {
-  const auto it{
-      find(credits.begin(), credits.end(), VerifiableTransaction{t, false})};
-  if (it != credits.end())
-    it->verified = true;
-}
+void InMemoryAccount::verifyCredit(const Transaction &t) { verify(credits, t); }
 
-void InMemoryAccount::verifyDebit(const Transaction &t) {
-  const auto it{
-      find(debits.begin(), debits.end(), VerifiableTransaction{t, false})};
-  if (it != debits.end())
-    it->verified = true;
-}
+void InMemoryAccount::verifyDebit(const Transaction &t) { verify(debits, t); }
 } // namespace sbash64::budget
