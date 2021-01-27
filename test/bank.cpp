@@ -57,7 +57,7 @@ public:
 
   auto creditToVerify() -> Transaction { return creditToVerify_; }
 
-  void verifyCredit(const Transaction &t) { creditToVerify_ = t; }
+  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
 private:
   Transaction creditToVerify_;

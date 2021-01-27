@@ -62,7 +62,8 @@ public:
     transferDate_ = date;
   }
 
-  void removeTransfer(std::string_view accountName, USD amount, Date date) {
+  void removeTransfer(std::string_view accountName, USD amount,
+                      Date date) override {
     removedTransferAmount_ = amount;
     removedTransferAccountName_ = accountName;
     removedTransferDate_ = date;
@@ -155,7 +156,7 @@ public:
 
   auto message() -> std::string { return message_; }
 
-  void show(std::string_view m) { message_ = m; }
+  void show(std::string_view m) override { message_ = m; }
 
 private:
   Transaction transaction_;

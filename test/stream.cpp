@@ -34,7 +34,7 @@ public:
   void show(View &) override {}
   void load(SessionDeserialization &) override {}
   void rename(std::string_view) override {}
-  auto findUnverifiedDebits(USD) -> Transactions override {}
+  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
 
@@ -61,7 +61,7 @@ public:
   void show(View &) override {}
   void save(SessionSerialization &) override {}
   void rename(std::string_view) override {}
-  auto findUnverifiedDebits(USD) -> Transactions override {}
+  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
 

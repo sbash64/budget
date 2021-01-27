@@ -46,7 +46,7 @@ public:
   void removeDebit(const Transaction &) override;
   void rename(std::string_view) override;
   void verifyDebit(const Transaction &) override;
-  void verifyCredit(const Transaction &);
+  void verifyCredit(const Transaction &) override;
   auto findUnverifiedDebits(USD amount) -> Transactions override;
   auto findUnverifiedCredits(USD amount) -> Transactions;
 
