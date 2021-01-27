@@ -30,6 +30,8 @@ private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
 };
 
+using Transactions = std::vector<Transaction>;
+
 class InMemoryAccount : public Account {
 public:
   explicit InMemoryAccount(std::string name);
@@ -43,8 +45,8 @@ public:
   void rename(std::string_view) override;
   void verifyDebit(const Transaction &);
   void verifyCredit(const Transaction &);
-  auto findUnverifiedDebits(USD amount) -> std::vector<Transaction>;
-  auto findUnverifiedCredits(USD amount) -> std::vector<Transaction>;
+  auto findUnverifiedDebits(USD amount) -> Transactions;
+  auto findUnverifiedCredits(USD amount) -> Transactions;
 
   class Factory : public Account::Factory {
   public:

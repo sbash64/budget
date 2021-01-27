@@ -213,28 +213,25 @@ void InMemoryAccount::verifyCredit(const Transaction &t) { verify(credits, t); }
 
 void InMemoryAccount::verifyDebit(const Transaction &t) { verify(debits, t); }
 
-auto InMemoryAccount::findUnverifiedDebits(USD amount)
-    -> std::vector<Transaction> {
-  std::vector<Transaction> transactions;
-  for (const auto &d : debits)
-    if (d.transaction.amount == amount && !d.verified)
-      transactions.push_back(d.transaction);
+static auto findUnverified(const VerifiableTransactions &verifiableTransactions,
+                           USD amount) -> Transactions {
+  Transactions transactions;
+  for (const auto &verifiableTransaction : verifiableTransactions)
+    if (verifiableTransaction.transaction.amount == amount &&
+        !verifiableTransaction.verified)
+      transactions.push_back(verifiableTransaction.transaction);
   sort(transactions.begin(), transactions.end(),
        [](const Transaction &a, const Transaction &b) {
          return a.date < b.date;
        });
   return transactions;
 }
-auto InMemoryAccount::findUnverifiedCredits(USD amount)
-    -> std::vector<Transaction> {
-  std::vector<Transaction> transactions;
-  for (const auto &c : credits)
-    if (c.transaction.amount == amount && !c.verified)
-      transactions.push_back(c.transaction);
-  sort(transactions.begin(), transactions.end(),
-       [](const Transaction &a, const Transaction &b) {
-         return a.date < b.date;
-       });
-  return transactions;
+
+auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
+  return findUnverified(debits, amount);
+}
+
+auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
+  return findUnverified(credits, amount);
 }
 } // namespace sbash64::budget
