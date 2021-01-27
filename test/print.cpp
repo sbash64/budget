@@ -91,17 +91,17 @@ void account(testcpplite::TestResult &result) {
                                Date{2020, Month::December, 27}}),
              credit(Transaction{2734_cents, "Birthday present",
                                 Date{2021, Month::October, 20}}),
-             debit(Transaction{2410_cents, "Hannah's 30th",
-                               Date{2021, Month::March, 8}})});
+             verifiedDebit(Transaction{2410_cents, "Hannah's 30th",
+                                       Date{2021, Month::March, 8}})});
         assertEqual(result, R"(
 ----
 Checking
 $12.34
 
 Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
-25.00                    12/27/2020          Sam's 24th
-            27.34        10/20/2021          Birthday present
-24.10                    03/08/2021          Hannah's 30th
+   *25.00                12/27/2020          Sam's 24th
+                *27.34   10/20/2021          Birthday present
+    24.10                03/08/2021          Hannah's 30th
 ----
 )",
                     '\n' + stream.str() + '\n');

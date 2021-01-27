@@ -212,6 +212,15 @@ static auto formatWithoutDollarSign(USD usd) -> std::string {
   return stream.str();
 }
 
+static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)
+    -> std::string {
+  std::stringstream stream;
+  if (!transaction.verified)
+    stream << '*';
+  stream << transaction.transaction.amount;
+  return stream.str();
+}
+
 static auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
   return stream << '$' << usd;
 }
@@ -270,19 +279,21 @@ void CommandLineStream::showAccountSummary(
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
     putNewLine(stream);
-    auto width{25};
+    auto width{9};
+    auto remainingSpaces{25 - 9};
     if (transaction.type == Transaction::Type::credit) {
       const auto spaces{12};
       putSpaces(stream, spaces);
-      width -= spaces;
+      width = 10;
+      remainingSpaces = 3;
     }
-    putSpaces(
-        stream << std::setw(width) << std::left
-               << formatWithoutDollarSign(
-                      transaction.verifiableTransaction.transaction.amount)
-               << std::right
-               << transaction.verifiableTransaction.transaction.date,
-        10)
+    putSpaces(putSpaces(stream << std::setw(width) << std::right
+                               << formatWithoutDollarSign(
+                                      transaction.verifiableTransaction),
+                        remainingSpaces)
+                  << std::right
+                  << transaction.verifiableTransaction.transaction.date,
+              10)
         << transaction.verifiableTransaction.transaction.description;
   }
   putNewLine(stream) << "----";
