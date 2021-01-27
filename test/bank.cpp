@@ -53,7 +53,7 @@ public:
 
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
-  void verifyDebit(const Transaction &t) { debitToVerify_ = t; }
+  void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
 
 private:
   Transaction debitToVerify_;
