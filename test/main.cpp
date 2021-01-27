@@ -78,6 +78,10 @@ static auto runAllTests() -> int {
        {account::showShowsVerifiedTransactionsInChronologicalOrderAndBalance,
         "account show shows verified transactions in chronological order and "
         "balance "},
+       {account::
+            findUnverifiedTransactionReturnsUnverifiedTransactionsMatchingAmount,
+        "account find unverified transaction returns unverified transactions "
+        "matching amount"},
        {account::saveSavesAllTransactions,
         "account save saves all transactions"},
        {account::loadLoadsAllTransactions,

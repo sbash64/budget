@@ -13,6 +13,8 @@ void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
 void saveSavesAllTransactions(testcpplite::TestResult &);
 void loadLoadsAllTransactions(testcpplite::TestResult &);
 void rename(testcpplite::TestResult &);
+void findUnverifiedTransactionReturnsUnverifiedTransactionsMatchingAmount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

@@ -43,6 +43,7 @@ public:
   void rename(std::string_view) override;
   void verifyDebit(const Transaction &);
   void verifyCredit(const Transaction &);
+  auto findUnverifiedDebits(USD amount) -> std::vector<Transaction>;
 
   class Factory : public Account::Factory {
   public:

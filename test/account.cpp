@@ -39,6 +39,15 @@ static void assertContainsDebit(testcpplite::TestResult &result,
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<Transaction> &expected,
+                        const std::vector<Transaction> &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (std::vector<VerifiableTransactionWithType>::size_type i{0};
+       i < expected.size(); ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
+}
+
 static void
 assertEqual(testcpplite::TestResult &result,
             const std::vector<VerifiableTransactionWithType> &expected,
@@ -181,5 +190,25 @@ void rename(testcpplite::TestResult &result) {
   ViewStub view;
   show(account, view);
   assertAccountName(result, view, "mike");
+}
+
+void findUnverifiedTransactionReturnsUnverifiedTransactionsMatchingAmount(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  debit(account,
+        Transaction{123_cents, "gorilla", Date{2020, Month::January, 20}});
+  debit(account,
+        Transaction{456_cents, "orangutan", Date{2020, Month::March, 4}});
+  debit(account,
+        Transaction{123_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  account.verifyDebit(
+      Transaction{123_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.verifyDebit(
+      Transaction{456_cents, "orangutan", Date{2020, Month::March, 4}});
+  assertEqual(result,
+              {Transaction{123_cents, "chimpanzee", Date{2020, Month::June, 1}},
+               Transaction{123_cents, "ape", Date{2020, Month::June, 2}}},
+              account.findUnverifiedDebits(123_cents));
 }
 } // namespace sbash64::budget::account

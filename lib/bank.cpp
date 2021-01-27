@@ -212,4 +212,17 @@ void InMemoryAccount::rename(std::string_view s) { name = s; }
 void InMemoryAccount::verifyCredit(const Transaction &t) { verify(credits, t); }
 
 void InMemoryAccount::verifyDebit(const Transaction &t) { verify(debits, t); }
+
+auto InMemoryAccount::findUnverifiedDebits(USD amount)
+    -> std::vector<Transaction> {
+  std::vector<Transaction> transactions;
+  for (const auto &d : debits)
+    if (d.transaction.amount == amount && !d.verified)
+      transactions.push_back(d.transaction);
+  sort(transactions.begin(), transactions.end(),
+       [](const Transaction &a, const Transaction &b) {
+         return a.date < b.date;
+       });
+  return transactions;
+}
 } // namespace sbash64::budget
