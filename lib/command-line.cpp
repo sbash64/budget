@@ -279,13 +279,14 @@ void CommandLineStream::showAccountSummary(
   stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
   for (const auto &transaction : transactions) {
     putNewLine(stream);
+    constexpr auto spacesUntilDate{25};
     auto width{9};
-    auto remainingSpaces{25 - 9};
+    auto remainingSpaces{spacesUntilDate - width};
     if (transaction.type == Transaction::Type::credit) {
-      const auto spaces{12};
-      putSpaces(stream, spaces);
       width = 10;
       remainingSpaces = 3;
+      const auto spaces{spacesUntilDate - width - remainingSpaces};
+      putSpaces(stream, spaces);
     }
     putSpaces(putSpaces(stream << std::setw(width) << std::right
                                << formatWithoutDollarSign(
