@@ -44,6 +44,7 @@ public:
   void verifyDebit(const Transaction &);
   void verifyCredit(const Transaction &);
   auto findUnverifiedDebits(USD amount) -> std::vector<Transaction>;
+  auto findUnverifiedCredits(USD amount) -> std::vector<Transaction>;
 
   class Factory : public Account::Factory {
   public:

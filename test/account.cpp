@@ -192,7 +192,7 @@ void rename(testcpplite::TestResult &result) {
   assertAccountName(result, view, "mike");
 }
 
-void findUnverifiedTransactionReturnsUnverifiedTransactionsMatchingAmount(
+void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -210,5 +210,25 @@ void findUnverifiedTransactionReturnsUnverifiedTransactionsMatchingAmount(
               {Transaction{123_cents, "chimpanzee", Date{2020, Month::June, 1}},
                Transaction{123_cents, "ape", Date{2020, Month::June, 2}}},
               account.findUnverifiedDebits(123_cents));
+}
+
+void findUnverifiedCreditsReturnsUnverifiedDebitsMatchingAmount(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  credit(account,
+         Transaction{123_cents, "gorilla", Date{2020, Month::January, 20}});
+  credit(account,
+         Transaction{456_cents, "orangutan", Date{2020, Month::March, 4}});
+  credit(account,
+         Transaction{123_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  account.verifyCredit(
+      Transaction{123_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.verifyCredit(
+      Transaction{456_cents, "orangutan", Date{2020, Month::March, 4}});
+  assertEqual(result,
+              {Transaction{123_cents, "chimpanzee", Date{2020, Month::June, 1}},
+               Transaction{123_cents, "ape", Date{2020, Month::June, 2}}},
+              account.findUnverifiedCredits(123_cents));
 }
 } // namespace sbash64::budget::account

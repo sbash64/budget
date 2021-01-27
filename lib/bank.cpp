@@ -225,4 +225,16 @@ auto InMemoryAccount::findUnverifiedDebits(USD amount)
        });
   return transactions;
 }
+auto InMemoryAccount::findUnverifiedCredits(USD amount)
+    -> std::vector<Transaction> {
+  std::vector<Transaction> transactions;
+  for (const auto &c : credits)
+    if (c.transaction.amount == amount && !c.verified)
+      transactions.push_back(c.transaction);
+  sort(transactions.begin(), transactions.end(),
+       [](const Transaction &a, const Transaction &b) {
+         return a.date < b.date;
+       });
+  return transactions;
+}
 } // namespace sbash64::budget
