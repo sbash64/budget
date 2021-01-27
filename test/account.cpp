@@ -1,6 +1,5 @@
 #include "account.hpp"
 #include "persistent-memory-stub.hpp"
-#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <sbash64/budget/bank.hpp>
