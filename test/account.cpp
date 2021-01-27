@@ -15,8 +15,8 @@ constexpr auto to_integral(Transaction::Type e) ->
 static void assertEqual(testcpplite::TestResult &result,
                         const VerifiableTransactionWithType &expected,
                         const VerifiableTransactionWithType &actual) {
-  assertEqual(result, expected.verifiableTransaction.transaction,
-              actual.verifiableTransaction.transaction);
+  assertEqual(result, expected.verifiableTransaction,
+              actual.verifiableTransaction);
   assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
 

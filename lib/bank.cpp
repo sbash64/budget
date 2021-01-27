@@ -194,7 +194,17 @@ void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 
-void InMemoryAccount::verifyCredit(const Transaction &) {}
+void InMemoryAccount::verifyCredit(const Transaction &t) {
+  const auto it{
+      find(credits.begin(), credits.end(), VerifiableTransaction{t, false})};
+  if (it != credits.end())
+    it->verified = true;
+}
 
-void InMemoryAccount::verifyDebit(const Transaction &) {}
+void InMemoryAccount::verifyDebit(const Transaction &t) {
+  const auto it{
+      find(debits.begin(), debits.end(), VerifiableTransaction{t, false})};
+  if (it != debits.end())
+    it->verified = true;
+}
 } // namespace sbash64::budget
