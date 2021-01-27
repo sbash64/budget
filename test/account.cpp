@@ -13,37 +13,39 @@ constexpr auto to_integral(Transaction::Type e) ->
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const TransactionWithType &expected,
-                        const TransactionWithType &actual) {
-  assertEqual(result, expected.transaction, actual.transaction);
+                        const VerifiableTransactionWithType &expected,
+                        const VerifiableTransactionWithType &actual) {
+  assertEqual(result, expected.verifiableTransaction.transaction,
+              actual.verifiableTransaction.transaction);
   assertEqual(result, to_integral(expected.type), to_integral(actual.type));
 }
 
 static void assertContains(testcpplite::TestResult &result,
-                           const Transactions &transactions,
-                           const Transaction &transaction) {
+                           const VerifiableTransactions &transactions,
+                           const VerifiableTransaction &transaction) {
   assertTrue(result, std::find(transactions.begin(), transactions.end(),
                                transaction) != transactions.end());
 }
 
 static void assertContainsCredit(testcpplite::TestResult &result,
                                  PersistentMemoryStub &persistentMemory,
-                                 const Transaction &transaction) {
+                                 const VerifiableTransaction &transaction) {
   assertContains(result, persistentMemory.credits(), transaction);
 }
 
 static void assertContainsDebit(testcpplite::TestResult &result,
                                 PersistentMemoryStub &persistentMemory,
-                                const Transaction &transaction) {
+                                const VerifiableTransaction &transaction) {
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<TransactionWithType> &expected,
-                        const std::vector<TransactionWithType> &actual) {
+static void
+assertEqual(testcpplite::TestResult &result,
+            const std::vector<VerifiableTransactionWithType> &expected,
+            const std::vector<VerifiableTransactionWithType> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<TransactionWithType>::size_type i{0}; i < expected.size();
-       ++i)
+  for (std::vector<VerifiableTransactionWithType>::size_type i{0};
+       i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
@@ -61,7 +63,7 @@ static void assertAccountName(testcpplite::TestResult &result, ViewStub &view,
 }
 
 static void assertShown(testcpplite::TestResult &result, ViewStub &view,
-                        const std::vector<TransactionWithType> &t) {
+                        const std::vector<VerifiableTransactionWithType> &t) {
   assertEqual(result, t, view.accountTransactions());
 }
 
@@ -108,6 +110,35 @@ void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
+void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  credit(account,
+         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+  debit(account,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  account.verifyDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.verifyCredit(
+      Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+  ViewStub view;
+  show(account, view);
+  assertAccountName(result, view, "joe");
+  assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
+              view.accountBalance());
+  assertShown(
+      result, view,
+      {verifiedDebit(
+           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
+       verifiedCredit(
+           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}}),
+       debit(Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
+       credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
+}
+
 void saveSavesAllTransactions(testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -118,24 +149,21 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
   PersistentMemoryStub persistentMemory;
   account.save(persistentMemory);
   assertEqual(result, "joe", persistentMemory.accountName());
-  assertContainsDebit(
-      result, persistentMemory,
-      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-  assertContainsCredit(
-      result, persistentMemory,
-      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-  assertContainsCredit(
-      result, persistentMemory,
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertContainsDebit(result, persistentMemory,
+                      {{456_cents, "gorilla", Date{2020, Month::January, 20}}});
+  assertContainsCredit(result, persistentMemory,
+                       {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}});
+  assertContainsCredit(result, persistentMemory,
+                       {{123_cents, "ape", Date{2020, Month::June, 2}}});
 }
 
 void loadLoadsAllTransactions(testcpplite::TestResult &result) {
   PersistentMemoryStub persistentMemory;
   persistentMemory.setCreditsToLoad(
-      {Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-       Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}});
+      {{{123_cents, "ape", Date{2020, Month::June, 2}}},
+       {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}}});
   persistentMemory.setDebitsToLoad(
-      {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}});
+      {{{456_cents, "gorilla", Date{2020, Month::January, 20}}}});
   InMemoryAccount account{""};
   account.load(persistentMemory);
   ViewStub view;

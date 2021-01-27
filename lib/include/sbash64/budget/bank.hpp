@@ -41,6 +41,8 @@ public:
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
   void rename(std::string_view) override;
+  void verifyDebit(const Transaction &);
+  void verifyCredit(const Transaction &);
 
   class Factory : public Account::Factory {
   public:
@@ -48,8 +50,8 @@ public:
   };
 
 private:
-  Transactions debits;
-  Transactions credits;
+  VerifiableTransactions debits;
+  VerifiableTransactions credits;
   std::string name;
 };
 } // namespace sbash64::budget

@@ -77,17 +77,41 @@ constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
          a.date == b.date;
 }
 
-struct TransactionWithType {
+struct VerifiableTransaction {
   Transaction transaction;
+  bool verified{};
+};
+
+constexpr auto operator==(const VerifiableTransaction &a,
+                          const VerifiableTransaction &b) -> bool {
+  return a.transaction == b.transaction && a.verified == b.verified;
+}
+
+struct VerifiableTransactionWithType {
+  VerifiableTransaction verifiableTransaction;
   Transaction::Type type{};
 };
 
-template <typename T> auto debit(T &&transaction) -> TransactionWithType {
-  return {std::forward<T>(transaction), Transaction::Type::debit};
+template <typename T>
+auto debit(T &&transaction) -> VerifiableTransactionWithType {
+  return {VerifiableTransaction{std::forward<T>(transaction), false},
+          Transaction::Type::debit};
 }
 
-template <typename T> auto credit(T &&transaction) -> TransactionWithType {
-  return {std::forward<T>(transaction), Transaction::Type::credit};
+template <typename T>
+auto credit(T &&transaction) -> VerifiableTransactionWithType {
+  return {VerifiableTransaction{std::forward<T>(transaction), false},
+          Transaction::Type::credit};
+}
+
+template <typename T>
+auto verifiedDebit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction), true}, Transaction::Type::debit};
+}
+
+template <typename T>
+auto verifiedCredit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction), true}, Transaction::Type::credit};
 }
 
 class View;
@@ -118,26 +142,29 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
   virtual void show(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void
-  showAccountSummary(std::string_view name, USD balance,
-                     const std::vector<TransactionWithType> &transactions) = 0;
+  virtual void showAccountSummary(
+      std::string_view name, USD balance,
+      const std::vector<VerifiableTransactionWithType> &transactions) = 0;
 };
 
 using Transactions = std::vector<Transaction>;
+using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
 class SessionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void saveAccount(std::string_view name, const Transactions &credits,
-                           const Transactions &debits) = 0;
+  virtual void saveAccount(std::string_view name,
+                           const VerifiableTransactions &credits,
+                           const VerifiableTransactions &debits) = 0;
 };
 
 class SessionDeserialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
-  virtual void loadAccount(Transactions &credits, Transactions &debits) = 0;
+  virtual void loadAccount(VerifiableTransactions &credits,
+                           VerifiableTransactions &debits) = 0;
   virtual void load(Account::Factory &factory,
                     std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>

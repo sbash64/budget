@@ -19,9 +19,8 @@ public:
   explicit WritesSessionToStream(IoStreamFactory &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
-  void saveAccount(std::string_view name,
-                   const std::vector<Transaction> &credits,
-                   const std::vector<Transaction> &debits) override;
+  void saveAccount(std::string_view name, const VerifiableTransactions &credits,
+                   const VerifiableTransactions &debits) override;
 
 private:
   IoStreamFactory &ioStreamFactory;
@@ -31,8 +30,8 @@ private:
 class ReadsSessionFromStream : public SessionDeserialization {
 public:
   explicit ReadsSessionFromStream(IoStreamFactory &);
-  void loadAccount(std::vector<Transaction> &credits,
-                   std::vector<Transaction> &debits) override;
+  void loadAccount(VerifiableTransactions &credits,
+                   VerifiableTransactions &debits) override;
   void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
             std::map<std::string, std::shared_ptr<Account>, std::less<>>
                 &secondaries) override;

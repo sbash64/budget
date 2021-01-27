@@ -262,7 +262,7 @@ static auto putSpaces(std::ostream &stream, int n) -> std::ostream & {
 
 void CommandLineStream::showAccountSummary(
     std::string_view name, USD balance,
-    const std::vector<TransactionWithType> &transactions) {
+    const std::vector<VerifiableTransactionWithType> &transactions) {
   putNewLine(stream << "----");
   putNewLine(stream << name);
   putNewLine(putWithDollarSign(stream, balance));
@@ -276,11 +276,14 @@ void CommandLineStream::showAccountSummary(
       putSpaces(stream, spaces);
       width -= spaces;
     }
-    putSpaces(stream << std::setw(width) << std::left
-                     << formatWithoutDollarSign(transaction.transaction.amount)
-                     << std::right << transaction.transaction.date,
-              10)
-        << transaction.transaction.description;
+    putSpaces(
+        stream << std::setw(width) << std::left
+               << formatWithoutDollarSign(
+                      transaction.verifiableTransaction.transaction.amount)
+               << std::right
+               << transaction.verifiableTransaction.transaction.date,
+        10)
+        << transaction.verifiableTransaction.transaction.description;
   }
   putNewLine(stream) << "----";
 }

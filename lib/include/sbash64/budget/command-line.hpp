@@ -41,8 +41,9 @@ public:
   explicit CommandLineStream(std::ostream &);
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override;
-  void showAccountSummary(std::string_view name, USD balance,
-                          const std::vector<TransactionWithType> &) override;
+  void showAccountSummary(
+      std::string_view name, USD balance,
+      const std::vector<VerifiableTransactionWithType> &) override;
   void prompt(std::string_view) override;
   void show(const Transaction &, std::string_view suffix) override;
   void show(std::string_view message) override;

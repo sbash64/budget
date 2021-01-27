@@ -22,8 +22,8 @@ private:
 
 class SaveAccountStub : public Account {
 public:
-  SaveAccountStub(std::string name, std::vector<Transaction> credits,
-                  std::vector<Transaction> debits)
+  SaveAccountStub(std::string name, VerifiableTransactions credits,
+                  VerifiableTransactions debits)
       : name{std::move(name)}, credits{std::move(credits)}, debits{std::move(
                                                                 debits)} {}
 
@@ -40,14 +40,14 @@ public:
 
 private:
   std::string name;
-  std::vector<Transaction> credits;
-  std::vector<Transaction> debits;
+  VerifiableTransactions credits;
+  VerifiableTransactions debits;
 };
 
 class LoadAccountStub : public Account {
 public:
-  LoadAccountStub(std::vector<Transaction> &credits,
-                  std::vector<Transaction> &debits)
+  LoadAccountStub(VerifiableTransactions &credits,
+                  VerifiableTransactions &debits)
       : credits{credits}, debits{debits} {}
 
   void credit(const Transaction &) override {}
@@ -61,8 +61,8 @@ public:
   }
 
 private:
-  std::vector<Transaction> &credits;
-  std::vector<Transaction> &debits;
+  VerifiableTransactions &credits;
+  VerifiableTransactions &debits;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -86,48 +86,36 @@ void savesAccounts(testcpplite::TestResult &result) {
   WritesSessionToStream file{factory};
   SaveAccountStub jeff{
       "jeff",
-      {Transaction{5000_cents, "transfer from master",
-                   Date{2021, Month::January, 10}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::March, 12}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::February, 8}}},
-      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   SaveAccountStub steve{
       "steve",
-      {Transaction{5000_cents, "transfer from master",
-                   Date{2021, Month::January, 10}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::March, 12}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::February, 8}}},
-      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   SaveAccountStub sue{
       "sue",
-      {Transaction{5000_cents, "transfer from master",
-                   Date{2021, Month::January, 10}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::March, 12}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::February, 8}}},
-      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   SaveAccountStub allen{
       "allen",
-      {Transaction{5000_cents, "transfer from master",
-                   Date{2021, Month::January, 10}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::March, 12}},
-       Transaction{2500_cents, "transfer from master",
-                   Date{2021, Month::February, 8}}},
-      {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}}};
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   file.save(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
@@ -174,10 +162,10 @@ debits
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<Transaction> &expected,
-                        const std::vector<Transaction> &actual) {
+                        const VerifiableTransactions &expected,
+                        const VerifiableTransactions &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<Transaction>::size_type i{0}; i < expected.size(); ++i)
+  for (VerifiableTransactions::size_type i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
@@ -225,14 +213,14 @@ debits
 )")};
   IoStreamFactoryStub factory{input};
   ReadsSessionFromStream file{factory};
-  std::vector<Transaction> creditsJeff;
-  std::vector<Transaction> debitsJeff;
-  std::vector<Transaction> creditsSteve;
-  std::vector<Transaction> debitsSteve;
-  std::vector<Transaction> creditsSue;
-  std::vector<Transaction> debitsSue;
-  std::vector<Transaction> creditsAllen;
-  std::vector<Transaction> debitsAllen;
+  VerifiableTransactions creditsJeff;
+  VerifiableTransactions debitsJeff;
+  VerifiableTransactions creditsSteve;
+  VerifiableTransactions debitsSteve;
+  VerifiableTransactions creditsSue;
+  VerifiableTransactions debitsSue;
+  VerifiableTransactions creditsAllen;
+  VerifiableTransactions debitsAllen;
   const auto jeff{std::make_shared<LoadAccountStub>(creditsJeff, debitsJeff)};
   const auto steve{
       std::make_shared<LoadAccountStub>(creditsSteve, debitsSteve)};
@@ -251,58 +239,49 @@ debits
   assertEqual(result, steve.get(), accounts.at("steve").get());
   assertEqual(result, sue.get(), accounts.at("sue").get());
   assertEqual(result, allen.get(), accounts.at("allen").get());
-  assertEqual(result,
-              {Transaction{5000_cents, "transfer from master",
-                           Date{2021, Month::January, 10}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::April, 12}},
-               Transaction{1380_cents, "transfer from master",
-                           Date{2021, Month::February, 8}}},
-              creditsJeff);
-  assertEqual(result,
-              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{987_cents, "walmart", Date{2021, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2020, Month::February, 8}}},
-              debitsJeff);
-  assertEqual(result,
-              {Transaction{5000_cents, "transfer from master",
-                           Date{2021, Month::January, 10}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::March, 12}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::February, 8}}},
-              creditsSteve);
-  assertEqual(result,
-              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
-              debitsSteve);
-  assertEqual(result,
-              {Transaction{7500_cents, "transfer from master",
-                           Date{2021, Month::January, 10}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::March, 12}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::February, 8}}},
-              creditsSue);
   assertEqual(
       result,
-      {Transaction{2734_cents, "bakers", Date{2021, Month::January, 12}},
-       Transaction{1256_cents, "walmart", Date{2021, Month::June, 15}},
-       Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
-      debitsSue);
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
+       {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      creditsJeff);
   assertEqual(result,
-              {Transaction{5000_cents, "transfer from master",
-                           Date{2021, Month::January, 10}},
-               Transaction{3200_cents, "transfer from master",
-                           Date{2021, Month::March, 12}},
-               Transaction{2500_cents, "transfer from master",
-                           Date{2021, Month::February, 8}}},
-              creditsAllen);
+              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+               {{987_cents, "walmart", Date{2021, Month::June, 15}}},
+               {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
+              debitsJeff);
+  assertEqual(
+      result,
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      creditsSteve);
   assertEqual(result,
-              {Transaction{2734_cents, "hyvee", Date{2021, Month::January, 12}},
-               Transaction{1256_cents, "walmart", Date{1984, Month::June, 15}},
-               Transaction{324_cents, "hyvee", Date{2021, Month::February, 8}}},
+              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+               {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
+              debitsSteve);
+  assertEqual(
+      result,
+      {{{7500_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      creditsSue);
+  assertEqual(result,
+              {{{2734_cents, "bakers", Date{2021, Month::January, 12}}},
+               {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
+              debitsSue);
+  assertEqual(
+      result,
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{3200_cents, "transfer from master", Date{2021, Month::March, 12}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      creditsAllen);
+  assertEqual(result,
+              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+               {{1256_cents, "walmart", Date{1984, Month::June, 15}}},
+               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
               debitsAllen);
 }
 } // namespace sbash64::budget::file

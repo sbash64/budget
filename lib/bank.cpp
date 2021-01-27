@@ -124,34 +124,41 @@ void Bank::renameAccount(std::string_view from, std::string_view to) {
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
-void InMemoryAccount::credit(const Transaction &t) { credits.push_back(t); }
-
-void InMemoryAccount::debit(const Transaction &t) { debits.push_back(t); }
-
-static auto balance(const std::vector<Transaction> &transactions) -> USD {
-  return accumulate(
-      transactions.begin(), transactions.end(), USD{0},
-      [](USD total, const Transaction &t) { return total + t.amount; });
+void InMemoryAccount::credit(const Transaction &t) {
+  credits.push_back({t, false});
 }
 
-static auto balance(const std::vector<Transaction> &credits,
-                    const std::vector<Transaction> &debits) -> USD {
+void InMemoryAccount::debit(const Transaction &t) {
+  debits.push_back({t, false});
+}
+
+static auto balance(const VerifiableTransactions &transactions) -> USD {
+  return accumulate(transactions.begin(), transactions.end(), USD{0},
+                    [](USD total, const VerifiableTransaction &t) {
+                      return total + t.transaction.amount;
+                    });
+}
+
+static auto balance(const VerifiableTransactions &credits,
+                    const VerifiableTransactions &debits) -> USD {
   return balance(credits) - balance(debits);
 }
 
 static auto
-dateSortedTransactionsWithType(const std::vector<Transaction> &credits,
-                               const std::vector<Transaction> &debits)
-    -> std::vector<TransactionWithType> {
-  std::vector<TransactionWithType> transactions;
+dateSortedTransactionsWithType(const VerifiableTransactions &credits,
+                               const VerifiableTransactions &debits)
+    -> std::vector<VerifiableTransactionWithType> {
+  std::vector<VerifiableTransactionWithType> transactions;
   transactions.reserve(credits.size() + debits.size());
   for (const auto &c : credits)
-    transactions.push_back(credit(c));
+    transactions.push_back({c, Transaction::Type::credit});
   for (const auto &d : debits)
-    transactions.push_back(debit(d));
+    transactions.push_back({d, Transaction::Type::debit});
   sort(transactions.begin(), transactions.end(),
-       [](const TransactionWithType &a, const TransactionWithType &b) {
-         return a.transaction.date < b.transaction.date;
+       [](const VerifiableTransactionWithType &a,
+          const VerifiableTransactionWithType &b) {
+         return a.verifiableTransaction.transaction.date <
+                b.verifiableTransaction.transaction.date;
        });
   return transactions;
 }
@@ -174,9 +181,9 @@ void InMemoryAccount::load(SessionDeserialization &deserialization) {
   deserialization.loadAccount(credits, debits);
 }
 
-static void remove(std::vector<Transaction> &transactions,
-                   const Transaction &t) {
-  const auto it{find(transactions.begin(), transactions.end(), t)};
+static void remove(VerifiableTransactions &transactions, const Transaction &t) {
+  const auto it{find(transactions.begin(), transactions.end(),
+                     VerifiableTransaction{t, false})};
   if (it != transactions.end())
     transactions.erase(it);
 }
@@ -186,4 +193,8 @@ void InMemoryAccount::removeDebit(const Transaction &t) { remove(debits, t); }
 void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
+
+void InMemoryAccount::verifyCredit(const Transaction &) {}
+
+void InMemoryAccount::verifyDebit(const Transaction &) {}
 } // namespace sbash64::budget

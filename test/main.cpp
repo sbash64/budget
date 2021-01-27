@@ -75,6 +75,9 @@ static auto runAllTests() -> int {
        {account::
             showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance,
         "account show after removal shows remaining transactions and balance"},
+       {account::showShowsVerifiedTransactionsInChronologicalOrderAndBalance,
+        "account show shows verified transactions in chronological order and "
+        "balance "},
        {account::saveSavesAllTransactions,
         "account save saves all transactions"},
        {account::loadLoadsAllTransactions,

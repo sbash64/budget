@@ -14,6 +14,10 @@ void assertEqual(testcpplite::TestResult &result, const Date &expected,
 
 void assertEqual(testcpplite::TestResult &result, const Transaction &expected,
                  const Transaction &actual);
+
+void assertEqual(testcpplite::TestResult &result,
+                 const VerifiableTransaction &expected,
+                 const VerifiableTransaction &actual);
 } // namespace sbash64::budget
 
 #endif
