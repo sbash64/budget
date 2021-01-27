@@ -38,12 +38,27 @@ public:
 
   void rename(std::string_view s) override { newName_ = s; }
 
+  void setFoundUnverifiedDebits(Transactions t) {
+    foundUnverifiedDebits = std::move(t);
+  }
+
+  auto findUnverifiedDebits(USD amount) -> Transactions {
+    findUnverifiedDebitsAmount_ = amount;
+    return foundUnverifiedDebits;
+  }
+
+  auto findUnverifiedDebitsAmount() -> USD {
+    return findUnverifiedDebitsAmount_;
+  }
+
 private:
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
+  Transactions foundUnverifiedDebits;
   std::string newName_;
+  USD findUnverifiedDebitsAmount_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -317,6 +332,25 @@ void renameAccount(testcpplite::TestResult &result) {
     debit(bank, "giraffe", {});
     bank.renameAccount("giraffe", "zebra");
     assertEqual(result, "zebra", giraffe->newName());
+  });
+}
+
+void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    giraffe->setFoundUnverifiedDebits(
+        {{1_cents, "hi", Date{2020, Month::April, 1}},
+         {2_cents, "nye", Date{2020, Month::August, 2}},
+         {3_cents, "sigh", Date{2020, Month::December, 3}}});
+    assertEqual(result,
+                {{1_cents, "hi", Date{2020, Month::April, 1}},
+                 {2_cents, "nye", Date{2020, Month::August, 2}},
+                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
+                bank.findUnverifiedDebits("giraffe", 123_cents));
+    assertEqual(result, 123_cents, giraffe->findUnverifiedDebitsAmount());
   });
 }
 } // namespace sbash64::budget::bank

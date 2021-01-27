@@ -123,6 +123,11 @@ void Bank::renameAccount(std::string_view from, std::string_view to) {
   accounts.at(std::string{from})->rename(to);
 }
 
+auto Bank::findUnverifiedDebits(std::string_view accountName, USD amount)
+    -> Transactions {
+  return accounts.at(std::string{accountName})->findUnverifiedDebits(amount);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
 void InMemoryAccount::credit(const Transaction &t) {

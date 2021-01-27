@@ -38,15 +38,6 @@ static void assertContainsDebit(testcpplite::TestResult &result,
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<Transaction> &expected,
-                        const std::vector<Transaction> &actual) {
-  assertEqual(result, expected.size(), actual.size());
-  for (std::vector<VerifiableTransactionWithType>::size_type i{0};
-       i < expected.size(); ++i)
-    assertEqual(result, expected.at(i), actual.at(i));
-}
-
 static void
 assertEqual(testcpplite::TestResult &result,
             const std::vector<VerifiableTransactionWithType> &expected,

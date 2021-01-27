@@ -23,14 +23,14 @@ public:
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;
   void renameAccount(std::string_view from, std::string_view to) override;
+  auto findUnverifiedDebits(std::string_view accountName, USD amount)
+      -> Transactions;
 
 private:
   Account::Factory &factory;
   std::shared_ptr<Account> masterAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
 };
-
-using Transactions = std::vector<Transaction>;
 
 class InMemoryAccount : public Account {
 public:

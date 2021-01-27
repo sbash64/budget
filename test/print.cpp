@@ -17,6 +17,8 @@ public:
   void show(View &) override { stream << name; }
   void save(SessionSerialization &) override {}
   void load(SessionDeserialization &) override {}
+  void rename(std::string_view) override {}
+  auto findUnverifiedDebits(USD) -> Transactions override {}
 
 private:
   std::stringstream &stream;

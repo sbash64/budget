@@ -19,6 +19,7 @@ void removesFromMasterAccountWhenRemovingCredit(testcpplite::TestResult &);
 void removeTransferRemovesDebitFromMasterAndCreditFromOther(
     testcpplite::TestResult &);
 void renameAccount(testcpplite::TestResult &);
+void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

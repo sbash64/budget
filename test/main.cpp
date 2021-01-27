@@ -58,6 +58,8 @@ static auto runAllTests() -> int {
        {bank::debitsExistingAccount, "bank debits existing account"},
        {bank::removesDebitFromAccount,
         "bank removes transactions from accounts"},
+       {bank::findsUnverifiedDebitsFromAccount,
+        "bank finds unverified debits from account"},
        {bank::doesNothingWhenRemovingDebitFromNonexistentAccount,
         "bank does nothing when removing debit from nonexistent account"},
        {bank::removesFromMasterAccountWhenRemovingCredit,

@@ -116,6 +116,8 @@ class View;
 class SessionDeserialization;
 class SessionSerialization;
 
+using Transactions = std::vector<Transaction>;
+
 class Account {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
@@ -126,7 +128,8 @@ public:
   virtual void load(SessionDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
-  virtual void rename(std::string_view) {}
+  virtual void rename(std::string_view) = 0;
+  virtual auto findUnverifiedDebits(USD amount) -> Transactions = 0;
 
   class Factory {
   public:

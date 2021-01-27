@@ -33,6 +33,8 @@ public:
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
   void load(SessionDeserialization &) override {}
+  void rename(std::string_view) override {}
+  auto findUnverifiedDebits(USD) -> Transactions override {}
 
   void save(SessionSerialization &p) override {
     p.saveAccount(name, credits, debits);
@@ -56,6 +58,9 @@ public:
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
   void save(SessionSerialization &) override {}
+  void rename(std::string_view) override {}
+  auto findUnverifiedDebits(USD) -> Transactions override {}
+
   void load(SessionDeserialization &p) override {
     p.loadAccount(credits, debits);
   }
