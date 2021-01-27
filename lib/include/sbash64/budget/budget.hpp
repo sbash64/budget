@@ -94,14 +94,12 @@ struct VerifiableTransactionWithType {
 
 template <typename T>
 auto debit(T &&transaction) -> VerifiableTransactionWithType {
-  return {VerifiableTransaction{std::forward<T>(transaction), false},
-          Transaction::Type::debit};
+  return {{std::forward<T>(transaction)}, Transaction::Type::debit};
 }
 
 template <typename T>
 auto credit(T &&transaction) -> VerifiableTransactionWithType {
-  return {VerifiableTransaction{std::forward<T>(transaction), false},
-          Transaction::Type::credit};
+  return {{std::forward<T>(transaction)}, Transaction::Type::credit};
 }
 
 template <typename T>
@@ -147,7 +145,6 @@ public:
       const std::vector<VerifiableTransactionWithType> &transactions) = 0;
 };
 
-using Transactions = std::vector<Transaction>;
 using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
 class SessionSerialization {
