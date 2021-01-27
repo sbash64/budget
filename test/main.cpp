@@ -53,6 +53,8 @@ static auto runAllTests() -> int {
         "bank creates master account on construction"},
        {bank::creditsMasterAccountWhenCredited,
         "bank credits master account when credited"},
+       {bank::verifiesCreditForMasterAccount,
+        "bank verifies credit for master account"},
        {bank::createsAccountWhenDebitingNonexistent,
         "bank creates account when debiting nonexistent"},
        {bank::debitsExistingAccount, "bank debits existing account"},

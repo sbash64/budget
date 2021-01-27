@@ -131,6 +131,7 @@ public:
   virtual void rename(std::string_view) = 0;
   virtual auto findUnverifiedDebits(USD amount) -> Transactions = 0;
   virtual void verifyDebit(const Transaction &) = 0;
+  virtual void verifyCredit(const Transaction &) = 0;
 
   class Factory {
   public:

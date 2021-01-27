@@ -132,6 +132,10 @@ void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
   accounts.at(std::string{accountName})->verifyDebit(t);
 }
 
+void Bank::verifyCredit(const Transaction &t) {
+  masterAccount->verifyCredit(t);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
 void InMemoryAccount::credit(const Transaction &t) {

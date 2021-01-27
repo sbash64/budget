@@ -20,6 +20,7 @@ public:
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override {}
   void verifyDebit(const Transaction &) override {}
+  void verifyCredit(const Transaction &) override {}
 
 private:
   std::stringstream &stream;

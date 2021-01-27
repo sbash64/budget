@@ -55,7 +55,12 @@ public:
 
   void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
 
+  auto creditToVerify() -> Transaction { return creditToVerify_; }
+
+  void verifyCredit(const Transaction &t) { creditToVerify_ = t; }
+
 private:
+  Transaction creditToVerify_;
   Transaction debitToVerify_;
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
@@ -368,6 +373,15 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
     bank.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
                 giraffe->debitToVerify());
+  });
+}
+
+void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    bank.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
+    assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
+                masterAccount->creditToVerify());
   });
 }
 } // namespace sbash64::budget::bank

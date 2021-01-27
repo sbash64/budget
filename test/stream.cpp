@@ -36,6 +36,7 @@ public:
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override {}
   void verifyDebit(const Transaction &) override {}
+  void verifyCredit(const Transaction &) override {}
 
   void save(SessionSerialization &p) override {
     p.saveAccount(name, credits, debits);
@@ -62,6 +63,7 @@ public:
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override {}
   void verifyDebit(const Transaction &) override {}
+  void verifyCredit(const Transaction &) override {}
 
   void load(SessionDeserialization &p) override {
     p.loadAccount(credits, debits);

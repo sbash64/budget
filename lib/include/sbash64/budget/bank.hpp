@@ -26,6 +26,7 @@ public:
   auto findUnverifiedDebits(std::string_view accountName, USD amount)
       -> Transactions;
   void verifyDebit(std::string_view accountName, const Transaction &);
+  void verifyCredit(const Transaction &);
 
 private:
   Account::Factory &factory;
