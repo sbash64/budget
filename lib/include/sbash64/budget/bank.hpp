@@ -25,6 +25,7 @@ public:
   void renameAccount(std::string_view from, std::string_view to) override;
   auto findUnverifiedDebits(std::string_view accountName, USD amount)
       -> Transactions;
+  void verifyDebit(std::string_view accountName, const Transaction &);
 
 private:
   Account::Factory &factory;
@@ -43,9 +44,9 @@ public:
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
   void rename(std::string_view) override;
-  void verifyDebit(const Transaction &);
+  void verifyDebit(const Transaction &) override;
   void verifyCredit(const Transaction &);
-  auto findUnverifiedDebits(USD amount) -> Transactions;
+  auto findUnverifiedDebits(USD amount) -> Transactions override;
   auto findUnverifiedCredits(USD amount) -> Transactions;
 
   class Factory : public Account::Factory {

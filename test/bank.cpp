@@ -42,7 +42,7 @@ public:
     foundUnverifiedDebits = std::move(t);
   }
 
-  auto findUnverifiedDebits(USD amount) -> Transactions {
+  auto findUnverifiedDebits(USD amount) -> Transactions override {
     findUnverifiedDebitsAmount_ = amount;
     return foundUnverifiedDebits;
   }
@@ -51,7 +51,12 @@ public:
     return findUnverifiedDebitsAmount_;
   }
 
+  auto debitToVerify() -> Transaction { return debitToVerify_; }
+
+  void verifyDebit(const Transaction &t) { debitToVerify_ = t; }
+
 private:
+  Transaction debitToVerify_;
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
@@ -351,6 +356,18 @@ void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &result) {
                  {3_cents, "sigh", Date{2020, Month::December, 3}}},
                 bank.findUnverifiedDebits("giraffe", 123_cents));
     assertEqual(result, 123_cents, giraffe->findUnverifiedDebitsAmount());
+  });
+}
+
+void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
+    assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
+                giraffe->debitToVerify());
   });
 }
 } // namespace sbash64::budget::bank
