@@ -45,6 +45,8 @@ void WritesSessionToStream::saveAccount(std::string_view name,
   *stream << "credits";
   for (const auto &credit : credits) {
     *stream << '\n';
+    if (credit.verified)
+      *stream << '^';
     *stream << credit.transaction.amount << ' ';
     *stream << credit.transaction.description << ' ';
     *stream << credit.transaction.date;
@@ -53,6 +55,8 @@ void WritesSessionToStream::saveAccount(std::string_view name,
   *stream << "debits";
   for (const auto &debit : debits) {
     *stream << '\n';
+    if (debit.verified)
+      *stream << '^';
     *stream << debit.transaction.amount << ' ';
     *stream << debit.transaction.description << ' ';
     *stream << debit.transaction.date;

@@ -95,11 +95,12 @@ void savesAccounts(testcpplite::TestResult &result) {
   WritesSessionToStream file{factory};
   SaveAccountStub jeff{
       "jeff",
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
+        true},
        {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
+       {{1256_cents, "walmart", Date{2021, Month::June, 15}}, true},
        {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   SaveAccountStub steve{
       "steve",
@@ -108,7 +109,7 @@ void savesAccounts(testcpplite::TestResult &result) {
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
        {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}, true}}};
   SaveAccountStub sue{
       "sue",
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
@@ -129,12 +130,12 @@ void savesAccounts(testcpplite::TestResult &result) {
   assertEqual(result, R"(
 jeff
 credits
-50 transfer from master 1/10/2021
+^50 transfer from master 1/10/2021
 25 transfer from master 3/12/2021
 25 transfer from master 2/8/2021
 debits
 27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
+^12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
 
 steve
@@ -145,7 +146,7 @@ credits
 debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
+^3.24 hyvee 2/8/2021
 
 sue
 credits
