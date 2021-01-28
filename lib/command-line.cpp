@@ -307,21 +307,24 @@ void CommandLineStream::showAccountSummary(
   putNewLine(stream);
   constexpr const char debitHeading[]{"Debit ($)"};
   constexpr const char creditHeading[]{"Credit ($)"};
+  constexpr auto spacesBetweenHeadings{3};
   stream << concatenate(debitHeading, "   ", creditHeading,
                         "   Date (mm/dd/yyyy)   Description")
                 .c;
   for (const auto &transaction : transactions) {
     putNewLine(stream);
-    constexpr auto spacesUntilDate{25};
-    auto width{length(debitHeading)};
-    auto remainingSpaces{spacesUntilDate - width};
+    constexpr auto spacesBeforeDate{length(debitHeading) +
+                                    length(creditHeading) +
+                                    2 * spacesBetweenHeadings};
+    auto transactionWidth{length(debitHeading)};
+    auto remainingSpaces{spacesBeforeDate - transactionWidth};
     if (transaction.type == Transaction::Type::credit) {
-      width = length(creditHeading);
-      remainingSpaces = 3;
-      const auto spaces{spacesUntilDate - width - remainingSpaces};
+      transactionWidth = length(creditHeading);
+      remainingSpaces = spacesBetweenHeadings;
+      const auto spaces{spacesBeforeDate - transactionWidth - remainingSpaces};
       putSpaces(stream, spaces);
     }
-    putSpaces(putSpaces(stream << std::setw(width) << std::right
+    putSpaces(putSpaces(stream << std::setw(transactionWidth) << std::right
                                << formatWithoutDollarSign(
                                       transaction.verifiableTransaction),
                         remainingSpaces)
