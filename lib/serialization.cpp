@@ -95,6 +95,11 @@ static void loadTransaction(std::istream &input, std::string &line,
   std::string next;
   std::string eventuallyDate;
   std::string eventuallyEndOfLine;
+  auto verified{false};
+  if (transaction.peek() == '^') {
+    transaction.get();
+    verified = true;
+  }
   transaction >> next;
   const auto amount{usd(next)};
   std::stringstream description;
@@ -109,7 +114,7 @@ static void loadTransaction(std::istream &input, std::string &line,
   }
   description << next;
   transactions.push_back(
-      VerifiableTransaction{amount, description.str(), date(eventuallyDate)});
+      {amount, description.str(), date(eventuallyDate), verified});
   getline(input, line);
 }
 

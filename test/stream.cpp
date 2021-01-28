@@ -187,14 +187,14 @@ credits
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021
 debits
-27.34 hyvee 1/12/2021
+^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
 
 steve
 credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
+^50 transfer from master 1/10/2021
+^25 transfer from master 3/12/2021
 25 transfer from master 2/8/2021
 debits
 27.34 hyvee 1/12/2021
@@ -256,14 +256,16 @@ debits
        {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       creditsJeff);
   assertEqual(result,
-              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
+              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               debitsJeff);
   assertEqual(
       result,
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
+        true},
+       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}},
+        true},
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       creditsSteve);
   assertEqual(result,
