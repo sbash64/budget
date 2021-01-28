@@ -188,6 +188,10 @@ public:
   virtual void save(SessionSerialization &) = 0;
   virtual void load(SessionDeserialization &) = 0;
   virtual void renameAccount(std::string_view from, std::string_view to) = 0;
+  virtual auto findUnverifiedDebits(std::string_view accountName, USD amount)
+      -> Transactions = 0;
+  virtual void verifyDebit(std::string_view accountName,
+                           const Transaction &) = 0;
 };
 } // namespace sbash64::budget
 

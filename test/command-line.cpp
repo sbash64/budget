@@ -8,6 +8,7 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 namespace sbash64::budget::command_line {
 namespace {
@@ -102,24 +103,59 @@ public:
     accountRenamed_ = to;
   }
 
+  void setFoundUnverifiedDebits(Transactions t) {
+    foundUnverifiedDebits = std::move(t);
+  }
+
+  auto findUnverifiedDebits(std::string_view accountName, USD amount)
+      -> Transactions {
+    findUnverifiedDebitsAccountName_ = accountName;
+    findUnverifiedDebitsAmount_ = amount;
+    return foundUnverifiedDebits;
+  }
+
+  auto verifiedDebit() -> Transaction { return verifiedDebit_; }
+
+  void verifyDebit(std::string_view accountName, const Transaction &t) {
+    verifiedDebitAccountName_ = accountName;
+    verifiedDebit_ = t;
+  }
+
+  auto verifiedDebitAccountName() -> std::string {
+    return verifiedDebitAccountName_;
+  }
+
+  auto findUnverifiedDebitsAccountName() -> std::string {
+    return findUnverifiedDebitsAccountName_;
+  }
+
+  auto findUnverifiedDebitsAmount() -> USD {
+    return findUnverifiedDebitsAmount_;
+  }
+
 private:
+  Transaction verifiedDebit_;
   Transaction removedCredit_;
   Transaction removedDebit_;
   Transaction debitedTransaction_;
   Transaction creditedTransaction_;
   Date transferDate_{};
   Date removedTransferDate_{};
+  Transactions foundUnverifiedDebits;
   std::string removedDebitAccountName_;
   std::string debitedAccountName_;
   std::string accountRenaming_;
   std::string accountRenamed_;
   std::string accountNameTransferredTo_;
   std::string removedTransferAccountName_;
+  std::string verifiedDebitAccountName_;
+  std::string findUnverifiedDebitsAccountName_;
   const View *printer_{};
   const SessionSerialization *serialization_{};
   const SessionDeserialization *deserialization_{};
   USD transferredAmount_{};
   USD removedTransferAmount_{};
+  USD findUnverifiedDebitsAmount_{};
 };
 
 class SerializationStub : public SessionSerialization {
@@ -179,6 +215,18 @@ static void testController(
 }
 
 static void testController(
+    ModelStub &model,
+    const std::function<void(CommandLineInterpreter &, ModelStub &,
+                             CommandLineInterfaceStub &, SerializationStub &,
+                             DeserializationStub &)> &f) {
+  CommandLineInterpreter interpreter;
+  CommandLineInterfaceStub interface;
+  SerializationStub serialization;
+  DeserializationStub deserialization;
+  f(interpreter, model, interface, serialization, deserialization);
+}
+
+static void testController(
     const std::function<void(CommandLineInterpreter &, ModelStub &,
                              CommandLineInterfaceStub &, SerializationStub &,
                              DeserializationStub &)> &f,
@@ -221,6 +269,24 @@ testController(const std::function<void(CommandLineInterpreter &, ModelStub &,
       execute(interpreter, model, interface, serialization, deserialization, x);
     f(interpreter, model, interface);
   });
+}
+
+static void
+testController(ModelStub &model,
+               const std::function<void(CommandLineInterpreter &, ModelStub &,
+                                        CommandLineInterfaceStub &)> &f,
+               const std::vector<std::string> &input) {
+  testController(model,
+                 [&](CommandLineInterpreter &interpreter, ModelStub &model_,
+                     CommandLineInterfaceStub &interface, SerializationStub &,
+                     DeserializationStub &) {
+                   SerializationStub serialization;
+                   DeserializationStub deserialization;
+                   for (const auto &x : input)
+                     execute(interpreter, model_, interface, serialization,
+                             deserialization, x);
+                   f(interpreter, model_, interface);
+                 });
 }
 
 static void assertPrints(testcpplite::TestResult &result,
@@ -448,5 +514,25 @@ void removeTransfer(testcpplite::TestResult &result) {
                     model.removedTransferDate());
       },
       {"remove-transfer", "Groceries", "500", "7 1 13"});
+}
+
+void verifyDebit(testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedDebits(
+      {{1_cents, "walmart", Date{2022, Month::January, 6}},
+       {2_cents, "hyvee", Date{2023, Month::March, 26}},
+       {3_cents, "sam's", Date{2021, Month::October, 2}}});
+  testController(
+      model,
+      [&](CommandLineInterpreter &, ModelStub &model_,
+          CommandLineInterfaceStub &) {
+        assertEqual(result, {2_cents, "hyvee", Date{2023, Month::March, 26}},
+                    model_.verifiedDebit());
+        assertEqual(result, "Groceries", model_.verifiedDebitAccountName());
+        assertEqual(result, "Groceries",
+                    model_.findUnverifiedDebitsAccountName());
+        assertEqual(result, 50000_cents, model_.findUnverifiedDebitsAmount());
+      },
+      {"verify-debit", "Groceries", "500", "2", "y"});
 }
 } // namespace sbash64::budget::command_line

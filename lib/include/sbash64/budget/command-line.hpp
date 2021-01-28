@@ -28,6 +28,8 @@ private:
   State state;
   CommandType commandType;
   Transaction::Type transactionType;
+  Transactions unverifiedTransactions;
+  Transaction unverifiedTransaction;
 };
 
 void execute(CommandLineInterpreter &, Model &, CommandLineInterface &,

@@ -12,7 +12,9 @@ enum class CommandLineInterpreter::State {
   readyForAmount,
   readyForDate,
   readyForDescription,
-  readyForNewName
+  readyForNewName,
+  readyForUnverifiedTransactionSelection,
+  readyForConfirmationOfUnverifiedTransaction
 };
 
 enum class CommandLineInterpreter::CommandType {
@@ -20,7 +22,8 @@ enum class CommandLineInterpreter::CommandType {
   removeTransaction,
   transfer,
   removeTransfer,
-  renameAccount
+  renameAccount,
+  verifyTransaction
 };
 
 void execute(CommandLineInterpreter &controller, Model &model,
@@ -97,6 +100,7 @@ static void parseDate(Model &model, CommandLineInterface &interface,
     state = CommandLineInterpreter::State::normal;
     break;
   case CommandLineInterpreter::CommandType::renameAccount:
+  case CommandLineInterpreter::CommandType::verifyTransaction:
     break;
   }
 }
@@ -125,6 +129,10 @@ static void executeFirstLineOfMultiLineCommand(
       commandType = CommandLineInterpreter::CommandType::transfer;
     else if (commandName == "remove-transfer")
       commandType = CommandLineInterpreter::CommandType::removeTransfer;
+    else if (commandName == "verify-debit") {
+      commandType = CommandLineInterpreter::CommandType::verifyTransaction;
+      transactionType = Transaction::Type::debit;
+    }
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
   }
@@ -149,11 +157,18 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   else if (commandName == "credit" || commandName == "debit" ||
            commandName == "rename" || commandName == "transfer-to" ||
            commandName == "remove-transfer" || commandName == "remove-debit" ||
-           commandName == "remove-credit")
+           commandName == "remove-credit" || commandName == "verify-debit")
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
     interface.show("unknown command \"" + commandName + '"');
+}
+
+static auto integer(std::string_view s) -> int {
+  std::stringstream stream{std::string{s}};
+  int integer = 0;
+  stream >> integer;
+  return integer;
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
@@ -181,8 +196,13 @@ void CommandLineInterpreter::execute(Model &model,
     break;
   case State::readyForAmount:
     amount = usd(input);
-    state = State::readyForDate;
-    interface.prompt("date [month day year]");
+    if (commandType == CommandType::verifyTransaction) {
+      unverifiedTransactions = model.findUnverifiedDebits(accountName, amount);
+      state = State::readyForUnverifiedTransactionSelection;
+    } else {
+      state = State::readyForDate;
+      interface.prompt("date [month day year]");
+    }
     break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,
@@ -193,6 +213,14 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForNewName:
     model.renameAccount(accountName, input);
     state = State::normal;
+    break;
+  case State::readyForUnverifiedTransactionSelection:
+    unverifiedTransaction = unverifiedTransactions.at(integer(input) - 1);
+    state = State::readyForConfirmationOfUnverifiedTransaction;
+    break;
+  case State::readyForConfirmationOfUnverifiedTransaction:
+    model.verifyDebit(accountName, unverifiedTransaction);
+    break;
   }
 }
 
