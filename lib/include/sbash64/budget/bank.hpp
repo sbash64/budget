@@ -24,8 +24,8 @@ public:
   void load(SessionDeserialization &) override;
   void renameAccount(std::string_view from, std::string_view to) override;
   auto findUnverifiedDebits(std::string_view accountName, USD amount)
-      -> Transactions;
-  void verifyDebit(std::string_view accountName, const Transaction &);
+      -> Transactions override;
+  void verifyDebit(std::string_view accountName, const Transaction &) override;
   void verifyCredit(const Transaction &);
 
 private:

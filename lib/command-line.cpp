@@ -1,4 +1,5 @@
 #include "command-line.hpp"
+#include "constexpr-string.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <iomanip>
@@ -304,14 +305,18 @@ void CommandLineStream::showAccountSummary(
   putNewLine(stream << name);
   putNewLine(putWithDollarSign(stream, balance));
   putNewLine(stream);
-  stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
+  constexpr const char debitHeading[]{"Debit ($)"};
+  constexpr const char creditHeading[]{"Credit ($)"};
+  stream << concatenate(debitHeading, "   ", creditHeading,
+                        "   Date (mm/dd/yyyy)   Description")
+                .c;
   for (const auto &transaction : transactions) {
     putNewLine(stream);
     constexpr auto spacesUntilDate{25};
-    auto width{9};
+    auto width{length(debitHeading)};
     auto remainingSpaces{spacesUntilDate - width};
     if (transaction.type == Transaction::Type::credit) {
-      width = 10;
+      width = length(creditHeading);
       remainingSpaces = 3;
       const auto spaces{spacesUntilDate - width - remainingSpaces};
       putSpaces(stream, spaces);
