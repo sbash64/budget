@@ -302,17 +302,6 @@ static void assertShowsTransaction(testcpplite::TestResult &result,
       input);
 }
 
-static void assertCreditsAccount(testcpplite::TestResult &result,
-                                 const std::vector<std::string> &input,
-                                 const Transaction &expectedTransaction) {
-  testController(
-      [&](CommandLineInterpreter &, ModelStub &bank, CommandLineInterfaceStub &,
-          SerializationStub &, DeserializationStub &) {
-        assertEqual(result, expectedTransaction, bank.creditedTransaction());
-      },
-      input);
-}
-
 static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      const std::vector<std::string> &input,
                                      USD expectedAmount,
@@ -362,9 +351,16 @@ void debitMultiWordAccount(testcpplite::TestResult &result) {
 }
 
 void credit(testcpplite::TestResult &result) {
-  assertCreditsAccount(
-      result, {name(Command::credit), "2134.35", "11 22 19", "btnrh"},
-      Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(
+            result,
+            Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}},
+            model.creditedTransaction());
+      },
+      {name(Command::credit), "2134.35", "11 22 19", "btnrh"});
 }
 
 void transferTo(testcpplite::TestResult &result) {
