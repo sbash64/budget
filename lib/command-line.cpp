@@ -172,10 +172,11 @@ static auto integer(std::string_view s) -> int {
   return integer;
 }
 
-static void f(Transaction &unverifiedTransaction,
-              CommandLineInterpreter::State &state,
-              CommandLineInterface &interface,
-              const Transactions &unverifiedTransactions, int i) {
+static void
+setAndPromptForConfirmation(Transaction &unverifiedTransaction,
+                            CommandLineInterpreter::State &state,
+                            CommandLineInterface &interface,
+                            const Transactions &unverifiedTransactions, int i) {
   unverifiedTransaction = unverifiedTransactions.at(i);
   state = CommandLineInterpreter::State::
       readyForConfirmationOfUnverifiedTransaction;
@@ -211,7 +212,8 @@ void CommandLineInterpreter::execute(Model &model,
     if (commandType == CommandType::verifyTransaction) {
       unverifiedTransactions = model.findUnverifiedDebits(accountName, amount);
       if (unverifiedTransactions.size() == 1)
-        f(unverifiedTransaction, state, interface, unverifiedTransactions, 0);
+        setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                    unverifiedTransactions, 0);
       else {
         state = State::readyForUnverifiedTransactionSelection;
         interface.enumerate(unverifiedTransactions);
@@ -233,11 +235,12 @@ void CommandLineInterpreter::execute(Model &model,
     state = State::normal;
     break;
   case State::readyForUnverifiedTransactionSelection:
-    f(unverifiedTransaction, state, interface, unverifiedTransactions,
-      integer(input) - 1);
+    setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                unverifiedTransactions, integer(input) - 1);
     break;
   case State::readyForConfirmationOfUnverifiedTransaction:
     model.verifyDebit(accountName, unverifiedTransaction);
+    state = State::normal;
     break;
   }
 }
