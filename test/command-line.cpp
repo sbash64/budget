@@ -289,36 +289,6 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
       input);
 }
 
-static void assertShowsTransaction(testcpplite::TestResult &result,
-                                   const std::vector<std::string> &input,
-                                   const std::string &expectedAccountName,
-                                   const Transaction &expectedTransaction) {
-  testController(
-      [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface, SerializationStub &,
-          DeserializationStub &) {
-        assertEqual(result, expectedTransaction, interface.transaction());
-      },
-      input);
-}
-
-static void assertTransfersToAccount(testcpplite::TestResult &result,
-                                     const std::vector<std::string> &input,
-                                     USD expectedAmount,
-                                     std::string_view expectedAccountName,
-                                     const Date &expectedDate) {
-  testController(
-      [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &, SerializationStub &,
-          DeserializationStub &) {
-        assertEqual(result, expectedAmount, model.transferredAmount());
-        assertEqual(result, std::string{expectedAccountName},
-                    model.accountNameTransferredTo());
-        assertEqual(result, expectedDate, model.transferDate());
-      },
-      input);
-}
-
 static void assertPrompt(testcpplite::TestResult &result,
                          CommandLineInterfaceStub &interface,
                          std::string_view s) {
@@ -417,10 +387,16 @@ void debitPromptsForDesriptionAfterDateEntered(
 }
 
 void debitShowsTransaction(testcpplite::TestResult &result) {
-  assertShowsTransaction(
-      result, {name(Command::debit), "Gifts", "25", "12 27 20", "Sam's 24th"},
-      "Gifts",
-      Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result,
+                    Transaction{2500_cents, "Sam's 24th",
+                                Date{2020, Month::December, 27}},
+                    interface.transaction());
+      },
+      {name(Command::debit), "Gifts", "25", "12 27 20", "Sam's 24th"});
 }
 
 void renameAccount(testcpplite::TestResult &result) {
