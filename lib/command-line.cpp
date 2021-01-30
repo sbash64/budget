@@ -202,8 +202,10 @@ void CommandLineInterpreter::execute(Model &model,
       if (unverifiedTransactions.size() == 1) {
         unverifiedTransaction = unverifiedTransactions.front();
         state = State::readyForConfirmationOfUnverifiedTransaction;
-      } else
+      } else {
         state = State::readyForUnverifiedTransactionSelection;
+        interface.prompt("multiple candidates found - which? [n]");
+      }
     } else {
       state = State::readyForDate;
       interface.prompt("date [month day year]");

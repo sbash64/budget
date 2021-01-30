@@ -553,4 +553,19 @@ void verifyOnlyDebitFound(testcpplite::TestResult &result) {
       },
       {"verify-debit", "Groceries", "500", "y"});
 }
+
+void showsDebitCandidatesForVerification(testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedDebits(
+      {{1_cents, "walmart", Date{2022, Month::January, 6}},
+       {2_cents, "hyvee", Date{2023, Month::March, 26}},
+       {3_cents, "sam's", Date{2021, Month::October, 2}}});
+  testController(model,
+                 [&](CommandLineInterpreter &, ModelStub &,
+                     CommandLineInterfaceStub &interface) {
+                   assertEqual(result, "multiple candidates found - which? [n]",
+                               interface.prompt());
+                 },
+                 {"verify-debit", "Groceries", "500"});
+}
 } // namespace sbash64::budget::command_line
