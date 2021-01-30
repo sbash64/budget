@@ -131,4 +131,21 @@ void message(testcpplite::TestResult &result) {
         assertEqual(result, "hello\n", stream.str());
       });
 }
+
+void enumeratedTransactions(testcpplite::TestResult &result) {
+  testCommandLineStream(
+      [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
+        commandLineStream.enumerate(
+            {{1_cents, "walmart", Date{2022, Month::January, 6}},
+             {2_cents, "hyvee", Date{2023, Month::March, 26}},
+             {3_cents, "sam's", Date{2021, Month::October, 2}}});
+        assertEqual(result,
+                    R"(
+[1] $0.01 1/6/2022 walmart
+[2] $0.02 3/26/2023 hyvee
+[3] $0.03 10/2/2021 sam's
+)",
+                    '\n' + stream.str());
+      });
+}
 } // namespace sbash64::budget::print

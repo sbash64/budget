@@ -50,6 +50,7 @@ public:
   void prompt(std::string_view) override;
   void show(const Transaction &, std::string_view suffix) override;
   void show(std::string_view message) override;
+  void enumerate(const Transactions &) override;
 
 private:
   std::ostream &stream;

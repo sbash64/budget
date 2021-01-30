@@ -357,6 +357,18 @@ void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
              << suffix);
 }
 
+void CommandLineStream::enumerate(const Transactions &transactions) {
+  int i = 1;
+  for (const auto &t : transactions) {
+    putNewLine(
+        putSpace(
+            putSpace(putWithDollarSign(stream << '[' << i << "] ", t.amount))
+            << t.date.month << '/' << t.date.day << '/' << t.date.year)
+        << t.description);
+    ++i;
+  }
+}
+
 void CommandLineStream::show(std::string_view message) {
   putNewLine(stream << message);
 }
