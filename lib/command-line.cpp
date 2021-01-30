@@ -98,6 +98,49 @@ static auto transaction(USD amount, const Date &date, std::string_view input)
   return Transaction{amount, description(input), date};
 }
 
+namespace {
+class MovesTransaction {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(MovesTransaction);
+  virtual void add(Model &, const Transaction &) = 0;
+  virtual void remove(Model &, const Transaction &) = 0;
+};
+
+class MovesCredit : public MovesTransaction {
+  void add(Model &model, const Transaction &t) override { model.credit(t); }
+
+  void remove(Model &model, const Transaction &t) override {
+    model.removeCredit(t);
+  }
+};
+
+class MovesDebit : public MovesTransaction {
+public:
+  explicit MovesDebit(std::string_view accountName)
+      : accountName{accountName} {}
+
+  void add(Model &model, const Transaction &t) override {
+    model.debit(accountName, t);
+  }
+
+  void remove(Model &model, const Transaction &t) override {
+    model.removeDebit(accountName, t);
+  }
+
+private:
+  std::string_view accountName;
+};
+} // namespace
+
+static void f(MovesTransaction &movesTransaction, Model &model,
+              CommandLineInterpreter::CommandType commandType, USD amount,
+              const Date &date, std::string_view input) {
+  if (commandType == CommandLineInterpreter::CommandType::addTransaction)
+    movesTransaction.add(model, transaction(amount, date, input));
+  else
+    movesTransaction.remove(model, transaction(amount, date, input));
+}
+
 static void enterTransaction(Model &model, CommandLineInterface &interface,
                              CommandLineInterpreter::State &state,
                              Transaction::Type transactionType,
@@ -105,15 +148,11 @@ static void enterTransaction(Model &model, CommandLineInterface &interface,
                              USD amount, std::string_view accountName,
                              const Date &date, std::string_view input) {
   if (transactionType == Transaction::Type::credit) {
-    if (commandType == CommandLineInterpreter::CommandType::addTransaction)
-      model.credit(transaction(amount, date, input));
-    else
-      model.removeCredit(transaction(amount, date, input));
+    MovesCredit movesTransaction;
+    f(movesTransaction, model, commandType, amount, date, input);
   } else {
-    if (commandType == CommandLineInterpreter::CommandType::addTransaction)
-      model.debit(accountName, transaction(amount, date, input));
-    else
-      model.removeDebit(accountName, transaction(amount, date, input));
+    MovesDebit movesTransaction{accountName};
+    f(movesTransaction, model, commandType, amount, date, input);
   }
   interface.show(transaction(amount, date, input));
   state = CommandLineInterpreter::State::normal;
