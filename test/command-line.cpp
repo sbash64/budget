@@ -364,9 +364,15 @@ void credit(testcpplite::TestResult &result) {
 }
 
 void transferTo(testcpplite::TestResult &result) {
-  assertTransfersToAccount(
-      result, {name(Command::transfer), "Groceries", "50", "6 3 21"},
-      5000_cents, "Groceries", Date{2021, Month::June, 3});
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result, 5000_cents, model.transferredAmount());
+        assertEqual(result, "Groceries", model.accountNameTransferredTo());
+        assertEqual(result, Date{2021, Month::June, 3}, model.transferDate());
+      },
+      {name(Command::transfer), "Groceries", "50", "6 3 21"});
 }
 
 void save(testcpplite::TestResult &result) {
