@@ -1,8 +1,8 @@
 #include "command-line.hpp"
 #include "persistent-memory-stub.hpp"
-#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include "view-stub.hpp"
+#include <algorithm>
 #include <functional>
 #include <sbash64/budget/command-line.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
@@ -207,100 +207,72 @@ private:
 } // namespace
 
 static void testController(
-    const std::function<void(CommandLineInterpreter &, ModelStub &,
-                             CommandLineInterfaceStub &, SerializationStub &,
-                             DeserializationStub &)> &f) {
-  CommandLineInterpreter interpreter;
-  ModelStub model;
-  CommandLineInterfaceStub interface;
-  SerializationStub serialization;
-  DeserializationStub deserialization;
-  f(interpreter, model, interface, serialization, deserialization);
-}
-
-static void testController(
     ModelStub &model,
     const std::function<void(CommandLineInterpreter &, ModelStub &,
                              CommandLineInterfaceStub &, SerializationStub &,
-                             DeserializationStub &)> &f) {
+                             DeserializationStub &)> &test) {
   CommandLineInterpreter interpreter;
   CommandLineInterfaceStub interface;
   SerializationStub serialization;
   DeserializationStub deserialization;
-  f(interpreter, model, interface, serialization, deserialization);
+  test(interpreter, model, interface, serialization, deserialization);
 }
 
 static void testController(
     const std::function<void(CommandLineInterpreter &, ModelStub &,
                              CommandLineInterfaceStub &, SerializationStub &,
-                             DeserializationStub &)> &f,
+                             DeserializationStub &)> &f) {
+  ModelStub model;
+  testController(model, f);
+}
+
+static void testController(
+    const std::function<void(CommandLineInterpreter &, ModelStub &,
+                             CommandLineInterfaceStub &, SerializationStub &,
+                             DeserializationStub &)> &test,
     std::string_view input) {
-  testController([&](CommandLineInterpreter &interpreter, ModelStub &model,
+  testController([=](CommandLineInterpreter &interpreter, ModelStub &model,
                      CommandLineInterfaceStub &interface,
                      SerializationStub &serialization,
                      DeserializationStub &deserialization) {
     execute(interpreter, model, interface, serialization, deserialization,
             input);
-    f(interpreter, model, interface, serialization, deserialization);
+    test(interpreter, model, interface, serialization, deserialization);
   });
 }
 
-static void
-testController(const std::function<void(CommandLineInterpreter &, ModelStub &,
-                                        CommandLineInterfaceStub &)> &f,
-               std::string_view input) {
+static void testController(
+    const std::function<void(CommandLineInterpreter &, ModelStub &,
+                             CommandLineInterfaceStub &, SerializationStub &,
+                             DeserializationStub &)> &test,
+    const std::vector<std::string> &input) {
   testController([&](CommandLineInterpreter &interpreter, ModelStub &model,
-                     CommandLineInterfaceStub &interface, SerializationStub &,
-                     DeserializationStub &) {
-    SerializationStub serialization;
-    DeserializationStub deserialization;
-    execute(interpreter, model, interface, serialization, deserialization,
-            input);
-    f(interpreter, model, interface);
+                     CommandLineInterfaceStub &interface,
+                     SerializationStub &serialization,
+                     DeserializationStub &deserialization) {
+    std::for_each(input.begin(), input.end(), [&](const std::string &line) {
+      execute(interpreter, model, interface, serialization, deserialization,
+              line);
+    });
+    test(interpreter, model, interface, serialization, deserialization);
   });
 }
 
 static void
-testController(const std::function<void(CommandLineInterpreter &, ModelStub &,
-                                        CommandLineInterfaceStub &)> &f,
-               const std::vector<std::string> &input) {
-  testController([&](CommandLineInterpreter &interpreter, ModelStub &model,
-                     CommandLineInterfaceStub &interface, SerializationStub &,
-                     DeserializationStub &) {
-    SerializationStub serialization;
-    DeserializationStub deserialization;
-    for (const auto &x : input)
-      execute(interpreter, model, interface, serialization, deserialization, x);
-    f(interpreter, model, interface);
-  });
-}
-
-static void
-testController(ModelStub &model,
+testController(ModelStub &m,
                const std::function<void(CommandLineInterpreter &, ModelStub &,
-                                        CommandLineInterfaceStub &)> &f,
+                                        CommandLineInterfaceStub &)> &test,
                const std::vector<std::string> &input) {
-  testController(model,
-                 [&](CommandLineInterpreter &interpreter, ModelStub &model_,
-                     CommandLineInterfaceStub &interface, SerializationStub &,
-                     DeserializationStub &) {
-                   SerializationStub serialization;
-                   DeserializationStub deserialization;
-                   for (const auto &x : input)
-                     execute(interpreter, model_, interface, serialization,
-                             deserialization, x);
-                   f(interpreter, model_, interface);
-                 });
-}
-
-static void assertPrints(testcpplite::TestResult &result,
-                         std::string_view input) {
-  testController(
-      [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &interface) {
-        assertEqual(result, &interface, model.interface());
-      },
-      input);
+  testController(m, [&](CommandLineInterpreter &interpreter, ModelStub &model,
+                        CommandLineInterfaceStub &interface,
+                        SerializationStub &serialization,
+                        DeserializationStub &deserialization) {
+    std::for_each(input.begin(), input.end(), [&](const std::string &line) {
+      execute(interpreter, model, interface, serialization, deserialization,
+              line);
+    });
+    test(interpreter, model, interface);
+  });
 }
 
 static void assertDebitsAccount(testcpplite::TestResult &result,
@@ -309,7 +281,8 @@ static void assertDebitsAccount(testcpplite::TestResult &result,
                                 const Transaction &expectedTransaction) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, expectedAccountName, model.debitedAccountName());
         assertEqual(result, expectedTransaction, model.debitedTransaction());
       },
@@ -322,7 +295,8 @@ static void assertShowsTransaction(testcpplite::TestResult &result,
                                    const Transaction &expectedTransaction) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, expectedTransaction, interface.transaction());
       },
       input);
@@ -332,8 +306,8 @@ static void assertCreditsAccount(testcpplite::TestResult &result,
                                  const std::vector<std::string> &input,
                                  const Transaction &expectedTransaction) {
   testController(
-      [&](CommandLineInterpreter &, ModelStub &bank,
-          CommandLineInterfaceStub &) {
+      [&](CommandLineInterpreter &, ModelStub &bank, CommandLineInterfaceStub &,
+          SerializationStub &, DeserializationStub &) {
         assertEqual(result, expectedTransaction, bank.creditedTransaction());
       },
       input);
@@ -346,7 +320,8 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
                                      const Date &expectedDate) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, expectedAmount, model.transferredAmount());
         assertEqual(result, std::string{expectedAccountName},
                     model.accountNameTransferredTo());
@@ -361,7 +336,15 @@ static void assertPrompt(testcpplite::TestResult &result,
   assertEqual(result, std::string{s}, interface.prompt());
 }
 
-void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
+void print(testcpplite::TestResult &result) {
+  testController(
+      [&](CommandLineInterpreter &, ModelStub &model,
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
+        assertEqual(result, &interface, model.interface());
+      },
+      name(Command::print));
+}
 
 void debit(testcpplite::TestResult &result) {
   assertDebitsAccount(
@@ -413,7 +396,8 @@ void load(testcpplite::TestResult &result) {
 void debitPromptsForDate(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "date [month day year]");
       },
       {name(Command::debit), "Groceries", "40"});
@@ -423,7 +407,8 @@ void debitPromptsForDesriptionAfterDateEntered(
     testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "description [anything]");
       },
       {name(Command::debit), "Groceries", "40", "1 13 14"});
@@ -439,7 +424,8 @@ void debitShowsTransaction(testcpplite::TestResult &result) {
 void renameAccount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, "SethsRent", model.accountRenaming());
         assertEqual(result, "Seth's Rent", model.accountRenamed());
       },
@@ -449,7 +435,8 @@ void renameAccount(testcpplite::TestResult &result) {
 void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "new name [anything]");
       },
       {name(Command::renameAccount), "whatever"});
@@ -458,7 +445,8 @@ void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
 void debitPromptsForAccountName(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "which account? [name]");
       },
       name(Command::debit));
@@ -467,7 +455,8 @@ void debitPromptsForAccountName(testcpplite::TestResult &result) {
 void debitPromptsForAmount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "how much? [amount ($)]");
       },
       {name(Command::debit), "Groceries"});
@@ -476,7 +465,8 @@ void debitPromptsForAmount(testcpplite::TestResult &result) {
 void creditPromptsForAmount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertPrompt(result, interface, "how much? [amount ($)]");
       },
       name(Command::credit));
@@ -485,7 +475,8 @@ void creditPromptsForAmount(testcpplite::TestResult &result) {
 void unrecognizedCommandPrintsMessage(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
-          CommandLineInterfaceStub &interface) {
+          CommandLineInterfaceStub &interface, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, "unknown command \"oops\"", interface.message());
       },
       "oops");
@@ -494,7 +485,8 @@ void unrecognizedCommandPrintsMessage(testcpplite::TestResult &result) {
 void removeDebit(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, "Gifts", model.removedDebitAccountName());
         assertEqual(result,
                     Transaction{2500_cents, "Sam's 24th",
@@ -507,7 +499,8 @@ void removeDebit(testcpplite::TestResult &result) {
 void removeCredit(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(
             result,
             Transaction{200000_cents, "income", Date{2023, Month::March, 26}},
@@ -519,7 +512,8 @@ void removeCredit(testcpplite::TestResult &result) {
 void removeTransfer(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &model,
-          CommandLineInterfaceStub &) {
+          CommandLineInterfaceStub &, SerializationStub &,
+          DeserializationStub &) {
         assertEqual(result, 50000_cents, model.removedTransferAmount());
         assertEqual(result, "Groceries", model.removedTransferAccountName());
         assertEqual(result, Date{2013, Month::July, 1},
