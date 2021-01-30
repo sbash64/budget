@@ -24,6 +24,7 @@ void removeDebit(testcpplite::TestResult &);
 void removeCredit(testcpplite::TestResult &);
 void removeTransfer(testcpplite::TestResult &);
 void verifyDebit(testcpplite::TestResult &);
+void verifyCredit(testcpplite::TestResult &);
 void verifyOnlyDebitFound(testcpplite::TestResult &);
 void showsDebitCandidatesForVerification(testcpplite::TestResult &);
 void promptsForDebitVerificationConfirmation(testcpplite::TestResult &);

@@ -55,6 +55,8 @@ static auto runAllTests() -> int {
         "command line parses \"remove transfer\" command"},
        {command_line::verifyDebit,
         "command line parses \"verify debit\" command"},
+       {command_line::verifyCredit,
+        "command line parses \"verify credit\" command"},
        {command_line::showsDebitCandidatesForVerification,
         "command line shows the debit candidates for verification"},
        {command_line::promptsForDebitVerificationConfirmation,

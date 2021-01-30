@@ -107,6 +107,10 @@ public:
     foundUnverifiedDebits = std::move(t);
   }
 
+  void setFoundUnverifiedCredits(Transactions t) {
+    foundUnverifiedCredits = std::move(t);
+  }
+
   auto findUnverifiedDebits(std::string_view accountName, USD amount)
       -> Transactions override {
     findUnverifiedDebitsAccountName_ = accountName;
@@ -114,13 +118,22 @@ public:
     return foundUnverifiedDebits;
   }
 
+  auto findUnverifiedCredits(USD amount) -> Transactions {
+    findUnverifiedCreditsAmount_ = amount;
+    return foundUnverifiedCredits;
+  }
+
   auto verifiedDebit() -> Transaction { return verifiedDebit_; }
+
+  auto verifiedCredit() -> Transaction { return verifiedCredit_; }
 
   void verifyDebit(std::string_view accountName,
                    const Transaction &t) override {
     verifiedDebitAccountName_ = accountName;
     verifiedDebit_ = t;
   }
+
+  void verifyCredit(const Transaction &t) { verifiedCredit_ = t; }
 
   auto verifiedDebitAccountName() -> std::string {
     return verifiedDebitAccountName_;
@@ -134,7 +147,12 @@ public:
     return findUnverifiedDebitsAmount_;
   }
 
+  auto findUnverifiedCreditsAmount() -> USD {
+    return findUnverifiedCreditsAmount_;
+  }
+
 private:
+  Transaction verifiedCredit_;
   Transaction verifiedDebit_;
   Transaction removedCredit_;
   Transaction removedDebit_;
@@ -143,6 +161,7 @@ private:
   Date transferDate_{};
   Date removedTransferDate_{};
   Transactions foundUnverifiedDebits;
+  Transactions foundUnverifiedCredits;
   std::string removedDebitAccountName_;
   std::string debitedAccountName_;
   std::string accountRenaming_;
@@ -157,6 +176,7 @@ private:
   USD transferredAmount_{};
   USD removedTransferAmount_{};
   USD findUnverifiedDebitsAmount_{};
+  USD findUnverifiedCreditsAmount_{};
 };
 
 class SerializationStub : public SessionSerialization {
@@ -518,6 +538,23 @@ void verifyDebit(testcpplite::TestResult &result) {
         assertEqual(result, 50000_cents, model_.findUnverifiedDebitsAmount());
       },
       {name(Command::verifyDebit), "Groceries", "500", "2", "y"});
+}
+
+void verifyCredit(testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedCredits(
+      {{1_cents, "gift", Date{2022, Month::January, 6}},
+       {2_cents, "paycheck", Date{2023, Month::March, 26}},
+       {3_cents, "found on the ground", Date{2021, Month::October, 2}}});
+  testController(
+      model,
+      [&](CommandLineInterpreter &, ModelStub &model_,
+          CommandLineInterfaceStub &) {
+        assertEqual(result, {2_cents, "paycheck", Date{2023, Month::March, 26}},
+                    model_.verifiedCredit());
+        assertEqual(result, 50000_cents, model_.findUnverifiedCreditsAmount());
+      },
+      {name(Command::verifyCredit), "500", "2", "y"});
 }
 
 void verifyOnlyDebitFound(testcpplite::TestResult &result) {

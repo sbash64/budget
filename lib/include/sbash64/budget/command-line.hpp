@@ -17,7 +17,8 @@ enum class Command {
   removeTransfer,
   removeDebit,
   removeCredit,
-  verifyDebit
+  verifyDebit,
+  verifyCredit
 };
 
 constexpr auto name(Command c) -> const char * {
@@ -44,6 +45,8 @@ constexpr auto name(Command c) -> const char * {
     return "remove-credit";
   case Command::verifyDebit:
     return "verify-debit";
+  case Command::verifyCredit:
+    return "verify-credit";
   }
 }
 

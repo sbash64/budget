@@ -111,6 +111,8 @@ auto Bank::findUnverifiedDebits(std::string_view accountName, USD amount)
   return accounts.at(std::string{accountName})->findUnverifiedDebits(amount);
 }
 
+auto Bank::findUnverifiedCredits(USD amount) -> Transactions { return {}; }
+
 void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
   accounts.at(std::string{accountName})->verifyDebit(t);
 }

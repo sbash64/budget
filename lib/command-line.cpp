@@ -150,10 +150,13 @@ static void executeFirstLineOfMultiLineCommand(
     CommandLineInterpreter::CommandType &commandType,
     Transaction::Type &transactionType, std::string_view commandName) {
   if (matches(commandName, Command::credit) ||
-      matches(commandName, Command::removeCredit)) {
+      matches(commandName, Command::removeCredit) ||
+      matches(commandName, Command::verifyCredit)) {
     commandType = matches(commandName, Command::credit)
                       ? CommandLineInterpreter::CommandType::addTransaction
-                      : CommandLineInterpreter::CommandType::removeTransaction;
+                  : matches(commandName, Command::removeCredit)
+                      ? CommandLineInterpreter::CommandType::removeTransaction
+                      : CommandLineInterpreter::CommandType::verifyTransaction;
     transactionType = Transaction::Type::credit;
     state = CommandLineInterpreter::State::readyForAmount;
     interface.prompt("how much? [amount ($)]");
@@ -203,7 +206,8 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
            matches(commandName, Command::removeTransfer) ||
            matches(commandName, Command::removeDebit) ||
            matches(commandName, Command::removeCredit) ||
-           matches(commandName, Command::verifyDebit))
+           matches(commandName, Command::verifyDebit) ||
+           matches(commandName, Command::verifyCredit))
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
@@ -262,7 +266,10 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForAmount:
     amount = usd(input);
     if (commandType == CommandType::verifyTransaction) {
-      unverifiedTransactions = model.findUnverifiedDebits(accountName, amount);
+      unverifiedTransactions =
+          transactionType == Transaction::Type::debit
+              ? model.findUnverifiedDebits(accountName, amount)
+              : model.findUnverifiedCredits(amount);
       if (unverifiedTransactions.size() == 1)
         setAndPromptForConfirmation(unverifiedTransaction, state, interface,
                                     unverifiedTransactions, 0);
@@ -291,7 +298,10 @@ void CommandLineInterpreter::execute(Model &model,
                                 unverifiedTransactions, integer(input) - 1);
     break;
   case State::readyForConfirmationOfUnverifiedTransaction:
-    model.verifyDebit(accountName, unverifiedTransaction);
+    if (transactionType == Transaction::Type::debit)
+      model.verifyDebit(accountName, unverifiedTransaction);
+    else
+      model.verifyCredit(unverifiedTransaction);
     state = State::normal;
     break;
   }
