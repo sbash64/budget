@@ -11,6 +11,7 @@ public:
   virtual void prompt(std::string_view) = 0;
   virtual void show(const Transaction &t, std::string_view suffix) = 0;
   virtual void show(std::string_view message) = 0;
+  virtual void enumerate(const Transactions &) {}
 };
 
 class CommandLineInterpreter {

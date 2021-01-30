@@ -185,10 +185,16 @@ public:
 
   auto transactionSuffix() -> std::string { return transactionSuffix_; }
 
+  auto enumeratedTransactions() -> Transactions {
+    return enumeratedTransactions_;
+  }
+
   void show(const Transaction &t, std::string_view suffix) override {
     transaction_ = t;
     transactionSuffix_ = suffix;
   }
+
+  void enumerate(const Transactions &t) { enumeratedTransactions_ = t; }
 
   auto message() -> std::string { return message_; }
 
@@ -196,6 +202,7 @@ public:
 
 private:
   Transaction transaction_;
+  Transactions enumeratedTransactions_;
   std::string prompt_;
   std::string transactionSuffix_;
   std::string message_;
@@ -563,6 +570,12 @@ void showsDebitCandidatesForVerification(testcpplite::TestResult &result) {
   testController(model,
                  [&](CommandLineInterpreter &, ModelStub &,
                      CommandLineInterfaceStub &interface) {
+                   assertEqual(
+                       result,
+                       {{1_cents, "walmart", Date{2022, Month::January, 6}},
+                        {2_cents, "hyvee", Date{2023, Month::March, 26}},
+                        {3_cents, "sam's", Date{2021, Month::October, 2}}},
+                       interface.enumeratedTransactions());
                    assertEqual(result, "multiple candidates found - which? [n]",
                                interface.prompt());
                  },

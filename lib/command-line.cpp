@@ -204,6 +204,7 @@ void CommandLineInterpreter::execute(Model &model,
         state = State::readyForConfirmationOfUnverifiedTransaction;
       } else {
         state = State::readyForUnverifiedTransactionSelection;
+        interface.enumerate(unverifiedTransactions);
         interface.prompt("multiple candidates found - which? [n]");
       }
     } else {
