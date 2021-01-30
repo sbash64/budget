@@ -108,7 +108,7 @@ public:
   }
 
   auto findUnverifiedDebits(std::string_view accountName, USD amount)
-      -> Transactions {
+      -> Transactions override {
     findUnverifiedDebitsAccountName_ = accountName;
     findUnverifiedDebitsAmount_ = amount;
     return foundUnverifiedDebits;
@@ -116,7 +116,8 @@ public:
 
   auto verifiedDebit() -> Transaction { return verifiedDebit_; }
 
-  void verifyDebit(std::string_view accountName, const Transaction &t) {
+  void verifyDebit(std::string_view accountName,
+                   const Transaction &t) override {
     verifiedDebitAccountName_ = accountName;
     verifiedDebit_ = t;
   }

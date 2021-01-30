@@ -99,14 +99,14 @@ static auto transaction(USD amount, const Date &date, std::string_view input)
 }
 
 namespace {
-class MovesTransaction {
+class AppliesTransaction {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(MovesTransaction);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AppliesTransaction);
   virtual void add(Model &, const Transaction &) = 0;
   virtual void remove(Model &, const Transaction &) = 0;
 };
 
-class MovesCredit : public MovesTransaction {
+class AppliesCredit : public AppliesTransaction {
   void add(Model &model, const Transaction &t) override { model.credit(t); }
 
   void remove(Model &model, const Transaction &t) override {
@@ -114,9 +114,9 @@ class MovesCredit : public MovesTransaction {
   }
 };
 
-class MovesDebit : public MovesTransaction {
+class AppliesDebit : public AppliesTransaction {
 public:
-  explicit MovesDebit(std::string_view accountName)
+  explicit AppliesDebit(std::string_view accountName)
       : accountName{accountName} {}
 
   void add(Model &model, const Transaction &t) override {
@@ -132,13 +132,15 @@ private:
 };
 } // namespace
 
-static void f(MovesTransaction &movesTransaction, Model &model,
-              CommandLineInterpreter::CommandType commandType, USD amount,
-              const Date &date, std::string_view input) {
+static void applyTransaction(AppliesTransaction &appliesTransaction,
+                             Model &model,
+                             CommandLineInterpreter::CommandType commandType,
+                             USD amount, const Date &date,
+                             std::string_view input) {
   if (commandType == CommandLineInterpreter::CommandType::addTransaction)
-    movesTransaction.add(model, transaction(amount, date, input));
+    appliesTransaction.add(model, transaction(amount, date, input));
   else
-    movesTransaction.remove(model, transaction(amount, date, input));
+    appliesTransaction.remove(model, transaction(amount, date, input));
 }
 
 static void enterTransaction(Model &model, CommandLineInterface &interface,
@@ -148,11 +150,13 @@ static void enterTransaction(Model &model, CommandLineInterface &interface,
                              USD amount, std::string_view accountName,
                              const Date &date, std::string_view input) {
   if (transactionType == Transaction::Type::credit) {
-    MovesCredit movesTransaction;
-    f(movesTransaction, model, commandType, amount, date, input);
+    AppliesCredit appliesTransaction;
+    applyTransaction(appliesTransaction, model, commandType, amount, date,
+                     input);
   } else {
-    MovesDebit movesTransaction{accountName};
-    f(movesTransaction, model, commandType, amount, date, input);
+    AppliesDebit appliesTransaction{accountName};
+    applyTransaction(appliesTransaction, model, commandType, amount, date,
+                     input);
   }
   interface.show(transaction(amount, date, input));
   state = CommandLineInterpreter::State::normal;
