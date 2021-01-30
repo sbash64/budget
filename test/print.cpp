@@ -116,12 +116,12 @@ void prompt(testcpplite::TestResult &result) {
 }
 
 void transactionWithSuffix(testcpplite::TestResult &result) {
-  testCommandLineStream([&](CommandLineStream &commandLineStream,
-                            std::stringstream &stream) {
-    commandLineStream.show(
-        Transaction{123_cents, "nope", Date{2020, Month::July, 5}}, "hello");
-    assertEqual(result, "$1.23 7/5/2020 nope hello\n", stream.str());
-  });
+  testCommandLineStream(
+      [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
+        commandLineStream.show(
+            Transaction{123_cents, "nope", Date{2020, Month::July, 5}});
+        assertEqual(result, "$1.23 7/5/2020 nope\n", stream.str());
+      });
 }
 
 void message(testcpplite::TestResult &result) {

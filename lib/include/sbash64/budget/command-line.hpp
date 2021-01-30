@@ -9,9 +9,9 @@ namespace sbash64::budget {
 class CommandLineInterface : public virtual View {
 public:
   virtual void prompt(std::string_view) = 0;
-  virtual void show(const Transaction &t, std::string_view suffix) = 0;
-  virtual void show(std::string_view message) = 0;
-  virtual void enumerate(const Transactions &) {}
+  virtual void show(std::string_view) = 0;
+  virtual void show(const Transaction &) = 0;
+  virtual void enumerate(const Transactions &) = 0;
 };
 
 class CommandLineInterpreter {
@@ -48,8 +48,8 @@ public:
       std::string_view name, USD balance,
       const std::vector<VerifiableTransactionWithType> &) override;
   void prompt(std::string_view) override;
-  void show(const Transaction &, std::string_view suffix) override;
-  void show(std::string_view message) override;
+  void show(const Transaction &) override;
+  void show(std::string_view) override;
   void enumerate(const Transactions &) override;
 
 private:

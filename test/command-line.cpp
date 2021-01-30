@@ -183,18 +183,15 @@ public:
 
   auto transaction() -> Transaction { return transaction_; }
 
-  auto transactionSuffix() -> std::string { return transactionSuffix_; }
-
   auto enumeratedTransactions() -> Transactions {
     return enumeratedTransactions_;
   }
 
-  void show(const Transaction &t, std::string_view suffix) override {
-    transaction_ = t;
-    transactionSuffix_ = suffix;
-  }
+  void show(const Transaction &t) override { transaction_ = t; }
 
-  void enumerate(const Transactions &t) { enumeratedTransactions_ = t; }
+  void enumerate(const Transactions &t) override {
+    enumeratedTransactions_ = t;
+  }
 
   auto message() -> std::string { return message_; }
 
@@ -204,7 +201,6 @@ private:
   Transaction transaction_;
   Transactions enumeratedTransactions_;
   std::string prompt_;
-  std::string transactionSuffix_;
   std::string message_;
 };
 } // namespace
@@ -327,8 +323,6 @@ static void assertShowsTransaction(testcpplite::TestResult &result,
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
         assertEqual(result, expectedTransaction, interface.transaction());
-        assertEqual(result, "-> " + expectedAccountName,
-                    interface.transactionSuffix());
       },
       input);
 }

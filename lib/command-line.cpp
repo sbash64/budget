@@ -27,13 +27,6 @@ enum class CommandLineInterpreter::CommandType {
   verifyTransaction
 };
 
-void execute(CommandLineInterpreter &controller, Model &model,
-             CommandLineInterface &interface,
-             SessionSerialization &serialization,
-             SessionDeserialization &deserialization, std::string_view input) {
-  controller.execute(model, interface, serialization, deserialization, input);
-}
-
 static auto date(std::string_view s) -> Date {
   Date date{};
   std::stringstream stream{std::string{s}};
@@ -74,9 +67,8 @@ static void enterTransaction(Model &model, CommandLineInterface &interface,
       model.debit(accountName, transaction(amount, date, input));
     else
       model.removeDebit(accountName, transaction(amount, date, input));
-    interface.show(transaction(amount, date, input),
-                   "-> " + std::string{accountName});
   }
+  interface.show(transaction(amount, date, input));
   state = CommandLineInterpreter::State::normal;
 }
 
@@ -180,8 +172,15 @@ setAndPromptForConfirmation(Transaction &unverifiedTransaction,
   unverifiedTransaction = unverifiedTransactions.at(i);
   state = CommandLineInterpreter::State::
       readyForConfirmationOfUnverifiedTransaction;
-  interface.show(unverifiedTransaction, "");
+  interface.show(unverifiedTransaction);
   interface.prompt("is the above transaction correct? [y/n]");
+}
+
+void execute(CommandLineInterpreter &controller, Model &model,
+             CommandLineInterface &interface,
+             SessionSerialization &serialization,
+             SessionDeserialization &deserialization, std::string_view input) {
+  controller.execute(model, interface, serialization, deserialization, input);
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
@@ -362,12 +361,11 @@ static auto putSpace(std::ostream &stream) -> std::ostream & {
 
 void CommandLineStream::prompt(std::string_view s) { putSpace(stream << s); }
 
-void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
-  putNewLine(putSpace(putSpace(putSpace(putWithDollarSign(stream, t.amount))
-                               << t.date.month << '/' << t.date.day << '/'
-                               << t.date.year)
-                      << t.description)
-             << suffix);
+void CommandLineStream::show(const Transaction &t) {
+  putNewLine(putSpace(putSpace(putWithDollarSign(stream, t.amount))
+                      << t.date.month << '/' << t.date.day << '/'
+                      << t.date.year)
+             << t.description);
 }
 
 void CommandLineStream::enumerate(const Transactions &transactions) {
