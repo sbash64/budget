@@ -233,6 +233,18 @@ setAndPromptForConfirmation(Transaction &unverifiedTransaction,
   interface.prompt("is the above transaction correct? [y/n]");
 }
 
+static void tryToSelectUnverfiedTransaction(
+    Transaction &unverifiedTransaction, CommandLineInterpreter::State &state,
+    CommandLineInterface &interface, const Transactions &unverifiedTransactions,
+    std::string_view input) {
+  const auto selection{integer(input) - 1};
+  if (selection < 0 || selection >= unverifiedTransactions.size())
+    interface.prompt("try again - which? [n]");
+  else
+    setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                unverifiedTransactions, selection);
+}
+
 void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &interface,
              SessionSerialization &serialization,
@@ -294,8 +306,8 @@ void CommandLineInterpreter::execute(Model &model,
     state = State::normal;
     break;
   case State::readyForUnverifiedTransactionSelection:
-    setAndPromptForConfirmation(unverifiedTransaction, state, interface,
-                                unverifiedTransactions, integer(input) - 1);
+    tryToSelectUnverfiedTransaction(unverifiedTransaction, state, interface,
+                                    unverifiedTransactions, input);
     break;
   case State::readyForConfirmationOfUnverifiedTransaction:
     if (transactionType == Transaction::Type::debit)

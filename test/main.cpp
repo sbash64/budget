@@ -59,6 +59,10 @@ static auto runAllTests() -> int {
         "command line parses \"verify credit\" command"},
        {command_line::showsDebitCandidatesForVerification,
         "command line shows the debit candidates for verification"},
+       {command_line::
+            showsDebitCandidatesForVerificationAgainWhenSelectedDebitIsOutOfRange,
+        "command line shows the debit candidates for verification again when "
+        "selected debit is out of range"},
        {command_line::promptsForDebitVerificationConfirmation,
         "command line prompts for debit verification confirmation"},
        {command_line::verifyOnlyDebitFound,
