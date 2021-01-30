@@ -42,13 +42,26 @@ public:
     foundUnverifiedDebits = std::move(t);
   }
 
+  void setFoundUnverifiedCredits(Transactions t) {
+    foundUnverifiedCredits = std::move(t);
+  }
+
   auto findUnverifiedDebits(USD amount) -> Transactions override {
     findUnverifiedDebitsAmount_ = amount;
     return foundUnverifiedDebits;
   }
 
+  auto findUnverifiedCredits(USD amount) -> Transactions {
+    findUnverifiedCreditsAmount_ = amount;
+    return foundUnverifiedCredits;
+  }
+
   auto findUnverifiedDebitsAmount() -> USD {
     return findUnverifiedDebitsAmount_;
+  }
+
+  auto findUnverifiedCreditsAmount() -> USD {
+    return findUnverifiedCreditsAmount_;
   }
 
   auto debitToVerify() -> Transaction { return debitToVerify_; }
@@ -67,8 +80,10 @@ private:
   Transaction removedDebit_;
   Transaction removedCredit_;
   Transactions foundUnverifiedDebits;
+  Transactions foundUnverifiedCredits;
   std::string newName_;
   USD findUnverifiedDebitsAmount_{};
+  USD findUnverifiedCreditsAmount_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -361,6 +376,23 @@ void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &result) {
                  {3_cents, "sigh", Date{2020, Month::December, 3}}},
                 bank.findUnverifiedDebits("giraffe", 123_cents));
     assertEqual(result, 123_cents, giraffe->findUnverifiedDebitsAmount());
+  });
+}
+
+void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    masterAccount->setFoundUnverifiedCredits(
+        {{1_cents, "hi", Date{2020, Month::April, 1}},
+         {2_cents, "nye", Date{2020, Month::August, 2}},
+         {3_cents, "sigh", Date{2020, Month::December, 3}}});
+    assertEqual(result,
+                {{1_cents, "hi", Date{2020, Month::April, 1}},
+                 {2_cents, "nye", Date{2020, Month::August, 2}},
+                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
+                bank.findUnverifiedCredits(123_cents));
+    assertEqual(result, 123_cents,
+                masterAccount->findUnverifiedCreditsAmount());
   });
 }
 
