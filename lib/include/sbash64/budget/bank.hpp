@@ -49,7 +49,7 @@ public:
   void verifyDebit(const Transaction &) override;
   void verifyCredit(const Transaction &) override;
   auto findUnverifiedDebits(USD amount) -> Transactions override;
-  auto findUnverifiedCredits(USD amount) -> Transactions;
+  auto findUnverifiedCredits(USD amount) -> Transactions override;
 
   class Factory : public Account::Factory {
   public:

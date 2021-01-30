@@ -105,7 +105,7 @@ static auto runAllTests() -> int {
        {account::findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount,
         "account find unverified debits returns unverified debits "
         "matching amount"},
-       {account::findUnverifiedCreditsReturnsUnverifiedDebitsMatchingAmount,
+       {account::findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount,
         "account find unverified credits returns unverified credits "
         "matching amount"},
        {account::saveSavesAllTransactions,

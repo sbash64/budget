@@ -202,7 +202,7 @@ void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
               account.findUnverifiedDebits(123_cents));
 }
 
-void findUnverifiedCreditsReturnsUnverifiedDebitsMatchingAmount(
+void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});

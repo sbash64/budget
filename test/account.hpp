@@ -15,7 +15,7 @@ void loadLoadsAllTransactions(testcpplite::TestResult &);
 void rename(testcpplite::TestResult &);
 void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
     testcpplite::TestResult &);
-void findUnverifiedCreditsReturnsUnverifiedDebitsMatchingAmount(
+void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
     testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
