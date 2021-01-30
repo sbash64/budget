@@ -365,26 +365,29 @@ void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
 
 void debit(testcpplite::TestResult &result) {
   assertDebitsAccount(
-      result, {"debit", "Gifts", "25", "12 27 20", "Sam's 24th"}, "Gifts",
+      result, {name(Command::debit), "Gifts", "25", "12 27 20", "Sam's 24th"},
+      "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 
 void debitMultiWordAccount(testcpplite::TestResult &result) {
   assertDebitsAccount(
-      result, {"debit", "Seth's Car Loan", "321.24", "12 27 20", "honda"},
+      result,
+      {name(Command::debit), "Seth's Car Loan", "321.24", "12 27 20", "honda"},
       "Seth's Car Loan",
       Transaction{32124_cents, "honda", Date{2020, Month::December, 27}});
 }
 
 void credit(testcpplite::TestResult &result) {
   assertCreditsAccount(
-      result, {"credit", "2134.35", "11 22 19", "btnrh"},
+      result, {name(Command::credit), "2134.35", "11 22 19", "btnrh"},
       Transaction{213435_cents, "btnrh", Date{2019, Month::November, 22}});
 }
 
 void transferTo(testcpplite::TestResult &result) {
-  assertTransfersToAccount(result, {"transfer-to", "Groceries", "50", "6 3 21"},
-                           5000_cents, "Groceries", Date{2021, Month::June, 3});
+  assertTransfersToAccount(
+      result, {name(Command::transfer), "Groceries", "50", "6 3 21"},
+      5000_cents, "Groceries", Date{2021, Month::June, 3});
 }
 
 void save(testcpplite::TestResult &result) {
@@ -394,7 +397,7 @@ void save(testcpplite::TestResult &result) {
           DeserializationStub &) {
         assertEqual(result, &serialization, model.serialization());
       },
-      "save");
+      name(Command::save));
 }
 
 void load(testcpplite::TestResult &result) {
@@ -404,7 +407,7 @@ void load(testcpplite::TestResult &result) {
           DeserializationStub &deserialization) {
         assertEqual(result, &deserialization, model.deserialization());
       },
-      "load");
+      name(Command::load));
 }
 
 void debitPromptsForDate(testcpplite::TestResult &result) {
@@ -413,7 +416,7 @@ void debitPromptsForDate(testcpplite::TestResult &result) {
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "date [month day year]");
       },
-      {"debit", "Groceries", "40"});
+      {name(Command::debit), "Groceries", "40"});
 }
 
 void debitPromptsForDesriptionAfterDateEntered(
@@ -423,12 +426,13 @@ void debitPromptsForDesriptionAfterDateEntered(
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "description [anything]");
       },
-      {"debit", "Groceries", "40", "1 13 14"});
+      {name(Command::debit), "Groceries", "40", "1 13 14"});
 }
 
 void debitShowsTransaction(testcpplite::TestResult &result) {
   assertShowsTransaction(
-      result, {"debit", "Gifts", "25", "12 27 20", "Sam's 24th"}, "Gifts",
+      result, {name(Command::debit), "Gifts", "25", "12 27 20", "Sam's 24th"},
+      "Gifts",
       Transaction{2500_cents, "Sam's 24th", Date{2020, Month::December, 27}});
 }
 
@@ -439,7 +443,7 @@ void renameAccount(testcpplite::TestResult &result) {
         assertEqual(result, "SethsRent", model.accountRenaming());
         assertEqual(result, "Seth's Rent", model.accountRenamed());
       },
-      {"rename", "SethsRent", "Seth's Rent"});
+      {name(Command::renameAccount), "SethsRent", "Seth's Rent"});
 }
 
 void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
@@ -448,7 +452,7 @@ void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "new name [anything]");
       },
-      {"rename", "whatever"});
+      {name(Command::renameAccount), "whatever"});
 }
 
 void debitPromptsForAccountName(testcpplite::TestResult &result) {
@@ -457,7 +461,7 @@ void debitPromptsForAccountName(testcpplite::TestResult &result) {
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "which account? [name]");
       },
-      "debit");
+      name(Command::debit));
 }
 
 void debitPromptsForAmount(testcpplite::TestResult &result) {
@@ -466,7 +470,7 @@ void debitPromptsForAmount(testcpplite::TestResult &result) {
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "how much? [amount ($)]");
       },
-      {"debit", "Groceries"});
+      {name(Command::debit), "Groceries"});
 }
 
 void creditPromptsForAmount(testcpplite::TestResult &result) {
@@ -475,7 +479,7 @@ void creditPromptsForAmount(testcpplite::TestResult &result) {
           CommandLineInterfaceStub &interface) {
         assertPrompt(result, interface, "how much? [amount ($)]");
       },
-      "credit");
+      name(Command::credit));
 }
 
 void unrecognizedCommandPrintsMessage(testcpplite::TestResult &result) {
@@ -497,7 +501,7 @@ void removeDebit(testcpplite::TestResult &result) {
                                 Date{2020, Month::December, 27}},
                     model.removedDebit());
       },
-      {"remove-debit", "Gifts", "25", "12 27 20", "Sam's 24th"});
+      {name(Command::removeDebit), "Gifts", "25", "12 27 20", "Sam's 24th"});
 }
 
 void removeCredit(testcpplite::TestResult &result) {
@@ -509,7 +513,7 @@ void removeCredit(testcpplite::TestResult &result) {
             Transaction{200000_cents, "income", Date{2023, Month::March, 26}},
             model.removedCredit());
       },
-      {"remove-credit", "2000", "3 26 23", "income"});
+      {name(Command::removeCredit), "2000", "3 26 23", "income"});
 }
 
 void removeTransfer(testcpplite::TestResult &result) {
@@ -521,7 +525,7 @@ void removeTransfer(testcpplite::TestResult &result) {
         assertEqual(result, Date{2013, Month::July, 1},
                     model.removedTransferDate());
       },
-      {"remove-transfer", "Groceries", "500", "7 1 13"});
+      {name(Command::removeTransfer), "Groceries", "500", "7 1 13"});
 }
 
 void verifyDebit(testcpplite::TestResult &result) {
@@ -541,7 +545,7 @@ void verifyDebit(testcpplite::TestResult &result) {
                     model_.findUnverifiedDebitsAccountName());
         assertEqual(result, 50000_cents, model_.findUnverifiedDebitsAmount());
       },
-      {"verify-debit", "Groceries", "500", "2", "y"});
+      {name(Command::verifyDebit), "Groceries", "500", "2", "y"});
 }
 
 void verifyOnlyDebitFound(testcpplite::TestResult &result) {
@@ -559,7 +563,7 @@ void verifyOnlyDebitFound(testcpplite::TestResult &result) {
                     model_.findUnverifiedDebitsAccountName());
         assertEqual(result, 50000_cents, model_.findUnverifiedDebitsAmount());
       },
-      {"verify-debit", "Groceries", "500", "y"});
+      {name(Command::verifyDebit), "Groceries", "500", "y"});
 }
 
 void showsDebitCandidatesForVerification(testcpplite::TestResult &result) {
@@ -580,7 +584,7 @@ void showsDebitCandidatesForVerification(testcpplite::TestResult &result) {
                    assertEqual(result, "multiple candidates found - which? [n]",
                                interface.prompt());
                  },
-                 {"verify-debit", "Groceries", "500"});
+                 {name(Command::verifyDebit), "Groceries", "500"});
 }
 
 void promptsForDebitVerificationConfirmation(testcpplite::TestResult &result) {
@@ -598,6 +602,6 @@ void promptsForDebitVerificationConfirmation(testcpplite::TestResult &result) {
         assertEqual(result, "is the above transaction correct? [y/n]",
                     interface.prompt());
       },
-      {"verify-debit", "Groceries", "500", "2"});
+      {name(Command::verifyDebit), "Groceries", "500", "2"});
 }
 } // namespace sbash64::budget::command_line

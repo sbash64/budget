@@ -6,6 +6,47 @@
 #include <string_view>
 
 namespace sbash64::budget {
+enum class Command {
+  print,
+  save,
+  load,
+  credit,
+  debit,
+  transfer,
+  renameAccount,
+  removeTransfer,
+  removeDebit,
+  removeCredit,
+  verifyDebit
+};
+
+constexpr auto name(Command c) -> const char * {
+  switch (c) {
+  case Command::print:
+    return "print";
+  case Command::save:
+    return "save";
+  case Command::load:
+    return "load";
+  case Command::credit:
+    return "credit";
+  case Command::debit:
+    return "debit";
+  case Command::renameAccount:
+    return "rename";
+  case Command::transfer:
+    return "transfer-to";
+  case Command::removeTransfer:
+    return "remove-transfer";
+  case Command::removeDebit:
+    return "remove-debit";
+  case Command::removeCredit:
+    return "remove-credit";
+  case Command::verifyDebit:
+    return "verify-debit";
+  }
+}
+
 class CommandLineInterface : public virtual View {
 public:
   virtual void prompt(std::string_view) = 0;
