@@ -355,6 +355,12 @@ static void assertTransfersToAccount(testcpplite::TestResult &result,
       input);
 }
 
+static void assertPrompt(testcpplite::TestResult &result,
+                         CommandLineInterfaceStub &interface,
+                         std::string_view s) {
+  assertEqual(result, std::string{s}, interface.prompt());
+}
+
 void print(testcpplite::TestResult &result) { assertPrints(result, "print"); }
 
 void debit(testcpplite::TestResult &result) {
@@ -405,7 +411,7 @@ void debitPromptsForDate(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "date [month day year]", interface.prompt());
+        assertPrompt(result, interface, "date [month day year]");
       },
       {"debit", "Groceries", "40"});
 }
@@ -415,7 +421,7 @@ void debitPromptsForDesriptionAfterDateEntered(
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "description [anything]", interface.prompt());
+        assertPrompt(result, interface, "description [anything]");
       },
       {"debit", "Groceries", "40", "1 13 14"});
 }
@@ -440,7 +446,7 @@ void renameAccountPromptsForNewName(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "new name [anything]", interface.prompt());
+        assertPrompt(result, interface, "new name [anything]");
       },
       {"rename", "whatever"});
 }
@@ -449,7 +455,7 @@ void debitPromptsForAccountName(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "which account? [name]", interface.prompt());
+        assertPrompt(result, interface, "which account? [name]");
       },
       "debit");
 }
@@ -458,7 +464,7 @@ void debitPromptsForAmount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "how much? [amount ($)]", interface.prompt());
+        assertPrompt(result, interface, "how much? [amount ($)]");
       },
       {"debit", "Groceries"});
 }
@@ -467,7 +473,7 @@ void creditPromptsForAmount(testcpplite::TestResult &result) {
   testController(
       [&](CommandLineInterpreter &, ModelStub &,
           CommandLineInterfaceStub &interface) {
-        assertEqual(result, "how much? [amount ($)]", interface.prompt());
+        assertPrompt(result, interface, "how much? [amount ($)]");
       },
       "credit");
 }
