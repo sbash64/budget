@@ -457,23 +457,18 @@ static auto putSpace(std::ostream &stream) -> std::ostream & {
 
 void CommandLineStream::prompt(std::string_view s) { putSpace(stream << s); }
 
-void CommandLineStream::show(const Transaction &t) {
+static void put(std::ostream &stream, const Transaction &t) {
   putNewLine(putSpace(putSpace(putWithDollarSign(stream, t.amount))
                       << t.date.month << '/' << t.date.day << '/'
                       << t.date.year)
              << t.description);
 }
 
+void CommandLineStream::show(const Transaction &t) { put(stream, t); }
+
 void CommandLineStream::enumerate(const Transactions &transactions) {
-  int i = 1;
-  for (const auto &t : transactions) {
-    putNewLine(
-        putSpace(
-            putSpace(putWithDollarSign(stream << '[' << i << "] ", t.amount))
-            << t.date.month << '/' << t.date.day << '/' << t.date.year)
-        << t.description);
-    ++i;
-  }
+  for (int i{0}; i < transactions.size(); ++i)
+    put(stream << '[' << i + 1 << "] ", transactions.at(i));
 }
 
 void CommandLineStream::show(std::string_view message) {
