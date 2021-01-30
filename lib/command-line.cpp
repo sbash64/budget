@@ -27,6 +27,53 @@ enum class CommandLineInterpreter::CommandType {
   verifyTransaction
 };
 
+namespace {
+enum class Command {
+  print,
+  save,
+  load,
+  credit,
+  debit,
+  transfer,
+  renameAccount,
+  removeTransfer,
+  removeDebit,
+  removeCredit,
+  verifyDebit
+};
+}
+
+constexpr auto name(Command c) -> const char * {
+  switch (c) {
+  case Command::print:
+    return "print";
+  case Command::save:
+    return "save";
+  case Command::load:
+    return "load";
+  case Command::credit:
+    return "credit";
+  case Command::debit:
+    return "debit";
+  case Command::renameAccount:
+    return "rename";
+  case Command::transfer:
+    return "transfer-to";
+  case Command::removeTransfer:
+    return "remove-transfer";
+  case Command::removeDebit:
+    return "remove-debit";
+  case Command::removeCredit:
+    return "remove-credit";
+  case Command::verifyDebit:
+    return "verify-debit";
+  }
+}
+
+constexpr auto matches(std::string_view s, Command c) -> bool {
+  return s == name(c);
+}
+
 static auto date(std::string_view s) -> Date {
   Date date{};
   std::stringstream stream{std::string{s}};
@@ -102,27 +149,29 @@ static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, CommandLineInterpreter::State &state,
     CommandLineInterpreter::CommandType &commandType,
     Transaction::Type &transactionType, std::string_view commandName) {
-  if (commandName == "credit" || commandName == "remove-credit") {
-    commandType = commandName == "credit"
+  if (matches(commandName, Command::credit) ||
+      matches(commandName, Command::removeCredit)) {
+    commandType = matches(commandName, Command::credit)
                       ? CommandLineInterpreter::CommandType::addTransaction
                       : CommandLineInterpreter::CommandType::removeTransaction;
     transactionType = Transaction::Type::credit;
     state = CommandLineInterpreter::State::readyForAmount;
     interface.prompt("how much? [amount ($)]");
   } else {
-    if (commandName == "debit" || commandName == "remove-debit") {
+    if (matches(commandName, Command::debit) ||
+        matches(commandName, Command::removeDebit)) {
       commandType =
-          commandName == "debit"
+          matches(commandName, Command::debit)
               ? CommandLineInterpreter::CommandType::addTransaction
               : CommandLineInterpreter::CommandType::removeTransaction;
       transactionType = Transaction::Type::debit;
-    } else if (commandName == "rename")
+    } else if (matches(commandName, Command::renameAccount))
       commandType = CommandLineInterpreter::CommandType::renameAccount;
-    else if (commandName == "transfer-to")
+    else if (matches(commandName, Command::transfer))
       commandType = CommandLineInterpreter::CommandType::transfer;
-    else if (commandName == "remove-transfer")
+    else if (matches(commandName, Command::removeTransfer))
       commandType = CommandLineInterpreter::CommandType::removeTransfer;
-    else if (commandName == "verify-debit") {
+    else if (matches(commandName, Command::verifyDebit)) {
       commandType = CommandLineInterpreter::CommandType::verifyTransaction;
       transactionType = Transaction::Type::debit;
     }
@@ -141,16 +190,20 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   std::stringstream stream{std::string{input}};
   std::string commandName;
   stream >> commandName;
-  if (commandName == "print")
+  if (matches(commandName, Command::print))
     model.show(interface);
-  else if (commandName == "save")
+  else if (matches(commandName, Command::save))
     model.save(serialization);
-  else if (commandName == "load")
+  else if (matches(commandName, Command::load))
     model.load(deserialization);
-  else if (commandName == "credit" || commandName == "debit" ||
-           commandName == "rename" || commandName == "transfer-to" ||
-           commandName == "remove-transfer" || commandName == "remove-debit" ||
-           commandName == "remove-credit" || commandName == "verify-debit")
+  else if (matches(commandName, Command::credit) ||
+           matches(commandName, Command::debit) ||
+           matches(commandName, Command::renameAccount) ||
+           matches(commandName, Command::transfer) ||
+           matches(commandName, Command::removeTransfer) ||
+           matches(commandName, Command::removeDebit) ||
+           matches(commandName, Command::removeCredit) ||
+           matches(commandName, Command::verifyDebit))
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
