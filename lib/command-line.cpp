@@ -199,7 +199,11 @@ void CommandLineInterpreter::execute(Model &model,
     amount = usd(input);
     if (commandType == CommandType::verifyTransaction) {
       unverifiedTransactions = model.findUnverifiedDebits(accountName, amount);
-      state = State::readyForUnverifiedTransactionSelection;
+      if (unverifiedTransactions.size() == 1) {
+        unverifiedTransaction = unverifiedTransactions.front();
+        state = State::readyForConfirmationOfUnverifiedTransaction;
+      } else
+        state = State::readyForUnverifiedTransactionSelection;
     } else {
       state = State::readyForDate;
       interface.prompt("date [month day year]");

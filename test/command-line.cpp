@@ -535,4 +535,22 @@ void verifyDebit(testcpplite::TestResult &result) {
       },
       {"verify-debit", "Groceries", "500", "2", "y"});
 }
+
+void verifyOnlyDebitFound(testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedDebits(
+      {{2_cents, "hyvee", Date{2023, Month::March, 27}}});
+  testController(
+      model,
+      [&](CommandLineInterpreter &, ModelStub &model_,
+          CommandLineInterfaceStub &) {
+        assertEqual(result, {2_cents, "hyvee", Date{2023, Month::March, 27}},
+                    model_.verifiedDebit());
+        assertEqual(result, "Groceries", model_.verifiedDebitAccountName());
+        assertEqual(result, "Groceries",
+                    model_.findUnverifiedDebitsAccountName());
+        assertEqual(result, 50000_cents, model_.findUnverifiedDebitsAmount());
+      },
+      {"verify-debit", "Groceries", "500", "y"});
+}
 } // namespace sbash64::budget::command_line

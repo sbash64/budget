@@ -48,6 +48,8 @@ static auto runAllTests() -> int {
        {command_line::removeCredit, "evaluate remove credit"},
        {command_line::removeTransfer, "evaluate remove transfer"},
        {command_line::verifyDebit, "evaluate verify debit"},
+       {command_line::verifyOnlyDebitFound,
+        "command line verifies only debit found"},
        {command_line::unrecognizedCommandPrintsMessage,
         "evaluate unrecognized command prints message"},
        {bank::createsMasterAccountOnConstruction,

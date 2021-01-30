@@ -24,6 +24,7 @@ void removeDebit(testcpplite::TestResult &);
 void removeCredit(testcpplite::TestResult &);
 void removeTransfer(testcpplite::TestResult &);
 void verifyDebit(testcpplite::TestResult &);
+void verifyOnlyDebitFound(testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif
