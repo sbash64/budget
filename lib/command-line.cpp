@@ -225,6 +225,8 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForUnverifiedTransactionSelection:
     unverifiedTransaction = unverifiedTransactions.at(integer(input) - 1);
     state = State::readyForConfirmationOfUnverifiedTransaction;
+    interface.show(unverifiedTransaction, "");
+    interface.prompt("is the above transaction correct? [y/n]");
     break;
   case State::readyForConfirmationOfUnverifiedTransaction:
     model.verifyDebit(accountName, unverifiedTransaction);

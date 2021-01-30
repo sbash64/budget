@@ -581,4 +581,22 @@ void showsDebitCandidatesForVerification(testcpplite::TestResult &result) {
                  },
                  {"verify-debit", "Groceries", "500"});
 }
+
+void promptsForDebitVerificationConfirmation(testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedDebits(
+      {{1_cents, "walmart", Date{2022, Month::January, 6}},
+       {2_cents, "hyvee", Date{2023, Month::March, 26}},
+       {3_cents, "sam's", Date{2021, Month::October, 2}}});
+  testController(
+      model,
+      [&](CommandLineInterpreter &, ModelStub &,
+          CommandLineInterfaceStub &interface) {
+        assertEqual(result, {2_cents, "hyvee", Date{2023, Month::March, 26}},
+                    interface.transaction());
+        assertEqual(result, "is the above transaction correct? [y/n]",
+                    interface.prompt());
+      },
+      {"verify-debit", "Groceries", "500", "2"});
+}
 } // namespace sbash64::budget::command_line

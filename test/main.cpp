@@ -50,6 +50,8 @@ static auto runAllTests() -> int {
        {command_line::verifyDebit, "evaluate verify debit"},
        {command_line::showsDebitCandidatesForVerification,
         "command line shows the debit candidates for verification"},
+       {command_line::promptsForDebitVerificationConfirmation,
+        "command line prompts for debit verification confirmation"},
        {command_line::verifyOnlyDebitFound,
         "command line verifies only debit found"},
        {command_line::unrecognizedCommandPrintsMessage,
