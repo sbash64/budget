@@ -172,6 +172,17 @@ static auto integer(std::string_view s) -> int {
   return integer;
 }
 
+static void f(Transaction &unverifiedTransaction,
+              CommandLineInterpreter::State &state,
+              CommandLineInterface &interface,
+              const Transactions &unverifiedTransactions, int i) {
+  unverifiedTransaction = unverifiedTransactions.at(i);
+  state = CommandLineInterpreter::State::
+      readyForConfirmationOfUnverifiedTransaction;
+  interface.show(unverifiedTransaction, "");
+  interface.prompt("is the above transaction correct? [y/n]");
+}
+
 CommandLineInterpreter::CommandLineInterpreter()
     : state{State::normal}, commandType{CommandType::addTransaction},
       transactionType{Transaction::Type::credit} {}
@@ -199,10 +210,9 @@ void CommandLineInterpreter::execute(Model &model,
     amount = usd(input);
     if (commandType == CommandType::verifyTransaction) {
       unverifiedTransactions = model.findUnverifiedDebits(accountName, amount);
-      if (unverifiedTransactions.size() == 1) {
-        unverifiedTransaction = unverifiedTransactions.front();
-        state = State::readyForConfirmationOfUnverifiedTransaction;
-      } else {
+      if (unverifiedTransactions.size() == 1)
+        f(unverifiedTransaction, state, interface, unverifiedTransactions, 0);
+      else {
         state = State::readyForUnverifiedTransactionSelection;
         interface.enumerate(unverifiedTransactions);
         interface.prompt("multiple candidates found - which? [n]");
@@ -223,10 +233,8 @@ void CommandLineInterpreter::execute(Model &model,
     state = State::normal;
     break;
   case State::readyForUnverifiedTransactionSelection:
-    unverifiedTransaction = unverifiedTransactions.at(integer(input) - 1);
-    state = State::readyForConfirmationOfUnverifiedTransaction;
-    interface.show(unverifiedTransaction, "");
-    interface.prompt("is the above transaction correct? [y/n]");
+    f(unverifiedTransaction, state, interface, unverifiedTransactions,
+      integer(input) - 1);
     break;
   case State::readyForConfirmationOfUnverifiedTransaction:
     model.verifyDebit(accountName, unverifiedTransaction);
