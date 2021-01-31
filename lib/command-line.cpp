@@ -245,13 +245,14 @@ static void tryToSelectUnverfiedTransaction(
                                 unverifiedTransactions, selection);
 }
 
-static void f(CommandLineInterface &interface, Model &model, USD &amount,
-              CommandLineInterpreter::CommandType &commandType,
-              CommandLineInterpreter::State &state,
-              Transactions &unverifiedTransactions,
-              Transaction &unverifiedTransaction,
-              const Transaction::Type transactionType,
-              std::string_view accountName, std::string_view input) {
+static void parseAmount(CommandLineInterface &interface, Model &model,
+                        USD &amount,
+                        CommandLineInterpreter::CommandType &commandType,
+                        CommandLineInterpreter::State &state,
+                        Transactions &unverifiedTransactions,
+                        Transaction &unverifiedTransaction,
+                        const Transaction::Type transactionType,
+                        std::string_view accountName, std::string_view input) {
   amount = usd(input);
   if (commandType == CommandLineInterpreter::CommandType::verifyTransaction) {
     unverifiedTransactions =
@@ -307,8 +308,9 @@ void CommandLineInterpreter::execute(Model &model,
     }
     break;
   case State::readyForAmount:
-    f(interface, model, amount, commandType, state, unverifiedTransactions,
-      unverifiedTransaction, transactionType, accountName, input);
+    parseAmount(interface, model, amount, commandType, state,
+                unverifiedTransactions, unverifiedTransaction, transactionType,
+                accountName, input);
     break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,
