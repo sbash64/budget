@@ -14,6 +14,7 @@ void account(testcpplite::TestResult &);
 void prompt(testcpplite::TestResult &);
 void transactionWithSuffix(testcpplite::TestResult &);
 void message(testcpplite::TestResult &);
+void enumeratedTransactions(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif

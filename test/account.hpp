@@ -8,9 +8,15 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
 void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
+void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
+    testcpplite::TestResult &);
 void saveSavesAllTransactions(testcpplite::TestResult &);
 void loadLoadsAllTransactions(testcpplite::TestResult &);
 void rename(testcpplite::TestResult &);
+void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
+    testcpplite::TestResult &);
+void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

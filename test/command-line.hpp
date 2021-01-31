@@ -23,6 +23,15 @@ void unrecognizedCommandPrintsMessage(testcpplite::TestResult &);
 void removeDebit(testcpplite::TestResult &);
 void removeCredit(testcpplite::TestResult &);
 void removeTransfer(testcpplite::TestResult &);
+void verifyDebit(testcpplite::TestResult &);
+void verifyCredit(testcpplite::TestResult &);
+void verifyOnlyDebitFound(testcpplite::TestResult &);
+void showsDebitCandidatesForVerification(testcpplite::TestResult &);
+void showsDebitCandidatesForVerificationAgainWhenSelectedDebitIsOutOfRange(
+    testcpplite::TestResult &);
+void promptsForDebitVerificationConfirmation(testcpplite::TestResult &);
+void showsMessageWhenNoCandidatesFoundForVerification(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif

@@ -28,4 +28,19 @@ void assertEqual(testcpplite::TestResult &result, const Transaction &expected,
   assertEqual(result, expected.description, actual.description);
   assertEqual(result, expected.date, actual.date);
 }
+
+void assertEqual(testcpplite::TestResult &result,
+                 const VerifiableTransaction &expected,
+                 const VerifiableTransaction &actual) {
+  assertEqual(result, expected.transaction, actual.transaction);
+  assertEqual(result, static_cast<int>(expected.verified),
+              static_cast<int>(actual.verified));
+}
+
+void assertEqual(testcpplite::TestResult &result, const Transactions &expected,
+                 const Transactions &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (Transactions::size_type i{0}; i < expected.size(); ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
+}
 } // namespace sbash64::budget

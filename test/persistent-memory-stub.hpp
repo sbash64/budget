@@ -25,28 +25,27 @@ public:
 
   auto accountName() -> std::string { return accountName_; }
 
-  void saveAccount(std::string_view name,
-                   const std::vector<Transaction> &credits,
-                   const std::vector<Transaction> &debits) override {
+  void saveAccount(std::string_view name, const VerifiableTransactions &credits,
+                   const VerifiableTransactions &debits) override {
     accountName_ = name;
     credits_ = credits;
     debits_ = debits;
   }
 
-  auto credits() -> std::vector<Transaction> { return credits_; }
+  auto credits() -> VerifiableTransactions { return credits_; }
 
-  auto debits() -> std::vector<Transaction> { return debits_; }
+  auto debits() -> VerifiableTransactions { return debits_; }
 
-  void setCreditsToLoad(std::vector<Transaction> t) {
+  void setCreditsToLoad(VerifiableTransactions t) {
     creditsToLoad = std::move(t);
   }
 
-  void setDebitsToLoad(std::vector<Transaction> t) {
+  void setDebitsToLoad(VerifiableTransactions t) {
     debitsToLoad = std::move(t);
   }
 
-  void loadAccount(std::vector<Transaction> &credits,
-                   std::vector<Transaction> &debits) override {
+  void loadAccount(VerifiableTransactions &credits,
+                   VerifiableTransactions &debits) override {
     credits = creditsToLoad;
     debits = debitsToLoad;
   }
@@ -71,12 +70,12 @@ public:
   auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
-  std::vector<Transaction> creditsToLoad;
-  std::vector<Transaction> debitsToLoad;
+  VerifiableTransactions creditsToLoad;
+  VerifiableTransactions debitsToLoad;
   std::string accountName_;
   std::vector<Account *> secondaryAccounts_;
-  std::vector<Transaction> credits_;
-  std::vector<Transaction> debits_;
+  VerifiableTransactions credits_;
+  VerifiableTransactions debits_;
   const Account *primaryAccount_{};
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>

@@ -77,22 +77,46 @@ constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
          a.date == b.date;
 }
 
-struct TransactionWithType {
+struct VerifiableTransaction {
   Transaction transaction;
+  bool verified{};
+};
+
+constexpr auto operator==(const VerifiableTransaction &a,
+                          const VerifiableTransaction &b) -> bool {
+  return a.transaction == b.transaction && a.verified == b.verified;
+}
+
+struct VerifiableTransactionWithType {
+  VerifiableTransaction verifiableTransaction;
   Transaction::Type type{};
 };
 
-template <typename T> auto debit(T &&transaction) -> TransactionWithType {
-  return {std::forward<T>(transaction), Transaction::Type::debit};
+template <typename T>
+auto debit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction)}, Transaction::Type::debit};
 }
 
-template <typename T> auto credit(T &&transaction) -> TransactionWithType {
-  return {std::forward<T>(transaction), Transaction::Type::credit};
+template <typename T>
+auto credit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction)}, Transaction::Type::credit};
+}
+
+template <typename T>
+auto verifiedDebit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction), true}, Transaction::Type::debit};
+}
+
+template <typename T>
+auto verifiedCredit(T &&transaction) -> VerifiableTransactionWithType {
+  return {{std::forward<T>(transaction), true}, Transaction::Type::credit};
 }
 
 class View;
 class SessionDeserialization;
 class SessionSerialization;
+
+using Transactions = std::vector<Transaction>;
 
 class Account {
 public:
@@ -104,7 +128,11 @@ public:
   virtual void load(SessionDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
-  virtual void rename(std::string_view) {}
+  virtual void rename(std::string_view) = 0;
+  virtual auto findUnverifiedDebits(USD amount) -> Transactions = 0;
+  virtual auto findUnverifiedCredits(USD amount) -> Transactions = 0;
+  virtual void verifyDebit(const Transaction &) = 0;
+  virtual void verifyCredit(const Transaction &) = 0;
 
   class Factory {
   public:
@@ -118,26 +146,28 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
   virtual void show(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void
-  showAccountSummary(std::string_view name, USD balance,
-                     const std::vector<TransactionWithType> &transactions) = 0;
+  virtual void showAccountSummary(
+      std::string_view name, USD balance,
+      const std::vector<VerifiableTransactionWithType> &transactions) = 0;
 };
 
-using Transactions = std::vector<Transaction>;
+using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
 class SessionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void saveAccount(std::string_view name, const Transactions &credits,
-                           const Transactions &debits) = 0;
+  virtual void saveAccount(std::string_view name,
+                           const VerifiableTransactions &credits,
+                           const VerifiableTransactions &debits) = 0;
 };
 
 class SessionDeserialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
-  virtual void loadAccount(Transactions &credits, Transactions &debits) = 0;
+  virtual void loadAccount(VerifiableTransactions &credits,
+                           VerifiableTransactions &debits) = 0;
   virtual void load(Account::Factory &factory,
                     std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>
@@ -159,6 +189,12 @@ public:
   virtual void save(SessionSerialization &) = 0;
   virtual void load(SessionDeserialization &) = 0;
   virtual void renameAccount(std::string_view from, std::string_view to) = 0;
+  virtual auto findUnverifiedDebits(std::string_view accountName, USD amount)
+      -> Transactions = 0;
+  virtual auto findUnverifiedCredits(USD amount) -> Transactions = 0;
+  virtual void verifyDebit(std::string_view accountName,
+                           const Transaction &) = 0;
+  virtual void verifyCredit(const Transaction &) = 0;
 };
 } // namespace sbash64::budget
 

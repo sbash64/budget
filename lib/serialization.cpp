@@ -38,24 +38,28 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void WritesSessionToStream::saveAccount(
-    std::string_view name, const std::vector<Transaction> &credits,
-    const std::vector<Transaction> &debits) {
+void WritesSessionToStream::saveAccount(std::string_view name,
+                                        const VerifiableTransactions &credits,
+                                        const VerifiableTransactions &debits) {
   *stream << name << '\n';
   *stream << "credits";
   for (const auto &credit : credits) {
     *stream << '\n';
-    *stream << credit.amount << ' ';
-    *stream << credit.description << ' ';
-    *stream << credit.date;
+    if (credit.verified)
+      *stream << '^';
+    *stream << credit.transaction.amount << ' ';
+    *stream << credit.transaction.description << ' ';
+    *stream << credit.transaction.date;
   }
   *stream << '\n';
   *stream << "debits";
   for (const auto &debit : debits) {
     *stream << '\n';
-    *stream << debit.amount << ' ';
-    *stream << debit.description << ' ';
-    *stream << debit.date;
+    if (debit.verified)
+      *stream << '^';
+    *stream << debit.transaction.amount << ' ';
+    *stream << debit.transaction.description << ' ';
+    *stream << debit.transaction.date;
   }
 }
 
@@ -86,11 +90,16 @@ static auto usd(std::string_view s) -> USD {
 }
 
 static void loadTransaction(std::istream &input, std::string &line,
-                            std::vector<Transaction> &transactions) {
+                            VerifiableTransactions &transactions) {
   std::stringstream transaction{line};
   std::string next;
   std::string eventuallyDate;
   std::string eventuallyEndOfLine;
+  auto verified{false};
+  if (transaction.peek() == '^') {
+    transaction.get();
+    verified = true;
+  }
   transaction >> next;
   const auto amount{usd(next)};
   std::stringstream description;
@@ -105,12 +114,12 @@ static void loadTransaction(std::istream &input, std::string &line,
   }
   description << next;
   transactions.push_back(
-      Transaction{amount, description.str(), date(eventuallyDate)});
+      {amount, description.str(), date(eventuallyDate), verified});
   getline(input, line);
 }
 
-void ReadsSessionFromStream::loadAccount(std::vector<Transaction> &credits,
-                                         std::vector<Transaction> &debits) {
+void ReadsSessionFromStream::loadAccount(VerifiableTransactions &credits,
+                                         VerifiableTransactions &debits) {
   std::string line;
   getline(*stream, line);
   getline(*stream, line);

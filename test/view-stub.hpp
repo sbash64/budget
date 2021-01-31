@@ -8,13 +8,13 @@ class ViewStub : public virtual View {
 public:
   auto accountBalance() -> USD { return accountBalance_; }
 
-  auto accountTransactions() -> std::vector<TransactionWithType> {
+  auto accountTransactions() -> std::vector<VerifiableTransactionWithType> {
     return accountTransactions_;
   }
 
   void showAccountSummary(
       std::string_view name, USD balance,
-      const std::vector<TransactionWithType> &transactions) override {
+      const std::vector<VerifiableTransactionWithType> &transactions) override {
     accountName_ = name;
     accountTransactions_ = transactions;
     accountBalance_ = balance;
@@ -35,7 +35,7 @@ public:
   }
 
 private:
-  std::vector<TransactionWithType> accountTransactions_;
+  std::vector<VerifiableTransactionWithType> accountTransactions_;
   USD accountBalance_{};
   std::string accountName_;
   std::vector<Account *> secondaryAccounts_;

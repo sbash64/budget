@@ -17,6 +17,11 @@ public:
   void show(View &) override { stream << name; }
   void save(SessionSerialization &) override {}
   void load(SessionDeserialization &) override {}
+  void rename(std::string_view) override {}
+  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
+  auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
+  void verifyDebit(const Transaction &) override {}
+  void verifyCredit(const Transaction &) override {}
 
 private:
   std::stringstream &stream;
@@ -87,17 +92,17 @@ void account(testcpplite::TestResult &result) {
                                Date{2020, Month::December, 27}}),
              credit(Transaction{2734_cents, "Birthday present",
                                 Date{2021, Month::October, 20}}),
-             debit(Transaction{2410_cents, "Hannah's 30th",
-                               Date{2021, Month::March, 8}})});
+             verifiedDebit(Transaction{2410_cents, "Hannah's 30th",
+                                       Date{2021, Month::March, 8}})});
         assertEqual(result, R"(
 ----
 Checking
 $12.34
 
 Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description
-25.00                    12/27/2020          Sam's 24th
-            27.34        10/20/2021          Birthday present
-24.10                    03/08/2021          Hannah's 30th
+   *25.00                12/27/2020          Sam's 24th
+                *27.34   10/20/2021          Birthday present
+    24.10                03/08/2021          Hannah's 30th
 ----
 )",
                     '\n' + stream.str() + '\n');
@@ -112,12 +117,12 @@ void prompt(testcpplite::TestResult &result) {
 }
 
 void transactionWithSuffix(testcpplite::TestResult &result) {
-  testCommandLineStream([&](CommandLineStream &commandLineStream,
-                            std::stringstream &stream) {
-    commandLineStream.show(
-        Transaction{123_cents, "nope", Date{2020, Month::July, 5}}, "hello");
-    assertEqual(result, "$1.23 7/5/2020 nope hello\n", stream.str());
-  });
+  testCommandLineStream(
+      [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
+        commandLineStream.show(
+            Transaction{123_cents, "nope", Date{2020, Month::July, 5}});
+        assertEqual(result, "$1.23 7/5/2020 nope\n", stream.str());
+      });
 }
 
 void message(testcpplite::TestResult &result) {
@@ -125,6 +130,23 @@ void message(testcpplite::TestResult &result) {
       [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
         commandLineStream.show("hello");
         assertEqual(result, "hello\n", stream.str());
+      });
+}
+
+void enumeratedTransactions(testcpplite::TestResult &result) {
+  testCommandLineStream(
+      [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
+        commandLineStream.enumerate(
+            {{1_cents, "walmart", Date{2022, Month::January, 6}},
+             {2_cents, "hyvee", Date{2023, Month::March, 26}},
+             {3_cents, "sam's", Date{2021, Month::October, 2}}});
+        assertEqual(result,
+                    R"(
+[1] $0.01 1/6/2022 walmart
+[2] $0.02 3/26/2023 hyvee
+[3] $0.03 10/2/2021 sam's
+)",
+                    '\n' + stream.str());
       });
 }
 } // namespace sbash64::budget::print

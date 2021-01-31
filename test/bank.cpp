@@ -38,12 +38,52 @@ public:
 
   void rename(std::string_view s) override { newName_ = s; }
 
+  void setFoundUnverifiedDebits(Transactions t) {
+    foundUnverifiedDebits = std::move(t);
+  }
+
+  void setFoundUnverifiedCredits(Transactions t) {
+    foundUnverifiedCredits = std::move(t);
+  }
+
+  auto findUnverifiedDebits(USD amount) -> Transactions override {
+    findUnverifiedDebitsAmount_ = amount;
+    return foundUnverifiedDebits;
+  }
+
+  auto findUnverifiedCredits(USD amount) -> Transactions {
+    findUnverifiedCreditsAmount_ = amount;
+    return foundUnverifiedCredits;
+  }
+
+  auto findUnverifiedDebitsAmount() -> USD {
+    return findUnverifiedDebitsAmount_;
+  }
+
+  auto findUnverifiedCreditsAmount() -> USD {
+    return findUnverifiedCreditsAmount_;
+  }
+
+  auto debitToVerify() -> Transaction { return debitToVerify_; }
+
+  void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
+
+  auto creditToVerify() -> Transaction { return creditToVerify_; }
+
+  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
+
 private:
+  Transaction creditToVerify_;
+  Transaction debitToVerify_;
   Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
+  Transactions foundUnverifiedDebits;
+  Transactions foundUnverifiedCredits;
   std::string newName_;
+  USD findUnverifiedDebitsAmount_{};
+  USD findUnverifiedCreditsAmount_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -317,6 +357,63 @@ void renameAccount(testcpplite::TestResult &result) {
     debit(bank, "giraffe", {});
     bank.renameAccount("giraffe", "zebra");
     assertEqual(result, "zebra", giraffe->newName());
+  });
+}
+
+void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    giraffe->setFoundUnverifiedDebits(
+        {{1_cents, "hi", Date{2020, Month::April, 1}},
+         {2_cents, "nye", Date{2020, Month::August, 2}},
+         {3_cents, "sigh", Date{2020, Month::December, 3}}});
+    assertEqual(result,
+                {{1_cents, "hi", Date{2020, Month::April, 1}},
+                 {2_cents, "nye", Date{2020, Month::August, 2}},
+                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
+                bank.findUnverifiedDebits("giraffe", 123_cents));
+    assertEqual(result, 123_cents, giraffe->findUnverifiedDebitsAmount());
+  });
+}
+
+void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    masterAccount->setFoundUnverifiedCredits(
+        {{1_cents, "hi", Date{2020, Month::April, 1}},
+         {2_cents, "nye", Date{2020, Month::August, 2}},
+         {3_cents, "sigh", Date{2020, Month::December, 3}}});
+    assertEqual(result,
+                {{1_cents, "hi", Date{2020, Month::April, 1}},
+                 {2_cents, "nye", Date{2020, Month::August, 2}},
+                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
+                bank.findUnverifiedCredits(123_cents));
+    assertEqual(result, 123_cents,
+                masterAccount->findUnverifiedCreditsAmount());
+  });
+}
+
+void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
+    assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
+                giraffe->debitToVerify());
+  });
+}
+
+void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    bank.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
+    assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
+                masterAccount->creditToVerify());
   });
 }
 } // namespace sbash64::budget::bank

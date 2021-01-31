@@ -1,4 +1,5 @@
 #include "command-line.hpp"
+#include "constexpr-string.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <iomanip>
@@ -12,7 +13,9 @@ enum class CommandLineInterpreter::State {
   readyForAmount,
   readyForDate,
   readyForDescription,
-  readyForNewName
+  readyForNewName,
+  readyForUnverifiedTransactionSelection,
+  readyForConfirmationOfUnverifiedTransaction
 };
 
 enum class CommandLineInterpreter::CommandType {
@@ -20,14 +23,12 @@ enum class CommandLineInterpreter::CommandType {
   removeTransaction,
   transfer,
   removeTransfer,
-  renameAccount
+  renameAccount,
+  verifyTransaction
 };
 
-void execute(CommandLineInterpreter &controller, Model &model,
-             CommandLineInterface &interface,
-             SessionSerialization &serialization,
-             SessionDeserialization &deserialization, std::string_view input) {
-  controller.execute(model, interface, serialization, deserialization, input);
+constexpr auto matches(std::string_view s, Command c) -> bool {
+  return s == name(c);
 }
 
 static auto date(std::string_view s) -> Date {
@@ -54,6 +55,51 @@ static auto transaction(USD amount, const Date &date, std::string_view input)
   return Transaction{amount, description(input), date};
 }
 
+namespace {
+class AppliesTransaction {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AppliesTransaction);
+  virtual void add(Model &, const Transaction &) = 0;
+  virtual void remove(Model &, const Transaction &) = 0;
+};
+
+class AppliesCredit : public AppliesTransaction {
+  void add(Model &model, const Transaction &t) override { model.credit(t); }
+
+  void remove(Model &model, const Transaction &t) override {
+    model.removeCredit(t);
+  }
+};
+
+class AppliesDebit : public AppliesTransaction {
+public:
+  explicit AppliesDebit(std::string_view accountName)
+      : accountName{accountName} {}
+
+  void add(Model &model, const Transaction &t) override {
+    model.debit(accountName, t);
+  }
+
+  void remove(Model &model, const Transaction &t) override {
+    model.removeDebit(accountName, t);
+  }
+
+private:
+  std::string_view accountName;
+};
+} // namespace
+
+static void applyTransaction(AppliesTransaction &appliesTransaction,
+                             Model &model,
+                             CommandLineInterpreter::CommandType commandType,
+                             USD amount, const Date &date,
+                             std::string_view input) {
+  if (commandType == CommandLineInterpreter::CommandType::addTransaction)
+    appliesTransaction.add(model, transaction(amount, date, input));
+  else
+    appliesTransaction.remove(model, transaction(amount, date, input));
+}
+
 static void enterTransaction(Model &model, CommandLineInterface &interface,
                              CommandLineInterpreter::State &state,
                              Transaction::Type transactionType,
@@ -61,18 +107,15 @@ static void enterTransaction(Model &model, CommandLineInterface &interface,
                              USD amount, std::string_view accountName,
                              const Date &date, std::string_view input) {
   if (transactionType == Transaction::Type::credit) {
-    if (commandType == CommandLineInterpreter::CommandType::addTransaction)
-      model.credit(transaction(amount, date, input));
-    else
-      model.removeCredit(transaction(amount, date, input));
+    AppliesCredit appliesTransaction;
+    applyTransaction(appliesTransaction, model, commandType, amount, date,
+                     input);
   } else {
-    if (commandType == CommandLineInterpreter::CommandType::addTransaction)
-      model.debit(accountName, transaction(amount, date, input));
-    else
-      model.removeDebit(accountName, transaction(amount, date, input));
-    interface.show(transaction(amount, date, input),
-                   "-> " + std::string{accountName});
+    AppliesDebit appliesTransaction{accountName};
+    applyTransaction(appliesTransaction, model, commandType, amount, date,
+                     input);
   }
+  interface.show(transaction(amount, date, input));
   state = CommandLineInterpreter::State::normal;
 }
 
@@ -97,6 +140,7 @@ static void parseDate(Model &model, CommandLineInterface &interface,
     state = CommandLineInterpreter::State::normal;
     break;
   case CommandLineInterpreter::CommandType::renameAccount:
+  case CommandLineInterpreter::CommandType::verifyTransaction:
     break;
   }
 }
@@ -105,26 +149,35 @@ static void executeFirstLineOfMultiLineCommand(
     CommandLineInterface &interface, CommandLineInterpreter::State &state,
     CommandLineInterpreter::CommandType &commandType,
     Transaction::Type &transactionType, std::string_view commandName) {
-  if (commandName == "credit" || commandName == "remove-credit") {
-    commandType = commandName == "credit"
+  if (matches(commandName, Command::credit) ||
+      matches(commandName, Command::removeCredit) ||
+      matches(commandName, Command::verifyCredit)) {
+    commandType = matches(commandName, Command::credit)
                       ? CommandLineInterpreter::CommandType::addTransaction
-                      : CommandLineInterpreter::CommandType::removeTransaction;
+                  : matches(commandName, Command::removeCredit)
+                      ? CommandLineInterpreter::CommandType::removeTransaction
+                      : CommandLineInterpreter::CommandType::verifyTransaction;
     transactionType = Transaction::Type::credit;
     state = CommandLineInterpreter::State::readyForAmount;
     interface.prompt("how much? [amount ($)]");
   } else {
-    if (commandName == "debit" || commandName == "remove-debit") {
+    if (matches(commandName, Command::debit) ||
+        matches(commandName, Command::removeDebit)) {
       commandType =
-          commandName == "debit"
+          matches(commandName, Command::debit)
               ? CommandLineInterpreter::CommandType::addTransaction
               : CommandLineInterpreter::CommandType::removeTransaction;
       transactionType = Transaction::Type::debit;
-    } else if (commandName == "rename")
+    } else if (matches(commandName, Command::renameAccount))
       commandType = CommandLineInterpreter::CommandType::renameAccount;
-    else if (commandName == "transfer-to")
+    else if (matches(commandName, Command::transfer))
       commandType = CommandLineInterpreter::CommandType::transfer;
-    else if (commandName == "remove-transfer")
+    else if (matches(commandName, Command::removeTransfer))
       commandType = CommandLineInterpreter::CommandType::removeTransfer;
+    else if (matches(commandName, Command::verifyDebit)) {
+      commandType = CommandLineInterpreter::CommandType::verifyTransaction;
+      transactionType = Transaction::Type::debit;
+    }
     state = CommandLineInterpreter::State::readyForAccountName;
     interface.prompt("which account? [name]");
   }
@@ -140,20 +193,95 @@ static void executeCommand(Model &model, CommandLineInterface &interface,
   std::stringstream stream{std::string{input}};
   std::string commandName;
   stream >> commandName;
-  if (commandName == "print")
+  if (matches(commandName, Command::print))
     model.show(interface);
-  else if (commandName == "save")
+  else if (matches(commandName, Command::save))
     model.save(serialization);
-  else if (commandName == "load")
+  else if (matches(commandName, Command::load))
     model.load(deserialization);
-  else if (commandName == "credit" || commandName == "debit" ||
-           commandName == "rename" || commandName == "transfer-to" ||
-           commandName == "remove-transfer" || commandName == "remove-debit" ||
-           commandName == "remove-credit")
+  else if (matches(commandName, Command::credit) ||
+           matches(commandName, Command::debit) ||
+           matches(commandName, Command::renameAccount) ||
+           matches(commandName, Command::transfer) ||
+           matches(commandName, Command::removeTransfer) ||
+           matches(commandName, Command::removeDebit) ||
+           matches(commandName, Command::removeCredit) ||
+           matches(commandName, Command::verifyDebit) ||
+           matches(commandName, Command::verifyCredit))
     executeFirstLineOfMultiLineCommand(interface, state, commandType,
                                        transactionType, commandName);
   else
     interface.show("unknown command \"" + commandName + '"');
+}
+
+static auto integer(std::string_view s) -> int {
+  std::stringstream stream{std::string{s}};
+  int integer = 0;
+  stream >> integer;
+  return integer;
+}
+
+static void
+setAndPromptForConfirmation(Transaction &unverifiedTransaction,
+                            CommandLineInterpreter::State &state,
+                            CommandLineInterface &interface,
+                            const Transactions &unverifiedTransactions, int i) {
+  unverifiedTransaction = unverifiedTransactions.at(i);
+  state = CommandLineInterpreter::State::
+      readyForConfirmationOfUnverifiedTransaction;
+  interface.show(unverifiedTransaction);
+  interface.prompt("is the above transaction correct? [y/n]");
+}
+
+static void tryToSelectUnverfiedTransaction(
+    Transaction &unverifiedTransaction, CommandLineInterpreter::State &state,
+    CommandLineInterface &interface, const Transactions &unverifiedTransactions,
+    std::string_view input) {
+  const auto selection{integer(input) - 1};
+  if (selection < 0 || selection >= unverifiedTransactions.size())
+    interface.prompt("try again - which? [n]");
+  else
+    setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                unverifiedTransactions, selection);
+}
+
+static void parseAmount(CommandLineInterface &interface, Model &model,
+                        USD &amount,
+                        CommandLineInterpreter::CommandType &commandType,
+                        CommandLineInterpreter::State &state,
+                        Transactions &unverifiedTransactions,
+                        Transaction &unverifiedTransaction,
+                        const Transaction::Type transactionType,
+                        std::string_view accountName, std::string_view input) {
+  amount = usd(input);
+  if (commandType == CommandLineInterpreter::CommandType::verifyTransaction) {
+    unverifiedTransactions =
+        transactionType == Transaction::Type::debit
+            ? model.findUnverifiedDebits(accountName, amount)
+            : model.findUnverifiedCredits(amount);
+    if (unverifiedTransactions.empty()) {
+      interface.show("no transactions matching amount found!");
+      state = CommandLineInterpreter::State::normal;
+    } else if (unverifiedTransactions.size() == 1)
+      setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                  unverifiedTransactions, 0);
+    else {
+      state =
+          CommandLineInterpreter::State::readyForUnverifiedTransactionSelection;
+      interface.enumerate(unverifiedTransactions);
+      interface.prompt("multiple candidates found - which? [n]");
+    }
+  } else {
+    state = CommandLineInterpreter::State::readyForDate;
+    interface.prompt("date [month day year]");
+  }
+}
+
+void execute(CommandLineInterpreter &controller, Model &model,
+             CommandLineInterface &interface,
+             SessionSerialization &serialization,
+             SessionDeserialization &deserialization, std::string_view input) {
+  controller.execute(model, interface, serialization, deserialization, input);
 }
 
 CommandLineInterpreter::CommandLineInterpreter()
@@ -180,9 +308,9 @@ void CommandLineInterpreter::execute(Model &model,
     }
     break;
   case State::readyForAmount:
-    amount = usd(input);
-    state = State::readyForDate;
-    interface.prompt("date [month day year]");
+    parseAmount(interface, model, amount, commandType, state,
+                unverifiedTransactions, unverifiedTransaction, transactionType,
+                accountName, input);
     break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,
@@ -193,6 +321,18 @@ void CommandLineInterpreter::execute(Model &model,
   case State::readyForNewName:
     model.renameAccount(accountName, input);
     state = State::normal;
+    break;
+  case State::readyForUnverifiedTransactionSelection:
+    tryToSelectUnverfiedTransaction(unverifiedTransaction, state, interface,
+                                    unverifiedTransactions, input);
+    break;
+  case State::readyForConfirmationOfUnverifiedTransaction:
+    if (transactionType == Transaction::Type::debit)
+      model.verifyDebit(accountName, unverifiedTransaction);
+    else
+      model.verifyCredit(unverifiedTransaction);
+    state = State::normal;
+    break;
   }
 }
 
@@ -209,6 +349,15 @@ static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
 static auto formatWithoutDollarSign(USD usd) -> std::string {
   std::stringstream stream;
   stream << usd;
+  return stream.str();
+}
+
+static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)
+    -> std::string {
+  std::stringstream stream;
+  if (!transaction.verified)
+    stream << '*';
+  stream << transaction.transaction.amount;
   return stream.str();
 }
 
@@ -262,25 +411,38 @@ static auto putSpaces(std::ostream &stream, int n) -> std::ostream & {
 
 void CommandLineStream::showAccountSummary(
     std::string_view name, USD balance,
-    const std::vector<TransactionWithType> &transactions) {
+    const std::vector<VerifiableTransactionWithType> &transactions) {
   putNewLine(stream << "----");
   putNewLine(stream << name);
   putNewLine(putWithDollarSign(stream, balance));
   putNewLine(stream);
-  stream << "Debit ($)   Credit ($)   Date (mm/dd/yyyy)   Description";
+  constexpr const char debitHeading[]{"Debit ($)"};
+  constexpr const char creditHeading[]{"Credit ($)"};
+  constexpr auto spacesBetweenHeadings{3};
+  stream << concatenate(debitHeading, "   ", creditHeading,
+                        "   Date (mm/dd/yyyy)   Description")
+                .c;
   for (const auto &transaction : transactions) {
     putNewLine(stream);
-    auto width{25};
+    constexpr auto spacesBeforeDate{length(debitHeading) +
+                                    length(creditHeading) +
+                                    2 * spacesBetweenHeadings};
+    auto transactionWidth{length(debitHeading)};
+    auto remainingSpaces{spacesBeforeDate - transactionWidth};
     if (transaction.type == Transaction::Type::credit) {
-      const auto spaces{12};
+      transactionWidth = length(creditHeading);
+      remainingSpaces = spacesBetweenHeadings;
+      const auto spaces{spacesBeforeDate - transactionWidth - remainingSpaces};
       putSpaces(stream, spaces);
-      width -= spaces;
     }
-    putSpaces(stream << std::setw(width) << std::left
-                     << formatWithoutDollarSign(transaction.transaction.amount)
-                     << std::right << transaction.transaction.date,
+    putSpaces(putSpaces(stream << std::setw(transactionWidth) << std::right
+                               << formatWithoutDollarSign(
+                                      transaction.verifiableTransaction),
+                        remainingSpaces)
+                  << std::right
+                  << transaction.verifiableTransaction.transaction.date,
               10)
-        << transaction.transaction.description;
+        << transaction.verifiableTransaction.transaction.description;
   }
   putNewLine(stream) << "----";
 }
@@ -291,12 +453,18 @@ static auto putSpace(std::ostream &stream) -> std::ostream & {
 
 void CommandLineStream::prompt(std::string_view s) { putSpace(stream << s); }
 
-void CommandLineStream::show(const Transaction &t, std::string_view suffix) {
-  putNewLine(putSpace(putSpace(putSpace(putWithDollarSign(stream, t.amount))
-                               << t.date.month << '/' << t.date.day << '/'
-                               << t.date.year)
-                      << t.description)
-             << suffix);
+static void put(std::ostream &stream, const Transaction &t) {
+  putNewLine(putSpace(putSpace(putWithDollarSign(stream, t.amount))
+                      << t.date.month << '/' << t.date.day << '/'
+                      << t.date.year)
+             << t.description);
+}
+
+void CommandLineStream::show(const Transaction &t) { put(stream, t); }
+
+void CommandLineStream::enumerate(const Transactions &transactions) {
+  for (int i{0}; i < transactions.size(); ++i)
+    put(stream << '[' << i + 1 << "] ", transactions.at(i));
 }
 
 void CommandLineStream::show(std::string_view message) {

@@ -23,6 +23,11 @@ public:
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;
   void renameAccount(std::string_view from, std::string_view to) override;
+  auto findUnverifiedDebits(std::string_view accountName, USD amount)
+      -> Transactions override;
+  auto findUnverifiedCredits(USD amount) -> Transactions override;
+  void verifyDebit(std::string_view accountName, const Transaction &) override;
+  void verifyCredit(const Transaction &) override;
 
 private:
   Account::Factory &factory;
@@ -41,6 +46,10 @@ public:
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
   void rename(std::string_view) override;
+  void verifyDebit(const Transaction &) override;
+  void verifyCredit(const Transaction &) override;
+  auto findUnverifiedDebits(USD amount) -> Transactions override;
+  auto findUnverifiedCredits(USD amount) -> Transactions override;
 
   class Factory : public Account::Factory {
   public:
@@ -48,8 +57,8 @@ public:
   };
 
 private:
-  Transactions debits;
-  Transactions credits;
+  VerifiableTransactions debits;
+  VerifiableTransactions credits;
   std::string name;
 };
 } // namespace sbash64::budget
