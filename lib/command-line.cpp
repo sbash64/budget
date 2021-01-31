@@ -245,6 +245,37 @@ static void tryToSelectUnverfiedTransaction(
                                 unverifiedTransactions, selection);
 }
 
+static void f(CommandLineInterface &interface, Model &model, USD &amount,
+              CommandLineInterpreter::CommandType &commandType,
+              CommandLineInterpreter::State &state,
+              Transactions &unverifiedTransactions,
+              Transaction &unverifiedTransaction,
+              const Transaction::Type transactionType,
+              std::string_view accountName, std::string_view input) {
+  amount = usd(input);
+  if (commandType == CommandLineInterpreter::CommandType::verifyTransaction) {
+    unverifiedTransactions =
+        transactionType == Transaction::Type::debit
+            ? model.findUnverifiedDebits(accountName, amount)
+            : model.findUnverifiedCredits(amount);
+    if (unverifiedTransactions.empty()) {
+      interface.show("no transactions matching amount found!");
+      state = CommandLineInterpreter::State::normal;
+    } else if (unverifiedTransactions.size() == 1)
+      setAndPromptForConfirmation(unverifiedTransaction, state, interface,
+                                  unverifiedTransactions, 0);
+    else {
+      state =
+          CommandLineInterpreter::State::readyForUnverifiedTransactionSelection;
+      interface.enumerate(unverifiedTransactions);
+      interface.prompt("multiple candidates found - which? [n]");
+    }
+  } else {
+    state = CommandLineInterpreter::State::readyForDate;
+    interface.prompt("date [month day year]");
+  }
+}
+
 void execute(CommandLineInterpreter &controller, Model &model,
              CommandLineInterface &interface,
              SessionSerialization &serialization,
@@ -276,27 +307,8 @@ void CommandLineInterpreter::execute(Model &model,
     }
     break;
   case State::readyForAmount:
-    amount = usd(input);
-    if (commandType == CommandType::verifyTransaction) {
-      unverifiedTransactions =
-          transactionType == Transaction::Type::debit
-              ? model.findUnverifiedDebits(accountName, amount)
-              : model.findUnverifiedCredits(amount);
-      if (unverifiedTransactions.empty()) {
-        interface.show("no transactions matching amount found!");
-        state = State::normal;
-      } else if (unverifiedTransactions.size() == 1)
-        setAndPromptForConfirmation(unverifiedTransaction, state, interface,
-                                    unverifiedTransactions, 0);
-      else {
-        state = State::readyForUnverifiedTransactionSelection;
-        interface.enumerate(unverifiedTransactions);
-        interface.prompt("multiple candidates found - which? [n]");
-      }
-    } else {
-      state = State::readyForDate;
-      interface.prompt("date [month day year]");
-    }
+    f(interface, model, amount, commandType, state, unverifiedTransactions,
+      unverifiedTransaction, transactionType, accountName, input);
     break;
   case State::readyForDate:
     return parseDate(model, interface, state, date, amount, accountName,
