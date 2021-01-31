@@ -320,7 +320,8 @@ void print(testcpplite::TestResult &result) {
       [&](CommandLineInterpreter &, ModelStub &model,
           CommandLineInterfaceStub &interface, SerializationStub &,
           DeserializationStub &) {
-        assertEqual(result, &interface, model.interface());
+        assertEqual(result, static_cast<const View *>(&interface),
+                    model.interface());
       },
       name(Command::print));
 }
