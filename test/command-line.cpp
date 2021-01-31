@@ -629,4 +629,17 @@ void promptsForDebitVerificationConfirmation(testcpplite::TestResult &result) {
       },
       {name(Command::verifyDebit), "Groceries", "500", "2"});
 }
+
+void showsMessageWhenNoCandidatesFoundForVerification(
+    testcpplite::TestResult &result) {
+  ModelStub model;
+  model.setFoundUnverifiedDebits({});
+  testController(model,
+                 [&](CommandLineInterpreter &, ModelStub &,
+                     CommandLineInterfaceStub &interface) {
+                   assertEqual(result, "no transactions matching amount found!",
+                               interface.message());
+                 },
+                 {name(Command::verifyDebit), "Groceries", "500"});
+}
 } // namespace sbash64::budget::command_line

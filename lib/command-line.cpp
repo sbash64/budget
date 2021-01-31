@@ -282,7 +282,10 @@ void CommandLineInterpreter::execute(Model &model,
           transactionType == Transaction::Type::debit
               ? model.findUnverifiedDebits(accountName, amount)
               : model.findUnverifiedCredits(amount);
-      if (unverifiedTransactions.size() == 1)
+      if (unverifiedTransactions.empty()) {
+        interface.show("no transactions matching amount found!");
+        state = State::normal;
+      } else if (unverifiedTransactions.size() == 1)
         setAndPromptForConfirmation(unverifiedTransaction, state, interface,
                                     unverifiedTransactions, 0);
       else {

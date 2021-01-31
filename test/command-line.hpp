@@ -30,6 +30,8 @@ void showsDebitCandidatesForVerification(testcpplite::TestResult &);
 void showsDebitCandidatesForVerificationAgainWhenSelectedDebitIsOutOfRange(
     testcpplite::TestResult &);
 void promptsForDebitVerificationConfirmation(testcpplite::TestResult &);
+void showsMessageWhenNoCandidatesFoundForVerification(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::command_line
 
 #endif
