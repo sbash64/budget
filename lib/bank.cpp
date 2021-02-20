@@ -131,11 +131,11 @@ auto Bank::findUnverifiedCredits(USD amount) -> Transactions {
 }
 
 void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
-  accounts.at(std::string{accountName})->verifyDebit(t);
+  budget::verifyDebit(accounts.at(std::string{accountName}), t);
 }
 
 void Bank::verifyCredit(const Transaction &t) {
-  masterAccount->verifyCredit(t);
+  budget::verifyCredit(masterAccount, t);
 }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
