@@ -23,6 +23,16 @@ static void debit(const std::shared_ptr<Account> &account,
   account->debit(t);
 }
 
+static void verifyCredit(const std::shared_ptr<Account> &account,
+                         const Transaction &t) {
+  account->verifyCredit(t);
+}
+
+static void verifyDebit(const std::shared_ptr<Account> &account,
+                        const Transaction &t) {
+  account->verifyDebit(t);
+}
+
 static void removeCredit(const std::shared_ptr<Account> &account,
                          const Transaction &t) {
   account->removeCredit(t);
@@ -70,8 +80,13 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   budget::debit(
       masterAccount,
       Transaction{amount, transferToString.c + std::string{accountName}, date});
+  budget::verifyDebit(
+      masterAccount,
+      Transaction{amount, transferToString.c + std::string{accountName}, date});
   budget::credit(accounts.at(std::string{accountName}),
                  Transaction{amount, transferFromMasterString.c, date});
+  budget::verifyCredit(accounts.at(std::string{accountName}),
+                       Transaction{amount, transferFromMasterString.c, date});
 }
 
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {

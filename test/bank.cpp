@@ -416,4 +416,19 @@ void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
                 masterAccount->creditToVerify());
   });
 }
+
+void transferVerifiesTransactionsByDefault(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
+    assertEqual(result,
+                {456_cents, "transfer from master", Date{1776, Month::July, 4}},
+                account->creditToVerify());
+    assertEqual(result,
+                {456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
+                masterAccount->debitToVerify());
+  });
+}
 } // namespace sbash64::budget::bank
