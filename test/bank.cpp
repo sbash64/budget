@@ -51,7 +51,7 @@ public:
     return foundUnverifiedDebits;
   }
 
-  auto findUnverifiedCredits(USD amount) -> Transactions {
+  auto findUnverifiedCredits(USD amount) -> Transactions override {
     findUnverifiedCreditsAmount_ = amount;
     return foundUnverifiedCredits;
   }
