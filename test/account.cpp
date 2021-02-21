@@ -109,8 +109,7 @@ void showAfterRemoveShowsRemainingTransactions(
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
-void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
-    testcpplite::TestResult &result) {
+void showShowsVerifiedTransactions(testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   debit(account,
@@ -238,5 +237,24 @@ void showAfterRemovingVerifiedTransactionShowsRemaining(
   assertShown(result, view,
               {debit(Transaction{789_cents, "chimpanzee",
                                  Date{2020, Month::June, 1}})});
+}
+
+void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.verifyDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.verifyDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  ViewStub view;
+  show(account, view);
+  assertShown(result, view,
+              {verifiedDebit(Transaction{456_cents, "gorilla",
+                                         Date{2020, Month::January, 20}}),
+               verifiedDebit(Transaction{456_cents, "gorilla",
+                                         Date{2020, Month::January, 20}})});
 }
 } // namespace sbash64::budget::account

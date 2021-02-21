@@ -108,9 +108,10 @@ static auto runAllTests() -> int {
         "account show after remove shows remaining transactions"},
        {account::showAfterRemovingVerifiedTransactionShowsRemaining,
         "account show after removing verified transaction shows remaining"},
-       {account::showShowsVerifiedTransactionsInChronologicalOrderAndBalance,
-        "account show shows verified transactions in chronological order and "
-        "balance "},
+       {account::showShowsVerifiedTransactions,
+        "account show shows verified transactions"},
+       {account::showShowsDuplicateVerifiedTransactions,
+        "account show shows verified transactions having same amount"},
        {account::findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount,
         "account find unverified debits returns unverified debits "
         "matching amount"},

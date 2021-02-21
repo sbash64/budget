@@ -208,6 +208,18 @@ executeIfFound(VerifiableTransactions &transactions, const Transaction &t,
     f(it);
 }
 
+static void executeIfUnverifiedFound(
+    VerifiableTransactions &transactions, const Transaction &t,
+    const std::function<void(VerifiableTransactions::iterator)> &f) {
+  const auto it{find_if(transactions.begin(), transactions.end(),
+                        [&](const VerifiableTransaction &candidate) {
+                          return candidate.transaction == t &&
+                                 !candidate.verified;
+                        })};
+  if (it != transactions.end())
+    f(it);
+}
+
 static void remove(VerifiableTransactions &transactions, const Transaction &t) {
   executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
     transactions.erase(it);
@@ -215,9 +227,9 @@ static void remove(VerifiableTransactions &transactions, const Transaction &t) {
 }
 
 static void verify(VerifiableTransactions &transactions, const Transaction &t) {
-  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
-    it->verified = true;
-  });
+  executeIfUnverifiedFound(
+      transactions, t,
+      [&](VerifiableTransactions::iterator it) { it->verified = true; });
 }
 
 void InMemoryAccount::removeDebit(const Transaction &t) { remove(debits, t); }

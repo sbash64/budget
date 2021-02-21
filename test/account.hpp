@@ -7,8 +7,7 @@ namespace sbash64::budget::account {
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
 void showAfterRemoveShowsRemainingTransactions(testcpplite::TestResult &);
-void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
-    testcpplite::TestResult &);
+void showShowsVerifiedTransactions(testcpplite::TestResult &);
 void saveSavesAllTransactions(testcpplite::TestResult &);
 void loadLoadsAllTransactions(testcpplite::TestResult &);
 void rename(testcpplite::TestResult &);
@@ -18,6 +17,7 @@ void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
     testcpplite::TestResult &);
 void showAfterRemovingVerifiedTransactionShowsRemaining(
     testcpplite::TestResult &);
+void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif
