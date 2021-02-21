@@ -416,12 +416,13 @@ void CommandLineStream::showAccountSummary(
   putNewLine(stream << name);
   putNewLine(putWithDollarSign(stream, balance));
   putNewLine(stream);
-  constexpr const char debitHeading[]{"Debit ($)"};
-  constexpr const char creditHeading[]{"Credit ($)"};
+  constexpr const std::array<char, 10> debitHeading{"Debit ($)"};
+  constexpr const std::array<char, 11> creditHeading{"Credit ($)"};
   constexpr auto spacesBetweenHeadings{3};
-  stream << concatenate(debitHeading, "   ", creditHeading,
-                        "   Date (mm/dd/yyyy)   Description")
-                .c;
+  stream << concatenate(
+                debitHeading, std::array<char, 4>{"   "}, creditHeading,
+                std::array<char, 35>{"   Date (mm/dd/yyyy)   Description"})
+                .data();
   for (const auto &transaction : transactions) {
     putNewLine(stream);
     constexpr auto spacesBeforeDate{length(debitHeading) +

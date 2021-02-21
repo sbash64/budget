@@ -1,29 +1,27 @@
 #ifndef SBASH64_BUDGET_CONSTEXPR_STRING_HPP_
 #define SBASH64_BUDGET_CONSTEXPR_STRING_HPP_
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 
-// https://stackoverflow.com/a/65440575
-
-// we cannot return a char array from a function, therefore we need a wrapper
-template <unsigned N> struct String { char c[N]; };
-
-template <unsigned... Len>
-constexpr auto concatenate(const char (&...strings)[Len]) {
-  constexpr auto N{(... + Len) - sizeof...(Len)};
-  String<N + 1> result = {};
-  result.c[N] = '\0';
-
-  auto *dst{result.c};
-  for (const auto *src : {strings...})
-    for (; *src != '\0'; src++, dst++)
-      *dst = *src;
+template <std::size_t M, std::size_t N>
+constexpr auto concatenate(const std::array<char, M> &a,
+                           const std::array<char, N> &b) {
+  std::array<char, M + N - 1> result;
+  std::copy(a.begin(), a.end(), result.begin());
+  std::copy(b.begin(), b.end(), result.begin() + M - 1);
   return result;
 }
 
-// https://stackoverflow.com/a/26082447
-template <size_t N> constexpr auto length(char const (&)[N]) -> size_t {
-  return N - 1;
+template <std::size_t M, std::size_t... N>
+constexpr auto concatenate(const std::array<char, M> &a,
+                           const std::array<char, N> &...b) {
+  return concatenate(a, concatenate(b...));
 }
 
+template <std::size_t M>
+constexpr auto length(const std::array<char, M> &) -> std::size_t {
+  return M - 1;
+}
 #endif
