@@ -118,7 +118,7 @@ public:
     return foundUnverifiedDebits;
   }
 
-  auto findUnverifiedCredits(USD amount) -> Transactions {
+  auto findUnverifiedCredits(USD amount) -> Transactions override {
     findUnverifiedCreditsAmount_ = amount;
     return foundUnverifiedCredits;
   }
@@ -133,7 +133,7 @@ public:
     verifiedDebit_ = t;
   }
 
-  void verifyCredit(const Transaction &t) { verifiedCredit_ = t; }
+  void verifyCredit(const Transaction &t) override { verifiedCredit_ = t; }
 
   auto verifiedDebitAccountName() -> std::string {
     return verifiedDebitAccountName_;
