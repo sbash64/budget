@@ -85,7 +85,7 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
        credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
 }
 
-void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
+void showAfterRemoveShowsRemainingTransactions(
     testcpplite::TestResult &result) {
   InMemoryAccount account{"joe"};
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});

@@ -104,9 +104,8 @@ static auto runAllTests() -> int {
        {bank::renameAccount, "bank rename account"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
-       {account::
-            showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance,
-        "account show after removal shows remaining transactions and balance"},
+       {account::showAfterRemoveShowsRemainingTransactions,
+        "account show after remove shows remaining transactions"},
        {account::showShowsVerifiedTransactionsInChronologicalOrderAndBalance,
         "account show shows verified transactions in chronological order and "
         "balance "},

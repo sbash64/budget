@@ -6,8 +6,7 @@
 namespace sbash64::budget::account {
 void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
-void showAfterRemoveShowsRemainingTransactionsInChronologicalOrderAndBalance(
-    testcpplite::TestResult &);
+void showAfterRemoveShowsRemainingTransactions(testcpplite::TestResult &);
 void showShowsVerifiedTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &);
 void saveSavesAllTransactions(testcpplite::TestResult &);
