@@ -197,27 +197,31 @@ void InMemoryAccount::load(SessionDeserialization &deserialization) {
   deserialization.loadAccount(credits, debits);
 }
 
+static void executeIfFound(
+    VerifiableTransactions &transactions,
+    const std::function<void(VerifiableTransactions::iterator)> &f,
+    const std::function<bool(const VerifiableTransaction &)> &predicate) {
+  const auto it{find_if(transactions.begin(), transactions.end(), predicate)};
+  if (it != transactions.end())
+    f(it);
+}
+
 static void
 executeIfFound(VerifiableTransactions &transactions, const Transaction &t,
                const std::function<void(VerifiableTransactions::iterator)> &f) {
-  const auto it{find_if(transactions.begin(), transactions.end(),
+  return executeIfFound(transactions, f,
                         [&](const VerifiableTransaction &candidate) {
                           return candidate.transaction == t;
-                        })};
-  if (it != transactions.end())
-    f(it);
+                        });
 }
 
 static void executeIfUnverifiedFound(
     VerifiableTransactions &transactions, const Transaction &t,
     const std::function<void(VerifiableTransactions::iterator)> &f) {
-  const auto it{find_if(transactions.begin(), transactions.end(),
-                        [&](const VerifiableTransaction &candidate) {
-                          return candidate.transaction == t &&
-                                 !candidate.verified;
-                        })};
-  if (it != transactions.end())
-    f(it);
+  return executeIfFound(
+      transactions, f, [&](const VerifiableTransaction &candidate) {
+        return candidate.transaction == t && !candidate.verified;
+      });
 }
 
 static void remove(VerifiableTransactions &transactions, const Transaction &t) {
