@@ -200,8 +200,10 @@ void InMemoryAccount::load(SessionDeserialization &deserialization) {
 static void
 executeIfFound(VerifiableTransactions &transactions, const Transaction &t,
                const std::function<void(VerifiableTransactions::iterator)> &f) {
-  const auto it{find(transactions.begin(), transactions.end(),
-                     VerifiableTransaction{t, false})};
+  const auto it{find_if(transactions.begin(), transactions.end(),
+                        [&](const VerifiableTransaction &candidate) {
+                          return candidate.transaction == t;
+                        })};
   if (it != transactions.end())
     f(it);
 }

@@ -16,6 +16,8 @@ void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
     testcpplite::TestResult &);
 void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
     testcpplite::TestResult &);
+void showAfterRemovingVerifiedTransactionShowsRemaining(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

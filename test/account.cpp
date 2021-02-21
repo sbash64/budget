@@ -221,4 +221,22 @@ void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
                Transaction{123_cents, "ape", Date{2020, Month::June, 2}}},
               account.findUnverifiedCredits(123_cents));
 }
+
+void showAfterRemovingVerifiedTransactionShowsRemaining(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  debit(account,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  account.verifyDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  account.removeDebit(
+      Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  ViewStub view;
+  show(account, view);
+  assertShown(result, view,
+              {debit(Transaction{789_cents, "chimpanzee",
+                                 Date{2020, Month::June, 1}})});
+}
 } // namespace sbash64::budget::account
