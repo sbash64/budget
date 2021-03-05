@@ -18,7 +18,35 @@ static auto amountIf(const VerifiableTransactionWithType &transaction,
 class GtkView : public View {
 public:
   explicit GtkView(GtkWindow *window) : listBox{gtk_list_box_new()} {
-    gtk_window_set_child(window, listBox);
+    auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
+    auto *scrolledWindow{gtk_scrolled_window_new()};
+    gtk_scrolled_window_set_min_content_height(
+        GTK_SCROLLED_WINDOW(scrolledWindow), 300);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow), listBox);
+    gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
+    auto *horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    auto *transactionTypeComboBox{gtk_combo_box_text_new()};
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
+                                   "Debit");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
+                                   "Credit");
+    gtk_combo_box_set_active(GTK_COMBO_BOX(transactionTypeComboBox), 0);
+    gtk_widget_set_valign(transactionTypeComboBox, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), transactionTypeComboBox);
+    auto *amountEntry{gtk_entry_new()};
+    gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
+                                GTK_INPUT_PURPOSE_NUMBER);
+    gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
+    gtk_entry_set_placeholder_text(GTK_ENTRY(amountEntry), "0.00");
+    gtk_box_append(GTK_BOX(horizontalBox), amountEntry);
+    auto *calendar{gtk_calendar_new()};
+    gtk_box_append(GTK_BOX(horizontalBox), calendar);
+    auto *descriptionEntry{gtk_entry_new()};
+    gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
+    gtk_entry_set_placeholder_text(GTK_ENTRY(descriptionEntry), "Description");
+    gtk_box_append(GTK_BOX(horizontalBox), descriptionEntry);
+    gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
+    gtk_window_set_child(window, verticalBox);
   }
 
   void show(Account &primary,
