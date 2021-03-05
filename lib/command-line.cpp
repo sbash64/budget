@@ -381,8 +381,7 @@ static auto operator<<(std::ostream &stream, const Month &month)
   return stream << to_integral(month);
 }
 
-static auto operator<<(std::ostream &stream, const Date &date)
-    -> std::ostream & {
+auto operator<<(std::ostream &stream, const Date &date) -> std::ostream & {
   const auto fill{stream.fill()};
   return prepareLengthTwoInteger(prepareLengthTwoInteger(stream)
                                  << date.month << '/')

@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_COMMAND_LINE_HPP_
 
 #include "budget.hpp"
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -82,6 +83,8 @@ void execute(CommandLineInterpreter &, Model &, CommandLineInterface &,
              std::string_view);
 
 auto format(USD) -> std::string;
+
+auto operator<<(std::ostream &stream, const Date &date) -> std::ostream &;
 
 class CommandLineStream : public CommandLineInterface {
 public:
