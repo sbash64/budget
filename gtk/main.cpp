@@ -1,6 +1,5 @@
 #include <fstream>
 #include <gtk/gtk.h>
-#include <iostream>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
@@ -9,6 +8,13 @@
 #include <string>
 
 namespace sbash64::budget {
+static auto amountIf(const VerifiableTransactionWithType &transaction,
+                     Transaction::Type type) -> std::string {
+  return transaction.type == type
+             ? format(transaction.verifiableTransaction.transaction.amount)
+             : "";
+}
+
 class GtkView : public View {
 public:
   explicit GtkView(GtkWindow *window) : listBox{gtk_list_box_new()} {
@@ -25,43 +31,38 @@ public:
   void showAccountSummary(
       std::string_view name, USD balance,
       const std::vector<VerifiableTransactionWithType> &transactions) override {
-    auto *expander{gtk_expander_new(std::string{name}.c_str())};
+    std::stringstream titleStream;
+    titleStream << name << ' ' << format(balance);
+    auto *expander{gtk_expander_new(titleStream.str().c_str())};
     auto *store{gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_STRING,
                                    G_TYPE_STRING, G_TYPE_STRING)};
     auto *tree{gtk_tree_view_new_with_model(GTK_TREE_MODEL(store))};
-    auto *debitRenderer{gtk_cell_renderer_text_new()};
-    auto *debitColumn{gtk_tree_view_column_new_with_attributes(
-        "Debit ($)", debitRenderer, "text", 0, NULL)};
-    gtk_tree_view_append_column(GTK_TREE_VIEW(tree), debitColumn);
-    auto *creditRenderer{gtk_cell_renderer_text_new()};
-    auto *creditColumn{gtk_tree_view_column_new_with_attributes(
-        "Credit ($)", creditRenderer, "text", 1, NULL)};
-    gtk_tree_view_append_column(GTK_TREE_VIEW(tree), creditColumn);
-    auto *dateRenderer{gtk_cell_renderer_text_new()};
-    auto *dateColumn{gtk_tree_view_column_new_with_attributes(
-        "Date (mm/dd/yyy)", dateRenderer, "text", 2, NULL)};
-    gtk_tree_view_append_column(GTK_TREE_VIEW(tree), dateColumn);
-    auto *descriptionRenderer{gtk_cell_renderer_text_new()};
-    auto *descriptionColumn{gtk_tree_view_column_new_with_attributes(
-        "Description", descriptionRenderer, "text", 3, NULL)};
-    gtk_tree_view_append_column(GTK_TREE_VIEW(tree), descriptionColumn);
+    gtk_tree_view_append_column(
+        GTK_TREE_VIEW(tree),
+        gtk_tree_view_column_new_with_attributes(
+            "Debit ($)", gtk_cell_renderer_text_new(), "text", 0, NULL));
+    gtk_tree_view_append_column(
+        GTK_TREE_VIEW(tree),
+        gtk_tree_view_column_new_with_attributes(
+            "Credit ($)", gtk_cell_renderer_text_new(), "text", 1, NULL));
+    gtk_tree_view_append_column(
+        GTK_TREE_VIEW(tree),
+        gtk_tree_view_column_new_with_attributes(
+            "Date (mm/dd/yyy)", gtk_cell_renderer_text_new(), "text", 2, NULL));
+    gtk_tree_view_append_column(
+        GTK_TREE_VIEW(tree),
+        gtk_tree_view_column_new_with_attributes(
+            "Description", gtk_cell_renderer_text_new(), "text", 3, NULL));
     for (const auto &transaction : transactions) {
       GtkTreeIter treeIter;
       gtk_tree_store_append(store, &treeIter, nullptr);
-      std::stringstream stream;
-      stream << transaction.verifiableTransaction.transaction.date;
+      std::stringstream dateStream;
+      dateStream << transaction.verifiableTransaction.transaction.date;
       gtk_tree_store_set(
           store, &treeIter, 0,
-          transaction.type == Transaction::Type::credit
-              ? format(transaction.verifiableTransaction.transaction.amount)
-                    .c_str()
-              : "",
-          1,
-          transaction.type == Transaction::Type::debit
-              ? format(transaction.verifiableTransaction.transaction.amount)
-                    .c_str()
-              : "",
-          2, stream.str().c_str(), 3,
+          amountIf(transaction, Transaction::Type::debit).c_str(), 1,
+          amountIf(transaction, Transaction::Type::credit).c_str(), 2,
+          dateStream.str().c_str(), 3,
           transaction.verifiableTransaction.transaction.description.c_str(),
           -1);
     }
@@ -84,27 +85,25 @@ public:
     return std::make_shared<std::ofstream>("/home/seth/budget.txt");
   }
 };
-} // namespace sbash64::budget
 
 static void on_activate(GtkApplication *app) {
-  auto *accountFactory{new sbash64::budget::InMemoryAccount::Factory};
-  auto *bank{new sbash64::budget::Bank{*accountFactory}};
-  auto *streamFactory{new sbash64::budget::FileStreamFactory};
-  auto *serialization{
-      new sbash64::budget::WritesSessionToStream{*streamFactory}};
-  auto *deserialization{
-      new sbash64::budget::ReadsSessionFromStream{*streamFactory}};
+  auto *accountFactory{new InMemoryAccount::Factory};
+  auto *bank{new Bank{*accountFactory}};
+  auto *streamFactory{new FileStreamFactory};
+  auto *serialization{new WritesSessionToStream{*streamFactory}};
+  auto *deserialization{new ReadsSessionFromStream{*streamFactory}};
   bank->load(*deserialization);
-  std::cout << "we loaded\n";
   auto *window{gtk_application_window_new(app)};
-  auto *view{new sbash64::budget::GtkView(GTK_WINDOW(window))};
+  auto *view{new GtkView(GTK_WINDOW(window))};
   bank->show(*view);
   gtk_window_present(GTK_WINDOW(window));
 }
+} // namespace sbash64::budget
 
 int main(int argc, char *argv[]) {
   auto *app{gtk_application_new("com.example.GtkApplication",
                                 G_APPLICATION_FLAGS_NONE)};
-  g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
+  g_signal_connect(app, "activate", G_CALLBACK(sbash64::budget::on_activate),
+                   NULL);
   return g_application_run(G_APPLICATION(app), argc, argv);
 }
