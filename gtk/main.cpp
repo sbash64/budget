@@ -21,7 +21,7 @@ public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountsListBox{gtk_list_box_new()},
         transactionTypeComboBox{gtk_combo_box_text_new()},
-        amountEntry{gtk_entry_new()} {
+        amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
@@ -42,7 +42,6 @@ public:
     gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(amountEntry), "0.00");
     gtk_box_append(GTK_BOX(horizontalBox), amountEntry);
-    auto *calendar{gtk_calendar_new()};
     gtk_box_append(GTK_BOX(horizontalBox), calendar);
     auto *descriptionEntry{gtk_entry_new()};
     gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
@@ -119,10 +118,15 @@ private:
   static void onAddTransaction(GtkButton *, GtkView *view) {
     auto *transactionType{gtk_combo_box_text_get_active_text(
         GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
+    auto *date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
+    auto year{g_date_time_get_year(date)};
+    auto month{g_date_time_get_month(date)};
+    auto day{g_date_time_get_day_of_month(date)};
     if (std::string_view{transactionType} == "Debit") {
       view->model.debit(
-          "idk", Transaction{usd(gtk_entry_buffer_get_text(
-                     gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry))))});
+          "idk", Transaction{usd(gtk_entry_buffer_get_text(gtk_entry_get_buffer(
+                                 GTK_ENTRY(view->amountEntry)))),
+                             "", Date{year, Month{month}, day}});
     } else {
       view->model.credit({});
     }
@@ -134,6 +138,7 @@ private:
   GtkWidget *accountsListBox;
   GtkWidget *transactionTypeComboBox;
   GtkWidget *amountEntry;
+  GtkWidget *calendar;
 };
 
 class FileStreamFactory : public IoStreamFactory {
