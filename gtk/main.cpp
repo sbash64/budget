@@ -27,17 +27,6 @@ public:
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(scrolledWindow), 300);
-    // auto *store{gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING)};
-    // auto *tree{gtk_tree_view_new_with_model(GTK_TREE_MODEL(store))};
-    // gtk_tree_view_append_column(
-    //     GTK_TREE_VIEW(tree),
-    //     gtk_tree_view_column_new_with_attributes(
-    //         "Account", gtk_cell_renderer_text_new(), "text", 0, NULL));
-    // gtk_tree_view_append_column(
-    //     GTK_TREE_VIEW(tree),
-    //     gtk_tree_view_column_new_with_attributes(
-    //         "Balance ($)", gtk_cell_renderer_text_new(), "text", 1, NULL));
-    // g_object_unref(G_OBJECT(store));
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
                                   accountsListBox);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
@@ -85,9 +74,13 @@ public:
   void showAccountSummary(
       std::string_view name, USD balance,
       const std::vector<VerifiableTransactionWithType> &transactions) override {
-    std::stringstream titleStream;
-    titleStream << name << ' ' << format(balance);
-    auto *expander{gtk_expander_new(titleStream.str().c_str())};
+    auto *horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    auto *accountNameLabel{gtk_label_new(std::string{name}.c_str())};
+    gtk_box_append(GTK_BOX(horizontalBox), accountNameLabel);
+    auto *balanceLabel{gtk_label_new(format(balance).c_str())};
+    gtk_box_append(GTK_BOX(horizontalBox), balanceLabel);
+    auto *expander{gtk_expander_new("")};
+    gtk_expander_set_label_widget(GTK_EXPANDER(expander), horizontalBox);
     auto *store{gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_STRING,
                                    G_TYPE_STRING, G_TYPE_STRING)};
     auto *tree{gtk_tree_view_new_with_model(GTK_TREE_MODEL(store))};
@@ -140,8 +133,18 @@ private:
   static void onAddTransaction(GtkButton *, GtkView *view) {
     auto *transactionType{gtk_combo_box_text_get_active_text(
         GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
+    auto *selectedAccountListBoxRow{
+        gtk_list_box_get_selected_row(GTK_LIST_BOX(view->accountsListBox))};
+    auto *selectedAccountExpander{
+        gtk_list_box_row_get_child(selectedAccountListBoxRow)};
+    auto *selectedAccountHorizontalBox{
+        gtk_expander_get_label_widget(GTK_EXPANDER(selectedAccountExpander))};
+    auto *selectedAccountNameLabel{
+        gtk_widget_get_first_child(selectedAccountHorizontalBox)};
     if (std::string_view{transactionType} == "Debit")
-      view->model.debit("idk", transaction(view));
+      view->model.debit(
+          gtk_label_get_label(GTK_LABEL(selectedAccountNameLabel)),
+          transaction(view));
     else if (std::string_view{transactionType} == "Credit")
       view->model.credit(transaction(view));
     view->model.show(*view);
