@@ -21,7 +21,8 @@ public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountsListBox{gtk_list_box_new()},
         transactionTypeComboBox{gtk_combo_box_text_new()},
-        amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()} {
+        amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
+        descriptionEntry{gtk_entry_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
@@ -43,7 +44,6 @@ public:
     gtk_entry_set_placeholder_text(GTK_ENTRY(amountEntry), "0.00");
     gtk_box_append(GTK_BOX(horizontalBox), amountEntry);
     gtk_box_append(GTK_BOX(horizontalBox), calendar);
-    auto *descriptionEntry{gtk_entry_new()};
     gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(descriptionEntry), "Description");
     gtk_box_append(GTK_BOX(horizontalBox), descriptionEntry);
@@ -126,7 +126,9 @@ private:
       view->model.debit(
           "idk", Transaction{usd(gtk_entry_buffer_get_text(gtk_entry_get_buffer(
                                  GTK_ENTRY(view->amountEntry)))),
-                             "", Date{year, Month{month}, day}});
+                             gtk_entry_buffer_get_text(gtk_entry_get_buffer(
+                                 GTK_ENTRY(view->descriptionEntry))),
+                             Date{year, Month{month}, day}});
     } else {
       view->model.credit({});
     }
@@ -139,6 +141,7 @@ private:
   GtkWidget *transactionTypeComboBox;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
+  GtkWidget *descriptionEntry;
 };
 
 class FileStreamFactory : public IoStreamFactory {
