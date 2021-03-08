@@ -27,6 +27,17 @@ public:
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(scrolledWindow), 300);
+    // auto *store{gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING)};
+    // auto *tree{gtk_tree_view_new_with_model(GTK_TREE_MODEL(store))};
+    // gtk_tree_view_append_column(
+    //     GTK_TREE_VIEW(tree),
+    //     gtk_tree_view_column_new_with_attributes(
+    //         "Account", gtk_cell_renderer_text_new(), "text", 0, NULL));
+    // gtk_tree_view_append_column(
+    //     GTK_TREE_VIEW(tree),
+    //     gtk_tree_view_column_new_with_attributes(
+    //         "Balance ($)", gtk_cell_renderer_text_new(), "text", 1, NULL));
+    // g_object_unref(G_OBJECT(store));
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
                                   accountsListBox);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
@@ -115,23 +126,24 @@ public:
   }
 
 private:
+  static auto transaction(GtkView *view) -> Transaction {
+    auto *date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
+    return Transaction{
+        usd(gtk_entry_buffer_get_text(
+            gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
+        gtk_entry_buffer_get_text(
+            gtk_entry_get_buffer(GTK_ENTRY(view->descriptionEntry))),
+        Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
+             g_date_time_get_day_of_month(date)}};
+  }
+
   static void onAddTransaction(GtkButton *, GtkView *view) {
     auto *transactionType{gtk_combo_box_text_get_active_text(
         GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
-    auto *date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
-    auto year{g_date_time_get_year(date)};
-    auto month{g_date_time_get_month(date)};
-    auto day{g_date_time_get_day_of_month(date)};
-    if (std::string_view{transactionType} == "Debit") {
-      view->model.debit(
-          "idk", Transaction{usd(gtk_entry_buffer_get_text(gtk_entry_get_buffer(
-                                 GTK_ENTRY(view->amountEntry)))),
-                             gtk_entry_buffer_get_text(gtk_entry_get_buffer(
-                                 GTK_ENTRY(view->descriptionEntry))),
-                             Date{year, Month{month}, day}});
-    } else {
-      view->model.credit({});
-    }
+    if (std::string_view{transactionType} == "Debit")
+      view->model.debit("idk", transaction(view));
+    else if (std::string_view{transactionType} == "Credit")
+      view->model.credit(transaction(view));
     view->model.show(*view);
     g_free(transactionType);
   }
