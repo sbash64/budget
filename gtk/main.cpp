@@ -1,12 +1,13 @@
 #include <fstream>
 #include <gtk/gtk.h>
+#include <iostream>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
 #include <sbash64/budget/serialization.hpp>
 #include <sstream>
 #include <string>
-
+#include <string_view>
 namespace sbash64::budget {
 static auto amountIf(const VerifiableTransactionWithType &transaction,
                      Transaction::Type type) -> std::string {
@@ -18,15 +19,16 @@ static auto amountIf(const VerifiableTransactionWithType &transaction,
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
-      : model{model}, listBox{gtk_list_box_new()} {
+      : model{model}, accountsListBox{gtk_list_box_new()},
+        transactionTypeComboBox{gtk_combo_box_text_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(scrolledWindow), 300);
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow), listBox);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
+                                  accountsListBox);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
     auto *horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
-    auto *transactionTypeComboBox{gtk_combo_box_text_new()};
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
                                    "Debit");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
@@ -58,6 +60,13 @@ public:
 
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override {
+    while (true) {
+      auto *row{
+          gtk_list_box_get_row_at_index(GTK_LIST_BOX(accountsListBox), 0)};
+      if (row == nullptr)
+        break;
+      gtk_list_box_remove(GTK_LIST_BOX(accountsListBox), GTK_WIDGET(row));
+    };
     primary.show(*this);
     for (auto *secondary : secondaries)
       secondary->show(*this);
@@ -103,14 +112,28 @@ public:
     }
     g_object_unref(G_OBJECT(store));
     gtk_expander_set_child(GTK_EXPANDER(expander), tree);
-    gtk_list_box_append(GTK_LIST_BOX(listBox), expander);
+    gtk_list_box_append(GTK_LIST_BOX(accountsListBox), expander);
   }
 
 private:
-  static void onAddTransaction(GtkButton *button, GtkView *view) {}
+  static void onAddTransaction(GtkButton *, GtkView *view) {
+    auto *transactionType{gtk_combo_box_text_get_active_text(
+        GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
+    std::cout << "ready\n";
+    if (std::string_view{transactionType} == "Debit") {
+      view->model.debit("idk", {});
+    } else {
+      view->model.credit({});
+    }
+    std::cout << "transact\n";
+    view->model.show(*view);
+    std::cout << "show\n";
+    g_free(transactionType);
+  }
 
   Model &model;
-  GtkWidget *listBox;
+  GtkWidget *accountsListBox;
+  GtkWidget *transactionTypeComboBox;
 };
 
 class FileStreamFactory : public IoStreamFactory {
