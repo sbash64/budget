@@ -17,7 +17,8 @@ static auto amountIf(const VerifiableTransactionWithType &transaction,
 
 class GtkView : public View {
 public:
-  explicit GtkView(GtkWindow *window) : listBox{gtk_list_box_new()} {
+  explicit GtkView(Model &model, GtkWindow *window)
+      : model{model}, listBox{gtk_list_box_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
@@ -45,6 +46,12 @@ public:
     gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(descriptionEntry), "Description");
     gtk_box_append(GTK_BOX(horizontalBox), descriptionEntry);
+
+    auto *addTransactionButton{gtk_button_new_with_label("Add")};
+    g_signal_connect(addTransactionButton, "clicked",
+                     G_CALLBACK(onAddTransaction), this);
+    gtk_widget_set_valign(addTransactionButton, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), addTransactionButton);
     gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -100,6 +107,9 @@ public:
   }
 
 private:
+  static void onAddTransaction(GtkButton *button, GtkView *view) {}
+
+  Model &model;
   GtkWidget *listBox;
 };
 
@@ -122,7 +132,7 @@ static void on_activate(GtkApplication *app) {
   auto *deserialization{new ReadsSessionFromStream{*streamFactory}};
   bank->load(*deserialization);
   auto *window{gtk_application_window_new(app)};
-  auto *view{new GtkView(GTK_WINDOW(window))};
+  auto *view{new GtkView{*bank, GTK_WINDOW(window)}};
   bank->show(*view);
   gtk_window_present(GTK_WINDOW(window));
 }
