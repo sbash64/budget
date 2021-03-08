@@ -1,6 +1,5 @@
 #include <fstream>
 #include <gtk/gtk.h>
-#include <iostream>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
@@ -8,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+
 namespace sbash64::budget {
 static auto amountIf(const VerifiableTransactionWithType &transaction,
                      Transaction::Type type) -> std::string {
@@ -20,7 +20,8 @@ class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountsListBox{gtk_list_box_new()},
-        transactionTypeComboBox{gtk_combo_box_text_new()} {
+        transactionTypeComboBox{gtk_combo_box_text_new()},
+        amountEntry{gtk_entry_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
@@ -36,7 +37,6 @@ public:
     gtk_combo_box_set_active(GTK_COMBO_BOX(transactionTypeComboBox), 0);
     gtk_widget_set_valign(transactionTypeComboBox, GTK_ALIGN_CENTER);
     gtk_box_append(GTK_BOX(horizontalBox), transactionTypeComboBox);
-    auto *amountEntry{gtk_entry_new()};
     gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
                                 GTK_INPUT_PURPOSE_NUMBER);
     gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
@@ -119,21 +119,21 @@ private:
   static void onAddTransaction(GtkButton *, GtkView *view) {
     auto *transactionType{gtk_combo_box_text_get_active_text(
         GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
-    std::cout << "ready\n";
     if (std::string_view{transactionType} == "Debit") {
-      view->model.debit("idk", {});
+      view->model.debit(
+          "idk", Transaction{usd(gtk_entry_buffer_get_text(
+                     gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry))))});
     } else {
       view->model.credit({});
     }
-    std::cout << "transact\n";
     view->model.show(*view);
-    std::cout << "show\n";
     g_free(transactionType);
   }
 
   Model &model;
   GtkWidget *accountsListBox;
   GtkWidget *transactionTypeComboBox;
+  GtkWidget *amountEntry;
 };
 
 class FileStreamFactory : public IoStreamFactory {
