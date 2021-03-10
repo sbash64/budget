@@ -118,12 +118,15 @@ static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
 //   gtk_image_set_from_gicon(GTK_IMAGE(image), g_app_info_get_icon(app_info));
 // }
 
+constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
+
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountsListBox{gtk_list_box_new()},
         accountListStore{g_list_store_new(G_TYPE_OBJECT)},
-        transactionTypeComboBox{gtk_combo_box_text_new()},
+        transactionTypeDropDown{
+            gtk_drop_down_new_from_strings(transactionTypeNames)},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
     auto *verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
@@ -146,13 +149,9 @@ public:
                                   accountsListBox);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
     auto *horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
-                                   "Debit");
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(transactionTypeComboBox),
-                                   "Credit");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(transactionTypeComboBox), 0);
-    gtk_widget_set_valign(transactionTypeComboBox, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), transactionTypeComboBox);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(transactionTypeDropDown), 0);
+    gtk_widget_set_valign(transactionTypeDropDown, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), transactionTypeDropDown);
     gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
                                 GTK_INPUT_PURPOSE_NUMBER);
     gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
@@ -276,8 +275,8 @@ private:
   }
 
   static void onAddTransaction(GtkButton *, GtkView *view) {
-    auto *transactionType{gtk_combo_box_text_get_active_text(
-        GTK_COMBO_BOX_TEXT(view->transactionTypeComboBox))};
+    const auto *transactionType{transactionTypeNames[gtk_drop_down_get_selected(
+        GTK_DROP_DOWN(view->transactionTypeDropDown))]};
     auto *selectedAccountListBoxRow{
         gtk_list_box_get_selected_row(GTK_LIST_BOX(view->accountsListBox))};
     auto *selectedAccountExpander{
@@ -293,13 +292,12 @@ private:
     else if (std::string_view{transactionType} == "Credit")
       view->model.credit(transaction(view));
     view->model.show(*view);
-    g_free(transactionType);
   }
 
   Model &model;
   GtkWidget *accountsListBox;
   GListStore *accountListStore;
-  GtkWidget *transactionTypeComboBox;
+  GtkWidget *transactionTypeDropDown;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
