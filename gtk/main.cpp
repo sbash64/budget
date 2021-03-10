@@ -8,6 +8,61 @@
 #include <string>
 #include <string_view>
 
+#define TRANSACTION_TYPE_ITEM (transaction_item_get_type())
+G_DECLARE_FINAL_TYPE(TransactionItem, transaction_item, TRANSACTION, ITEM,
+                     GObject)
+
+struct _TransactionItem {
+  GObject parent_instance;
+  std::string debit_amount;
+  std::string credit_amount;
+  std::string date;
+  std::string description;
+};
+
+struct _TransactionItemClass {
+  GObjectClass parent_class;
+};
+
+G_DEFINE_TYPE(TransactionItem, transaction_item, G_TYPE_OBJECT)
+
+static void transaction_item_init(TransactionItem *item) {}
+
+static void transaction_item_class_init(TransactionItemClass *c) {}
+
+static auto transaction_item_new(std::string_view debit_amount,
+                                 std::string_view credit_amount,
+                                 std::string_view date,
+                                 std::string_view description)
+    -> TransactionItem * {
+  auto *item = static_cast<TransactionItem *>(
+      g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+  item->debit_amount = debit_amount;
+  item->credit_amount = credit_amount;
+  item->date = date;
+  item->description = description;
+  return item;
+}
+
+static auto transaction_item_get_credit_amount(TransactionItem *item) -> const
+    char * {
+  return item->credit_amount.c_str();
+}
+
+static auto transaction_item_get_debit_amount(TransactionItem *item) -> const
+    char * {
+  return item->debit_amount.c_str();
+}
+
+static auto transaction_item_get_description(TransactionItem *item) -> const
+    char * {
+  return item->description.c_str();
+}
+
+static auto transaction_item_get_date(TransactionItem *item) -> const char * {
+  return item->date.c_str();
+}
+
 namespace sbash64::budget {
 static auto amountIf(const VerifiableTransactionWithType &transaction,
                      Transaction::Type type) -> std::string {
@@ -16,10 +71,58 @@ static auto amountIf(const VerifiableTransactionWithType &transaction,
              : "";
 }
 
+static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_list_item_set_child(list_item, gtk_label_new(""));
+}
+
+static void setupAccountListItem(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_list_item_set_child(list_item, gtk_label_new("hello"));
+}
+
+static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+      transaction_item_get_credit_amount(
+          TRANSACTION_ITEM(static_cast<GObject *>(
+              gtk_list_item_get_item(GTK_LIST_ITEM(list_item))))));
+}
+
+static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+      transaction_item_get_debit_amount(TRANSACTION_ITEM(static_cast<GObject *>(
+          gtk_list_item_get_item(GTK_LIST_ITEM(list_item))))));
+}
+
+static void bindDate(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+      transaction_item_get_date(TRANSACTION_ITEM(static_cast<GObject *>(
+          gtk_list_item_get_item(GTK_LIST_ITEM(list_item))))));
+}
+
+static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+      transaction_item_get_description(TRANSACTION_ITEM(static_cast<GObject *>(
+          gtk_list_item_get_item(GTK_LIST_ITEM(list_item))))));
+}
+
+// static void bindAccountListItem(GtkListItemFactory *factory,
+//                                 GtkListItem *list_item) {
+//   GtkWidget *image;
+//   GAppInfo *app_info;
+
+//   image = gtk_list_item_get_child(list_item);
+//   app_info = gtk_list_item_get_item(list_item);
+//   gtk_image_set_from_gicon(GTK_IMAGE(image), g_app_info_get_icon(app_info));
+// }
+
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountsListBox{gtk_list_box_new()},
+        accountListStore{g_list_store_new(G_TYPE_OBJECT)},
         transactionTypeComboBox{gtk_combo_box_text_new()},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
@@ -27,6 +130,18 @@ public:
     auto *scrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(scrolledWindow), 300);
+
+    // auto *accountListFactory = gtk_signal_list_item_factory_new();
+    // g_signal_connect(accountListFactory, "setup",
+    //                  G_CALLBACK(setupAccountListItem), NULL);
+    // g_signal_connect(accountListFactory, "bind",
+    //                  G_CALLBACK(bindAccountListItem), NULL);
+
+    // auto *accountList =
+    //     gtk_list_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
+    //                           G_LIST_MODEL(accountListStore))),
+    //                       accountListFactory);
+
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
                                   accountsListBox);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
@@ -59,6 +174,7 @@ public:
 
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override {
+    // g_list_store_remove_all(accountListStore);
     while (true) {
       auto *row{
           gtk_list_box_get_row_at_index(GTK_LIST_BOX(accountsListBox), 0)};
@@ -81,40 +197,69 @@ public:
     gtk_box_append(GTK_BOX(horizontalBox), balanceLabel);
     auto *expander{gtk_expander_new("")};
     gtk_expander_set_label_widget(GTK_EXPANDER(expander), horizontalBox);
-    auto *store{gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_STRING,
-                                   G_TYPE_STRING, G_TYPE_STRING)};
-    auto *tree{gtk_tree_view_new_with_model(GTK_TREE_MODEL(store))};
-    gtk_tree_view_append_column(
-        GTK_TREE_VIEW(tree),
-        gtk_tree_view_column_new_with_attributes(
-            "Debit ($)", gtk_cell_renderer_text_new(), "text", 0, NULL));
-    gtk_tree_view_append_column(
-        GTK_TREE_VIEW(tree),
-        gtk_tree_view_column_new_with_attributes(
-            "Credit ($)", gtk_cell_renderer_text_new(), "text", 1, NULL));
-    gtk_tree_view_append_column(
-        GTK_TREE_VIEW(tree),
-        gtk_tree_view_column_new_with_attributes(
-            "Date (mm/dd/yyy)", gtk_cell_renderer_text_new(), "text", 2, NULL));
-    gtk_tree_view_append_column(
-        GTK_TREE_VIEW(tree),
-        gtk_tree_view_column_new_with_attributes(
-            "Description", gtk_cell_renderer_text_new(), "text", 3, NULL));
+
+    auto *transactionListStore{g_list_store_new(G_TYPE_OBJECT)};
+    // auto *transactionTreeListModel{
+    //     gtk_tree_list_model_new(G_LIST_MODEL(transactionListStore), FALSE,
+    //                             FALSE, create_function, nullptr, nullptr)};
+    auto *columnView{gtk_column_view_new(GTK_SELECTION_MODEL(
+        gtk_single_selection_new(G_LIST_MODEL(transactionListStore))))};
+    {
+      auto *signalListItemFactory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setupLabel),
+                       NULL);
+      g_signal_connect(signalListItemFactory, "bind",
+                       G_CALLBACK(bindDebitAmount), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(columnView),
+          gtk_column_view_column_new("Debit ($)", signalListItemFactory));
+    }
+
+    {
+      auto *signalListItemFactory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setupLabel),
+                       NULL);
+      g_signal_connect(signalListItemFactory, "bind",
+                       G_CALLBACK(bindCreditAmount), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(columnView),
+          gtk_column_view_column_new("Credit ($)", signalListItemFactory));
+    }
+
+    {
+      auto *signalListItemFactory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setupLabel),
+                       NULL);
+      g_signal_connect(signalListItemFactory, "bind", G_CALLBACK(bindDate),
+                       NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(columnView),
+          gtk_column_view_column_new("Date (mm/dd/yyy)",
+                                     signalListItemFactory));
+    }
+
+    {
+      auto *signalListItemFactory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setupLabel),
+                       NULL);
+      g_signal_connect(signalListItemFactory, "bind",
+                       G_CALLBACK(bindDescription), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(columnView),
+          gtk_column_view_column_new("Description", signalListItemFactory));
+    }
+    // auto *treeExpander{gtk_tree_expander_new()};
     for (const auto &transaction : transactions) {
-      GtkTreeIter treeIter;
-      gtk_tree_store_append(store, &treeIter, nullptr);
       std::stringstream dateStream;
       dateStream << transaction.verifiableTransaction.transaction.date;
-      gtk_tree_store_set(
-          store, &treeIter, 0,
-          amountIf(transaction, Transaction::Type::debit).c_str(), 1,
-          amountIf(transaction, Transaction::Type::credit).c_str(), 2,
-          dateStream.str().c_str(), 3,
-          transaction.verifiableTransaction.transaction.description.c_str(),
-          -1);
+      TransactionItem *item = transaction_item_new(
+          amountIf(transaction, Transaction::Type::debit),
+          amountIf(transaction, Transaction::Type::credit), dateStream.str(),
+          transaction.verifiableTransaction.transaction.description);
+      g_list_store_append(transactionListStore, item);
+      g_object_unref(item);
     }
-    g_object_unref(G_OBJECT(store));
-    gtk_expander_set_child(GTK_EXPANDER(expander), tree);
+    gtk_expander_set_child(GTK_EXPANDER(expander), columnView);
     gtk_list_box_append(GTK_LIST_BOX(accountsListBox), expander);
   }
 
@@ -153,6 +298,7 @@ private:
 
   Model &model;
   GtkWidget *accountsListBox;
+  GListStore *accountListStore;
   GtkWidget *transactionTypeComboBox;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
