@@ -75,10 +75,6 @@ static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_list_item_set_child(list_item, gtk_label_new(""));
 }
 
-static void setupAccountListItem(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_list_item_set_child(list_item, gtk_label_new("hello"));
-}
-
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_label_set_label(
       GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
@@ -107,23 +103,22 @@ static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
           TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))));
 }
 
-// static void bindAccountListItem(GtkListItemFactory *factory,
-//                                 GtkListItem *list_item) {
-//   GtkWidget *image;
-//   GAppInfo *app_info;
+static void setupAccountListItem(GtkListItemFactory *, GtkListItem *list_item) {
+}
 
-//   image = gtk_list_item_get_child(list_item);
-//   app_info = gtk_list_item_get_item(list_item);
-//   gtk_image_set_from_gicon(GTK_IMAGE(image), g_app_info_get_icon(app_info));
-// }
+static void bindAccountListItem(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_list_item_set_child(
+      list_item, static_cast<GtkWidget *>(gtk_list_item_get_item(list_item)));
+}
 
 constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
 
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
-      : model{model}, accountsListBox{gtk_list_box_new()},
-        accountListStore{g_list_store_new(G_TYPE_OBJECT)},
+      : model{model}, accountListStore{g_list_store_new(G_TYPE_OBJECT)},
+        accountSelection{
+            gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
         transactionTypeDropDown{gtk_drop_down_new_from_strings(
             static_cast<const char *const *>(transactionTypeNames))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
@@ -133,19 +128,17 @@ public:
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(scrolledWindow), 300);
 
-    // auto *accountListFactory = gtk_signal_list_item_factory_new();
-    // g_signal_connect(accountListFactory, "setup",
-    //                  G_CALLBACK(setupAccountListItem), NULL);
-    // g_signal_connect(accountListFactory, "bind",
-    //                  G_CALLBACK(bindAccountListItem), NULL);
+    auto *accountListFactory = gtk_signal_list_item_factory_new();
+    g_signal_connect(accountListFactory, "setup",
+                     G_CALLBACK(setupAccountListItem), NULL);
+    g_signal_connect(accountListFactory, "bind",
+                     G_CALLBACK(bindAccountListItem), NULL);
 
-    // auto *accountList =
-    //     gtk_list_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
-    //                           G_LIST_MODEL(accountListStore))),
-    //                       accountListFactory);
+    auto *accountList = gtk_list_view_new(GTK_SELECTION_MODEL(accountSelection),
+                                          accountListFactory);
 
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
-                                  accountsListBox);
+                                  accountList);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
     auto *const horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
     gtk_drop_down_set_selected(GTK_DROP_DOWN(transactionTypeDropDown), 0);
@@ -172,14 +165,7 @@ public:
 
   void show(Account &primary,
             const std::vector<Account *> &secondaries) override {
-    // g_list_store_remove_all(accountListStore);
-    while (true) {
-      auto *row{
-          gtk_list_box_get_row_at_index(GTK_LIST_BOX(accountsListBox), 0)};
-      if (row == nullptr)
-        break;
-      gtk_list_box_remove(GTK_LIST_BOX(accountsListBox), GTK_WIDGET(row));
-    };
+    g_list_store_remove_all(accountListStore);
     primary.show(*this);
     for (auto *const secondary : secondaries)
       secondary->show(*this);
@@ -251,7 +237,7 @@ public:
       g_object_unref(item);
     }
     gtk_expander_set_child(GTK_EXPANDER(expander), columnView);
-    gtk_list_box_append(GTK_LIST_BOX(accountsListBox), expander);
+    g_list_store_append(accountListStore, expander);
   }
 
 private:
@@ -272,8 +258,9 @@ private:
       view->model.debit(
           gtk_label_get_label(GTK_LABEL(gtk_widget_get_first_child(
               gtk_expander_get_label_widget(GTK_EXPANDER(
-                  gtk_list_box_row_get_child(gtk_list_box_get_selected_row(
-                      GTK_LIST_BOX(view->accountsListBox)))))))),
+                  g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
+                                        gtk_single_selection_get_selected(
+                                            view->accountSelection))))))),
           transaction(view));
     else if (std::string_view{transactionType} == "Credit")
       view->model.credit(transaction(view));
@@ -281,8 +268,8 @@ private:
   }
 
   Model &model;
-  GtkWidget *accountsListBox;
   GListStore *accountListStore;
+  GtkSingleSelection *accountSelection;
   GtkWidget *transactionTypeDropDown;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
