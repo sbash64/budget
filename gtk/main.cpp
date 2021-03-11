@@ -14,10 +14,10 @@ G_DECLARE_FINAL_TYPE(TransactionItem, transaction_item, TRANSACTION, ITEM,
 
 struct _TransactionItem {
   GObject parent_instance;
-  std::string debit_amount;
-  std::string credit_amount;
-  std::string date;
-  std::string description;
+  GtkStringObject *debit_amount;
+  GtkStringObject *credit_amount;
+  GtkStringObject *date;
+  GtkStringObject *description;
 };
 
 struct _TransactionItemClass {
@@ -30,37 +30,37 @@ static void transaction_item_init(TransactionItem *item) {}
 
 static void transaction_item_class_init(TransactionItemClass *c) {}
 
-static auto transaction_item_new(std::string_view debit_amount,
-                                 std::string_view credit_amount,
-                                 std::string_view date,
-                                 std::string_view description)
+static auto transaction_item_new(const std::string &debit_amount,
+                                 const std::string &credit_amount,
+                                 const std::string &date,
+                                 const std::string &description)
     -> TransactionItem * {
   auto *item = static_cast<TransactionItem *>(
       g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
-  item->debit_amount = debit_amount;
-  item->credit_amount = credit_amount;
-  item->date = date;
-  item->description = description;
+  item->debit_amount = gtk_string_object_new(debit_amount.c_str());
+  item->credit_amount = gtk_string_object_new(credit_amount.c_str());
+  item->date = gtk_string_object_new(date.c_str());
+  item->description = gtk_string_object_new(description.c_str());
   return item;
 }
 
 static auto transaction_item_get_credit_amount(TransactionItem *item) -> const
     char * {
-  return item->credit_amount.c_str();
+  return gtk_string_object_get_string(item->credit_amount);
 }
 
 static auto transaction_item_get_debit_amount(TransactionItem *item) -> const
     char * {
-  return item->debit_amount.c_str();
+  return gtk_string_object_get_string(item->debit_amount);
 }
 
 static auto transaction_item_get_description(TransactionItem *item) -> const
     char * {
-  return item->description.c_str();
+  return gtk_string_object_get_string(item->description);
 }
 
 static auto transaction_item_get_date(TransactionItem *item) -> const char * {
-  return item->date.c_str();
+  return gtk_string_object_get_string(item->date);
 }
 
 namespace sbash64::budget {
