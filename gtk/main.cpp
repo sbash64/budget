@@ -38,7 +38,7 @@ G_DECLARE_FINAL_TYPE(AccountItem, account_item, ACCOUNT, ITEM, GObject)
 
 struct _AccountItem {
   GObject parent_instance;
-  GListStore *transactions;
+  GtkSingleSelection *transactionSelection;
   GtkStringObject *name;
   GtkStringObject *balance;
 };
@@ -160,8 +160,7 @@ static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
                          gtk_string_object_get_string(accountItem->name));
   gtk_column_view_set_model(
       GTK_COLUMN_VIEW(gtk_expander_get_child(GTK_EXPANDER(expander))),
-      GTK_SELECTION_MODEL(
-          gtk_single_selection_new(G_LIST_MODEL(accountItem->transactions))));
+      GTK_SELECTION_MODEL(accountItem->transactionSelection));
 }
 
 constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
@@ -220,6 +219,11 @@ public:
                      G_CALLBACK(onAddTransaction), this);
     gtk_widget_set_valign(addTransactionButton, GTK_ALIGN_CENTER);
     gtk_box_append(GTK_BOX(horizontalBox), addTransactionButton);
+    auto *const removeTransactionButton{gtk_button_new_with_label("Remove")};
+    g_signal_connect(removeTransactionButton, "clicked",
+                     G_CALLBACK(onRemoveTransaction), this);
+    gtk_widget_set_valign(removeTransactionButton, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), removeTransactionButton);
     gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -252,7 +256,8 @@ public:
     }
     auto *const accountItem =
         static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
-    accountItem->transactions = g_object_ref(transactionListStore);
+    accountItem->transactionSelection =
+        gtk_single_selection_new(G_LIST_MODEL(transactionListStore));
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
     accountItem->balance = gtk_string_object_new(format(balance).c_str());
     g_list_store_append(accountListStore, accountItem);
@@ -276,14 +281,18 @@ private:
     if (std::string_view{transactionType} == "Debit")
       view->model.debit(
           gtk_string_object_get_string(
-              (ACCOUNT_ITEM(
-                   g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
-                                         gtk_single_selection_get_selected(
-                                             view->accountSelection)))
-                   ->name)),
+              ACCOUNT_ITEM(
+                  g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
+                                        gtk_single_selection_get_selected(
+                                            view->accountSelection)))
+                  ->name),
           transaction(view));
     else if (std::string_view{transactionType} == "Credit")
       view->model.credit(transaction(view));
+    view->model.show(*view);
+  }
+
+  static void onRemoveTransaction(GtkButton *, GtkView *view) {
     view->model.show(*view);
   }
 
