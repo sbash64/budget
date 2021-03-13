@@ -170,16 +170,12 @@ static auto transaction(TransactionItem *transactionItem) -> Transaction {
                transactionItem->day}};
 }
 
-constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
-
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
         accountSelection{
             gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
-        transactionTypeDropDown{gtk_drop_down_new_from_strings(
-            static_cast<const char *const *>(transactionTypeNames))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
@@ -209,9 +205,6 @@ public:
                                   accountColumnView);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
     auto *const horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
-    gtk_drop_down_set_selected(GTK_DROP_DOWN(transactionTypeDropDown), 0);
-    gtk_widget_set_valign(transactionTypeDropDown, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), transactionTypeDropDown);
     gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
                                 GTK_INPUT_PURPOSE_NUMBER);
     gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
@@ -291,12 +284,10 @@ private:
   }
 
   static void onAddTransaction(GtkButton *, GtkView *view) {
-    const auto *transactionType{transactionTypeNames[gtk_drop_down_get_selected(
-        GTK_DROP_DOWN(view->transactionTypeDropDown))]};
-    if (std::string_view{transactionType} == "Debit")
-      view->model.debit(selectedAccountName(view), transaction(view));
-    else if (std::string_view{transactionType} == "Credit")
+    if (std::string_view{selectedAccountName(view)} == "master")
       view->model.credit(transaction(view));
+    else
+      view->model.debit(selectedAccountName(view), transaction(view));
     view->model.show(*view);
   }
 
@@ -324,7 +315,6 @@ private:
   Model &model;
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
-  GtkWidget *transactionTypeDropDown;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
