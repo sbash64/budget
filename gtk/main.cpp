@@ -163,6 +163,13 @@ static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
       GTK_SELECTION_MODEL(accountItem->transactionSelection));
 }
 
+static auto transaction(TransactionItem *transactionItem) -> Transaction {
+  return {USD{transactionItem->cents},
+          gtk_string_object_get_string(transactionItem->description),
+          Date{transactionItem->year, Month{transactionItem->month},
+               transactionItem->day}};
+}
+
 constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
 
 class GtkView : public View {
@@ -275,48 +282,40 @@ private:
                  g_date_time_get_day_of_month(date)}};
   }
 
+  static auto selectedAccountName(GtkView *view) -> const char * {
+    return gtk_string_object_get_string(
+        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
+                                           gtk_single_selection_get_selected(
+                                               view->accountSelection)))
+            ->name);
+  }
+
   static void onAddTransaction(GtkButton *, GtkView *view) {
     const auto *transactionType{transactionTypeNames[gtk_drop_down_get_selected(
         GTK_DROP_DOWN(view->transactionTypeDropDown))]};
     if (std::string_view{transactionType} == "Debit")
-      view->model.debit(
-          gtk_string_object_get_string(
-              ACCOUNT_ITEM(
-                  g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
-                                        gtk_single_selection_get_selected(
-                                            view->accountSelection)))
-                  ->name),
-          transaction(view));
+      view->model.debit(selectedAccountName(view), transaction(view));
     else if (std::string_view{transactionType} == "Credit")
       view->model.credit(transaction(view));
     view->model.show(*view);
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
-    auto *accountItem{ACCOUNT_ITEM(g_list_model_get_item(
-        G_LIST_MODEL(view->accountListStore),
-        gtk_single_selection_get_selected(view->accountSelection)))};
-    auto *transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
-        gtk_single_selection_get_model(accountItem->transactionSelection),
-        gtk_single_selection_get_selected(accountItem->transactionSelection)))};
+    auto *const transactionSelection{
+        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
+                                           gtk_single_selection_get_selected(
+                                               view->accountSelection)))
+            ->transactionSelection};
+    auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
+        gtk_single_selection_get_model(transactionSelection),
+        gtk_single_selection_get_selected(transactionSelection)))};
     if (transactionItem->credit &&
-        std::string_view{gtk_string_object_get_string(accountItem->name)} ==
-            "master")
-      view->model.removeCredit(Transaction{
-          USD{transactionItem->cents},
-          gtk_string_object_get_string(transactionItem->description),
-          Date{transactionItem->year, Month{transactionItem->month},
-               transactionItem->day}});
+        std::string_view{selectedAccountName(view)} == "master")
+      view->model.removeCredit(budget::transaction(transactionItem));
     else if (!transactionItem->credit &&
-             std::string_view{
-                 gtk_string_object_get_string(accountItem->name)} != "master")
-      view->model.removeDebit(
-          gtk_string_object_get_string(accountItem->name),
-          Transaction{
-              USD{transactionItem->cents},
-              gtk_string_object_get_string(transactionItem->description),
-              Date{transactionItem->year, Month{transactionItem->month},
-                   transactionItem->day}});
+             std::string_view{selectedAccountName(view)} != "master")
+      view->model.removeDebit(selectedAccountName(view),
+                              budget::transaction(transactionItem));
     else
       return;
     view->model.show(*view);
@@ -357,8 +356,8 @@ static void on_activate(GtkApplication *app) {
 } // namespace sbash64::budget
 
 int main(int argc, char *argv[]) {
-  auto *app{gtk_application_new("com.example.GtkApplication",
-                                G_APPLICATION_FLAGS_NONE)};
+  auto *app{
+      gtk_application_new("com.sbash64.GtkBudget", G_APPLICATION_FLAGS_NONE)};
   g_signal_connect(app, "activate", G_CALLBACK(sbash64::budget::on_activate),
                    NULL);
   return g_application_run(G_APPLICATION(app), argc, argv);
