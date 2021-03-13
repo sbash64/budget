@@ -15,12 +15,12 @@ G_DECLARE_FINAL_TYPE(TransactionItem, transaction_item, TRANSACTION, ITEM,
 
 struct _TransactionItem {
   GObject parent_instance;
-  GtkStringObject *debit_amount;
-  GtkStringObject *credit_amount;
   GtkStringObject *description;
+  long long cents;
   int year;
   int month;
   int day;
+  bool credit;
 };
 
 struct _TransactionItemClass {
@@ -67,29 +67,29 @@ static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
 }
 
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->credit_amount));
+  auto *transactionItem{
+      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+  if (transactionItem->credit)
+    gtk_label_set_label(
+        GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+        format(USD{transactionItem->cents}).c_str());
 }
 
 static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->debit_amount));
+  auto *transactionItem{
+      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+  if (!transactionItem->credit)
+    gtk_label_set_label(
+        GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+        format(USD{transactionItem->cents}).c_str());
 }
 
 static void bindDate(GtkListItemFactory *, GtkListItem *list_item) {
   auto *transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
-  auto date{sbash64::budget::Date{
-      transactionItem->year, sbash64::budget::Month{transactionItem->month},
-      transactionItem->day}};
   std::stringstream stream;
-  stream << date;
+  stream << Date{transactionItem->year, Month{transactionItem->month},
+                 transactionItem->day};
   gtk_label_set_label(
       GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
       stream.str().c_str());
@@ -239,10 +239,8 @@ public:
     for (const auto &transaction : transactions) {
       auto *const item = static_cast<TransactionItem *>(
           g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
-      item->debit_amount = gtk_string_object_new(
-          amountIf(transaction, Transaction::Type::debit).c_str());
-      item->credit_amount = gtk_string_object_new(
-          amountIf(transaction, Transaction::Type::credit).c_str());
+      item->credit = transaction.type == Transaction::Type::credit;
+      item->cents = transaction.verifiableTransaction.transaction.amount.cents;
       item->year = transaction.verifiableTransaction.transaction.date.year;
       item->month = static_cast<typename std::underlying_type<Month>::type>(
           transaction.verifiableTransaction.transaction.date.month);
