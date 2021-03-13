@@ -1,11 +1,9 @@
 #include <fstream>
 #include <gtk/gtk.h>
-#include <iostream>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
 #include <sbash64/budget/serialization.hpp>
-#include <span>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -19,8 +17,10 @@ struct _TransactionItem {
   GObject parent_instance;
   GtkStringObject *debit_amount;
   GtkStringObject *credit_amount;
-  GtkStringObject *date;
   GtkStringObject *description;
+  int year;
+  int month;
+  int day;
 };
 
 struct _TransactionItemClass {
@@ -83,11 +83,16 @@ static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
 }
 
 static void bindDate(GtkListItemFactory *, GtkListItem *list_item) {
+  auto *transactionItem{
+      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+  auto date{sbash64::budget::Date{
+      transactionItem->year, sbash64::budget::Month{transactionItem->month},
+      transactionItem->day}};
+  std::stringstream stream;
+  stream << date;
   gtk_label_set_label(
       GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->date));
+      stream.str().c_str());
 }
 
 static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
@@ -106,7 +111,8 @@ static void bindBalance(GtkListItemFactory *, GtkListItem *list_item) {
               ->balance));
 }
 
-static void setupExpander(GtkListItemFactory *, GtkListItem *list_item) {
+static void setupExpandingAccount(GtkListItemFactory *,
+                                  GtkListItem *list_item) {
   auto *const expander{gtk_expander_new("")};
   auto *const columnView{
       gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
@@ -178,7 +184,8 @@ public:
         gtk_column_view_new(GTK_SELECTION_MODEL(accountSelection))};
     {
       auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupExpander), NULL);
+      g_signal_connect(factory, "setup", G_CALLBACK(setupExpandingAccount),
+                       NULL);
       g_signal_connect(factory, "bind", G_CALLBACK(bindAccount), NULL);
       gtk_column_view_append_column(
           GTK_COLUMN_VIEW(accountColumnView),
@@ -230,15 +237,16 @@ public:
       const std::vector<VerifiableTransactionWithType> &transactions) override {
     auto *const transactionListStore{g_list_store_new(TRANSACTION_TYPE_ITEM)};
     for (const auto &transaction : transactions) {
-      std::stringstream dateStream;
-      dateStream << transaction.verifiableTransaction.transaction.date;
       auto *const item = static_cast<TransactionItem *>(
           g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
       item->debit_amount = gtk_string_object_new(
           amountIf(transaction, Transaction::Type::debit).c_str());
       item->credit_amount = gtk_string_object_new(
           amountIf(transaction, Transaction::Type::credit).c_str());
-      item->date = gtk_string_object_new(dateStream.str().c_str());
+      item->year = transaction.verifiableTransaction.transaction.date.year;
+      item->month = static_cast<typename std::underlying_type<Month>::type>(
+          transaction.verifiableTransaction.transaction.date.month);
+      item->day = transaction.verifiableTransaction.transaction.date.day;
       item->description = gtk_string_object_new(
           transaction.verifiableTransaction.transaction.description.c_str());
       g_list_store_append(transactionListStore, item);
