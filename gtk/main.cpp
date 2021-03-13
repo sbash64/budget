@@ -293,6 +293,28 @@ private:
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
+    auto *accountItem{ACCOUNT_ITEM(g_list_model_get_item(
+        G_LIST_MODEL(view->accountListStore),
+        gtk_single_selection_get_selected(view->accountSelection)))};
+    auto *transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
+        gtk_single_selection_get_model(accountItem->transactionSelection),
+        gtk_single_selection_get_selected(accountItem->transactionSelection)))};
+    if (transactionItem->credit &&
+        std::string_view{gtk_string_object_get_string(accountItem->name)} ==
+            "master")
+      view->model.removeCredit(Transaction{
+          USD{transactionItem->cents},
+          gtk_string_object_get_string(transactionItem->description),
+          Date{transactionItem->year, Month{transactionItem->month},
+               transactionItem->day}});
+    else
+      view->model.removeDebit(
+          gtk_string_object_get_string(accountItem->name),
+          Transaction{
+              USD{transactionItem->cents},
+              gtk_string_object_get_string(transactionItem->description),
+              Date{transactionItem->year, Month{transactionItem->month},
+                   transactionItem->day}});
     view->model.show(*view);
   }
 
