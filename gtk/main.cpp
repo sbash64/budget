@@ -307,7 +307,9 @@ private:
           gtk_string_object_get_string(transactionItem->description),
           Date{transactionItem->year, Month{transactionItem->month},
                transactionItem->day}});
-    else
+    else if (!transactionItem->credit &&
+             std::string_view{
+                 gtk_string_object_get_string(accountItem->name)} != "master")
       view->model.removeDebit(
           gtk_string_object_get_string(accountItem->name),
           Transaction{
@@ -315,6 +317,8 @@ private:
               gtk_string_object_get_string(transactionItem->description),
               Date{transactionItem->year, Month{transactionItem->month},
                    transactionItem->day}});
+    else
+      return;
     view->model.show(*view);
   }
 
