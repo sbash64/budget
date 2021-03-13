@@ -1,5 +1,6 @@
 #include <fstream>
 #include <gtk/gtk.h>
+#include <iostream>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
@@ -65,10 +66,6 @@ static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_list_item_set_child(list_item, gtk_label_new(""));
 }
 
-static void setupExpander(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_list_item_set_child(list_item, gtk_expander_new(""));
-}
-
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_label_set_label(
       GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
@@ -109,13 +106,11 @@ static void bindBalance(GtkListItemFactory *, GtkListItem *list_item) {
               ->balance));
 }
 
-static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
-  auto *const accountItem{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))};
-  auto *const expander{gtk_list_item_get_child(listItem)};
-  gtk_expander_set_label(GTK_EXPANDER(expander),
-                         gtk_string_object_get_string(accountItem->name));
-  auto *const columnView{gtk_column_view_new(GTK_SELECTION_MODEL(
-      gtk_single_selection_new(G_LIST_MODEL(accountItem->transactions))))};
+static void setupExpander(GtkListItemFactory *, GtkListItem *list_item) {
+  auto *const expander{gtk_expander_new("")};
+  auto *const columnView{
+      gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
+          G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))))};
   {
     auto *const factory{gtk_signal_list_item_factory_new()};
     g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
@@ -149,6 +144,18 @@ static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
         gtk_column_view_column_new("Description", factory));
   }
   gtk_expander_set_child(GTK_EXPANDER(expander), columnView);
+  gtk_list_item_set_child(list_item, expander);
+}
+
+static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
+  auto *const accountItem{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))};
+  auto *const expander{gtk_list_item_get_child(listItem)};
+  gtk_expander_set_label(GTK_EXPANDER(expander),
+                         gtk_string_object_get_string(accountItem->name));
+  gtk_column_view_set_model(
+      GTK_COLUMN_VIEW(gtk_expander_get_child(GTK_EXPANDER(expander))),
+      GTK_SELECTION_MODEL(
+          gtk_single_selection_new(G_LIST_MODEL(accountItem->transactions))));
 }
 
 constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
@@ -156,7 +163,7 @@ constexpr const char *transactionTypeNames[]{"Debit", "Credit", nullptr};
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
-      : model{model}, accountListStore{g_list_store_new(G_TYPE_OBJECT)},
+      : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
         accountSelection{
             gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
         transactionTypeDropDown{gtk_drop_down_new_from_strings(
@@ -221,7 +228,7 @@ public:
   void showAccountSummary(
       std::string_view name, USD balance,
       const std::vector<VerifiableTransactionWithType> &transactions) override {
-    auto *const transactionListStore{g_list_store_new(G_TYPE_OBJECT)};
+    auto *const transactionListStore{g_list_store_new(TRANSACTION_TYPE_ITEM)};
     for (const auto &transaction : transactions) {
       std::stringstream dateStream;
       dateStream << transaction.verifiableTransaction.transaction.date;
@@ -239,7 +246,7 @@ public:
     }
     auto *const accountItem =
         static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
-    accountItem->transactions = transactionListStore;
+    accountItem->transactions = g_object_ref(transactionListStore);
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
     accountItem->balance = gtk_string_object_new(format(balance).c_str());
     g_list_store_append(accountListStore, accountItem);
