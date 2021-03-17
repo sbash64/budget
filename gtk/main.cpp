@@ -124,56 +124,12 @@ static void bindBalance(GtkListItemFactory *, GtkListItem *list_item) {
               ->balance));
 }
 
-static void setupExpandingAccount(GtkListItemFactory *,
-                                  GtkListItem *list_item) {
-  auto *const expander{gtk_expander_new("")};
-  auto *const columnView{
-      gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
-          G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))))};
-  {
-    auto *const factory{gtk_signal_list_item_factory_new()};
-    g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-    g_signal_connect(factory, "bind", G_CALLBACK(bindDebitAmount), NULL);
-    gtk_column_view_append_column(
-        GTK_COLUMN_VIEW(columnView),
-        gtk_column_view_column_new("Debit ($)", factory));
-  }
-  {
-    auto *const factory{gtk_signal_list_item_factory_new()};
-    g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-    g_signal_connect(factory, "bind", G_CALLBACK(bindCreditAmount), NULL);
-    gtk_column_view_append_column(
-        GTK_COLUMN_VIEW(columnView),
-        gtk_column_view_column_new("Credit ($)", factory));
-  }
-  {
-    auto *const factory{gtk_signal_list_item_factory_new()};
-    g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-    g_signal_connect(factory, "bind", G_CALLBACK(bindDate), NULL);
-    gtk_column_view_append_column(
-        GTK_COLUMN_VIEW(columnView),
-        gtk_column_view_column_new("Date (mm/dd/yyy)", factory));
-  }
-  {
-    auto *const factory{gtk_signal_list_item_factory_new()};
-    g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-    g_signal_connect(factory, "bind", G_CALLBACK(bindDescription), NULL);
-    gtk_column_view_append_column(
-        GTK_COLUMN_VIEW(columnView),
-        gtk_column_view_column_new("Description", factory));
-  }
-  gtk_expander_set_child(GTK_EXPANDER(expander), columnView);
-  gtk_list_item_set_child(list_item, expander);
-}
-
-static void bindAccount(GtkListItemFactory *, GtkListItem *listItem) {
-  auto *const accountItem{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))};
-  auto *const expander{gtk_list_item_get_child(listItem)};
-  gtk_expander_set_label(GTK_EXPANDER(expander),
-                         gtk_string_object_get_string(accountItem->name));
-  gtk_column_view_set_model(
-      GTK_COLUMN_VIEW(gtk_expander_get_child(GTK_EXPANDER(expander))),
-      GTK_SELECTION_MODEL(accountItem->transactionSelection));
+static void bindAccountName(GtkListItemFactory *, GtkListItem *list_item) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
+      gtk_string_object_get_string(
+          ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
+              ->name));
 }
 
 static auto transaction(TransactionItem *transactionItem) -> Transaction {
@@ -181,6 +137,19 @@ static auto transaction(TransactionItem *transactionItem) -> Transaction {
           gtk_string_object_get_string(transactionItem->description),
           Date{transactionItem->year, Month{transactionItem->month},
                transactionItem->day}};
+}
+
+static void selectionChanged(GtkSelectionModel *model, guint position,
+                             guint n_items,
+                             gpointer selectedAccountColumnView) {
+  gtk_column_view_set_model(
+      GTK_COLUMN_VIEW(selectedAccountColumnView),
+      GTK_SELECTION_MODEL(
+          ACCOUNT_ITEM(g_list_model_get_item(gtk_single_selection_get_model(
+                                                 GTK_SINGLE_SELECTION(model)),
+                                             gtk_single_selection_get_selected(
+                                                 GTK_SINGLE_SELECTION(model))))
+              ->transactionSelection));
 }
 
 class GtkView : public View {
@@ -192,18 +161,18 @@ public:
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
-    auto *const scrolledWindow{gtk_scrolled_window_new()};
+    auto *const scrolledWindowsBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    auto *const leftHandScrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
-        GTK_SCROLLED_WINDOW(scrolledWindow), 300);
-    auto *const accountColumnView{
+        GTK_SCROLLED_WINDOW(leftHandScrolledWindow), 300);
+    auto *const accountsColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(accountSelection))};
     {
       auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupExpandingAccount),
-                       NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindAccount), NULL);
+      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
+      g_signal_connect(factory, "bind", G_CALLBACK(bindAccountName), NULL);
       gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(accountColumnView),
+          GTK_COLUMN_VIEW(accountsColumnView),
           gtk_column_view_column_new("name", factory));
     }
     {
@@ -211,43 +180,90 @@ public:
       g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
       g_signal_connect(factory, "bind", G_CALLBACK(bindBalance), NULL);
       gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(accountColumnView),
+          GTK_COLUMN_VIEW(accountsColumnView),
           gtk_column_view_column_new("balance ($)", factory));
     }
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow),
-                                  accountColumnView);
-    gtk_box_append(GTK_BOX(verticalBox), scrolledWindow);
-    auto *const horizontalBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    gtk_widget_set_hexpand(leftHandScrolledWindow, TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
+                                  accountsColumnView);
+    gtk_box_append(GTK_BOX(scrolledWindowsBox), leftHandScrolledWindow);
+
+    auto *const rightHandScrolledWindow{gtk_scrolled_window_new()};
+    auto *const selectedAccountColumnView{
+        gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
+            G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))))};
+    {
+      auto *const factory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
+      g_signal_connect(factory, "bind", G_CALLBACK(bindDebitAmount), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(selectedAccountColumnView),
+          gtk_column_view_column_new("Debit ($)", factory));
+    }
+    {
+      auto *const factory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
+      g_signal_connect(factory, "bind", G_CALLBACK(bindCreditAmount), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(selectedAccountColumnView),
+          gtk_column_view_column_new("Credit ($)", factory));
+    }
+    {
+      auto *const factory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
+      g_signal_connect(factory, "bind", G_CALLBACK(bindDate), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(selectedAccountColumnView),
+          gtk_column_view_column_new("Date (mm/dd/yyy)", factory));
+    }
+    {
+      auto *const factory{gtk_signal_list_item_factory_new()};
+      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
+      g_signal_connect(factory, "bind", G_CALLBACK(bindDescription), NULL);
+      gtk_column_view_append_column(
+          GTK_COLUMN_VIEW(selectedAccountColumnView),
+          gtk_column_view_column_new("Description", factory));
+    }
+    gtk_widget_set_hexpand(rightHandScrolledWindow, TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(rightHandScrolledWindow),
+                                  selectedAccountColumnView);
+    gtk_box_append(GTK_BOX(scrolledWindowsBox), rightHandScrolledWindow);
+    g_signal_connect(accountSelection, "selection-changed",
+                     G_CALLBACK(selectionChanged), selectedAccountColumnView);
+
+    gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsBox);
+    auto *const transactionControlBox{
+        gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
     gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
                                 GTK_INPUT_PURPOSE_NUMBER);
     gtk_widget_set_valign(amountEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(amountEntry), "0.00");
-    gtk_box_append(GTK_BOX(horizontalBox), amountEntry);
-    gtk_box_append(GTK_BOX(horizontalBox), calendar);
+    gtk_box_append(GTK_BOX(transactionControlBox), amountEntry);
+    gtk_box_append(GTK_BOX(transactionControlBox), calendar);
     gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(descriptionEntry), "Description");
-    gtk_box_append(GTK_BOX(horizontalBox), descriptionEntry);
+    gtk_box_append(GTK_BOX(transactionControlBox), descriptionEntry);
     auto *const addTransactionButton{gtk_button_new_with_label("Add")};
     g_signal_connect(addTransactionButton, "clicked",
                      G_CALLBACK(onAddTransaction), this);
     gtk_widget_set_valign(addTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), addTransactionButton);
+    gtk_box_append(GTK_BOX(transactionControlBox), addTransactionButton);
     auto *const removeTransactionButton{gtk_button_new_with_label("Remove")};
     g_signal_connect(removeTransactionButton, "clicked",
                      G_CALLBACK(onRemoveTransaction), this);
     gtk_widget_set_valign(removeTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), removeTransactionButton);
+    gtk_box_append(GTK_BOX(transactionControlBox), removeTransactionButton);
     auto *const verifyTransactionButton{gtk_button_new_with_label("Verify")};
     g_signal_connect(verifyTransactionButton, "clicked",
                      G_CALLBACK(onVerifyTransaction), this);
     gtk_widget_set_valign(verifyTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), verifyTransactionButton);
+    gtk_box_append(GTK_BOX(transactionControlBox), verifyTransactionButton);
     auto *const transferToButton{gtk_button_new_with_label("Transfer To")};
     g_signal_connect(transferToButton, "clicked", G_CALLBACK(onTransferTo),
                      this);
     gtk_widget_set_valign(transferToButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(horizontalBox), transferToButton);
-    gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
+    gtk_box_append(GTK_BOX(transactionControlBox), transferToButton);
+    gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     gtk_window_set_child(window, verticalBox);
   }
 
