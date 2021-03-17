@@ -217,6 +217,11 @@ public:
                      G_CALLBACK(onRemoveTransaction), this);
     gtk_widget_set_valign(removeTransactionButton, GTK_ALIGN_CENTER);
     gtk_box_append(GTK_BOX(horizontalBox), removeTransactionButton);
+    auto *const verifyTransactionButton{gtk_button_new_with_label("Verify")};
+    g_signal_connect(verifyTransactionButton, "clicked",
+                     G_CALLBACK(onVerifyTransaction), this);
+    gtk_widget_set_valign(verifyTransactionButton, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), verifyTransactionButton);
     gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -299,6 +304,27 @@ private:
     else if (!transactionItem->credit &&
              std::string_view{selectedAccountName(view)} != "master")
       view->model.removeDebit(selectedAccountName(view),
+                              budget::transaction(transactionItem));
+    else
+      return;
+    view->model.show(*view);
+  }
+
+  static void onVerifyTransaction(GtkButton *, GtkView *view) {
+    auto *const transactionSelection{
+        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
+                                           gtk_single_selection_get_selected(
+                                               view->accountSelection)))
+            ->transactionSelection};
+    auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
+        gtk_single_selection_get_model(transactionSelection),
+        gtk_single_selection_get_selected(transactionSelection)))};
+    if (transactionItem->credit &&
+        std::string_view{selectedAccountName(view)} == "master")
+      view->model.verifyCredit(budget::transaction(transactionItem));
+    else if (!transactionItem->credit &&
+             std::string_view{selectedAccountName(view)} != "master")
+      view->model.verifyDebit(selectedAccountName(view),
                               budget::transaction(transactionItem));
     else
       return;
