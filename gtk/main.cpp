@@ -31,7 +31,16 @@ G_DEFINE_TYPE(TransactionItem, transaction_item, G_TYPE_OBJECT)
 
 static void transaction_item_init(TransactionItem *item) {}
 
-static void transaction_item_class_init(TransactionItemClass *c) {}
+static void transaction_item_finalize(GObject *object) {
+  const auto *transactionItem{TRANSACTION_ITEM(object)};
+  g_object_unref(transactionItem->description);
+  G_OBJECT_CLASS(transaction_item_parent_class)->finalize(object);
+}
+
+static void transaction_item_class_init(TransactionItemClass *c) {
+  auto *gobject_class = G_OBJECT_CLASS(c);
+  gobject_class->finalize = transaction_item_finalize;
+}
 
 #define ACCOUNT_TYPE_ITEM (account_item_get_type())
 G_DECLARE_FINAL_TYPE(AccountItem, account_item, ACCOUNT, ITEM, GObject)
@@ -49,9 +58,20 @@ struct _AccountItemClass {
 
 G_DEFINE_TYPE(AccountItem, account_item, G_TYPE_OBJECT)
 
+static void account_item_finalize(GObject *object) {
+  const auto *accountItem{ACCOUNT_ITEM(object)};
+  g_object_unref(accountItem->balance);
+  g_object_unref(accountItem->name);
+  g_object_unref(accountItem->transactionSelection);
+  G_OBJECT_CLASS(account_item_parent_class)->finalize(object);
+}
+
 static void account_item_init(AccountItem *item) {}
 
-static void account_item_class_init(AccountItemClass *c) {}
+static void account_item_class_init(AccountItemClass *c) {
+  auto *gobject_class = G_OBJECT_CLASS(c);
+  gobject_class->finalize = account_item_finalize;
+}
 }
 
 namespace sbash64::budget {
