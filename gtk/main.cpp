@@ -288,6 +288,10 @@ public:
   }
 
 private:
+  static auto masterAccountIsSelected(GtkView *view) -> bool {
+    return std::string_view{selectedAccountName(view)} == "master";
+  }
+
   static auto transaction(GtkView *view) -> Transaction {
     auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
     return {usd(gtk_entry_buffer_get_text(
@@ -307,7 +311,7 @@ private:
   }
 
   static void onAddTransaction(GtkButton *, GtkView *view) {
-    if (std::string_view{selectedAccountName(view)} == "master")
+    if (masterAccountIsSelected(view))
       view->model.credit(transaction(view));
     else
       view->model.debit(selectedAccountName(view), transaction(view));
@@ -323,16 +327,14 @@ private:
     auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
         gtk_single_selection_get_model(transactionSelection),
         gtk_single_selection_get_selected(transactionSelection)))};
-    if (transactionItem->credit &&
-        std::string_view{selectedAccountName(view)} == "master")
-      view->model.removeCredit(budget::transaction(transactionItem));
-    else if (!transactionItem->credit &&
-             std::string_view{selectedAccountName(view)} != "master")
-      view->model.removeDebit(selectedAccountName(view),
-                              budget::transaction(transactionItem));
-    else
-      return;
-    view->model.show(*view);
+    if (transactionItem->credit == masterAccountIsSelected(view)) {
+      if (transactionItem->credit)
+        view->model.removeCredit(budget::transaction(transactionItem));
+      else
+        view->model.removeDebit(selectedAccountName(view),
+                                budget::transaction(transactionItem));
+      view->model.show(*view);
+    }
   }
 
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
@@ -344,20 +346,18 @@ private:
     auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
         gtk_single_selection_get_model(transactionSelection),
         gtk_single_selection_get_selected(transactionSelection)))};
-    if (transactionItem->credit &&
-        std::string_view{selectedAccountName(view)} == "master")
-      view->model.verifyCredit(budget::transaction(transactionItem));
-    else if (!transactionItem->credit &&
-             std::string_view{selectedAccountName(view)} != "master")
-      view->model.verifyDebit(selectedAccountName(view),
-                              budget::transaction(transactionItem));
-    else
-      return;
-    view->model.show(*view);
+    if (transactionItem->credit == masterAccountIsSelected(view)) {
+      if (transactionItem->credit)
+        view->model.verifyCredit(budget::transaction(transactionItem));
+      else
+        view->model.verifyDebit(selectedAccountName(view),
+                                budget::transaction(transactionItem));
+      view->model.show(*view);
+    }
   }
 
   static void onTransferTo(GtkButton *, GtkView *view) {
-    if (std::string_view{selectedAccountName(view)} == "master")
+    if (masterAccountIsSelected(view))
       return;
     auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
     view->model.transferTo(
