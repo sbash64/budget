@@ -55,13 +55,6 @@ static void account_item_class_init(AccountItemClass *c) {}
 }
 
 namespace sbash64::budget {
-static auto amountIf(const VerifiableTransactionWithType &transaction,
-                     Transaction::Type type) -> std::string {
-  return transaction.type == type
-             ? format(transaction.verifiableTransaction.transaction.amount)
-             : "";
-}
-
 static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_list_item_set_child(list_item, gtk_label_new(""));
 }
