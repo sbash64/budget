@@ -371,21 +371,21 @@ public:
 };
 
 static void on_activate(GtkApplication *app) {
-  auto *accountFactory{new InMemoryAccount::Factory};
-  auto *bank{new Bank{*accountFactory}};
-  auto *streamFactory{new FileStreamFactory};
-  auto *serialization{new WritesSessionToStream{*streamFactory}};
-  auto *deserialization{new ReadsSessionFromStream{*streamFactory}};
-  bank->load(*deserialization);
+  static InMemoryAccount::Factory accountFactory;
+  static Bank bank{accountFactory};
+  static FileStreamFactory streamFactory;
+  static WritesSessionToStream serialization{streamFactory};
+  static ReadsSessionFromStream deserialization{streamFactory};
+  bank.load(deserialization);
   auto *window{gtk_application_window_new(app)};
-  auto *view{new GtkView{*bank, GTK_WINDOW(window)}};
-  bank->show(*view);
+  static GtkView view{bank, GTK_WINDOW(window)};
+  bank.show(view);
   gtk_window_present(GTK_WINDOW(window));
 }
 } // namespace sbash64::budget
 
 int main(int argc, char *argv[]) {
-  auto *app{
+  auto *const app{
       gtk_application_new("com.sbash64.GtkBudget", G_APPLICATION_FLAGS_NONE)};
   g_signal_connect(app, "activate", G_CALLBACK(sbash64::budget::on_activate),
                    NULL);
