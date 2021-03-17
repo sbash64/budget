@@ -242,6 +242,11 @@ public:
                      G_CALLBACK(onVerifyTransaction), this);
     gtk_widget_set_valign(verifyTransactionButton, GTK_ALIGN_CENTER);
     gtk_box_append(GTK_BOX(horizontalBox), verifyTransactionButton);
+    auto *const transferToButton{gtk_button_new_with_label("Transfer To")};
+    g_signal_connect(transferToButton, "clicked", G_CALLBACK(onTransferTo),
+                     this);
+    gtk_widget_set_valign(transferToButton, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(horizontalBox), transferToButton);
     gtk_box_append(GTK_BOX(verticalBox), horizontalBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -348,6 +353,19 @@ private:
                               budget::transaction(transactionItem));
     else
       return;
+    view->model.show(*view);
+  }
+
+  static void onTransferTo(GtkButton *, GtkView *view) {
+    if (std::string_view{selectedAccountName(view)} == "master")
+      return;
+    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
+    view->model.transferTo(
+        selectedAccountName(view),
+        usd(gtk_entry_buffer_get_text(
+            gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
+        Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
+             g_date_time_get_day_of_month(date)});
     view->model.show(*view);
   }
 
