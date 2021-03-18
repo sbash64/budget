@@ -133,15 +133,16 @@ static auto transaction(TransactionItem *transactionItem) -> Transaction {
                transactionItem->day}};
 }
 
-static void selectionChanged(GtkSelectionModel *model, guint, guint,
+static void selectionChanged(GtkSelectionModel *accountSelection, guint, guint,
                              gpointer transactionSelection) {
   gtk_single_selection_set_model(
       GTK_SINGLE_SELECTION(transactionSelection),
       G_LIST_MODEL(
-          ACCOUNT_ITEM(g_list_model_get_item(gtk_single_selection_get_model(
-                                                 GTK_SINGLE_SELECTION(model)),
-                                             gtk_single_selection_get_selected(
-                                                 GTK_SINGLE_SELECTION(model))))
+          ACCOUNT_ITEM(g_list_model_get_item(
+                           gtk_single_selection_get_model(
+                               GTK_SINGLE_SELECTION(accountSelection)),
+                           gtk_single_selection_get_selected(
+                               GTK_SINGLE_SELECTION(accountSelection))))
               ->transactionListStore));
 }
 
