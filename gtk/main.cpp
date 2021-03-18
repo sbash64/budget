@@ -146,6 +146,17 @@ static void selectionChanged(GtkSelectionModel *model, guint position,
               ->transactionSelection));
 }
 
+static void appendSignalGeneratedColumn(
+    GtkWidget *columnView, void (*setup)(GtkListItemFactory *, GtkListItem *),
+    void (*bind)(GtkListItemFactory *, GtkListItem *), const char *label) {
+  auto *const signalListItemFactory{gtk_signal_list_item_factory_new()};
+  g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setup), NULL);
+  g_signal_connect(signalListItemFactory, "bind", G_CALLBACK(bind), NULL);
+  gtk_column_view_append_column(
+      GTK_COLUMN_VIEW(columnView),
+      gtk_column_view_column_new(label, signalListItemFactory));
+}
+
 class GtkView : public View {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
@@ -161,22 +172,10 @@ public:
         GTK_SCROLLED_WINDOW(leftHandScrolledWindow), 300);
     auto *const accountsColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(accountSelection))};
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindAccountName), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(accountsColumnView),
-          gtk_column_view_column_new("name", factory));
-    }
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindBalance), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(accountsColumnView),
-          gtk_column_view_column_new("balance ($)", factory));
-    }
+    appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindAccountName,
+                                "Name");
+    appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindBalance,
+                                "Balance ($)");
     gtk_widget_set_hexpand(leftHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
                                   accountsColumnView);
@@ -186,38 +185,14 @@ public:
     auto *const selectedAccountColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
             G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))))};
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindDebitAmount), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(selectedAccountColumnView),
-          gtk_column_view_column_new("Debit ($)", factory));
-    }
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindCreditAmount), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(selectedAccountColumnView),
-          gtk_column_view_column_new("Credit ($)", factory));
-    }
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindDate), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(selectedAccountColumnView),
-          gtk_column_view_column_new("Date (mm/dd/yyy)", factory));
-    }
-    {
-      auto *const factory{gtk_signal_list_item_factory_new()};
-      g_signal_connect(factory, "setup", G_CALLBACK(setupLabel), NULL);
-      g_signal_connect(factory, "bind", G_CALLBACK(bindDescription), NULL);
-      gtk_column_view_append_column(
-          GTK_COLUMN_VIEW(selectedAccountColumnView),
-          gtk_column_view_column_new("Description", factory));
-    }
+    appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
+                                bindDebitAmount, "Debit ($)");
+    appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
+                                bindCreditAmount, "Credit ($)");
+    appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel, bindDate,
+                                "Date (mm/dd/yyy)");
+    appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
+                                bindDescription, "Description");
     gtk_widget_set_hexpand(rightHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(rightHandScrolledWindow),
                                   selectedAccountColumnView);
