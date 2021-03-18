@@ -76,27 +76,26 @@ static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
 }
 
 static void setLabel(GtkListItem *listItem, const char *string) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(listItem))), string);
+  gtk_label_set_label(GTK_LABEL(gtk_list_item_get_child(listItem)), string);
 }
 
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
-      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+      TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
   if (transactionItem->credit)
     setLabel(list_item, format(USD{transactionItem->cents}).c_str());
 }
 
 static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
-      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+      TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
   if (!transactionItem->credit)
     setLabel(list_item, format(USD{transactionItem->cents}).c_str());
 }
 
 static void bindDate(GtkListItemFactory *, GtkListItem *listItem) {
   auto *const transactionItem{
-      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))};
+      TRANSACTION_ITEM(gtk_list_item_get_item(listItem))};
   std::stringstream stream;
   stream << Date{transactionItem->year, Month{transactionItem->month},
                  transactionItem->day};
@@ -109,21 +108,18 @@ static void setLabel(GtkListItem *listItem, GtkStringObject *string) {
 
 static void bindDescription(GtkListItemFactory *, GtkListItem *listItem) {
   setLabel(listItem,
-           TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))
-               ->description);
+           TRANSACTION_ITEM(gtk_list_item_get_item(listItem))->description);
 }
 
 static void bindBalance(GtkListItemFactory *, GtkListItem *listItem) {
   setLabel(
       listItem,
-      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))
-                     ->balanceCents})
+      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))->balanceCents})
           .c_str());
 }
 
 static void bindAccountName(GtkListItemFactory *, GtkListItem *listItem) {
-  setLabel(listItem,
-           ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))->name);
+  setLabel(listItem, ACCOUNT_ITEM(gtk_list_item_get_item(listItem))->name);
 }
 
 static auto transaction(TransactionItem *transactionItem) -> Transaction {
@@ -150,8 +146,8 @@ static void appendSignalGeneratedColumn(
     GtkWidget *columnView, void (*setup)(GtkListItemFactory *, GtkListItem *),
     void (*bind)(GtkListItemFactory *, GtkListItem *), const char *label) {
   auto *const signalListItemFactory{gtk_signal_list_item_factory_new()};
-  g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setup), NULL);
-  g_signal_connect(signalListItemFactory, "bind", G_CALLBACK(bind), NULL);
+  g_signal_connect(signalListItemFactory, "setup", G_CALLBACK(setup), nullptr);
+  g_signal_connect(signalListItemFactory, "bind", G_CALLBACK(bind), nullptr);
   gtk_column_view_append_column(
       GTK_COLUMN_VIEW(columnView),
       gtk_column_view_column_new(label, signalListItemFactory));
@@ -260,6 +256,12 @@ public:
     accountItem->balanceCents = balance.cents;
     g_list_store_append(accountListStore, accountItem);
     g_object_unref(accountItem);
+  }
+
+  ~GtkView() override {
+    g_object_unref(accountListStore);
+    g_object_unref(accountSelection);
+    g_object_unref(transactionSelection);
   }
 
 private:
