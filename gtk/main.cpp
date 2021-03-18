@@ -75,57 +75,55 @@ static void setupLabel(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_list_item_set_child(list_item, gtk_label_new(""));
 }
 
+static void setLabel(GtkListItem *listItem, const char *string) {
+  gtk_label_set_label(
+      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(listItem))), string);
+}
+
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
-  auto *transactionItem{
+  auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
   if (transactionItem->credit)
-    gtk_label_set_label(
-        GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-        format(USD{transactionItem->cents}).c_str());
+    setLabel(list_item, format(USD{transactionItem->cents}).c_str());
 }
 
 static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
-  auto *transactionItem{
+  auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
   if (!transactionItem->credit)
-    gtk_label_set_label(
-        GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-        format(USD{transactionItem->cents}).c_str());
+    setLabel(list_item, format(USD{transactionItem->cents}).c_str());
 }
 
-static void bindDate(GtkListItemFactory *, GtkListItem *list_item) {
-  auto *transactionItem{
-      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))};
+static void bindDate(GtkListItemFactory *, GtkListItem *listItem) {
+  auto *const transactionItem{
+      TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))};
   std::stringstream stream;
   stream << Date{transactionItem->year, Month{transactionItem->month},
                  transactionItem->day};
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      stream.str().c_str());
+  setLabel(listItem, stream.str().c_str());
 }
 
-static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->description));
+static void setLabel(GtkListItem *listItem, GtkStringObject *string) {
+  setLabel(listItem, gtk_string_object_get_string(string));
 }
 
-static void bindBalance(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
+static void bindDescription(GtkListItemFactory *, GtkListItem *listItem) {
+  setLabel(listItem,
+           TRANSACTION_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))
+               ->description);
+}
+
+static void bindBalance(GtkListItemFactory *, GtkListItem *listItem) {
+  setLabel(
+      listItem,
+      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))
                      ->balanceCents})
           .c_str());
 }
 
-static void bindAccountName(GtkListItemFactory *, GtkListItem *list_item) {
-  gtk_label_set_label(
-      GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->name));
+static void bindAccountName(GtkListItemFactory *, GtkListItem *listItem) {
+  setLabel(listItem,
+           ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(listItem)))->name);
 }
 
 static auto transaction(TransactionItem *transactionItem) -> Transaction {
@@ -239,26 +237,14 @@ public:
     gtk_widget_set_valign(descriptionEntry, GTK_ALIGN_CENTER);
     gtk_entry_set_placeholder_text(GTK_ENTRY(descriptionEntry), "Description");
     gtk_box_append(GTK_BOX(transactionControlBox), descriptionEntry);
-    auto *const addTransactionButton{gtk_button_new_with_label("Add")};
-    g_signal_connect(addTransactionButton, "clicked",
-                     G_CALLBACK(onAddTransaction), this);
-    gtk_widget_set_valign(addTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(transactionControlBox), addTransactionButton);
-    auto *const removeTransactionButton{gtk_button_new_with_label("Remove")};
-    g_signal_connect(removeTransactionButton, "clicked",
-                     G_CALLBACK(onRemoveTransaction), this);
-    gtk_widget_set_valign(removeTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(transactionControlBox), removeTransactionButton);
-    auto *const verifyTransactionButton{gtk_button_new_with_label("Verify")};
-    g_signal_connect(verifyTransactionButton, "clicked",
-                     G_CALLBACK(onVerifyTransaction), this);
-    gtk_widget_set_valign(verifyTransactionButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(transactionControlBox), verifyTransactionButton);
-    auto *const transferToButton{gtk_button_new_with_label("Transfer To")};
-    g_signal_connect(transferToButton, "clicked", G_CALLBACK(onTransferTo),
-                     this);
-    gtk_widget_set_valign(transferToButton, GTK_ALIGN_CENTER);
-    gtk_box_append(GTK_BOX(transactionControlBox), transferToButton);
+    addTransactionControlButton(this, transactionControlBox, "Add",
+                                onAddTransaction);
+    addTransactionControlButton(this, transactionControlBox, "Remove",
+                                onRemoveTransaction);
+    addTransactionControlButton(this, transactionControlBox, "Verify",
+                                onVerifyTransaction);
+    addTransactionControlButton(this, transactionControlBox, "Transfer To",
+                                onTransferTo);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -300,6 +286,16 @@ public:
   }
 
 private:
+  static void
+  addTransactionControlButton(GtkView *view, GtkWidget *transactionControlBox,
+                              const char *label,
+                              void (*callback)(GtkButton *, GtkView *)) {
+    auto *const button{gtk_button_new_with_label(label)};
+    g_signal_connect(button, "clicked", G_CALLBACK(callback), view);
+    gtk_widget_set_valign(button, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(transactionControlBox), button);
+  }
+
   static auto masterAccountIsSelected(GtkView *view) -> bool {
     return std::string_view{selectedAccountName(view)} == "master";
   }
