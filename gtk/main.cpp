@@ -133,8 +133,7 @@ static auto transaction(TransactionItem *transactionItem) -> Transaction {
                transactionItem->day}};
 }
 
-static void selectionChanged(GtkSelectionModel *model, guint position,
-                             guint n_items,
+static void selectionChanged(GtkSelectionModel *model, guint, guint,
                              gpointer selectedAccountColumnView) {
   gtk_column_view_set_model(
       GTK_COLUMN_VIEW(selectedAccountColumnView),
@@ -180,7 +179,6 @@ public:
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
                                   accountsColumnView);
     gtk_box_append(GTK_BOX(scrolledWindowsBox), leftHandScrolledWindow);
-
     auto *const rightHandScrolledWindow{gtk_scrolled_window_new()};
     auto *const selectedAccountColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
@@ -199,7 +197,6 @@ public:
     gtk_box_append(GTK_BOX(scrolledWindowsBox), rightHandScrolledWindow);
     g_signal_connect(accountSelection, "selection-changed",
                      G_CALLBACK(selectionChanged), selectedAccountColumnView);
-
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsBox);
     auto *const transactionControlBox{
         gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
@@ -230,6 +227,10 @@ public:
     primary.show(*this);
     for (auto *const secondary : secondaries)
       secondary->show(*this);
+    gtk_selection_model_select_item(GTK_SELECTION_MODEL(accountSelection), 1,
+                                    FALSE);
+    gtk_selection_model_select_item(GTK_SELECTION_MODEL(accountSelection), 0,
+                                    FALSE);
   }
 
   void showAccountSummary(
