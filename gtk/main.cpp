@@ -32,14 +32,12 @@ G_DEFINE_TYPE(TransactionItem, transaction_item, G_TYPE_OBJECT)
 static void transaction_item_init(TransactionItem *item) {}
 
 static void transaction_item_finalize(GObject *object) {
-  const auto *transactionItem{TRANSACTION_ITEM(object)};
-  g_object_unref(transactionItem->description);
+  g_object_unref(TRANSACTION_ITEM(object)->description);
   G_OBJECT_CLASS(transaction_item_parent_class)->finalize(object);
 }
 
 static void transaction_item_class_init(TransactionItemClass *c) {
-  auto *gobject_class = G_OBJECT_CLASS(c);
-  gobject_class->finalize = transaction_item_finalize;
+  G_OBJECT_CLASS(c)->finalize = transaction_item_finalize;
 }
 
 #define ACCOUNT_TYPE_ITEM (account_item_get_type())
@@ -49,7 +47,7 @@ struct _AccountItem {
   GObject parent_instance;
   GtkSingleSelection *transactionSelection;
   GtkStringObject *name;
-  GtkStringObject *balance;
+  long long balanceCents;
 };
 
 struct _AccountItemClass {
@@ -60,7 +58,6 @@ G_DEFINE_TYPE(AccountItem, account_item, G_TYPE_OBJECT)
 
 static void account_item_finalize(GObject *object) {
   const auto *accountItem{ACCOUNT_ITEM(object)};
-  g_object_unref(accountItem->balance);
   g_object_unref(accountItem->name);
   g_object_unref(accountItem->transactionSelection);
   G_OBJECT_CLASS(account_item_parent_class)->finalize(object);
@@ -69,8 +66,7 @@ static void account_item_finalize(GObject *object) {
 static void account_item_init(AccountItem *item) {}
 
 static void account_item_class_init(AccountItemClass *c) {
-  auto *gobject_class = G_OBJECT_CLASS(c);
-  gobject_class->finalize = account_item_finalize;
+  G_OBJECT_CLASS(c)->finalize = account_item_finalize;
 }
 }
 
@@ -119,9 +115,9 @@ static void bindDescription(GtkListItemFactory *, GtkListItem *list_item) {
 static void bindBalance(GtkListItemFactory *, GtkListItem *list_item) {
   gtk_label_set_label(
       GTK_LABEL(gtk_list_item_get_child(GTK_LIST_ITEM(list_item))),
-      gtk_string_object_get_string(
-          ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
-              ->balance));
+      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(GTK_LIST_ITEM(list_item)))
+                     ->balanceCents})
+          .c_str());
 }
 
 static void bindAccountName(GtkListItemFactory *, GtkListItem *list_item) {
@@ -298,7 +294,7 @@ public:
     accountItem->transactionSelection =
         gtk_single_selection_new(G_LIST_MODEL(transactionListStore));
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
-    accountItem->balance = gtk_string_object_new(format(balance).c_str());
+    accountItem->balanceCents = balance.cents;
     g_list_store_append(accountListStore, accountItem);
     g_object_unref(accountItem);
   }
