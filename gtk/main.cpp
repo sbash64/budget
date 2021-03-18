@@ -45,7 +45,7 @@ G_DECLARE_FINAL_TYPE(AccountItem, account_item, ACCOUNT, ITEM, GObject)
 
 struct _AccountItem {
   GObject parent_instance;
-  GtkSingleSelection *transactionSelection;
+  GListStore *transactionListStore;
   GtkStringObject *name;
   long long balanceCents;
 };
@@ -59,7 +59,7 @@ G_DEFINE_TYPE(AccountItem, account_item, G_TYPE_OBJECT)
 static void account_item_finalize(GObject *object) {
   const auto *accountItem{ACCOUNT_ITEM(object)};
   g_object_unref(accountItem->name);
-  g_object_unref(accountItem->transactionSelection);
+  g_object_unref(accountItem->transactionListStore);
   G_OBJECT_CLASS(account_item_parent_class)->finalize(object);
 }
 
@@ -134,15 +134,15 @@ static auto transaction(TransactionItem *transactionItem) -> Transaction {
 }
 
 static void selectionChanged(GtkSelectionModel *model, guint, guint,
-                             gpointer selectedAccountColumnView) {
-  gtk_column_view_set_model(
-      GTK_COLUMN_VIEW(selectedAccountColumnView),
-      GTK_SELECTION_MODEL(
+                             gpointer transactionSelection) {
+  gtk_single_selection_set_model(
+      GTK_SINGLE_SELECTION(transactionSelection),
+      G_LIST_MODEL(
           ACCOUNT_ITEM(g_list_model_get_item(gtk_single_selection_get_model(
                                                  GTK_SINGLE_SELECTION(model)),
                                              gtk_single_selection_get_selected(
                                                  GTK_SINGLE_SELECTION(model))))
-              ->transactionSelection));
+              ->transactionListStore));
 }
 
 static void appendSignalGeneratedColumn(
@@ -162,6 +162,8 @@ public:
       : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
         accountSelection{
             gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
+        transactionSelection{gtk_single_selection_new(
+            G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
@@ -181,8 +183,7 @@ public:
     gtk_box_append(GTK_BOX(scrolledWindowsBox), leftHandScrolledWindow);
     auto *const rightHandScrolledWindow{gtk_scrolled_window_new()};
     auto *const selectedAccountColumnView{
-        gtk_column_view_new(GTK_SELECTION_MODEL(gtk_single_selection_new(
-            G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))))};
+        gtk_column_view_new(GTK_SELECTION_MODEL(transactionSelection))};
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
                                 bindDebitAmount, "Debit ($)");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
@@ -196,7 +197,7 @@ public:
                                   selectedAccountColumnView);
     gtk_box_append(GTK_BOX(scrolledWindowsBox), rightHandScrolledWindow);
     g_signal_connect(accountSelection, "selection-changed",
-                     G_CALLBACK(selectionChanged), selectedAccountColumnView);
+                     G_CALLBACK(selectionChanged), transactionSelection);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsBox);
     auto *const transactionControlBox{
         gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
@@ -253,8 +254,7 @@ public:
     }
     auto *const accountItem =
         static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
-    accountItem->transactionSelection =
-        gtk_single_selection_new(G_LIST_MODEL(transactionListStore));
+    accountItem->transactionListStore = transactionListStore;
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
     accountItem->balanceCents = balance.cents;
     g_list_store_append(accountListStore, accountItem);
@@ -303,14 +303,9 @@ private:
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
-    auto *const transactionSelection{
-        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
-                                           gtk_single_selection_get_selected(
-                                               view->accountSelection)))
-            ->transactionSelection};
     auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
-        gtk_single_selection_get_model(transactionSelection),
-        gtk_single_selection_get_selected(transactionSelection)))};
+        gtk_single_selection_get_model(view->transactionSelection),
+        gtk_single_selection_get_selected(view->transactionSelection)))};
     if (transactionItem->credit == masterAccountIsSelected(view)) {
       if (transactionItem->credit)
         view->model.removeCredit(budget::transaction(transactionItem));
@@ -322,14 +317,9 @@ private:
   }
 
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
-    auto *const transactionSelection{
-        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
-                                           gtk_single_selection_get_selected(
-                                               view->accountSelection)))
-            ->transactionSelection};
     auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
-        gtk_single_selection_get_model(transactionSelection),
-        gtk_single_selection_get_selected(transactionSelection)))};
+        gtk_single_selection_get_model(view->transactionSelection),
+        gtk_single_selection_get_selected(view->transactionSelection)))};
     if (transactionItem->credit == masterAccountIsSelected(view)) {
       if (transactionItem->credit)
         view->model.verifyCredit(budget::transaction(transactionItem));
@@ -356,6 +346,7 @@ private:
   Model &model;
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
+  GtkSingleSelection *transactionSelection;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
