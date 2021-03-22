@@ -69,6 +69,8 @@ static void createNewAccountIfNeeded(
 void Bank::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(accounts, factory, accountName);
   budget::debit(accounts.at(std::string{accountName}), t);
+  if (observer != nullptr)
+    observer->notifyThatDebitHasBeenAdded(accountName, t);
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
@@ -143,6 +145,8 @@ void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
 void Bank::verifyCredit(const Transaction &t) {
   budget::verifyCredit(masterAccount, t);
 }
+
+void Bank::attach(Observer *a) { observer = a; }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 

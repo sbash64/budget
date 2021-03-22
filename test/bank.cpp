@@ -103,6 +103,27 @@ private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::string name_;
 };
+
+class BankObserverStub : public Bank::Observer {
+public:
+  auto newDebitNotificationTransaction() -> Transaction {
+    return newDebitNotificationTransaction_;
+  }
+
+  void notifyThatDebitHasBeenAdded(std::string_view accountName,
+                                   const Transaction &t) {
+    newDebitNotificationTransaction_ = t;
+    newDebitNotificationAccountName_ = accountName;
+  }
+
+  auto newDebitNotificationAccountName() -> std::string {
+    return newDebitNotificationAccountName_;
+  }
+
+private:
+  Transaction newDebitNotificationTransaction_;
+  std::string newDebitNotificationAccountName_;
+};
 } // namespace
 
 static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
@@ -429,6 +450,22 @@ void transferVerifiesTransactionsByDefault(testcpplite::TestResult &result) {
     assertEqual(result,
                 {456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
                 masterAccount->debitToVerify());
+  });
+}
+
+void notifiesObserverOfNewDebitWhenDebited(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    debit(bank, "giraffe",
+          Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    assertEqual(result,
+                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
+                observer.newDebitNotificationTransaction());
+    assertEqual(result, "giraffe", observer.newDebitNotificationAccountName());
   });
 }
 } // namespace sbash64::budget::bank

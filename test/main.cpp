@@ -102,6 +102,8 @@ static auto runAllTests() -> int {
        {bank::saveSavesAccounts, "bank save saves accounts"},
        {bank::loadLoadsAccounts, "bank load loads accounts"},
        {bank::renameAccount, "bank rename account"},
+       {bank::notifiesObserverOfNewDebitWhenDebited,
+        "bank notifies observer of new debit when debited"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
        {account::showAfterRemoveShowsRemainingTransactions,
