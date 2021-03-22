@@ -13,7 +13,11 @@ add_subdirectory(lib)
 add_executable(sbash64-budget main.cpp)
 target_link_libraries(sbash64-budget sbash64-budget-lib)
 set_target_properties(sbash64-budget PROPERTIES CXX_EXTENSIONS OFF)
-add_subdirectory(gtk)
+
+option(SBASH64_BUDGET_ENABLE_GTK "Enable GTK implementation" OFF)
+if(${SBASH64_BUDGET_ENABLE_GTK})
+  add_subdirectory(gtk)
+endif()
 
 option(SBASH64_BUDGET_ENABLE_TESTS "Enable tests" OFF)
 if(${SBASH64_BUDGET_ENABLE_TESTS})
