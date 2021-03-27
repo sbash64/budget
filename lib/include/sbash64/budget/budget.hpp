@@ -176,7 +176,17 @@ public:
 
 class Model {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatDebitHasBeenAdded(std::string_view accountName,
+                                             const Transaction &) = 0;
+    virtual void notifyThatCreditHasBeenAdded(std::string_view accountName,
+                                              const Transaction &) = 0;
+  };
+
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Model);
+  virtual void attach(Observer *) = 0;
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void removeDebit(std::string_view accountName,
                            const Transaction &) = 0;

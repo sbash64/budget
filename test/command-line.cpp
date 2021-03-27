@@ -14,6 +14,8 @@ namespace sbash64::budget::command_line {
 namespace {
 class ModelStub : public Model {
 public:
+  void attach(Observer *) override {}
+
   auto removedTransferAmount() -> USD { return removedTransferAmount_; }
 
   auto removedTransferAccountName() -> std::string {

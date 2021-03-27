@@ -153,7 +153,7 @@ static void appendSignalGeneratedColumn(
       gtk_column_view_column_new(label, signalListItemFactory));
 }
 
-class GtkView : public View {
+class GtkView : public View, public Bank::Observer {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
@@ -163,6 +163,7 @@ public:
             G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
+    model.attach(this);
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *const scrolledWindowsBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
     auto *const leftHandScrolledWindow{gtk_scrolled_window_new()};
@@ -263,6 +264,12 @@ public:
     g_object_unref(accountSelection);
     g_object_unref(transactionSelection);
   }
+
+  void notifyThatDebitHasBeenAdded(std::string_view accountName,
+                                   const Transaction &) override {}
+
+  void notifyThatCreditHasBeenAdded(std::string_view accountName,
+                                    const Transaction &) override {}
 
 private:
   static void
