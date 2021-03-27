@@ -17,6 +17,8 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatDebitHasBeenAdded(std::string_view accountName,
                                              const Transaction &) = 0;
+    virtual void notifyThatCreditHasBeenAdded(std::string_view accountName,
+                                              const Transaction &) = 0;
   };
 
   explicit Bank(Account::Factory &);

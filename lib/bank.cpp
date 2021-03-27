@@ -47,7 +47,11 @@ static void removeDebit(const std::shared_ptr<Account> &account,
 Bank::Bank(Account::Factory &factory)
     : factory{factory}, masterAccount{factory.make(masterAccountName.data())} {}
 
-void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
+void Bank::credit(const Transaction &t) {
+  budget::credit(masterAccount, t);
+  if (observer != nullptr)
+    observer->notifyThatCreditHasBeenAdded(masterAccountName.data(), t);
+}
 
 void Bank::removeCredit(const Transaction &t) {
   budget::removeCredit(masterAccount, t);

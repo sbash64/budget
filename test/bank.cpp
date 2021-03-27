@@ -111,7 +111,7 @@ public:
   }
 
   void notifyThatDebitHasBeenAdded(std::string_view accountName,
-                                   const Transaction &t) {
+                                   const Transaction &t) override {
     newDebitNotificationTransaction_ = t;
     newDebitNotificationAccountName_ = accountName;
   }
@@ -120,9 +120,25 @@ public:
     return newDebitNotificationAccountName_;
   }
 
+  auto newCreditNotificationTransaction() -> Transaction {
+    return newCreditNotificationTransaction_;
+  }
+
+  void notifyThatCreditHasBeenAdded(std::string_view accountName,
+                                    const Transaction &t) {
+    newCreditNotificationTransaction_ = t;
+    newCreditNotificationAccountName_ = accountName;
+  }
+
+  auto newCreditNotificationAccountName() -> std::string {
+    return newCreditNotificationAccountName_;
+  }
+
 private:
   Transaction newDebitNotificationTransaction_;
   std::string newDebitNotificationAccountName_;
+  Transaction newCreditNotificationTransaction_;
+  std::string newCreditNotificationAccountName_;
 };
 } // namespace
 
@@ -466,6 +482,19 @@ void notifiesObserverOfNewDebitWhenDebited(testcpplite::TestResult &result) {
                 Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
                 observer.newDebitNotificationTransaction());
     assertEqual(result, "giraffe", observer.newDebitNotificationAccountName());
+  });
+}
+
+void notifiesObserverOfNewCreditWhenCredited(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &, const std::shared_ptr<AccountStub> &,
+               Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    bank.credit(Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    assertEqual(result,
+                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}},
+                observer.newCreditNotificationTransaction());
+    assertEqual(result, "master", observer.newCreditNotificationAccountName());
   });
 }
 } // namespace sbash64::budget::bank
