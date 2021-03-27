@@ -106,6 +106,8 @@ static auto runAllTests() -> int {
         "bank notifies observer of new debit when debited"},
        {bank::notifiesObserverOfNewCreditWhenCredited,
         "bank notifies observer of new credit when credited"},
+       {bank::notifiesObserverOfNewCreditAndDebitWhenTransferred,
+        "bank notifies observer of new credit and debit when transferred"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
        {account::showAfterRemoveShowsRemainingTransactions,

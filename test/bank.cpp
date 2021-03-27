@@ -497,4 +497,26 @@ void notifiesObserverOfNewCreditWhenCredited(testcpplite::TestResult &result) {
     assertEqual(result, "master", observer.newCreditNotificationAccountName());
   });
 }
+
+void notifiesObserverOfNewCreditAndDebitWhenTransferred(
+    testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    bank.transferTo("giraffe", 456_cents, Date{2024, Month::August, 23});
+    assertEqual(result,
+                Transaction{456_cents, "transfer from master",
+                            Date{2024, Month::August, 23}},
+                observer.newCreditNotificationTransaction());
+    assertEqual(result, "giraffe", observer.newCreditNotificationAccountName());
+    assertEqual(result,
+                Transaction{456_cents, "transfer to giraffe",
+                            Date{2024, Month::August, 23}},
+                observer.newDebitNotificationTransaction());
+    assertEqual(result, "master", observer.newDebitNotificationAccountName());
+  });
+}
 } // namespace sbash64::budget::bank
