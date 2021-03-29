@@ -153,6 +153,13 @@ static void appendSignalGeneratedColumn(
       gtk_column_view_column_new(label, signalListItemFactory));
 }
 
+static auto sameAccountName(gconstpointer a, gconstpointer b) -> gboolean {
+  return static_cast<gboolean>(
+      std::string_view{gtk_string_object_get_string(
+          static_cast<const AccountItem *>(a)->name)} ==
+      gtk_string_object_get_string(static_cast<const AccountItem *>(b)->name));
+}
+
 class GtkView : public View, public Bank::Observer {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
@@ -259,17 +266,58 @@ public:
     g_object_unref(accountItem);
   }
 
-  ~GtkView() override {
-    g_object_unref(accountListStore);
-    g_object_unref(accountSelection);
-    g_object_unref(transactionSelection);
+  void notifyThatDebitHasBeenAdded(std::string_view accountName,
+                                   const Transaction &transaction) override {
+    auto *const equalAccountItem =
+        static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
+    equalAccountItem->name =
+        gtk_string_object_new(std::string{accountName}.c_str());
+    guint equalAccountPosition = 0;
+    g_list_store_find_with_equal_func(accountListStore, equalAccountItem,
+                                      sameAccountName, &equalAccountPosition);
+    // g_object_unref(equalAccountItem);
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = false;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    g_list_store_append(
+        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(accountListStore),
+                                           equalAccountPosition))
+            ->transactionListStore,
+        item);
+    g_object_unref(item);
   }
 
-  void notifyThatDebitHasBeenAdded(std::string_view accountName,
-                                   const Transaction &) override {}
-
   void notifyThatCreditHasBeenAdded(std::string_view accountName,
-                                    const Transaction &) override {}
+                                    const Transaction &transaction) override {
+    auto *const equalAccountItem =
+        static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
+    equalAccountItem->name =
+        gtk_string_object_new(std::string{accountName}.c_str());
+    guint equalAccountPosition = 0;
+    g_list_store_find_with_equal_func(accountListStore, equalAccountItem,
+                                      sameAccountName, &equalAccountPosition);
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = true;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    g_list_store_append(
+        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(accountListStore),
+                                           equalAccountPosition))
+            ->transactionListStore,
+        item);
+    g_object_unref(item);
+  }
 
 private:
   static void
@@ -309,7 +357,6 @@ private:
       view->model.credit(transaction(view));
     else
       view->model.debit(selectedAccountName(view), transaction(view));
-    view->model.show(*view);
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
@@ -350,7 +397,6 @@ private:
             gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
         Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
              g_date_time_get_day_of_month(date)});
-    view->model.show(*view);
   }
 
   Model &model;
