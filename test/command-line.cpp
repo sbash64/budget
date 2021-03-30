@@ -182,14 +182,10 @@ private:
 class SerializationStub : public SessionSerialization {
 public:
   void save(Account &, const std::vector<Account *> &) override {}
-  void saveAccount(std::string_view, const VerifiableTransactions &,
-                   const VerifiableTransactions &) override {}
 };
 
 class DeserializationStub : public SessionDeserialization {
 public:
-  void loadAccount(VerifiableTransactions &,
-                   VerifiableTransactions &) override {}
   void load(
       Account::Factory &, std::shared_ptr<Account> &,
       std::map<std::string, std::shared_ptr<Account>, std::less<>> &) override {
