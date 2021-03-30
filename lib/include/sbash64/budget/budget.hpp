@@ -113,10 +113,24 @@ auto verifiedCredit(T &&transaction) -> VerifiableTransactionWithType {
 }
 
 class View;
-class SessionDeserialization;
-class SessionSerialization;
 
 using Transactions = std::vector<Transaction>;
+using VerifiableTransactions = std::vector<VerifiableTransaction>;
+
+class AccountSerialization {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
+  virtual void save(std::string_view name,
+                    const VerifiableTransactions &credits,
+                    const VerifiableTransactions &debits) = 0;
+};
+
+class AccountDeserialization {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
+  virtual void load(VerifiableTransactions &credits,
+                    VerifiableTransactions &debits) = 0;
+};
 
 class Account {
 public:
@@ -124,8 +138,8 @@ public:
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
-  virtual void save(SessionSerialization &) = 0;
-  virtual void load(SessionDeserialization &) = 0;
+  virtual void save(AccountSerialization &) = 0;
+  virtual void load(AccountDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
   virtual void rename(std::string_view) = 0;
@@ -151,23 +165,16 @@ public:
       const std::vector<VerifiableTransactionWithType> &transactions) = 0;
 };
 
-using VerifiableTransactions = std::vector<VerifiableTransaction>;
-
 class SessionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
-  virtual void saveAccount(std::string_view name,
-                           const VerifiableTransactions &credits,
-                           const VerifiableTransactions &debits) = 0;
 };
 
 class SessionDeserialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
-  virtual void loadAccount(VerifiableTransactions &credits,
-                           VerifiableTransactions &debits) = 0;
   virtual void load(Account::Factory &factory,
                     std::shared_ptr<Account> &primary,
                     std::map<std::string, std::shared_ptr<Account>, std::less<>>

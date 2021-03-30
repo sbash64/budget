@@ -22,7 +22,7 @@ enum class Command {
   verifyCredit
 };
 
-constexpr auto name(Command c) -> const char * {
+constexpr auto name(Command c) -> std::string_view {
   switch (c) {
   case Command::print:
     return "print";

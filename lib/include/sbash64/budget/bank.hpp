@@ -43,8 +43,8 @@ public:
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
-  void save(SessionSerialization &) override;
-  void load(SessionDeserialization &) override;
+  void save(AccountSerialization &) override;
+  void load(AccountDeserialization &) override;
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
   void rename(std::string_view) override;

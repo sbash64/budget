@@ -27,13 +27,13 @@ static void assertContains(testcpplite::TestResult &result,
 }
 
 static void assertContainsCredit(testcpplite::TestResult &result,
-                                 PersistentMemoryStub &persistentMemory,
+                                 PersistentAccountStub &persistentMemory,
                                  const VerifiableTransaction &transaction) {
   assertContains(result, persistentMemory.credits(), transaction);
 }
 
 static void assertContainsDebit(testcpplite::TestResult &result,
-                                PersistentMemoryStub &persistentMemory,
+                                PersistentAccountStub &persistentMemory,
                                 const VerifiableTransaction &transaction) {
   assertContains(result, persistentMemory.debits(), transaction);
 }
@@ -144,7 +144,7 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   credit(account,
          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-  PersistentMemoryStub persistentMemory;
+  PersistentAccountStub persistentMemory;
   account.save(persistentMemory);
   assertEqual(result, "joe", persistentMemory.accountName());
   assertContainsDebit(result, persistentMemory,
@@ -156,7 +156,7 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
 }
 
 void loadLoadsAllTransactions(testcpplite::TestResult &result) {
-  PersistentMemoryStub persistentMemory;
+  PersistentAccountStub persistentMemory;
   persistentMemory.setCreditsToLoad(
       {{{123_cents, "ape", Date{2020, Month::June, 2}}},
        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}}});

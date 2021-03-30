@@ -184,14 +184,10 @@ private:
 class SerializationStub : public SessionSerialization {
 public:
   void save(Account &, const std::vector<Account *> &) override {}
-  void saveAccount(std::string_view, const VerifiableTransactions &,
-                   const VerifiableTransactions &) override {}
 };
 
 class DeserializationStub : public SessionDeserialization {
 public:
-  void loadAccount(VerifiableTransactions &,
-                   VerifiableTransactions &) override {}
   void load(
       Account::Factory &, std::shared_ptr<Account> &,
       std::map<std::string, std::shared_ptr<Account>, std::less<>> &) override {
@@ -267,12 +263,12 @@ static void testController(
     const std::function<void(CommandLineInterpreter &, ModelStub &,
                              CommandLineInterfaceStub &, SerializationStub &,
                              DeserializationStub &)> &test,
-    const std::vector<std::string> &input) {
+    const std::vector<std::string_view> &input) {
   testController([&](CommandLineInterpreter &interpreter, ModelStub &model,
                      CommandLineInterfaceStub &interface,
                      SerializationStub &serialization,
                      DeserializationStub &deserialization) {
-    std::for_each(input.begin(), input.end(), [&](const std::string &line) {
+    std::for_each(input.begin(), input.end(), [&](std::string_view line) {
       execute(interpreter, model, interface, serialization, deserialization,
               line);
     });
@@ -284,12 +280,12 @@ static void
 testController(ModelStub &m,
                const std::function<void(CommandLineInterpreter &, ModelStub &,
                                         CommandLineInterfaceStub &)> &test,
-               const std::vector<std::string> &input) {
+               const std::vector<std::string_view> &input) {
   testController(m, [&](CommandLineInterpreter &interpreter, ModelStub &model,
                         CommandLineInterfaceStub &interface,
                         SerializationStub &serialization,
                         DeserializationStub &deserialization) {
-    std::for_each(input.begin(), input.end(), [&](const std::string &line) {
+    std::for_each(input.begin(), input.end(), [&](std::string_view line) {
       execute(interpreter, model, interface, serialization, deserialization,
               line);
     });
@@ -298,7 +294,7 @@ testController(ModelStub &m,
 }
 
 static void assertDebitsAccount(testcpplite::TestResult &result,
-                                const std::vector<std::string> &input,
+                                const std::vector<std::string_view> &input,
                                 const std::string &expectedAccountName,
                                 const Transaction &expectedTransaction) {
   testController(

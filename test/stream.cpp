@@ -32,16 +32,14 @@ public:
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
-  void load(SessionDeserialization &) override {}
+  void load(AccountDeserialization &) override {}
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
 
-  void save(SessionSerialization &p) override {
-    p.saveAccount(name, credits, debits);
-  }
+  void save(AccountSerialization &p) override { p.save(name, credits, debits); }
 
 private:
   std::string name;
@@ -60,16 +58,14 @@ public:
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
   void show(View &) override {}
-  void save(SessionSerialization &) override {}
+  void save(AccountSerialization &) override {}
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
 
-  void load(SessionDeserialization &p) override {
-    p.loadAccount(credits, debits);
-  }
+  void load(AccountDeserialization &p) override { p.load(credits, debits); }
 
 private:
   VerifiableTransactions &credits;

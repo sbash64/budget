@@ -19,26 +19,40 @@ public:
   explicit WritesSessionToStream(IoStreamFactory &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
-  void saveAccount(std::string_view name, const VerifiableTransactions &credits,
-                   const VerifiableTransactions &debits) override;
 
 private:
   IoStreamFactory &ioStreamFactory;
-  std::ostream *stream{};
+};
+
+class WritesAccountToStream : public AccountSerialization {
+public:
+  explicit WritesAccountToStream(std::ostream &stream);
+  void save(std::string_view name, const VerifiableTransactions &credits,
+            const VerifiableTransactions &debits) override;
+
+private:
+  std::ostream &stream;
 };
 
 class ReadsSessionFromStream : public SessionDeserialization {
 public:
   explicit ReadsSessionFromStream(IoStreamFactory &);
-  void loadAccount(VerifiableTransactions &credits,
-                   VerifiableTransactions &debits) override;
   void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
             std::map<std::string, std::shared_ptr<Account>, std::less<>>
                 &secondaries) override;
 
 private:
   IoStreamFactory &ioStreamFactory;
-  std::istream *stream{};
+};
+
+class ReadsAccountFromStream : public AccountDeserialization {
+public:
+  explicit ReadsAccountFromStream(std::istream &);
+  void load(VerifiableTransactions &credits,
+            VerifiableTransactions &debits) override;
+
+private:
+  std::istream &stream;
 };
 } // namespace sbash64::budget
 
