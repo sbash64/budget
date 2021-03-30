@@ -15,10 +15,17 @@ public:
 
   auto creditAdded() -> Transaction { return creditAdded_; }
 
-  void notifyThatCreditHasBeenAdded(const Transaction &t) { creditAdded_ = t; }
+  void notifyThatCreditHasBeenAdded(const Transaction &t) override {
+    creditAdded_ = t;
+  }
+
+  void notifyThatDebitHasBeenAdded(const Transaction &t) { debitAdded_ = t; }
+
+  auto debitAdded() -> Transaction { return debitAdded_; }
 
 private:
   Transaction creditAdded_;
+  Transaction debitAdded_;
   USD balance_{};
 };
 } // namespace
@@ -293,5 +300,14 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
               observer.creditAdded());
+}
+
+void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.debitAdded());
 }
 } // namespace sbash64::budget::account

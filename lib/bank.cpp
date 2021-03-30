@@ -180,8 +180,10 @@ void InMemoryAccount::credit(const Transaction &t) {
 
 void InMemoryAccount::debit(const Transaction &t) {
   debits.push_back({t, false});
-  if (observer != nullptr)
+  if (observer != nullptr) {
+    observer->notifyThatDebitHasBeenAdded(t);
     observer->notifyThatBalanceHasChanged(balance(credits, debits));
+  }
 }
 
 static auto

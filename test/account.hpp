@@ -21,6 +21,7 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
+void notifiesObserverOfNewDebit(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif
