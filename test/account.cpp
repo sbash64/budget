@@ -11,9 +11,14 @@ class AccountObserverStub : public Account::Observer {
 public:
   auto balance() -> USD { return balance_; }
 
-  void notifyThatBalanceHasChanged(USD balance) { balance_ = balance; }
+  void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
+
+  auto creditAdded() -> Transaction { return creditAdded_; }
+
+  void notifyThatCreditHasBeenAdded(const Transaction &t) { creditAdded_ = t; }
 
 private:
+  Transaction creditAdded_;
   USD balance_{};
 };
 } // namespace
@@ -279,5 +284,14 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
   debit(account,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   assertEqual(result, 123_cents - 456_cents, observer.balance());
+}
+
+void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.creditAdded());
 }
 } // namespace sbash64::budget::account

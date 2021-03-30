@@ -131,6 +131,8 @@ static auto runAllTests() -> int {
        {account::rename, "account rename"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifies observer of updated balance after adding transactions"},
+       {account::notifiesObserverOfNewCredit,
+        "notifies observer of new credit"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},

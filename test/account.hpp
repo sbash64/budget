@@ -20,6 +20,7 @@ void showAfterRemovingVerifiedTransactionShowsRemaining(
 void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
+void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

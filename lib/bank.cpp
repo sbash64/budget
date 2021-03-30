@@ -172,8 +172,10 @@ static auto balance(const VerifiableTransactions &credits,
 
 void InMemoryAccount::credit(const Transaction &t) {
   credits.push_back({t, false});
-  if (observer != nullptr)
+  if (observer != nullptr) {
+    observer->notifyThatCreditHasBeenAdded(t);
     observer->notifyThatBalanceHasChanged(balance(credits, debits));
+  }
 }
 
 void InMemoryAccount::debit(const Transaction &t) {
