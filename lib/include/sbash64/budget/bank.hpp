@@ -40,6 +40,7 @@ private:
 class InMemoryAccount : public Account {
 public:
   explicit InMemoryAccount(std::string name);
+  void attach(Observer *);
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
@@ -62,6 +63,7 @@ private:
   VerifiableTransactions debits;
   VerifiableTransactions credits;
   std::string name;
+  Observer *observer{};
 };
 } // namespace sbash64::budget
 

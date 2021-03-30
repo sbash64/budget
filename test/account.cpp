@@ -6,6 +6,17 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
+namespace {
+class AccountObserverStub : public Account::Observer {
+public:
+  auto balance() -> USD { return balance_; }
+
+  void notifyThatBalanceHasChanged(USD balance) { balance_ = balance; }
+
+private:
+  USD balance_{};
+};
+} // namespace
 constexpr auto to_integral(Transaction::Type e) ->
     typename std::underlying_type<Transaction::Type>::type {
   return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);
@@ -256,5 +267,16 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
                                          Date{2020, Month::January, 20}}),
                verifiedDebit(Transaction{456_cents, "gorilla",
                                          Date{2020, Month::January, 20}})});
+}
+
+void notifiesObserverOfNewCreditWithBalance(testcpplite::TestResult &result) {
+  InMemoryAccount account{"joe"};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, 123_cents, observer.balance());
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  assertEqual(result, 123_cents - 456_cents, observer.balance());
 }
 } // namespace sbash64::budget::account

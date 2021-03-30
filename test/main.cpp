@@ -129,6 +129,8 @@ static auto runAllTests() -> int {
        {account::loadLoadsAllTransactions,
         "account load loads all transactions"},
        {account::rename, "account rename"},
+       {account::notifiesObserverOfNewCreditWithBalance,
+        "notifies observer of new credit with balance"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},

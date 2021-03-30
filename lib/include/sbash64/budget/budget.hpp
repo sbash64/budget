@@ -134,6 +134,12 @@ public:
 
 class Account {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatBalanceHasChanged(USD) = 0;
+  };
+
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;

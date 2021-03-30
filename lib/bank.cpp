@@ -158,14 +158,6 @@ void Bank::attach(Observer *a) { observer = a; }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
-void InMemoryAccount::credit(const Transaction &t) {
-  credits.push_back({t, false});
-}
-
-void InMemoryAccount::debit(const Transaction &t) {
-  debits.push_back({t, false});
-}
-
 static auto balance(const VerifiableTransactions &transactions) -> USD {
   return accumulate(transactions.begin(), transactions.end(), USD{0},
                     [](USD total, const VerifiableTransaction &t) {
@@ -176,6 +168,18 @@ static auto balance(const VerifiableTransactions &transactions) -> USD {
 static auto balance(const VerifiableTransactions &credits,
                     const VerifiableTransactions &debits) -> USD {
   return balance(credits) - balance(debits);
+}
+
+void InMemoryAccount::credit(const Transaction &t) {
+  credits.push_back({t, false});
+  if (observer != nullptr)
+    observer->notifyThatBalanceHasChanged(balance(credits, debits));
+}
+
+void InMemoryAccount::debit(const Transaction &t) {
+  debits.push_back({t, false});
+  if (observer != nullptr)
+    observer->notifyThatBalanceHasChanged(balance(credits, debits));
 }
 
 static auto
@@ -285,4 +289,6 @@ auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
 auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
 }
+
+void InMemoryAccount::attach(Observer *a) { observer = a; }
 } // namespace sbash64::budget
