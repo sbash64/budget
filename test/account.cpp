@@ -269,8 +269,9 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
                                          Date{2020, Month::January, 20}})});
 }
 
-void notifiesObserverOfNewCreditWithBalance(testcpplite::TestResult &result) {
-  InMemoryAccount account{"joe"};
+void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
   AccountObserverStub observer;
   account.attach(&observer);
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
