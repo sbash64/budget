@@ -15,8 +15,8 @@ public:
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
   void show(View &) override { stream << name; }
-  void save(SessionSerialization &) override {}
-  void load(SessionDeserialization &) override {}
+  void save(AccountSerialization &) override {}
+  void load(AccountDeserialization &) override {}
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }

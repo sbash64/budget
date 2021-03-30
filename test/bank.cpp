@@ -30,9 +30,9 @@ public:
 
   void show(View &) override {}
 
-  void save(SessionSerialization &) override {}
+  void save(AccountSerialization &) override {}
 
-  void load(SessionDeserialization &) override {}
+  void load(AccountDeserialization &) override {}
 
   auto newName() -> std::string { return newName_; }
 

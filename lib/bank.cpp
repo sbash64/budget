@@ -190,8 +190,8 @@ void InMemoryAccount::show(View &view) {
                           dateSortedTransactionsWithType(credits, debits));
 }
 
-void InMemoryAccount::save(SessionSerialization &serialization) {
-  serialization.saveAccount(name, credits, debits);
+void InMemoryAccount::save(AccountSerialization &serialization) {
+  serialization.save(name, credits, debits);
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name)
@@ -199,8 +199,8 @@ auto InMemoryAccount::Factory::make(std::string_view name)
   return std::make_shared<InMemoryAccount>(std::string{name});
 }
 
-void InMemoryAccount::load(SessionDeserialization &deserialization) {
-  deserialization.loadAccount(credits, debits);
+void InMemoryAccount::load(AccountDeserialization &deserialization) {
+  deserialization.load(credits, debits);
 }
 
 static void executeIfFound(

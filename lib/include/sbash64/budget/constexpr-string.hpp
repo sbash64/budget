@@ -8,9 +8,11 @@
 template <std::size_t M, std::size_t N>
 constexpr auto concatenate(const std::array<char, M> &a,
                            const std::array<char, N> &b) {
-  std::array<char, M + N - 1> result;
-  std::copy(a.begin(), a.end(), result.begin());
-  std::copy(b.begin(), b.end(), result.begin() + M - 1);
+  std::array<char, M + N - 1> result{};
+  for (std::size_t i{0}; i < a.size(); ++i)
+    result[i] = a[i];
+  for (std::size_t i{0}; i < b.size(); ++i)
+    result[i + M - 1] = b[i];
   return result;
 }
 

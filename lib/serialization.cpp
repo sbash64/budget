@@ -6,13 +6,13 @@
 namespace sbash64::budget {
 void WritesSessionToStream::save(Account &primary,
                                  const std::vector<Account *> &secondaries) {
-  const auto streamGuard{ioStreamFactory.makeOutput()};
-  stream = streamGuard.get();
-  primary.save(*this);
+  const auto stream{ioStreamFactory.makeOutput()};
+  WritesAccountToStream writesAccount{*stream};
+  primary.save(writesAccount);
   *stream << '\n';
   for (auto *account : secondaries) {
     *stream << '\n';
-    account->save(*this);
+    account->save(writesAccount);
     *stream << '\n';
   }
 }
@@ -38,28 +38,28 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void WritesSessionToStream::saveAccount(std::string_view name,
-                                        const VerifiableTransactions &credits,
-                                        const VerifiableTransactions &debits) {
-  *stream << name << '\n';
-  *stream << "credits";
+void WritesAccountToStream::save(std::string_view name,
+                                 const VerifiableTransactions &credits,
+                                 const VerifiableTransactions &debits) {
+  stream << name << '\n';
+  stream << "credits";
   for (const auto &credit : credits) {
-    *stream << '\n';
+    stream << '\n';
     if (credit.verified)
-      *stream << '^';
-    *stream << credit.transaction.amount << ' ';
-    *stream << credit.transaction.description << ' ';
-    *stream << credit.transaction.date;
+      stream << '^';
+    stream << credit.transaction.amount << ' ';
+    stream << credit.transaction.description << ' ';
+    stream << credit.transaction.date;
   }
-  *stream << '\n';
-  *stream << "debits";
+  stream << '\n';
+  stream << "debits";
   for (const auto &debit : debits) {
-    *stream << '\n';
+    stream << '\n';
     if (debit.verified)
-      *stream << '^';
-    *stream << debit.transaction.amount << ' ';
-    *stream << debit.transaction.description << ' ';
-    *stream << debit.transaction.date;
+      stream << '^';
+    stream << debit.transaction.amount << ' ';
+    stream << debit.transaction.description << ' ';
+    stream << debit.transaction.date;
   }
 }
 
@@ -118,32 +118,32 @@ static void loadTransaction(std::istream &input, std::string &line,
   getline(input, line);
 }
 
-void ReadsSessionFromStream::loadAccount(VerifiableTransactions &credits,
-                                         VerifiableTransactions &debits) {
+void ReadsAccountFromStream::load(VerifiableTransactions &credits,
+                                  VerifiableTransactions &debits) {
   std::string line;
-  getline(*stream, line);
-  getline(*stream, line);
+  getline(stream, line);
+  getline(stream, line);
   while (line != "debits") {
-    loadTransaction(*stream, line, credits);
+    loadTransaction(stream, line, credits);
   }
-  getline(*stream, line);
+  getline(stream, line);
   while (!line.empty()) {
-    loadTransaction(*stream, line, debits);
+    loadTransaction(stream, line, debits);
   }
 }
 
 void ReadsSessionFromStream::load(
     Account::Factory &factory, std::shared_ptr<Account> &primary,
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
-  const auto streamGuard{ioStreamFactory.makeInput()};
-  stream = streamGuard.get();
+  const auto stream{ioStreamFactory.makeInput()};
+  ReadsAccountFromStream readsAccount{*stream};
   std::string line;
   getline(*stream, line);
   primary = factory.make(line);
-  primary->load(*this);
+  primary->load(readsAccount);
   while (getline(*stream, line)) {
     auto next{factory.make(line)};
-    next->load(*this);
+    next->load(readsAccount);
     secondaries[line] = std::move(next);
   }
 }
@@ -153,4 +153,10 @@ ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)
 
 WritesSessionToStream::WritesSessionToStream(IoStreamFactory &ioStreamFactory)
     : ioStreamFactory{ioStreamFactory} {}
+
+ReadsAccountFromStream::ReadsAccountFromStream(std::istream &stream)
+    : stream{stream} {}
+
+WritesAccountToStream::WritesAccountToStream(std::ostream &stream)
+    : stream{stream} {}
 } // namespace sbash64::budget
