@@ -35,8 +35,9 @@ public:
 
 private:
   Account::Factory &factory;
-  std::shared_ptr<Account> masterAccount;
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::shared_ptr<Account> primaryAccount;
+  std::map<std::string, std::shared_ptr<Account>, std::less<>>
+      secondaryAccounts;
 };
 
 class InMemoryAccount : public Account {
