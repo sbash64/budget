@@ -273,7 +273,11 @@ void InMemoryAccount::removeDebit(const Transaction &t) {
     observer->notifyThatDebitHasBeenRemoved(t);
 }
 
-void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
+void InMemoryAccount::removeCredit(const Transaction &t) {
+  remove(credits, t);
+  if (observer != nullptr)
+    observer->notifyThatCreditHasBeenRemoved(t);
+}
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 

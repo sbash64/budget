@@ -27,14 +27,21 @@ public:
 
   auto debitRemoved() -> Transaction { return debitRemoved_; }
 
-  void notifyThatDebitHasBeenRemoved(const Transaction &t) {
+  void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
     debitRemoved_ = t;
+  }
+
+  auto creditRemoved() -> Transaction { return creditRemoved_; }
+
+  void notifyThatCreditHasBeenRemoved(const Transaction &t) {
+    creditRemoved_ = t;
   }
 
 private:
   Transaction creditAdded_;
   Transaction debitAdded_;
   Transaction debitRemoved_;
+  Transaction creditRemoved_;
   USD balance_{};
 };
 } // namespace
@@ -328,5 +335,15 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
       Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
               observer.debitRemoved());
+}
+
+void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  account.removeCredit(
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.creditRemoved());
 }
 } // namespace sbash64::budget::account
