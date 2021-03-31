@@ -10,6 +10,11 @@
 
 namespace sbash64::budget::bank {
 namespace {
+class AccountDeserializationStub : public AccountDeserialization {
+public:
+  void load(Observer &) override {}
+};
+
 class AccountStub : public Account {
 public:
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
@@ -32,7 +37,11 @@ public:
 
   void save(AccountSerialization &) override {}
 
-  void load(AccountDeserialization &) override {}
+  void load(AccountDeserialization &a) override { deserialization_ = &a; }
+
+  auto deserialization() -> const AccountDeserialization * {
+    return deserialization_;
+  }
 
   auto newName() -> std::string { return newName_; }
 
@@ -72,6 +81,11 @@ public:
 
   void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+
 private:
   Transaction creditToVerify_;
   Transaction debitToVerify_;
@@ -82,6 +96,7 @@ private:
   Transactions foundUnverifiedDebits;
   Transactions foundUnverifiedCredits;
   std::string newName_;
+  const AccountDeserialization *deserialization_{};
   USD findUnverifiedDebitsAmount_{};
   USD findUnverifiedCreditsAmount_{};
 };
@@ -305,30 +320,29 @@ void saveSavesAccounts(testcpplite::TestResult &result) {
 
 void loadLoadsAccounts(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
     PersistentMemoryStub persistentMemory;
     bank.load(persistentMemory);
-    assertEqual(result, &factory, persistentMemory.accountFactory());
-    assertEqual(result, masterAccount.get(),
-                persistentMemory.primaryAccountToLoadInto()->get());
-    assertEqual(
-        result, giraffe.get(),
-        persistentMemory.secondaryAccountsToLoadInto()->at("giraffe").get());
-    assertEqual(
-        result, penguin.get(),
-        persistentMemory.secondaryAccountsToLoadInto()->at("penguin").get());
-    assertEqual(
-        result, leopard.get(),
-        persistentMemory.secondaryAccountsToLoadInto()->at("leopard").get());
+    assertEqual(result, &bank, persistentMemory.observer());
+    AccountDeserializationStub deserialization;
+    bank.notifyThatPrimaryAccountIsReady(deserialization, "giraffe");
+    assertEqual(result, &deserialization, giraffe->deserialization());
+    bank.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
+    assertEqual(result, &deserialization, penguin->deserialization());
+    bank.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
+    assertEqual(result, &deserialization, leopard->deserialization());
+
+    ViewStub view;
+    bank.show(view);
+    assertEqual(result, giraffe.get(), view.primaryAccount());
+    assertEqual(result, leopard.get(), view.secondaryAccounts().at(0));
+    assertEqual(result, penguin.get(), view.secondaryAccounts().at(1));
   });
 }
 

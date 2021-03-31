@@ -22,6 +22,10 @@ public:
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
 
 private:
   std::stringstream &stream;

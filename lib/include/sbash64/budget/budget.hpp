@@ -127,12 +127,19 @@ public:
 
 class AccountDeserialization {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void
+    notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) = 0;
+    virtual void
+    notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) = 0;
+  };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
-  virtual void load(VerifiableTransactions &credits,
-                    VerifiableTransactions &debits) = 0;
+  virtual void load(Observer &) = 0;
 };
 
-class Account {
+class Account : public AccountDeserialization::Observer {
 public:
   class Observer {
   public:
@@ -184,14 +191,19 @@ public:
 
 class SessionDeserialization {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+                                                 std::string_view name) = 0;
+    virtual void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
+                                                   std::string_view name) = 0;
+  };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
-  virtual void load(Account::Factory &factory,
-                    std::shared_ptr<Account> &primary,
-                    std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                        &secondaries) = 0;
+  virtual void load(Observer &) = 0;
 };
 
-class Model {
+class Model : public SessionDeserialization::Observer {
 public:
   class Observer {
   public:

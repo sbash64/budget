@@ -1,4 +1,5 @@
 #include "serialization.hpp"
+#include <functional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -89,8 +90,10 @@ static auto usd(std::string_view s) -> USD {
   return usd;
 }
 
-static void loadTransaction(std::istream &input, std::string &line,
-                            VerifiableTransactions &transactions) {
+static void
+loadTransaction(std::istream &input, std::string &line,
+                const std::function<void(const VerifiableTransaction &)>
+                    &onDeserialization) {
   std::stringstream transaction{line};
   std::string next;
   std::string eventuallyDate;
@@ -113,39 +116,36 @@ static void loadTransaction(std::istream &input, std::string &line,
     transaction >> eventuallyEndOfLine;
   }
   description << next;
-  transactions.push_back(
+  onDeserialization(
       {amount, description.str(), date(eventuallyDate), verified});
   getline(input, line);
 }
 
-void ReadsAccountFromStream::load(VerifiableTransactions &credits,
-                                  VerifiableTransactions &debits) {
+void ReadsAccountFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
   getline(stream, line);
   while (line != "debits") {
-    loadTransaction(stream, line, credits);
+    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
+      observer.notifyThatCreditHasBeenDeserialized(t);
+    });
   }
   getline(stream, line);
   while (!line.empty()) {
-    loadTransaction(stream, line, debits);
+    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
+      observer.notifyThatDebitHasBeenDeserialized(t);
+    });
   }
 }
 
-void ReadsSessionFromStream::load(
-    Account::Factory &factory, std::shared_ptr<Account> &primary,
-    std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
+void ReadsSessionFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   ReadsAccountFromStream readsAccount{*stream};
   std::string line;
   getline(*stream, line);
-  primary = factory.make(line);
-  primary->load(readsAccount);
-  while (getline(*stream, line)) {
-    auto next{factory.make(line)};
-    next->load(readsAccount);
-    secondaries[line] = std::move(next);
-  }
+  observer.notifyThatPrimaryAccountIsReady(readsAccount, line);
+  while (getline(*stream, line))
+    observer.notifyThatSecondaryAccountIsReady(readsAccount, line);
 }
 
 ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)
