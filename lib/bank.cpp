@@ -270,22 +270,32 @@ static void verify(VerifiableTransactions &transactions, const Transaction &t) {
 static void remove(VerifiableTransactions &transactions, const Transaction &t,
                    Account::Observer *observer,
                    const std::function<void(Account::Observer *,
-                                            const Transaction &t)> &notify) {
+                                            const Transaction &t)> &notify,
+                   const VerifiableTransactions &credits,
+                   const VerifiableTransactions &debits) {
   remove(transactions, t);
-  if (observer != nullptr)
+  if (observer != nullptr) {
     notify(observer, t);
+    observer->notifyThatBalanceHasChanged(balance(credits, debits));
+  }
 }
 
 void InMemoryAccount::removeDebit(const Transaction &t) {
-  remove(debits, t, observer, [](Observer *observer, const Transaction &t) {
-    observer->notifyThatDebitHasBeenRemoved(t);
-  });
+  remove(
+      debits, t, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatDebitHasBeenRemoved(t);
+      },
+      credits, debits);
 }
 
 void InMemoryAccount::removeCredit(const Transaction &t) {
-  remove(credits, t, observer, [](Observer *observer, const Transaction &t) {
-    observer->notifyThatCreditHasBeenRemoved(t);
-  });
+  remove(
+      credits, t, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatCreditHasBeenRemoved(t);
+      },
+      credits, debits);
 }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }

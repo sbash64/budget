@@ -129,8 +129,10 @@ static auto runAllTests() -> int {
        {account::loadLoadsAllTransactions,
         "account load loads all transactions"},
        {account::rename, "account rename"},
-       {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
-        "notifies observer of updated balance after adding transactions"},
+       {account::
+            notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions,
+        "notifies observer of updated balance after adding or removing "
+        "transactions"},
        {account::notifiesObserverOfNewCredit,
         "notifies observer of new credit"},
        {account::notifiesObserverOfNewDebit, "notifies observer of new debit"},

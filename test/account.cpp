@@ -297,7 +297,7 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
                                          Date{2020, Month::January, 20}})});
 }
 
-void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
+void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
     testcpplite::TestResult &result) {
   InMemoryAccount account{""};
   AccountObserverStub observer;
@@ -307,6 +307,9 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
   debit(account,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
   assertEqual(result, 123_cents - 456_cents, observer.balance());
+  account.removeCredit(
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, -456_cents, observer.balance());
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {

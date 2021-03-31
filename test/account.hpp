@@ -18,7 +18,7 @@ void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
 void showAfterRemovingVerifiedTransactionShowsRemaining(
     testcpplite::TestResult &);
 void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
-void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
+void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
