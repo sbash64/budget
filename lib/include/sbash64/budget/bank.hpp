@@ -54,6 +54,10 @@ public:
   void verifyCredit(const Transaction &) override;
   auto findUnverifiedDebits(USD amount) -> Transactions override;
   auto findUnverifiedCredits(USD amount) -> Transactions override;
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override;
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
 
   class Factory : public Account::Factory {
   public:

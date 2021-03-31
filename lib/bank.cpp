@@ -200,7 +200,7 @@ auto InMemoryAccount::Factory::make(std::string_view name)
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
-  deserialization.load(credits, debits);
+  deserialization.load(*this);
 }
 
 static void executeIfFound(
@@ -285,5 +285,15 @@ void Bank::notifyThatSecondaryAccountIsReady(
   auto next{factory.make(name)};
   next->load(deserialization);
   accounts[std::string{name}] = std::move(next);
+}
+
+void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  credits.push_back(t);
+}
+
+void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  debits.push_back(t);
 }
 } // namespace sbash64::budget

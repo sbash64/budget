@@ -156,14 +156,16 @@ void saveSavesAllTransactions(testcpplite::TestResult &result) {
 }
 
 void loadLoadsAllTransactions(testcpplite::TestResult &result) {
-  PersistentAccountStub persistentMemory;
-  persistentMemory.setCreditsToLoad(
-      {{{123_cents, "ape", Date{2020, Month::June, 2}}},
-       {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}}});
-  persistentMemory.setDebitsToLoad(
-      {{{456_cents, "gorilla", Date{2020, Month::January, 20}}}});
   InMemoryAccount account{""};
+  PersistentAccountStub persistentMemory;
   account.load(persistentMemory);
+  assertEqual(result, &account, persistentMemory.observer());
+  account.notifyThatCreditHasBeenDeserialized(
+      {{123_cents, "ape", Date{2020, Month::June, 2}}, false});
+  account.notifyThatCreditHasBeenDeserialized(
+      {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false});
+  account.notifyThatDebitHasBeenDeserialized(
+      {{456_cents, "gorilla", Date{2020, Month::January, 20}}, false});
   ViewStub view;
   show(account, view);
   assertShown(

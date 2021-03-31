@@ -72,11 +72,9 @@ public:
     debitsToLoad = std::move(t);
   }
 
-  void load(VerifiableTransactions &credits,
-            VerifiableTransactions &debits) override {
-    credits = creditsToLoad;
-    debits = debitsToLoad;
-  }
+  void load(Observer &observer) override { observer_ = &observer; }
+
+  auto observer() -> const Observer * { return observer_; }
 
 private:
   VerifiableTransactions creditsToLoad;
@@ -84,6 +82,7 @@ private:
   std::string accountName_;
   VerifiableTransactions credits_;
   VerifiableTransactions debits_;
+  const Observer *observer_{};
 };
 } // namespace sbash64::budget
 

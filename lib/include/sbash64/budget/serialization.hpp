@@ -46,8 +46,7 @@ private:
 class ReadsAccountFromStream : public AccountDeserialization {
 public:
   explicit ReadsAccountFromStream(std::istream &);
-  void load(VerifiableTransactions &credits,
-            VerifiableTransactions &debits) override;
+  void load(Observer &) override;
 
 private:
   std::istream &stream;

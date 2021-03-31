@@ -12,8 +12,7 @@ namespace sbash64::budget::bank {
 namespace {
 class AccountDeserializationStub : public AccountDeserialization {
 public:
-  void load(VerifiableTransactions &credits,
-            VerifiableTransactions &debits) override {}
+  void load(Observer &) override {}
 };
 
 class AccountStub : public Account {
@@ -81,6 +80,11 @@ public:
   auto creditToVerify() -> Transaction { return creditToVerify_; }
 
   void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
+
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
 
 private:
   Transaction creditToVerify_;

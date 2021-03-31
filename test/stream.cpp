@@ -59,6 +59,10 @@ public:
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
 
   void save(AccountSerialization &p) override { p.save(name, credits, debits); }
 
@@ -70,10 +74,6 @@ private:
 
 class LoadAccountStub : public Account {
 public:
-  LoadAccountStub(VerifiableTransactions &credits,
-                  VerifiableTransactions &debits)
-      : credits{credits}, debits{debits} {}
-
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void removeCredit(const Transaction &) override {}
@@ -85,12 +85,25 @@ public:
   auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &t) override {
+    debits_.push_back(t);
+  }
 
-  void load(AccountDeserialization &p) override { p.load(credits, debits); }
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &t) override {
+    credits_.push_back(t);
+  }
+
+  void load(AccountDeserialization &p) override { p.load(*this); }
+
+  auto credits() -> VerifiableTransactions { return credits_; }
+
+  auto debits() -> VerifiableTransactions { return debits_; }
 
 private:
-  VerifiableTransactions &credits;
-  VerifiableTransactions &debits;
+  VerifiableTransactions credits_;
+  VerifiableTransactions debits_;
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -242,20 +255,10 @@ debits
 )")};
   IoStreamFactoryStub factory{input};
   ReadsSessionFromStream file{factory};
-  VerifiableTransactions creditsJeff;
-  VerifiableTransactions debitsJeff;
-  VerifiableTransactions creditsSteve;
-  VerifiableTransactions debitsSteve;
-  VerifiableTransactions creditsSue;
-  VerifiableTransactions debitsSue;
-  VerifiableTransactions creditsAllen;
-  VerifiableTransactions debitsAllen;
-  const auto jeff{std::make_shared<LoadAccountStub>(creditsJeff, debitsJeff)};
-  const auto steve{
-      std::make_shared<LoadAccountStub>(creditsSteve, debitsSteve)};
-  const auto sue{std::make_shared<LoadAccountStub>(creditsSue, debitsSue)};
-  const auto allen{
-      std::make_shared<LoadAccountStub>(creditsAllen, debitsAllen)};
+  const auto jeff{std::make_shared<LoadAccountStub>()};
+  const auto steve{std::make_shared<LoadAccountStub>()};
+  const auto sue{std::make_shared<LoadAccountStub>()};
+  const auto allen{std::make_shared<LoadAccountStub>()};
   AccountFactoryStub accountFactory;
   accountFactory.add(jeff, "jeff");
   accountFactory.add(steve, "steve");
@@ -268,12 +271,12 @@ debits
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
        {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
        {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      creditsJeff);
+      jeff->credits());
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
-              debitsJeff);
+              jeff->debits());
   assertEqual(
       result,
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
@@ -281,33 +284,33 @@ debits
        {{2500_cents, "transfer from master", Date{2021, Month::March, 12}},
         true},
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      creditsSteve);
+      steve->credits());
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
                {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              debitsSteve);
+              steve->debits());
   assertEqual(
       result,
       {{{7500_cents, "transfer from master", Date{2021, Month::January, 10}}},
        {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      creditsSue);
+      sue->credits());
   assertEqual(result,
               {{{2734_cents, "bakers", Date{2021, Month::January, 12}}},
                {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              debitsSue);
+              sue->debits());
   assertEqual(
       result,
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
        {{3200_cents, "transfer from master", Date{2021, Month::March, 12}}},
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      creditsAllen);
+      allen->credits());
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
                {{1256_cents, "walmart", Date{1984, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              debitsAllen);
+              allen->debits());
 }
 } // namespace sbash64::budget::file
