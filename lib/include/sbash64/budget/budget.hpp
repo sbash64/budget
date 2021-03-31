@@ -140,6 +140,7 @@ public:
     virtual void notifyThatBalanceHasChanged(USD) = 0;
     virtual void notifyThatCreditHasBeenAdded(const Transaction &) = 0;
     virtual void notifyThatDebitHasBeenAdded(const Transaction &) = 0;
+    virtual void notifyThatDebitHasBeenRemoved(const Transaction &) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);

@@ -134,6 +134,8 @@ static auto runAllTests() -> int {
        {account::notifiesObserverOfNewCredit,
         "notifies observer of new credit"},
        {account::notifiesObserverOfNewDebit, "notifies observer of new debit"},
+       {account::notifiesObserverOfRemovedDebit,
+        "notifies observer of removed debit"},
        {print::formatZeroDollars, "format zero dollars"},
        {print::formatOneDollar, "format one dollar"},
        {print::formatOneCent, "format one cent"},

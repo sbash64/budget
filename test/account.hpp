@@ -22,6 +22,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
+void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

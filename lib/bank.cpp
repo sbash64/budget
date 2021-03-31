@@ -267,7 +267,11 @@ static void verify(VerifiableTransactions &transactions, const Transaction &t) {
       [&](VerifiableTransactions::iterator it) { it->verified = true; });
 }
 
-void InMemoryAccount::removeDebit(const Transaction &t) { remove(debits, t); }
+void InMemoryAccount::removeDebit(const Transaction &t) {
+  remove(debits, t);
+  if (observer != nullptr)
+    observer->notifyThatDebitHasBeenRemoved(t);
+}
 
 void InMemoryAccount::removeCredit(const Transaction &t) { remove(credits, t); }
 
