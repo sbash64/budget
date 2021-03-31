@@ -28,11 +28,16 @@ public:
   auto findUnverifiedCredits(USD amount) -> Transactions override;
   void verifyDebit(std::string_view accountName, const Transaction &) override;
   void verifyCredit(const Transaction &) override;
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+                                       std::string_view name) override;
+  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
+                                         std::string_view name) override;
 
 private:
   Account::Factory &factory;
-  std::shared_ptr<Account> masterAccount;
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::shared_ptr<Account> primaryAccount;
+  std::map<std::string, std::shared_ptr<Account>, std::less<>>
+      secondaryAccounts;
 };
 
 class InMemoryAccount : public Account {
@@ -50,6 +55,10 @@ public:
   void verifyCredit(const Transaction &) override;
   auto findUnverifiedDebits(USD amount) -> Transactions override;
   auto findUnverifiedCredits(USD amount) -> Transactions override;
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override;
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
 
   class Factory : public Account::Factory {
   public:

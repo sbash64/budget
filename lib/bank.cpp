@@ -45,12 +45,13 @@ static void removeDebit(const std::shared_ptr<Account> &account,
 }
 
 Bank::Bank(Account::Factory &factory)
-    : factory{factory}, masterAccount{factory.make(masterAccountName.data())} {}
+    : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
+}
 
-void Bank::credit(const Transaction &t) { budget::credit(masterAccount, t); }
+void Bank::credit(const Transaction &t) { budget::credit(primaryAccount, t); }
 
 void Bank::removeCredit(const Transaction &t) {
-  budget::removeCredit(masterAccount, t);
+  budget::removeCredit(primaryAccount, t);
 }
 
 static auto
@@ -67,39 +68,39 @@ static void createNewAccountIfNeeded(
 }
 
 void Bank::debit(std::string_view accountName, const Transaction &t) {
-  createNewAccountIfNeeded(accounts, factory, accountName);
-  budget::debit(accounts.at(std::string{accountName}), t);
+  createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
+  budget::debit(secondaryAccounts.at(std::string{accountName}), t);
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
-  if (contains(accounts, accountName))
-    budget::removeDebit(accounts.at(std::string{accountName}), t);
+  if (contains(secondaryAccounts, accountName))
+    budget::removeDebit(secondaryAccounts.at(std::string{accountName}), t);
 }
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
-  createNewAccountIfNeeded(accounts, factory, accountName);
-  budget::debit(masterAccount,
+  createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
+  budget::debit(primaryAccount,
                 Transaction{amount,
                             transferToString.data() + std::string{accountName},
                             date});
   budget::verifyDebit(
-      masterAccount,
+      primaryAccount,
       Transaction{amount, transferToString.data() + std::string{accountName},
                   date});
-  budget::credit(accounts.at(std::string{accountName}),
+  budget::credit(secondaryAccounts.at(std::string{accountName}),
                  Transaction{amount, transferFromMasterString.data(), date});
   budget::verifyCredit(
-      accounts.at(std::string{accountName}),
+      secondaryAccounts.at(std::string{accountName}),
       Transaction{amount, transferFromMasterString.data(), date});
 }
 
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
   budget::removeDebit(
-      masterAccount,
+      primaryAccount,
       Transaction{amount, transferToString.data() + std::string{accountName},
                   date});
   budget::removeCredit(
-      accounts.at(std::string{accountName}),
+      secondaryAccounts.at(std::string{accountName}),
       Transaction{amount, transferFromMasterString.data(), date});
 }
 
@@ -113,35 +114,51 @@ static auto collect(const std::map<std::string, std::shared_ptr<Account>,
   return collected;
 }
 
-void Bank::show(View &view) { view.show(*masterAccount, collect(accounts)); }
+void Bank::show(View &view) {
+  view.show(*primaryAccount, collect(secondaryAccounts));
+}
 
 void Bank::save(SessionSerialization &persistentMemory) {
-  persistentMemory.save(*masterAccount, collect(accounts));
+  persistentMemory.save(*primaryAccount, collect(secondaryAccounts));
 }
 
 void Bank::load(SessionDeserialization &persistentMemory) {
-  persistentMemory.load(factory, masterAccount, accounts);
+  persistentMemory.load(*this);
 }
 
 void Bank::renameAccount(std::string_view from, std::string_view to) {
-  accounts.at(std::string{from})->rename(to);
+  secondaryAccounts.at(std::string{from})->rename(to);
 }
 
 auto Bank::findUnverifiedDebits(std::string_view accountName, USD amount)
     -> Transactions {
-  return accounts.at(std::string{accountName})->findUnverifiedDebits(amount);
+  return secondaryAccounts.at(std::string{accountName})
+      ->findUnverifiedDebits(amount);
 }
 
 auto Bank::findUnverifiedCredits(USD amount) -> Transactions {
-  return masterAccount->findUnverifiedCredits(amount);
+  return primaryAccount->findUnverifiedCredits(amount);
 }
 
 void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
-  budget::verifyDebit(accounts.at(std::string{accountName}), t);
+  budget::verifyDebit(secondaryAccounts.at(std::string{accountName}), t);
 }
 
 void Bank::verifyCredit(const Transaction &t) {
-  budget::verifyCredit(masterAccount, t);
+  budget::verifyCredit(primaryAccount, t);
+}
+
+void Bank::notifyThatPrimaryAccountIsReady(
+    AccountDeserialization &deserialization, std::string_view name) {
+  primaryAccount = factory.make(name);
+  primaryAccount->load(deserialization);
+}
+
+void Bank::notifyThatSecondaryAccountIsReady(
+    AccountDeserialization &deserialization, std::string_view name) {
+  auto account{factory.make(name)};
+  account->load(deserialization);
+  secondaryAccounts[std::string{name}] = std::move(account);
 }
 
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
@@ -200,7 +217,7 @@ auto InMemoryAccount::Factory::make(std::string_view name)
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
-  deserialization.load(credits, debits);
+  deserialization.load(*this);
 }
 
 static void executeIfFound(
@@ -272,5 +289,15 @@ auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
 
 auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
+}
+
+void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  credits.push_back(t);
+}
+
+void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  debits.push_back(t);
 }
 } // namespace sbash64::budget
