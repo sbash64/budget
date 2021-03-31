@@ -267,16 +267,25 @@ static void verify(VerifiableTransactions &transactions, const Transaction &t) {
       [&](VerifiableTransactions::iterator it) { it->verified = true; });
 }
 
-void InMemoryAccount::removeDebit(const Transaction &t) {
-  remove(debits, t);
+static void remove(VerifiableTransactions &transactions, const Transaction &t,
+                   Account::Observer *observer,
+                   const std::function<void(Account::Observer *,
+                                            const Transaction &t)> &notify) {
+  remove(transactions, t);
   if (observer != nullptr)
+    notify(observer, t);
+}
+
+void InMemoryAccount::removeDebit(const Transaction &t) {
+  remove(debits, t, observer, [](Observer *observer, const Transaction &t) {
     observer->notifyThatDebitHasBeenRemoved(t);
+  });
 }
 
 void InMemoryAccount::removeCredit(const Transaction &t) {
-  remove(credits, t);
-  if (observer != nullptr)
+  remove(credits, t, observer, [](Observer *observer, const Transaction &t) {
     observer->notifyThatCreditHasBeenRemoved(t);
+  });
 }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
