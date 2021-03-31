@@ -151,6 +151,12 @@ public:
     return findUnverifiedCreditsAmount_;
   }
 
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+                                       std::string_view) override {}
+
+  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
+                                         std::string_view) override {}
+
 private:
   Transaction verifiedCredit_;
   Transaction verifiedDebit_;
@@ -186,10 +192,7 @@ public:
 
 class DeserializationStub : public SessionDeserialization {
 public:
-  void load(
-      Account::Factory &, std::shared_ptr<Account> &,
-      std::map<std::string, std::shared_ptr<Account>, std::less<>> &) override {
-  }
+  void load(Observer &) override {}
 };
 
 class CommandLineInterfaceStub : public ViewStub, public CommandLineInterface {

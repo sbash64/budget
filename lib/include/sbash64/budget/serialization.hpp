@@ -37,9 +37,7 @@ private:
 class ReadsSessionFromStream : public SessionDeserialization {
 public:
   explicit ReadsSessionFromStream(IoStreamFactory &);
-  void load(Account::Factory &factory, std::shared_ptr<Account> &primary,
-            std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                &secondaries) override;
+  void load(Observer &) override;
 
 private:
   IoStreamFactory &ioStreamFactory;

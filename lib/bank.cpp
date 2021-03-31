@@ -120,7 +120,7 @@ void Bank::save(SessionSerialization &persistentMemory) {
 }
 
 void Bank::load(SessionDeserialization &persistentMemory) {
-  persistentMemory.load(factory, masterAccount, accounts);
+  persistentMemory.load(*this);
 }
 
 void Bank::renameAccount(std::string_view from, std::string_view to) {
@@ -272,5 +272,18 @@ auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
 
 auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
+}
+
+void Bank::notifyThatPrimaryAccountIsReady(
+    AccountDeserialization &deserialization, std::string_view name) {
+  masterAccount = factory.make(name);
+  masterAccount->load(deserialization);
+}
+
+void Bank::notifyThatSecondaryAccountIsReady(
+    AccountDeserialization &deserialization, std::string_view name) {
+  auto next{factory.make(name)};
+  next->load(deserialization);
+  accounts[std::string{name}] = std::move(next);
 }
 } // namespace sbash64::budget

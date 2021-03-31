@@ -132,20 +132,14 @@ void ReadsAccountFromStream::load(VerifiableTransactions &credits,
   }
 }
 
-void ReadsSessionFromStream::load(
-    Account::Factory &factory, std::shared_ptr<Account> &primary,
-    std::map<std::string, std::shared_ptr<Account>, std::less<>> &secondaries) {
+void ReadsSessionFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   ReadsAccountFromStream readsAccount{*stream};
   std::string line;
   getline(*stream, line);
-  primary = factory.make(line);
-  primary->load(readsAccount);
-  while (getline(*stream, line)) {
-    auto next{factory.make(line)};
-    next->load(readsAccount);
-    secondaries[line] = std::move(next);
-  }
+  observer.notifyThatPrimaryAccountIsReady(readsAccount, line);
+  while (getline(*stream, line))
+    observer.notifyThatSecondaryAccountIsReady(readsAccount, line);
 }
 
 ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)

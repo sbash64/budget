@@ -28,6 +28,10 @@ public:
   auto findUnverifiedCredits(USD amount) -> Transactions override;
   void verifyDebit(std::string_view accountName, const Transaction &) override;
   void verifyCredit(const Transaction &) override;
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+                                       std::string_view name) override;
+  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
+                                         std::string_view name) override;
 
 private:
   Account::Factory &factory;

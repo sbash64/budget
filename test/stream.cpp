@@ -7,6 +7,27 @@
 
 namespace sbash64::budget::file {
 namespace {
+class SessionDeserializationObserverStub
+    : public SessionDeserialization::Observer {
+public:
+  explicit SessionDeserializationObserverStub(Account::Factory &factory)
+      : factory{factory} {}
+
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
+                                       std::string_view name) override {
+    factory.make(name)->load(deserialization);
+  }
+
+  void
+  notifyThatSecondaryAccountIsReady(AccountDeserialization &deserialization,
+                                    std::string_view name) override {
+    factory.make(name)->load(deserialization);
+  }
+
+private:
+  Account::Factory &factory;
+};
+
 class IoStreamFactoryStub : public IoStreamFactory {
 public:
   explicit IoStreamFactoryStub(std::shared_ptr<std::iostream> stream)
@@ -240,13 +261,8 @@ debits
   accountFactory.add(steve, "steve");
   accountFactory.add(sue, "sue");
   accountFactory.add(allen, "allen");
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
-  std::shared_ptr<Account> primary;
-  file.load(accountFactory, primary, accounts);
-  assertEqual(result, jeff.get(), primary.get());
-  assertEqual(result, steve.get(), accounts.at("steve").get());
-  assertEqual(result, sue.get(), accounts.at("sue").get());
-  assertEqual(result, allen.get(), accounts.at("allen").get());
+  SessionDeserializationObserverStub observer{accountFactory};
+  file.load(observer);
   assertEqual(
       result,
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
