@@ -1,5 +1,6 @@
 #include <fstream>
 #include <gtk/gtk.h>
+#include <memory>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
@@ -7,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <vector>
 
 extern "C" {
 #define TRANSACTION_TYPE_ITEM (transaction_item_get_type())
@@ -153,13 +155,6 @@ static void appendSignalGeneratedColumn(
       gtk_column_view_column_new(label, signalListItemFactory));
 }
 
-static auto sameAccountName(gconstpointer a, gconstpointer b) -> gboolean {
-  return static_cast<gboolean>(
-      std::string_view{gtk_string_object_get_string(
-          static_cast<const AccountItem *>(a)->name)} ==
-      gtk_string_object_get_string(static_cast<const AccountItem *>(b)->name));
-}
-
 class GtkAccountView : public Account::Observer {
 public:
   explicit GtkAccountView(AccountItem *accountItem)
@@ -280,7 +275,7 @@ public:
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
     accountItem->balanceCents = 0;
     g_list_store_append(accountListStore, accountItem);
-    auto accountView{std::make_shared<GtkAccountView>(accountItem)};
+    auto accountView{std::make_unique<GtkAccountView>(accountItem)};
     account.attach(accountView.get());
     accountViews.push_back(std::move(accountView));
     g_object_unref(accountItem);
@@ -364,7 +359,7 @@ private:
              g_date_time_get_day_of_month(date)});
   }
 
-  std::vector<std::shared_ptr<GtkAccountView>> accountViews;
+  std::vector<std::unique_ptr<GtkAccountView>> accountViews;
   Model &model;
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
@@ -393,7 +388,6 @@ static void on_activate(GtkApplication *app) {
   static ReadsSessionFromStream deserialization{streamFactory};
   auto *window{gtk_application_window_new(app)};
   static GtkView view{bank, GTK_WINDOW(window)};
-  bank.attach(&view);
   bank.load(deserialization);
   gtk_window_present(GTK_WINDOW(window));
 }
