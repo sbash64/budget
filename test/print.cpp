@@ -10,6 +10,7 @@ class AccountStub : public Account {
 public:
   AccountStub(std::stringstream &stream, std::string name)
       : stream{stream}, name{std::move(name)} {}
+  void attach(Observer *) override {}
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void removeCredit(const Transaction &) override {}

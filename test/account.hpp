@@ -18,6 +18,13 @@ void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
 void showAfterRemovingVerifiedTransactionShowsRemaining(
     testcpplite::TestResult &);
 void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
+    testcpplite::TestResult &);
+void notifiesObserverOfNewCredit(testcpplite::TestResult &);
+void notifiesObserverOfNewDebit(testcpplite::TestResult &);
+void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
+void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
+void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

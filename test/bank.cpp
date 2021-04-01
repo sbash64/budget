@@ -17,6 +17,8 @@ public:
 
 class AccountStub : public Account {
 public:
+  void attach(Observer *) override {}
+
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
   void credit(const Transaction &t) override { creditedTransaction_ = t; }
@@ -117,6 +119,23 @@ public:
 private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::string name_;
+};
+
+class BankObserverStub : public Bank::Observer {
+public:
+  auto newAccountName() -> std::string { return newAccountName_; }
+
+  void notifyThatNewAccountHasBeenCreated(Account &account,
+                                          std::string_view name) override {
+    newAccountName_ = name;
+    newAccount_ = &account;
+  }
+
+  auto newAccount() -> const Account * { return newAccount_; }
+
+private:
+  std::string newAccountName_;
+  const Account *newAccount_{};
 };
 } // namespace
 
@@ -443,6 +462,20 @@ void transferVerifiesTransactionsByDefault(testcpplite::TestResult &result) {
     assertEqual(result,
                 {456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
                 masterAccount->debitToVerify());
+  });
+}
+
+void notifiesObserverOfNewAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    AccountDeserializationStub deserialization;
+    bank.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
+    assertEqual(result, "giraffe", observer.newAccountName());
+    assertEqual(result, account.get(), observer.newAccount());
   });
 }
 } // namespace sbash64::budget::bank

@@ -8,6 +8,45 @@
 #include <utility>
 
 namespace sbash64::budget::account {
+namespace {
+class AccountObserverStub : public Account::Observer {
+public:
+  auto balance() -> USD { return balance_; }
+
+  void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
+
+  auto creditAdded() -> Transaction { return creditAdded_; }
+
+  void notifyThatCreditHasBeenAdded(const Transaction &t) override {
+    creditAdded_ = t;
+  }
+
+  void notifyThatDebitHasBeenAdded(const Transaction &t) override {
+    debitAdded_ = t;
+  }
+
+  auto debitAdded() -> Transaction { return debitAdded_; }
+
+  auto debitRemoved() -> Transaction { return debitRemoved_; }
+
+  void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
+    debitRemoved_ = t;
+  }
+
+  auto creditRemoved() -> Transaction { return creditRemoved_; }
+
+  void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
+    creditRemoved_ = t;
+  }
+
+private:
+  Transaction creditAdded_;
+  Transaction debitAdded_;
+  Transaction debitRemoved_;
+  Transaction creditRemoved_;
+  USD balance_{};
+};
+} // namespace
 constexpr auto to_integral(Transaction::Type e) ->
     typename std::underlying_type<Transaction::Type>::type {
   return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);
@@ -300,6 +339,77 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
                                            Date{2020, Month::January, 20}}),
                  verifiedDebit(Transaction{456_cents, "gorilla",
                                            Date{2020, Month::January, 20}})});
+  });
+}
+
+void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
+    testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, 123_cents, observer.balance());
+  debit(account,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+  assertEqual(result, 123_cents - 456_cents, observer.balance());
+  account.removeCredit(
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, -456_cents, observer.balance());
+}
+
+void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.creditAdded());
+}
+
+void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.debitAdded());
+}
+
+void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  account.removeDebit(
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.debitRemoved());
+}
+
+void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
+  InMemoryAccount account{""};
+  AccountObserverStub observer;
+  account.attach(&observer);
+  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  account.removeCredit(
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              observer.creditRemoved());
+}
+
+void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.notifyThatCreditHasBeenDeserialized(
+        {{123_cents, "ape", Date{2020, Month::June, 2}}, true});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.creditAdded());
+    account.notifyThatDebitHasBeenDeserialized(
+        {{456_cents, "gorilla", Date{2020, Month::January, 20}}, false});
+    assertEqual(result, {456_cents, "gorilla", Date{2020, Month::January, 20}},
+                observer.debitAdded());
   });
 }
 } // namespace sbash64::budget::account

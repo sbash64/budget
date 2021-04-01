@@ -8,3 +8,4 @@ target_link_libraries(
   sbash64-budget-gtk
   PRIVATE sbash64-budget-lib PkgConfig::GTK4 PkgConfig::GLIB2 PkgConfig::PANGO
           PkgConfig::PANGOFT2)
+target_compile_options(sbash64-budget-gtk PRIVATE ${SBASH64_BUDGET_WARNINGS})

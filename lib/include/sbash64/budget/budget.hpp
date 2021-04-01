@@ -141,6 +141,17 @@ public:
 
 class Account : public AccountDeserialization::Observer {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatBalanceHasChanged(USD) = 0;
+    virtual void notifyThatCreditHasBeenAdded(const Transaction &) = 0;
+    virtual void notifyThatDebitHasBeenAdded(const Transaction &) = 0;
+    virtual void notifyThatDebitHasBeenRemoved(const Transaction &) = 0;
+    virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
+  };
+
+  virtual void attach(Observer *) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
@@ -194,6 +205,14 @@ public:
 
 class Model : public SessionDeserialization::Observer {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatNewAccountHasBeenCreated(Account &,
+                                                    std::string_view name) = 0;
+  };
+
+  virtual void attach(Observer *) = 0;
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void removeDebit(std::string_view accountName,
                            const Transaction &) = 0;

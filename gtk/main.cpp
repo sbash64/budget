@@ -1,5 +1,6 @@
 #include <fstream>
 #include <gtk/gtk.h>
+#include <memory>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/command-line.hpp>
@@ -7,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <vector>
 
 extern "C" {
 #define TRANSACTION_TYPE_ITEM (transaction_item_get_type())
@@ -153,7 +155,93 @@ static void appendSignalGeneratedColumn(
       gtk_column_view_column_new(label, signalListItemFactory));
 }
 
-class GtkView : public View {
+static auto sameTransaction(gconstpointer a, gconstpointer b) -> gboolean {
+  const auto *first{static_cast<const TransactionItem *>(a)};
+  const auto *second{static_cast<const TransactionItem *>(b)};
+  return static_cast<gboolean>(
+      first->cents == second->cents && first->credit == second->credit &&
+      first->day == second->day && first->month == second->month &&
+      first->year == second->year &&
+      std::string_view{gtk_string_object_get_string(first->description)} ==
+          gtk_string_object_get_string(second->description));
+}
+
+class GtkAccountView : public Account::Observer {
+public:
+  explicit GtkAccountView(AccountItem *accountItem)
+      : accountItem{accountItem} {}
+
+  void notifyThatBalanceHasChanged(USD balance) override {
+    accountItem->balanceCents = balance.cents;
+  }
+
+  void notifyThatCreditHasBeenAdded(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = true;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    g_list_store_append(accountItem->transactionListStore, item);
+    g_object_unref(item);
+  }
+
+  void notifyThatDebitHasBeenAdded(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = false;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    g_list_store_append(accountItem->transactionListStore, item);
+    g_object_unref(item);
+  }
+
+  void notifyThatDebitHasBeenRemoved(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = false;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    guint position = 0;
+    g_list_store_find_with_equal_func(accountItem->transactionListStore, item,
+                                      sameTransaction, &position);
+    g_list_store_remove(accountItem->transactionListStore, position);
+    g_object_unref(item);
+  }
+
+  void notifyThatCreditHasBeenRemoved(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = true;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    guint position = 0;
+    g_list_store_find_with_equal_func(accountItem->transactionListStore, item,
+                                      sameTransaction, &position);
+    g_list_store_remove(accountItem->transactionListStore, position);
+    g_object_unref(item);
+  }
+
+private:
+  AccountItem *accountItem;
+};
+
+class GtkView : public Bank::Observer {
 public:
   explicit GtkView(Model &model, GtkWindow *window)
       : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
@@ -163,6 +251,7 @@ public:
             G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()} {
+    model.attach(this);
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *const scrolledWindowsBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
     auto *const leftHandScrolledWindow{gtk_scrolled_window_new()};
@@ -173,7 +262,7 @@ public:
     appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindAccountName,
                                 "Name");
     appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindBalance,
-                                "Balance ($)");
+                                "Balance");
     gtk_widget_set_hexpand(leftHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
                                   accountsColumnView);
@@ -182,9 +271,9 @@ public:
     auto *const selectedAccountColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(transactionSelection))};
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
-                                bindDebitAmount, "Debit ($)");
+                                bindDebitAmount, "Debit");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
-                                bindCreditAmount, "Credit ($)");
+                                bindCreditAmount, "Credit");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel, bindDate,
                                 "Date (mm/dd/yyy)");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
@@ -219,49 +308,18 @@ public:
     gtk_window_set_child(window, verticalBox);
   }
 
-  void show(Account &primary,
-            const std::vector<Account *> &secondaries) override {
-    g_list_store_remove_all(accountListStore);
-    primary.show(*this);
-    for (auto *const secondary : secondaries)
-      secondary->show(*this);
-    gtk_selection_model_select_item(GTK_SELECTION_MODEL(accountSelection), 1,
-                                    FALSE);
-    gtk_selection_model_select_item(GTK_SELECTION_MODEL(accountSelection), 0,
-                                    FALSE);
-  }
-
-  void showAccountSummary(
-      std::string_view name, USD balance,
-      const std::vector<VerifiableTransactionWithType> &transactions) override {
-    auto *const transactionListStore{g_list_store_new(TRANSACTION_TYPE_ITEM)};
-    for (const auto &transaction : transactions) {
-      auto *const item = static_cast<TransactionItem *>(
-          g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
-      item->credit = transaction.type == Transaction::Type::credit;
-      item->cents = transaction.verifiableTransaction.transaction.amount.cents;
-      item->year = transaction.verifiableTransaction.transaction.date.year;
-      item->month = static_cast<typename std::underlying_type<Month>::type>(
-          transaction.verifiableTransaction.transaction.date.month);
-      item->day = transaction.verifiableTransaction.transaction.date.day;
-      item->description = gtk_string_object_new(
-          transaction.verifiableTransaction.transaction.description.c_str());
-      g_list_store_append(transactionListStore, item);
-      g_object_unref(item);
-    }
+  void notifyThatNewAccountHasBeenCreated(Account &account,
+                                          std::string_view name) override {
     auto *const accountItem =
         static_cast<AccountItem *>(g_object_new(ACCOUNT_TYPE_ITEM, nullptr));
-    accountItem->transactionListStore = transactionListStore;
+    accountItem->transactionListStore = g_list_store_new(TRANSACTION_TYPE_ITEM);
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
-    accountItem->balanceCents = balance.cents;
+    accountItem->balanceCents = 0;
     g_list_store_append(accountListStore, accountItem);
+    auto accountView{std::make_unique<GtkAccountView>(accountItem)};
+    account.attach(accountView.get());
+    accountViews.push_back(std::move(accountView));
     g_object_unref(accountItem);
-  }
-
-  ~GtkView() override {
-    g_object_unref(accountListStore);
-    g_object_unref(accountSelection);
-    g_object_unref(transactionSelection);
   }
 
 private:
@@ -302,7 +360,6 @@ private:
       view->model.credit(transaction(view));
     else
       view->model.debit(selectedAccountName(view), transaction(view));
-    view->model.show(*view);
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
@@ -315,7 +372,6 @@ private:
       else
         view->model.removeDebit(selectedAccountName(view),
                                 budget::transaction(transactionItem));
-      view->model.show(*view);
     }
   }
 
@@ -329,7 +385,6 @@ private:
       else
         view->model.verifyDebit(selectedAccountName(view),
                                 budget::transaction(transactionItem));
-      view->model.show(*view);
     }
   }
 
@@ -343,9 +398,9 @@ private:
             gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
         Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
              g_date_time_get_day_of_month(date)});
-    view->model.show(*view);
   }
 
+  std::vector<std::unique_ptr<GtkAccountView>> accountViews;
   Model &model;
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
@@ -372,10 +427,9 @@ static void on_activate(GtkApplication *app) {
   static FileStreamFactory streamFactory;
   static WritesSessionToStream serialization{streamFactory};
   static ReadsSessionFromStream deserialization{streamFactory};
-  bank.load(deserialization);
   auto *window{gtk_application_window_new(app)};
   static GtkView view{bank, GTK_WINDOW(window)};
-  bank.show(view);
+  bank.load(deserialization);
   gtk_window_present(GTK_WINDOW(window));
 }
 } // namespace sbash64::budget

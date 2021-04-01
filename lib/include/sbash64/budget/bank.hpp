@@ -13,6 +13,7 @@ namespace sbash64::budget {
 class Bank : public Model {
 public:
   explicit Bank(Account::Factory &);
+  void attach(Observer *) override;
   void debit(std::string_view accountName, const Transaction &) override;
   void removeDebit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
@@ -38,11 +39,13 @@ private:
   std::shared_ptr<Account> primaryAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>>
       secondaryAccounts;
+  Observer *observer{};
 };
 
 class InMemoryAccount : public Account {
 public:
   explicit InMemoryAccount(std::string name);
+  void attach(Observer *);
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
@@ -69,6 +72,7 @@ private:
   VerifiableTransactions debits;
   VerifiableTransactions credits;
   std::string name;
+  Observer *observer{};
 };
 } // namespace sbash64::budget
 
