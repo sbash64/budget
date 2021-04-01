@@ -151,7 +151,6 @@ public:
     virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
   };
 
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Account);
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
@@ -214,7 +213,6 @@ public:
                                               const Transaction &) = 0;
   };
 
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Model);
   virtual void attach(Observer *) = 0;
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
   virtual void removeDebit(std::string_view accountName,

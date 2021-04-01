@@ -35,7 +35,7 @@ public:
 
   auto creditRemoved() -> Transaction { return creditRemoved_; }
 
-  void notifyThatCreditHasBeenRemoved(const Transaction &t) {
+  void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
     creditRemoved_ = t;
   }
 
