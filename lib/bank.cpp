@@ -158,9 +158,10 @@ void Bank::verifyCredit(const Transaction &t) {
   budget::verifyCredit(primaryAccount, t);
 }
 
-static auto makeAndLoad(AccountDeserialization &deserialization,
-                        Account::Factory &factory, std::string_view name,
-                        Model::Observer *observer) -> std::shared_ptr<Account> {
+static auto makeAndLoad(Account::Factory &factory,
+                        AccountDeserialization &deserialization,
+                        std::string_view name, Model::Observer *observer)
+    -> std::shared_ptr<Account> {
   auto account{factory.make(name)};
   if (observer != nullptr)
     observer->notifyThatNewAccountHasBeenCreated(*account, name);
@@ -170,13 +171,13 @@ static auto makeAndLoad(AccountDeserialization &deserialization,
 
 void Bank::notifyThatPrimaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
-  primaryAccount = makeAndLoad(deserialization, factory, name, observer);
+  primaryAccount = makeAndLoad(factory, deserialization, name, observer);
 }
 
 void Bank::notifyThatSecondaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   secondaryAccounts[std::string{name}] =
-      makeAndLoad(deserialization, factory, name, observer);
+      makeAndLoad(factory, deserialization, name, observer);
 }
 
 void Bank::attach(Observer *a) { observer = a; }
