@@ -17,6 +17,8 @@ public:
 
 class AccountStub : public Account {
 public:
+  void attach(Observer *) override {}
+
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
   void credit(const Transaction &t) override { creditedTransaction_ = t; }

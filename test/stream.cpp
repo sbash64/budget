@@ -47,7 +47,7 @@ public:
                   VerifiableTransactions debits)
       : name{std::move(name)}, credits{std::move(credits)}, debits{std::move(
                                                                 debits)} {}
-
+  void attach(Observer *) override {}
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void removeCredit(const Transaction &) override {}
@@ -74,6 +74,7 @@ private:
 
 class LoadAccountStub : public Account {
 public:
+  void attach(Observer *) override {}
   void credit(const Transaction &) override {}
   void debit(const Transaction &) override {}
   void removeCredit(const Transaction &) override {}
