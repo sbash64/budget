@@ -201,20 +201,55 @@ static void pushUnverified(VerifiableTransactions &transactions,
   transactions.push_back({t, false});
 }
 
-void InMemoryAccount::credit(const Transaction &t) {
-  pushUnverified(credits, t);
+static void add(VerifiableTransactions &transactions,
+                const VerifiableTransaction &t, Account::Observer *observer,
+                const std::function<void(Account::Observer *,
+                                         const Transaction &t)> &notify,
+                const VerifiableTransactions &credits,
+                const VerifiableTransactions &debits) {
+  transactions.push_back(t);
   if (observer != nullptr) {
-    observer->notifyThatCreditHasBeenAdded(t);
+    notify(observer, t.transaction);
     observer->notifyThatBalanceHasChanged(balance(credits, debits));
   }
 }
 
+void InMemoryAccount::credit(const Transaction &t) {
+  add(
+      credits, {t, false}, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatCreditHasBeenAdded(t);
+      },
+      credits, debits);
+}
+
 void InMemoryAccount::debit(const Transaction &t) {
-  pushUnverified(debits, t);
-  if (observer != nullptr) {
-    observer->notifyThatDebitHasBeenAdded(t);
-    observer->notifyThatBalanceHasChanged(balance(credits, debits));
-  }
+  add(
+      debits, {t, false}, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatDebitHasBeenAdded(t);
+      },
+      credits, debits);
+}
+
+void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  add(
+      credits, t, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatCreditHasBeenAdded(t);
+      },
+      credits, debits);
+}
+
+void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
+    const VerifiableTransaction &t) {
+  add(
+      debits, t, observer,
+      [](Observer *observer, const Transaction &t) {
+        observer->notifyThatDebitHasBeenAdded(t);
+      },
+      credits, debits);
 }
 
 static auto
@@ -353,14 +388,4 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
 }
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
-
-void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
-    const VerifiableTransaction &t) {
-  credits.push_back(t);
-}
-
-void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
-    const VerifiableTransaction &t) {
-  debits.push_back(t);
-}
 } // namespace sbash64::budget

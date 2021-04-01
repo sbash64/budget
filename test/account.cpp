@@ -394,4 +394,20 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
               observer.creditRemoved());
 }
+
+void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.notifyThatCreditHasBeenDeserialized(
+        {{123_cents, "ape", Date{2020, Month::June, 2}}, true});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.creditAdded());
+    account.notifyThatDebitHasBeenDeserialized(
+        {{456_cents, "gorilla", Date{2020, Month::January, 20}}, false});
+    assertEqual(result, {456_cents, "gorilla", Date{2020, Month::January, 20}},
+                observer.debitAdded());
+  });
+}
 } // namespace sbash64::budget::account
