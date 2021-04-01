@@ -167,6 +167,8 @@ void Bank::notifyThatPrimaryAccountIsReady(
 void Bank::notifyThatSecondaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   auto account{factory.make(name)};
+  if (observer != nullptr)
+    observer->notifyThatNewAccountHasBeenCreated(*account, name);
   account->load(deserialization);
   secondaryAccounts[std::string{name}] = std::move(account);
 }

@@ -28,6 +28,7 @@ void notifiesObserverOfNewDebitWhenDebited(testcpplite::TestResult &);
 void notifiesObserverOfNewCreditWhenCredited(testcpplite::TestResult &);
 void notifiesObserverOfNewCreditAndDebitWhenTransferred(
     testcpplite::TestResult &);
+void notifiesObserverOfNewAccount(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

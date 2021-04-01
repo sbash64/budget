@@ -140,7 +140,7 @@ public:
   }
 
   void notifyThatCreditHasBeenAdded(std::string_view accountName,
-                                    const Transaction &t) {
+                                    const Transaction &t) override {
     newCreditNotificationTransaction_ = t;
     newCreditNotificationAccountName_ = accountName;
   }
@@ -149,11 +149,23 @@ public:
     return newCreditNotificationAccountName_;
   }
 
+  auto newAccountName() -> std::string { return newAccountName_; }
+
+  void notifyThatNewAccountHasBeenCreated(Account &account,
+                                          std::string_view name) {
+    newAccountName_ = name;
+    newAccount_ = &account;
+  }
+
+  auto newAccount() -> const Account * { return newAccount_; }
+
 private:
   Transaction newDebitNotificationTransaction_;
-  std::string newDebitNotificationAccountName_;
   Transaction newCreditNotificationTransaction_;
+  std::string newDebitNotificationAccountName_;
+  std::string newAccountName_;
   std::string newCreditNotificationAccountName_;
+  const Account *newAccount_{};
 };
 } // namespace
 
@@ -531,6 +543,20 @@ void notifiesObserverOfNewCreditAndDebitWhenTransferred(
                             Date{2024, Month::August, 23}},
                 observer.newDebitNotificationTransaction());
     assertEqual(result, "master", observer.newDebitNotificationAccountName());
+  });
+}
+
+void notifiesObserverOfNewAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    AccountDeserializationStub deserialization;
+    bank.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
+    assertEqual(result, "giraffe", observer.newAccountName());
+    assertEqual(result, account.get(), observer.newAccount());
   });
 }
 } // namespace sbash64::budget::bank

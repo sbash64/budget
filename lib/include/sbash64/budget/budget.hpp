@@ -211,6 +211,8 @@ public:
                                              const Transaction &) = 0;
     virtual void notifyThatCreditHasBeenAdded(std::string_view accountName,
                                               const Transaction &) = 0;
+    virtual void notifyThatNewAccountHasBeenCreated(Account &,
+                                                    std::string_view name) = 0;
   };
 
   virtual void attach(Observer *) = 0;
