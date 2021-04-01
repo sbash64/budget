@@ -196,11 +196,6 @@ static auto balance(const VerifiableTransactions &credits,
   return balance(credits) - balance(debits);
 }
 
-static void pushUnverified(VerifiableTransactions &transactions,
-                           const Transaction &t) {
-  transactions.push_back({t, false});
-}
-
 static void add(VerifiableTransactions &transactions,
                 const VerifiableTransaction &t, Account::Observer *observer,
                 const std::function<void(Account::Observer *,
@@ -217,8 +212,8 @@ static void add(VerifiableTransactions &transactions,
 void InMemoryAccount::credit(const Transaction &t) {
   add(
       credits, {t, false}, observer,
-      [](Observer *observer, const Transaction &t) {
-        observer->notifyThatCreditHasBeenAdded(t);
+      [](Observer *observer_, const Transaction &t_) {
+        observer_->notifyThatCreditHasBeenAdded(t_);
       },
       credits, debits);
 }
@@ -316,12 +311,6 @@ static void executeIfUnverifiedFound(
       });
 }
 
-static void remove(VerifiableTransactions &transactions, const Transaction &t) {
-  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
-    transactions.erase(it);
-  });
-}
-
 static void verify(VerifiableTransactions &transactions, const Transaction &t) {
   executeIfUnverifiedFound(
       transactions, t,
@@ -334,11 +323,13 @@ static void remove(VerifiableTransactions &transactions, const Transaction &t,
                                             const Transaction &t)> &notify,
                    const VerifiableTransactions &credits,
                    const VerifiableTransactions &debits) {
-  remove(transactions, t);
-  if (observer != nullptr) {
-    notify(observer, t);
-    observer->notifyThatBalanceHasChanged(balance(credits, debits));
-  }
+  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
+    transactions.erase(it);
+    if (observer != nullptr) {
+      notify(observer, t);
+      observer->notifyThatBalanceHasChanged(balance(credits, debits));
+    }
+  });
 }
 
 void InMemoryAccount::removeDebit(const Transaction &t) {

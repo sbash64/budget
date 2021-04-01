@@ -379,6 +379,7 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
   InMemoryAccount account{""};
   AccountObserverStub observer;
   account.attach(&observer);
+  account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   account.removeDebit(
       Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
@@ -389,6 +390,7 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   InMemoryAccount account{""};
   AccountObserverStub observer;
   account.attach(&observer);
+  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   account.removeCredit(
       Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
