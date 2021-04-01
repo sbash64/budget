@@ -151,6 +151,7 @@ public:
     virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
   };
 
+  virtual void attach(Observer *) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void show(View &) = 0;
