@@ -15,18 +15,13 @@ constexpr auto transferToString{
     concatenate(transferDescription, std::array<char, 5>{" to "})};
 
 static void credit(const std::shared_ptr<Account> &account,
-                   const Transaction &t, Bank::Observer *observer,
-                   std::string_view accountName) {
+                   const Transaction &t) {
   account->credit(t);
-  if (observer != nullptr)
-    observer->notifyThatCreditHasBeenAdded(accountName, t);
 }
 
-static void debit(const std::shared_ptr<Account> &account, const Transaction &t,
-                  Bank::Observer *observer, std::string_view accountName) {
+static void debit(const std::shared_ptr<Account> &account,
+                  const Transaction &t) {
   account->debit(t);
-  if (observer != nullptr)
-    observer->notifyThatDebitHasBeenAdded(accountName, t);
 }
 
 static void verifyCredit(const std::shared_ptr<Account> &account,
@@ -53,9 +48,7 @@ Bank::Bank(Account::Factory &factory)
     : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
 }
 
-void Bank::credit(const Transaction &t) {
-  budget::credit(primaryAccount, t, observer, masterAccountName.data());
-}
+void Bank::credit(const Transaction &t) { budget::credit(primaryAccount, t); }
 
 void Bank::removeCredit(const Transaction &t) {
   budget::removeCredit(primaryAccount, t);
@@ -76,8 +69,7 @@ static void createNewAccountIfNeeded(
 
 void Bank::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
-  budget::debit(secondaryAccounts.at(std::string{accountName}), t, observer,
-                accountName);
+  budget::debit(secondaryAccounts.at(std::string{accountName}), t);
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
@@ -90,15 +82,13 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   budget::debit(primaryAccount,
                 Transaction{amount,
                             transferToString.data() + std::string{accountName},
-                            date},
-                observer, masterAccountName.data());
+                            date});
   budget::verifyDebit(
       primaryAccount,
       Transaction{amount, transferToString.data() + std::string{accountName},
                   date});
   budget::credit(secondaryAccounts.at(std::string{accountName}),
-                 Transaction{amount, transferFromMasterString.data(), date},
-                 observer, accountName);
+                 Transaction{amount, transferFromMasterString.data(), date});
   budget::verifyCredit(
       secondaryAccounts.at(std::string{accountName}),
       Transaction{amount, transferFromMasterString.data(), date});

@@ -24,10 +24,6 @@ void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);
 void verifiesDebitForExistingAccount(testcpplite::TestResult &);
 void verifiesCreditForMasterAccount(testcpplite::TestResult &);
 void transferVerifiesTransactionsByDefault(testcpplite::TestResult &);
-void notifiesObserverOfNewDebitWhenDebited(testcpplite::TestResult &);
-void notifiesObserverOfNewCreditWhenCredited(testcpplite::TestResult &);
-void notifiesObserverOfNewCreditAndDebitWhenTransferred(
-    testcpplite::TestResult &);
 void notifiesObserverOfNewAccount(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
