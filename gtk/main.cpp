@@ -155,6 +155,17 @@ static void appendSignalGeneratedColumn(
       gtk_column_view_column_new(label, signalListItemFactory));
 }
 
+static auto sameTransaction(gconstpointer a, gconstpointer b) -> gboolean {
+  const auto *first{static_cast<const TransactionItem *>(a)};
+  const auto *second{static_cast<const TransactionItem *>(b)};
+  return static_cast<gboolean>(
+      first->cents == second->cents && first->credit == second->credit &&
+      first->day == second->day && first->month == second->month &&
+      first->year == second->year &&
+      std::string_view{gtk_string_object_get_string(first->description)} ==
+          gtk_string_object_get_string(second->description));
+}
+
 class GtkAccountView : public Account::Observer {
 public:
   explicit GtkAccountView(AccountItem *accountItem)
@@ -192,9 +203,39 @@ public:
     g_object_unref(item);
   }
 
-  void notifyThatDebitHasBeenRemoved(const Transaction &) override {}
+  void notifyThatDebitHasBeenRemoved(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = false;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    guint position = 0;
+    g_list_store_find_with_equal_func(accountItem->transactionListStore, item,
+                                      sameTransaction, &position);
+    g_list_store_remove(accountItem->transactionListStore, position);
+    g_object_unref(item);
+  }
 
-  void notifyThatCreditHasBeenRemoved(const Transaction &) override {}
+  void notifyThatCreditHasBeenRemoved(const Transaction &transaction) override {
+    auto *const item = static_cast<TransactionItem *>(
+        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    item->credit = true;
+    item->cents = transaction.amount.cents;
+    item->year = transaction.date.year;
+    item->month = static_cast<typename std::underlying_type<Month>::type>(
+        transaction.date.month);
+    item->day = transaction.date.day;
+    item->description = gtk_string_object_new(transaction.description.c_str());
+    guint position = 0;
+    g_list_store_find_with_equal_func(accountItem->transactionListStore, item,
+                                      sameTransaction, &position);
+    g_list_store_remove(accountItem->transactionListStore, position);
+    g_object_unref(item);
+  }
 
 private:
   AccountItem *accountItem;
@@ -221,7 +262,7 @@ public:
     appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindAccountName,
                                 "Name");
     appendSignalGeneratedColumn(accountsColumnView, setupLabel, bindBalance,
-                                "Balance ($)");
+                                "Balance");
     gtk_widget_set_hexpand(leftHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
                                   accountsColumnView);
@@ -230,9 +271,9 @@ public:
     auto *const selectedAccountColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(transactionSelection))};
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
-                                bindDebitAmount, "Debit ($)");
+                                bindDebitAmount, "Debit");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
-                                bindCreditAmount, "Credit ($)");
+                                bindCreditAmount, "Credit");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel, bindDate,
                                 "Date (mm/dd/yyy)");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
