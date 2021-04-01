@@ -243,8 +243,10 @@ private:
 
 class GtkView : public Bank::Observer {
 public:
-  explicit GtkView(Model &model, GtkWindow *window)
-      : model{model}, accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
+  explicit GtkView(Model &model, SessionSerialization &serialization,
+                   GtkWindow *window)
+      : model{model}, serialization{serialization},
+        accountListStore{g_list_store_new(ACCOUNT_TYPE_ITEM)},
         accountSelection{
             gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
         transactionSelection{gtk_single_selection_new(
@@ -304,6 +306,7 @@ public:
                                 onVerifyTransaction);
     addTransactionControlButton(this, transactionControlBox, "Transfer To",
                                 onTransferTo);
+    addTransactionControlButton(this, transactionControlBox, "Save", onSave);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -400,8 +403,13 @@ private:
              g_date_time_get_day_of_month(date)});
   }
 
+  static void onSave(GtkButton *, GtkView *view) {
+    view->model.save(view->serialization);
+  }
+
   std::vector<std::unique_ptr<GtkAccountView>> accountViews;
   Model &model;
+  SessionSerialization &serialization;
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
   GtkSingleSelection *transactionSelection;
@@ -428,7 +436,7 @@ static void on_activate(GtkApplication *app) {
   static WritesSessionToStream serialization{streamFactory};
   static ReadsSessionFromStream deserialization{streamFactory};
   auto *window{gtk_application_window_new(app)};
-  static GtkView view{bank, GTK_WINDOW(window)};
+  static GtkView view{bank, serialization, GTK_WINDOW(window)};
   bank.load(deserialization);
   gtk_window_present(GTK_WINDOW(window));
 }
