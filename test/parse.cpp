@@ -16,11 +16,11 @@ void oneAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 100_cents, "1");
 }
 
-void twoDecimalPlacesAsUsd(testcpplite::TestResult &result) {
+void numberHavingTwoDecimalPlacesAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 123_cents, "1.23");
 }
 
-void oneDecimalPlaceAsUsd(testcpplite::TestResult &result) {
+void numberHavingOneDecimalPlaceAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 120_cents, "1.2");
 }
 
@@ -32,11 +32,11 @@ void oneTenthAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 10_cents, "0.10");
 }
 
-void withoutLeadingZeroAsUsd(testcpplite::TestResult &result) {
+void numberWithoutLeadingZeroAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 12_cents, ".12");
 }
 
-void threeDecimalPlacesAsUsd(testcpplite::TestResult &result) {
+void numberHavingThreeDecimalPlacesAsUsd(testcpplite::TestResult &result) {
   assertEqual(result, 12_cents, ".126");
 }
 

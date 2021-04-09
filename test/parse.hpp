@@ -6,12 +6,12 @@
 namespace sbash64::budget::parse {
 void zeroAsUsd(testcpplite::TestResult &);
 void oneAsUsd(testcpplite::TestResult &);
-void twoDecimalPlacesAsUsd(testcpplite::TestResult &);
-void oneDecimalPlaceAsUsd(testcpplite::TestResult &);
+void numberHavingTwoDecimalPlacesAsUsd(testcpplite::TestResult &);
+void numberHavingOneDecimalPlaceAsUsd(testcpplite::TestResult &);
 void oneOneHundredthAsUsd(testcpplite::TestResult &);
 void oneTenthAsUsd(testcpplite::TestResult &);
-void withoutLeadingZeroAsUsd(testcpplite::TestResult &);
-void threeDecimalPlacesAsUsd(testcpplite::TestResult &);
+void numberWithoutLeadingZeroAsUsd(testcpplite::TestResult &);
+void numberHavingThreeDecimalPlacesAsUsd(testcpplite::TestResult &);
 void twelveOneThousandthsAsUsd(testcpplite::TestResult &);
 } // namespace sbash64::budget::parse
 
