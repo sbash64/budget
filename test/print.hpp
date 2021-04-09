@@ -4,14 +4,14 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
-namespace test::format {
+namespace format {
 void zeroDollars(testcpplite::TestResult &);
 void oneDollar(testcpplite::TestResult &);
 void oneCent(testcpplite::TestResult &);
 void tenCents(testcpplite::TestResult &);
 void negativeOneDollarThirtyFourCents(testcpplite::TestResult &);
 void negativeFifteenCents(testcpplite::TestResult &);
-} // namespace test::format
+} // namespace format
 namespace print {
 void accounts(testcpplite::TestResult &);
 void account(testcpplite::TestResult &);

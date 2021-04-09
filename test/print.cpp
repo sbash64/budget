@@ -13,7 +13,7 @@ static void assertFormatYields(testcpplite::TestResult &result, USD usd,
   assertEqual(result, std::string{expected}, stream.str());
 }
 
-namespace test::format {
+namespace format {
 void zeroDollars(testcpplite::TestResult &result) {
   assertFormatYields(result, 0_cents, "$0.00");
 }
@@ -37,7 +37,7 @@ void negativeOneDollarThirtyFourCents(testcpplite::TestResult &result) {
 void negativeFifteenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, -15_cents, "$-0.15");
 }
-} // namespace test::format
+} // namespace format
 
 namespace print {
 namespace {
