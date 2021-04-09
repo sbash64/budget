@@ -158,7 +158,7 @@ void savesAccounts(testcpplite::TestResult &result) {
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
        {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
+       {{304_cents, "hyvee", Date{2021, Month::February, 8}}}}};
   file.save(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
@@ -199,7 +199,7 @@ credits
 debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
+3.04 hyvee 2/8/2021
 )",
               '\n' + stream->str());
 }
@@ -252,7 +252,7 @@ credits
 debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/1984
-3.24 hyvee 2/8/2021
+3.04 hyvee 2/8/2021
 )")};
   IoStreamFactoryStub factory{input};
   ReadsSessionFromStream file{factory};
@@ -311,7 +311,7 @@ debits
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
                {{1256_cents, "walmart", Date{1984, Month::June, 15}}},
-               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
+               {{304_cents, "hyvee", Date{2021, Month::February, 8}}}},
               allen->debits());
 }
 } // namespace sbash64::budget::file

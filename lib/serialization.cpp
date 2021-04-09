@@ -21,8 +21,12 @@ void WritesSessionToStream::save(Account &primary,
 static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
   stream << amount.cents / 100;
   const auto leftoverCents{amount.cents % 100};
-  if (leftoverCents != 0)
-    stream << '.' << leftoverCents;
+  if (leftoverCents != 0) {
+    stream << '.';
+    if (leftoverCents < 10)
+      stream << '0';
+    stream << leftoverCents;
+  }
   return stream;
 }
 
@@ -117,7 +121,7 @@ loadTransaction(std::istream &input, std::string &line,
   }
   description << next;
   onDeserialization(
-      {amount, description.str(), date(eventuallyDate), verified});
+      {{amount, description.str(), date(eventuallyDate)}, verified});
   getline(input, line);
 }
 
