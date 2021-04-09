@@ -383,7 +383,11 @@ private:
       else
         view->model.removeDebit(selectedAccountName(view),
                                 budget::transaction(transactionItem));
-    }
+    } else if (!masterAccountIsSelected(view))
+      view->model.removeTransfer(
+          selectedAccountName(view), USD{transactionItem->cents},
+          Date{transactionItem->year, Month{transactionItem->month},
+               transactionItem->day});
   }
 
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
