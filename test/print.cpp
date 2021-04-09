@@ -4,7 +4,39 @@
 #include <sbash64/budget/command-line.hpp>
 #include <sstream>
 
-namespace sbash64::budget::print {
+namespace sbash64::budget {
+static void assertFormatYields(testcpplite::TestResult &result, USD usd,
+                               std::string_view expected) {
+  assertEqual(result, std::string{expected}, format(usd));
+}
+
+namespace test::format {
+void zeroDollars(testcpplite::TestResult &result) {
+  assertFormatYields(result, 0_cents, "$0.00");
+}
+
+void oneDollar(testcpplite::TestResult &result) {
+  assertFormatYields(result, 100_cents, "$1.00");
+}
+
+void oneCent(testcpplite::TestResult &result) {
+  assertFormatYields(result, 1_cents, "$0.01");
+}
+
+void tenCents(testcpplite::TestResult &result) {
+  assertFormatYields(result, 10_cents, "$0.10");
+}
+
+void negativeDollarThirtyFour(testcpplite::TestResult &result) {
+  assertFormatYields(result, -134_cents, "$-1.34");
+}
+
+void negativeFifteen(testcpplite::TestResult &result) {
+  assertFormatYields(result, -15_cents, "$-0.15");
+}
+} // namespace test::format
+
+namespace print {
 namespace {
 class AccountStub : public Account {
 public:
@@ -39,35 +71,6 @@ static void testCommandLineStream(
   std::stringstream stream;
   CommandLineStream commandLineStream{stream};
   f(commandLineStream, stream);
-}
-
-static void assertFormatYields(testcpplite::TestResult &result, USD usd,
-                               std::string_view expected) {
-  assertEqual(result, std::string{expected}, format(usd));
-}
-
-void formatZeroDollars(testcpplite::TestResult &result) {
-  assertFormatYields(result, 0_cents, "$0.00");
-}
-
-void formatOneDollar(testcpplite::TestResult &result) {
-  assertFormatYields(result, 100_cents, "$1.00");
-}
-
-void formatOneCent(testcpplite::TestResult &result) {
-  assertFormatYields(result, 1_cents, "$0.01");
-}
-
-void formatTenCents(testcpplite::TestResult &result) {
-  assertFormatYields(result, 10_cents, "$0.10");
-}
-
-void formatNegativeDollarThirtyFour(testcpplite::TestResult &result) {
-  assertFormatYields(result, -134_cents, "$-1.34");
-}
-
-void formatNegativeFifteen(testcpplite::TestResult &result) {
-  assertFormatYields(result, -15_cents, "$-0.15");
 }
 
 void accounts(testcpplite::TestResult &result) {
@@ -158,4 +161,5 @@ void enumeratedTransactions(testcpplite::TestResult &result) {
                     '\n' + stream.str());
       });
 }
-} // namespace sbash64::budget::print
+} // namespace print
+} // namespace sbash64::budget
