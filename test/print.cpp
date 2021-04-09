@@ -2,6 +2,7 @@
 #include "usd.hpp"
 #include <functional>
 #include <sbash64/budget/command-line.hpp>
+#include <sbash64/budget/format.hpp>
 #include <sstream>
 
 namespace sbash64::budget {

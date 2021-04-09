@@ -1,5 +1,6 @@
 #include "command-line.hpp"
 #include "constexpr-string.hpp"
+#include "format.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <iomanip>
@@ -336,18 +337,6 @@ void CommandLineInterpreter::execute(Model &model,
   }
 }
 
-static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {
-  return stream << std::setw(2) << std::setfill('0');
-}
-
-static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
-  const auto fill{stream.fill()};
-  if (usd.cents < 0)
-    stream << '-';
-  return prepareLengthTwoInteger(stream << std::abs(usd.cents / 100) << '.')
-         << std::abs(usd.cents % 100) << std::setfill(fill);
-}
-
 static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)
     -> std::string {
   std::stringstream stream;
@@ -355,33 +344,6 @@ static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)
     stream << '*';
   stream << transaction.transaction.amount;
   return stream.str();
-}
-
-auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
-  return stream << '$' << usd;
-}
-
-auto format(USD usd) -> std::string {
-  std::stringstream stream;
-  putWithDollarSign(stream, usd);
-  return stream.str();
-}
-
-constexpr auto to_integral(Month e) ->
-    typename std::underlying_type<Month>::type {
-  return static_cast<typename std::underlying_type<Month>::type>(e);
-}
-
-static auto operator<<(std::ostream &stream, const Month &month)
-    -> std::ostream & {
-  return stream << to_integral(month);
-}
-
-auto operator<<(std::ostream &stream, const Date &date) -> std::ostream & {
-  const auto fill{stream.fill()};
-  return prepareLengthTwoInteger(prepareLengthTwoInteger(stream)
-                                 << date.month << '/')
-         << date.day << '/' << date.year << std::setfill(fill);
 }
 
 CommandLineStream::CommandLineStream(std::ostream &stream) : stream{stream} {}
