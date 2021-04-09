@@ -1,5 +1,6 @@
 #include "parse.hpp"
 #include <sstream>
+#include <string>
 
 namespace sbash64::budget {
 auto usd(std::string_view s) -> USD {

@@ -45,7 +45,7 @@ private:
 class InMemoryAccount : public Account {
 public:
   explicit InMemoryAccount(std::string name);
-  void attach(Observer *);
+  void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
   void show(View &) override;
