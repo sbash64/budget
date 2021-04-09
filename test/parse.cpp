@@ -1,6 +1,6 @@
 #include "parse.hpp"
 #include "usd.hpp"
-#include <sbash64/budget/command-line.hpp>
+#include <sbash64/budget/parse.hpp>
 
 namespace sbash64::budget::parse {
 static void assertEqual(testcpplite::TestResult &result, USD expected,

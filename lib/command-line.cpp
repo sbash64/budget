@@ -1,6 +1,7 @@
 #include "command-line.hpp"
 #include "constexpr-string.hpp"
 #include "format.hpp"
+#include "parse.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <iomanip>
@@ -427,24 +428,5 @@ void CommandLineStream::enumerate(const Transactions &transactions) {
 
 void CommandLineStream::show(std::string_view message) {
   putNewLine(stream << message);
-}
-
-auto usd(std::string_view s) -> USD {
-  USD usd{};
-  std::istringstream stream{std::string{s}};
-  if (stream.peek() != '.') {
-    stream >> usd.cents;
-    usd.cents *= 100;
-  }
-  if (stream.get() == '.') {
-    std::string afterDecimal;
-    stream >> afterDecimal;
-    afterDecimal.resize(2, '0');
-    std::istringstream streamAfterDecimal{afterDecimal};
-    int cents = 0;
-    streamAfterDecimal >> cents;
-    usd.cents += cents;
-  }
-  return usd;
 }
 } // namespace sbash64::budget

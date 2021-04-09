@@ -98,8 +98,6 @@ public:
 private:
   std::ostream &stream;
 };
-
-auto usd(std::string_view) -> USD;
 } // namespace sbash64::budget
 
 #endif
