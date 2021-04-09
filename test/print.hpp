@@ -15,6 +15,7 @@ void prompt(testcpplite::TestResult &);
 void transactionWithSuffix(testcpplite::TestResult &);
 void message(testcpplite::TestResult &);
 void enumeratedTransactions(testcpplite::TestResult &);
+void formatNegativeFifteen(testcpplite::TestResult &);
 } // namespace sbash64::budget::print
 
 #endif

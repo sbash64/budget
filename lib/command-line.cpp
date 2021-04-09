@@ -342,14 +342,10 @@ static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {
 
 static auto operator<<(std::ostream &stream, USD usd) -> std::ostream & {
   const auto fill{stream.fill()};
-  return prepareLengthTwoInteger(stream << usd.cents / 100 << '.')
+  if (usd.cents < 0)
+    stream << '-';
+  return prepareLengthTwoInteger(stream << std::abs(usd.cents / 100) << '.')
          << std::abs(usd.cents % 100) << std::setfill(fill);
-}
-
-static auto formatWithoutDollarSign(USD usd) -> std::string {
-  std::stringstream stream;
-  stream << usd;
-  return stream.str();
 }
 
 static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)

@@ -66,6 +66,10 @@ void formatNegativeDollarThirtyFour(testcpplite::TestResult &result) {
   assertFormatYields(result, -134_cents, "$-1.34");
 }
 
+void formatNegativeFifteen(testcpplite::TestResult &result) {
+  assertFormatYields(result, -15_cents, "$-0.15");
+}
+
 void accounts(testcpplite::TestResult &result) {
   testCommandLineStream(
       [&](CommandLineStream &commandLineStream, std::stringstream &stream) {
