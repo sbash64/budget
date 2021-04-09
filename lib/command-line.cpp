@@ -357,7 +357,7 @@ static auto formatWithoutDollarSign(const VerifiableTransaction &transaction)
   return stream.str();
 }
 
-static auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
+auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream & {
   return stream << '$' << usd;
 }
 

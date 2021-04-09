@@ -82,8 +82,7 @@ void execute(CommandLineInterpreter &, Model &, CommandLineInterface &,
              SessionSerialization &, SessionDeserialization &,
              std::string_view);
 
-auto format(USD) -> std::string;
-
+auto putWithDollarSign(std::ostream &stream, USD usd) -> std::ostream &;
 auto operator<<(std::ostream &stream, const Date &date) -> std::ostream &;
 
 class CommandLineStream : public CommandLineInterface {

@@ -84,15 +84,21 @@ static void setLabel(GtkListItem *listItem, const char *string) {
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
-  if (transactionItem->credit)
-    setLabel(list_item, format(USD{transactionItem->cents}).c_str());
+  if (transactionItem->credit) {
+    std::stringstream stream;
+    putWithDollarSign(stream, USD{transactionItem->cents});
+    setLabel(list_item, stream.str().c_str());
+  }
 }
 
 static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
-  if (!transactionItem->credit)
-    setLabel(list_item, format(USD{transactionItem->cents}).c_str());
+  if (!transactionItem->credit) {
+    std::stringstream stream;
+    putWithDollarSign(stream, USD{transactionItem->cents});
+    setLabel(list_item, stream.str().c_str());
+  }
 }
 
 static void bindDate(GtkListItemFactory *, GtkListItem *listItem) {
@@ -114,10 +120,11 @@ static void bindDescription(GtkListItemFactory *, GtkListItem *listItem) {
 }
 
 static void bindBalance(GtkListItemFactory *, GtkListItem *listItem) {
-  setLabel(
-      listItem,
-      format(USD{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))->balanceCents})
-          .c_str());
+  std::stringstream stream;
+  putWithDollarSign(
+      stream,
+      USD{ACCOUNT_ITEM(gtk_list_item_get_item(listItem))->balanceCents});
+  setLabel(listItem, stream.str().c_str());
 }
 
 static void bindAccountName(GtkListItemFactory *, GtkListItem *listItem) {

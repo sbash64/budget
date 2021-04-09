@@ -7,7 +7,9 @@
 namespace sbash64::budget {
 static void assertFormatYields(testcpplite::TestResult &result, USD usd,
                                std::string_view expected) {
-  assertEqual(result, std::string{expected}, format(usd));
+  std::stringstream stream;
+  putWithDollarSign(stream, usd);
+  assertEqual(result, std::string{expected}, stream.str());
 }
 
 namespace test::format {
