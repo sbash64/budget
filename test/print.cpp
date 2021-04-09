@@ -27,11 +27,11 @@ void tenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, 10_cents, "$0.10");
 }
 
-void negativeDollarThirtyFour(testcpplite::TestResult &result) {
+void negativeOneDollarThirtyFourCents(testcpplite::TestResult &result) {
   assertFormatYields(result, -134_cents, "$-1.34");
 }
 
-void negativeFifteen(testcpplite::TestResult &result) {
+void negativeFifteenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, -15_cents, "$-0.15");
 }
 } // namespace test::format

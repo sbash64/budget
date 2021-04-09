@@ -9,8 +9,8 @@ void zeroDollars(testcpplite::TestResult &);
 void oneDollar(testcpplite::TestResult &);
 void oneCent(testcpplite::TestResult &);
 void tenCents(testcpplite::TestResult &);
-void negativeDollarThirtyFour(testcpplite::TestResult &);
-void negativeFifteen(testcpplite::TestResult &);
+void negativeOneDollarThirtyFourCents(testcpplite::TestResult &);
+void negativeFifteenCents(testcpplite::TestResult &);
 } // namespace test::format
 namespace print {
 void accounts(testcpplite::TestResult &);
