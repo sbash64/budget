@@ -256,7 +256,8 @@ debits
 3.04 hyvee 2/8/2021
 )")};
   IoStreamFactoryStub factory{input};
-  ReadsSessionFromStream file{factory};
+  ReadsAccountFromStream::Factory accountDeserializationFactory;
+  ReadsSessionFromStream file{factory, accountDeserializationFactory};
   const auto jeff{std::make_shared<LoadAccountStub>()};
   const auto steve{std::make_shared<LoadAccountStub>()};
   const auto sue{std::make_shared<LoadAccountStub>()};

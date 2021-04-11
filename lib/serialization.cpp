@@ -144,16 +144,20 @@ void ReadsAccountFromStream::load(Observer &observer) {
 
 void ReadsSessionFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
-  ReadsAccountFromStream readsAccount{*stream};
+  const auto accountDeserialization{
+      accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  observer.notifyThatPrimaryAccountIsReady(readsAccount, line);
+  observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
   while (getline(*stream, line))
-    observer.notifyThatSecondaryAccountIsReady(readsAccount, line);
+    observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
 }
 
-ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)
-    : ioStreamFactory{ioStreamFactory} {}
+ReadsSessionFromStream::ReadsSessionFromStream(
+    IoStreamFactory &ioStreamFactory,
+    StreamAccountDeserializationFactory &accountDeserializationFactory)
+    : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
+                                            accountDeserializationFactory} {}
 
 WritesSessionToStream::WritesSessionToStream(
     IoStreamFactory &ioStreamFactory,
