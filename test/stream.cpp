@@ -7,6 +7,27 @@
 
 namespace sbash64::budget::file {
 namespace {
+class AccountSerializationStub : public AccountSerialization {
+public:
+  void save(std::string_view name, const VerifiableTransactions &credits,
+            const VerifiableTransactions &debits) override {}
+};
+
+class StreamAccountSerializationFactoryStub
+    : public StreamAccountSerializationFactory {
+public:
+  explicit StreamAccountSerializationFactoryStub(
+      std::shared_ptr<AccountSerialization> accountSerialization)
+      : accountSerialization{std::move(accountSerialization)} {}
+
+  auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
+    return accountSerialization;
+  }
+
+private:
+  std::shared_ptr<AccountSerialization> accountSerialization;
+};
+
 class SessionDeserializationObserverStub
     : public SessionDeserialization::Observer {
 public:
