@@ -93,6 +93,34 @@ private:
   VerifiableTransactions debits;
 };
 
+class SavesNameAccountStub : public Account {
+public:
+  SavesNameAccountStub(std::ostream &stream, std::string name)
+      : name{std::move(name)}, stream{stream} {}
+  void attach(Observer *) override {}
+  void credit(const Transaction &) override {}
+  void debit(const Transaction &) override {}
+  void removeCredit(const Transaction &) override {}
+  void removeDebit(const Transaction &) override {}
+  void show(View &) override {}
+  void load(AccountDeserialization &) override {}
+  void rename(std::string_view) override {}
+  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
+  auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
+  void verifyDebit(const Transaction &) override {}
+  void verifyCredit(const Transaction &) override {}
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+
+  void save(AccountSerialization &p) override { stream << name; }
+
+private:
+  std::string name;
+  std::ostream &stream;
+};
+
 class LoadAccountStub : public Account {
 public:
   void attach(Observer *) override {}
@@ -222,6 +250,30 @@ debits
 27.34 hyvee 1/12/2021
 12.56 walmart 6/15/2021
 3.04 hyvee 2/8/2021
+)",
+              '\n' + stream->str());
+}
+
+void savesSession(testcpplite::TestResult &result) {
+  const auto stream{std::make_shared<std::stringstream>()};
+  IoStreamFactoryStub streamFactory{stream};
+  const auto accountSerialization{std::make_shared<AccountSerializationStub>()};
+  StreamAccountSerializationFactoryStub accountSerializationFactory{
+      accountSerialization};
+  WritesSessionToStream file{streamFactory, accountSerializationFactory};
+  SavesNameAccountStub jeff{*stream, "jeff"};
+  SavesNameAccountStub steve{*stream, "steve"};
+  SavesNameAccountStub sue{*stream, "sue"};
+  SavesNameAccountStub allen{*stream, "allen"};
+  file.save(jeff, {&steve, &sue, &allen});
+  assertEqual(result, R"(
+jeff
+
+steve
+
+sue
+
+allen
 )",
               '\n' + stream->str());
 }

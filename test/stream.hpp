@@ -5,6 +5,7 @@
 
 namespace sbash64::budget::file {
 void savesAccounts(testcpplite::TestResult &);
+void savesSession(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 } // namespace sbash64::budget::file
 

@@ -33,6 +33,7 @@ static auto runAllTests() -> int {
        {format::negativeFifteenCents, "format negative fifteen cents"},
        {file::savesAccounts, "file saves accounts"},
        {file::loadsAccounts, "file loads accounts"},
+       {file::savesSession, "stream saves session"},
        {bank::createsMasterAccountOnConstruction,
         "bank creates master account on construction"},
        {bank::creditsMasterAccountWhenCredited,
