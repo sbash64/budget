@@ -172,11 +172,9 @@ private:
 } // namespace
 
 void savesAccounts(testcpplite::TestResult &result) {
-  auto stream{std::make_shared<std::stringstream>()};
-  IoStreamFactoryStub streamFactory{stream};
-  WritesAccountToStream::Factory accountSerializationFactory;
-  WritesSessionToStream file{streamFactory, accountSerializationFactory};
-  SaveAccountStub jeff{
+  const auto stream{std::make_shared<std::stringstream>()};
+  WritesAccountToStream accountSerialization{*stream};
+  accountSerialization.save(
       "jeff",
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
         true},
@@ -184,32 +182,7 @@ void savesAccounts(testcpplite::TestResult &result) {
        {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
        {{1256_cents, "walmart", Date{2021, Month::June, 15}}, true},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
-  SaveAccountStub steve{
-      "steve",
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}, true}}};
-  SaveAccountStub sue{
-      "sue",
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}}};
-  SaveAccountStub allen{
-      "allen",
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-       {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-       {{304_cents, "hyvee", Date{2021, Month::February, 8}}}}};
-  file.save(jeff, {&steve, &sue, &allen});
+       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}});
   assertEqual(result, R"(
 jeff
 credits
@@ -220,38 +193,8 @@ debits
 27.34 hyvee 1/12/2021
 ^12.56 walmart 6/15/2021
 3.24 hyvee 2/8/2021
-
-steve
-credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-^3.24 hyvee 2/8/2021
-
-sue
-credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
-
-allen
-credits
-50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.04 hyvee 2/8/2021
 )",
-              '\n' + stream->str());
+              '\n' + stream->str() + '\n');
 }
 
 void savesSession(testcpplite::TestResult &result) {
