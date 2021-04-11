@@ -14,18 +14,34 @@ public:
   virtual auto makeOutput() -> std::shared_ptr<std::ostream> = 0;
 };
 
+class StreamAccountSerializationFactory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      StreamAccountSerializationFactory);
+  virtual auto make(std::ostream &)
+      -> std::shared_ptr<AccountSerialization> = 0;
+};
+
 class WritesSessionToStream : public SessionSerialization {
 public:
-  explicit WritesSessionToStream(IoStreamFactory &);
+  WritesSessionToStream(IoStreamFactory &, StreamAccountSerializationFactory &);
   void save(Account &primary,
             const std::vector<Account *> &secondaries) override;
 
 private:
   IoStreamFactory &ioStreamFactory;
+  StreamAccountSerializationFactory &accountSerializationFactory;
 };
 
 class WritesAccountToStream : public AccountSerialization {
 public:
+  class Factory : public StreamAccountSerializationFactory {
+  public:
+    auto make(std::ostream &stream)
+        -> std::shared_ptr<AccountSerialization> override {
+      return std::make_shared<WritesAccountToStream>(stream);
+    }
+  };
   explicit WritesAccountToStream(std::ostream &stream);
   void save(std::string_view name, const VerifiableTransactions &credits,
             const VerifiableTransactions &debits) override;

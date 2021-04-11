@@ -124,8 +124,9 @@ private:
 
 void savesAccounts(testcpplite::TestResult &result) {
   auto stream{std::make_shared<std::stringstream>()};
-  IoStreamFactoryStub factory{stream};
-  WritesSessionToStream file{factory};
+  IoStreamFactoryStub streamFactory{stream};
+  WritesAccountToStream::Factory accountSerializationFactory;
+  WritesSessionToStream file{streamFactory, accountSerializationFactory};
   SaveAccountStub jeff{
       "jeff",
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},

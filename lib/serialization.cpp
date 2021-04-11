@@ -8,12 +8,12 @@ namespace sbash64::budget {
 void WritesSessionToStream::save(Account &primary,
                                  const std::vector<Account *> &secondaries) {
   const auto stream{ioStreamFactory.makeOutput()};
-  WritesAccountToStream writesAccount{*stream};
-  primary.save(writesAccount);
+  const auto accountSerialization{accountSerializationFactory.make(*stream)};
+  primary.save(*accountSerialization);
   *stream << '\n';
   for (auto *account : secondaries) {
     *stream << '\n';
-    account->save(writesAccount);
+    account->save(*accountSerialization);
     *stream << '\n';
   }
 }
@@ -155,8 +155,11 @@ void ReadsSessionFromStream::load(Observer &observer) {
 ReadsSessionFromStream::ReadsSessionFromStream(IoStreamFactory &ioStreamFactory)
     : ioStreamFactory{ioStreamFactory} {}
 
-WritesSessionToStream::WritesSessionToStream(IoStreamFactory &ioStreamFactory)
-    : ioStreamFactory{ioStreamFactory} {}
+WritesSessionToStream::WritesSessionToStream(
+    IoStreamFactory &ioStreamFactory,
+    StreamAccountSerializationFactory &accountSerializationFactory)
+    : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
+                                            accountSerializationFactory} {}
 
 ReadsAccountFromStream::ReadsAccountFromStream(std::istream &stream)
     : stream{stream} {}
