@@ -16,16 +16,9 @@ public:
 class StreamAccountSerializationFactoryStub
     : public StreamAccountSerializationFactory {
 public:
-  explicit StreamAccountSerializationFactoryStub(
-      std::shared_ptr<AccountSerialization> accountSerialization)
-      : accountSerialization{std::move(accountSerialization)} {}
-
   auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
-    return accountSerialization;
+    return std::make_shared<AccountSerializationStub>();
   }
-
-private:
-  std::shared_ptr<AccountSerialization> accountSerialization;
 };
 
 class SessionDeserializationObserverStub
@@ -60,37 +53,6 @@ public:
 
 private:
   std::shared_ptr<std::iostream> stream;
-};
-
-class SaveAccountStub : public Account {
-public:
-  SaveAccountStub(std::string name, VerifiableTransactions credits,
-                  VerifiableTransactions debits)
-      : name{std::move(name)}, credits{std::move(credits)}, debits{std::move(
-                                                                debits)} {}
-  void attach(Observer *) override {}
-  void credit(const Transaction &) override {}
-  void debit(const Transaction &) override {}
-  void removeCredit(const Transaction &) override {}
-  void removeDebit(const Transaction &) override {}
-  void show(View &) override {}
-  void load(AccountDeserialization &) override {}
-  void rename(std::string_view) override {}
-  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
-  auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
-  void verifyDebit(const Transaction &) override {}
-  void verifyCredit(const Transaction &) override {}
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
-
-  void save(AccountSerialization &p) override { p.save(name, credits, debits); }
-
-private:
-  std::string name;
-  VerifiableTransactions credits;
-  VerifiableTransactions debits;
 };
 
 class SavesNameAccountStub : public Account {
@@ -200,15 +162,14 @@ debits
 void savesSession(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub streamFactory{stream};
-  const auto accountSerialization{std::make_shared<AccountSerializationStub>()};
-  StreamAccountSerializationFactoryStub accountSerializationFactory{
-      accountSerialization};
-  WritesSessionToStream file{streamFactory, accountSerializationFactory};
+  StreamAccountSerializationFactoryStub accountSerializationFactory;
+  WritesSessionToStream sessionSerialization{streamFactory,
+                                             accountSerializationFactory};
   SavesNameAccountStub jeff{*stream, "jeff"};
   SavesNameAccountStub steve{*stream, "steve"};
   SavesNameAccountStub sue{*stream, "sue"};
   SavesNameAccountStub allen{*stream, "allen"};
-  file.save(jeff, {&steve, &sue, &allen});
+  sessionSerialization.save(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
 
