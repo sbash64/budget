@@ -7,6 +7,7 @@ namespace sbash64::budget::stream {
 void savesAccounts(testcpplite::TestResult &);
 void savesSession(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
+void loadsSession(testcpplite::TestResult &);
 } // namespace sbash64::budget::stream
 
 #endif

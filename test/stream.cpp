@@ -3,7 +3,9 @@
 #include <sbash64/budget/serialization.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <sstream>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace sbash64::budget::stream {
 namespace {
@@ -13,11 +15,25 @@ public:
             const VerifiableTransactions &debits) override {}
 };
 
+class AccountDeserializationStub : public AccountDeserialization {
+public:
+  void load(Observer &) override {}
+};
+
 class StreamAccountSerializationFactoryStub
     : public StreamAccountSerializationFactory {
 public:
   auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
     return std::make_shared<AccountSerializationStub>();
+  }
+};
+
+class StreamAccountDeserializationFactoryStub
+    : public StreamAccountDeserializationFactory {
+public:
+  auto make(std::istream &)
+      -> std::shared_ptr<AccountDeserialization> override {
+    return std::make_shared<AccountDeserializationStub>();
   }
 };
 
@@ -30,16 +46,51 @@ public:
   void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
                                        std::string_view name) override {
     factory.make(name)->load(deserialization);
+    primaryAccountName_ = name;
   }
 
   void
   notifyThatSecondaryAccountIsReady(AccountDeserialization &deserialization,
                                     std::string_view name) override {
     factory.make(name)->load(deserialization);
+    secondaryAccountNames_.emplace_back(name);
+  }
+
+  auto primaryAccountName() -> std::string { return primaryAccountName_; }
+
+  auto secondaryAccountNames() -> std::vector<std::string> {
+    return secondaryAccountNames_;
   }
 
 private:
   Account::Factory &factory;
+  std::string primaryAccountName_;
+  std::vector<std::string> secondaryAccountNames_;
+};
+
+class SessionDeserializationObserver2Stub
+    : public SessionDeserialization::Observer {
+public:
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
+                                       std::string_view name) override {
+    primaryAccountName_ = name;
+  }
+
+  void
+  notifyThatSecondaryAccountIsReady(AccountDeserialization &deserialization,
+                                    std::string_view name) override {
+    secondaryAccountNames_.emplace_back(name);
+  }
+
+  auto primaryAccountName() -> std::string { return primaryAccountName_; }
+
+  auto secondaryAccountNames() -> std::vector<std::string> {
+    return secondaryAccountNames_;
+  }
+
+private:
+  std::string primaryAccountName_;
+  std::vector<std::string> secondaryAccountNames_;
 };
 
 class IoStreamFactoryStub : public IoStreamFactory {
@@ -292,5 +343,20 @@ debits
                {{1256_cents, "walmart", Date{1984, Month::June, 15}}},
                {{304_cents, "hyvee", Date{2021, Month::February, 8}}}},
               allen->debits());
+}
+
+void loadsSession(testcpplite::TestResult &result) {
+  const auto input{
+      std::make_shared<std::stringstream>("jeff\nsteve\nsue\nallen")};
+  IoStreamFactoryStub streamFactory{input};
+  StreamAccountDeserializationFactoryStub accountDeserializationFactory;
+  ReadsSessionFromStream deserialization{streamFactory,
+                                         accountDeserializationFactory};
+  SessionDeserializationObserver2Stub observer;
+  deserialization.load(observer);
+  assertEqual(result, "jeff", observer.primaryAccountName());
+  assertEqual(result, "steve", observer.secondaryAccountNames().at(0));
+  assertEqual(result, "sue", observer.secondaryAccountNames().at(1));
+  assertEqual(result, "allen", observer.secondaryAccountNames().at(2));
 }
 } // namespace sbash64::budget::stream
