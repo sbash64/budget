@@ -3,10 +3,10 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::file {
+namespace sbash64::budget::stream {
 void savesAccounts(testcpplite::TestResult &);
 void savesSession(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
-} // namespace sbash64::budget::file
+} // namespace sbash64::budget::stream
 
 #endif

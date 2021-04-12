@@ -5,7 +5,7 @@
 #include <sstream>
 #include <utility>
 
-namespace sbash64::budget::file {
+namespace sbash64::budget::stream {
 namespace {
 class AccountSerializationStub : public AccountSerialization {
 public:
@@ -234,7 +234,7 @@ debits
 )")};
   IoStreamFactoryStub factory{input};
   ReadsAccountFromStream::Factory accountDeserializationFactory;
-  ReadsSessionFromStream file{factory, accountDeserializationFactory};
+  ReadsSessionFromStream stream{factory, accountDeserializationFactory};
   const auto jeff{std::make_shared<LoadAccountStub>()};
   const auto steve{std::make_shared<LoadAccountStub>()};
   const auto sue{std::make_shared<LoadAccountStub>()};
@@ -245,7 +245,7 @@ debits
   accountFactory.add(sue, "sue");
   accountFactory.add(allen, "allen");
   SessionDeserializationObserverStub observer{accountFactory};
-  file.load(observer);
+  stream.load(observer);
   assertEqual(
       result,
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
@@ -293,4 +293,4 @@ debits
                {{304_cents, "hyvee", Date{2021, Month::February, 8}}}},
               allen->debits());
 }
-} // namespace sbash64::budget::file
+} // namespace sbash64::budget::stream
