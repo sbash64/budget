@@ -62,6 +62,7 @@ public:
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override;
   void
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
+  void reduce(const Date &);
 
   class Factory : public Account::Factory {
   public:

@@ -369,4 +369,12 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
 }
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
+
+void InMemoryAccount::reduce(const Date &date) {
+  VerifiableTransaction reduction{{balance(credits, debits), "reduction", date},
+                                  true};
+  credits.clear();
+  debits.clear();
+  credits.push_back(std::move(reduction));
+}
 } // namespace sbash64::budget
