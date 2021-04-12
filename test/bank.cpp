@@ -88,6 +88,10 @@ public:
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
 
+  auto reducedDate() -> Date { return reducedDate_; }
+
+  void reduce(const Date &date) { reducedDate_ = date; }
+
 private:
   Transaction creditToVerify_;
   Transaction debitToVerify_;
@@ -97,6 +101,7 @@ private:
   Transaction removedCredit_;
   Transactions foundUnverifiedDebits;
   Transactions foundUnverifiedCredits;
+  Date reducedDate_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
   USD findUnverifiedDebitsAmount_{};
@@ -476,6 +481,31 @@ void notifiesObserverOfNewAccount(testcpplite::TestResult &result) {
     bank.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
     assertEqual(result, "giraffe", observer.newAccountName());
     assertEqual(result, account.get(), observer.newAccount());
+  });
+}
+
+static void assertReduced(testcpplite::TestResult &result, const Date &date,
+                          const std::shared_ptr<AccountStub> &account) {
+  assertEqual(result, date, account->reducedDate());
+}
+
+void reduceReducesEachAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    bank.reduce(Date{2021, Month::March, 13});
+    assertReduced(result, Date{2021, Month::March, 13}, masterAccount);
+    assertReduced(result, Date{2021, Month::March, 13}, giraffe);
+    assertReduced(result, Date{2021, Month::March, 13}, penguin);
+    assertReduced(result, Date{2021, Month::March, 13}, leopard);
   });
 }
 } // namespace sbash64::budget::bank

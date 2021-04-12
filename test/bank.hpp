@@ -25,6 +25,7 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &);
 void verifiesCreditForMasterAccount(testcpplite::TestResult &);
 void transferVerifiesTransactionsByDefault(testcpplite::TestResult &);
 void notifiesObserverOfNewAccount(testcpplite::TestResult &);
+void reduceReducesEachAccount(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

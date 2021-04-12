@@ -164,6 +164,7 @@ public:
   virtual auto findUnverifiedCredits(USD amount) -> Transactions = 0;
   virtual void verifyDebit(const Transaction &) = 0;
   virtual void verifyCredit(const Transaction &) = 0;
+  virtual void reduce(const Date &) = 0;
 
   class Factory {
   public:

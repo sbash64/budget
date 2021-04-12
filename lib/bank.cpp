@@ -172,6 +172,12 @@ void Bank::notifyThatSecondaryAccountIsReady(
 
 void Bank::attach(Observer *a) { observer = a; }
 
+void Bank::reduce(const Date &date) {
+  primaryAccount->reduce(date);
+  for (auto [name, account] : secondaryAccounts)
+    account->reduce(date);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name) : name{std::move(name)} {}
 
 static auto balance(const VerifiableTransactions &transactions) -> USD {

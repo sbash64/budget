@@ -117,6 +117,7 @@ public:
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void reduce(const Date &) override {}
 
   void save(AccountSerialization &p) override { stream << name; }
 

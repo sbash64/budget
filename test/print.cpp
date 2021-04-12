@@ -62,6 +62,7 @@ public:
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void reduce(const Date &) override {}
 
 private:
   std::stringstream &stream;
