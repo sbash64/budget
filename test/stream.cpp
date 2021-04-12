@@ -126,7 +126,7 @@ private:
 };
 } // namespace
 
-void savesAccounts(testcpplite::TestResult &result) {
+void fromAccounts(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   WritesAccountToStream accountSerialization{*stream};
   accountSerialization.save(
@@ -152,7 +152,7 @@ debits
               '\n' + stream->str() + '\n');
 }
 
-void savesSession(testcpplite::TestResult &result) {
+void fromSession(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub streamFactory{stream};
   StreamAccountSerializationFactoryStub accountSerializationFactory;
@@ -183,7 +183,7 @@ static void assertEqual(testcpplite::TestResult &result,
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
-void loadsAccounts(testcpplite::TestResult &result) {
+void toAccounts(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
       R"(credits
 50 transfer from master 1/10/2021
@@ -210,7 +210,7 @@ debits
               observer.debits());
 }
 
-void loadsSession(testcpplite::TestResult &result) {
+void toSession(testcpplite::TestResult &result) {
   const auto input{
       std::make_shared<std::stringstream>("jeff\nsteve\nsue\nallen")};
   IoStreamFactoryStub streamFactory{input};
