@@ -315,6 +315,8 @@ public:
     addTransactionControlButton(this, transactionControlBox, "Transfer To",
                                 onTransferTo);
     addTransactionControlButton(this, transactionControlBox, "Save", onSave);
+    addTransactionControlButton(this, transactionControlBox, "Reduce",
+                                onReduce);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -419,6 +421,13 @@ private:
     view->model.save(view->serialization);
   }
 
+  static void onReduce(GtkButton *, GtkView *view) {
+    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
+    view->model.reduce(Date{g_date_time_get_year(date),
+                            Month{g_date_time_get_month(date)},
+                            g_date_time_get_day_of_month(date)});
+  }
+
   std::vector<std::unique_ptr<GtkAccountView>> accountViews;
   Model &model;
   SessionSerialization &serialization;
@@ -445,11 +454,15 @@ static void on_activate(GtkApplication *app) {
   static InMemoryAccount::Factory accountFactory;
   static Bank bank{accountFactory};
   static FileStreamFactory streamFactory;
-  static WritesSessionToStream serialization{streamFactory};
-  static ReadsSessionFromStream deserialization{streamFactory};
+  static WritesAccountToStream::Factory accountSerializationFactory;
+  static WritesSessionToStream sessionSerialization{
+      streamFactory, accountSerializationFactory};
+  static ReadsAccountFromStream::Factory accountDeserializationFactory;
+  static ReadsSessionFromStream accountDeserialization{
+      streamFactory, accountDeserializationFactory};
   auto *window{gtk_application_window_new(app)};
-  static GtkView view{bank, serialization, GTK_WINDOW(window)};
-  bank.load(deserialization);
+  static GtkView view{bank, sessionSerialization, GTK_WINDOW(window)};
+  bank.load(accountDeserialization);
   gtk_window_present(GTK_WINDOW(window));
 }
 } // namespace sbash64::budget

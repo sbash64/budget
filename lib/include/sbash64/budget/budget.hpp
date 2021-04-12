@@ -232,6 +232,7 @@ public:
   virtual void verifyDebit(std::string_view accountName,
                            const Transaction &) = 0;
   virtual void verifyCredit(const Transaction &) = 0;
+  virtual void reduce(const Date &) = 0;
 };
 } // namespace sbash64::budget
 
