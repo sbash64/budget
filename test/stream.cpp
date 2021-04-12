@@ -93,6 +93,28 @@ private:
   std::vector<std::string> secondaryAccountNames_;
 };
 
+class AccountDeserializationObserverStub
+    : public AccountDeserialization::Observer {
+public:
+  void
+  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &t) override {
+    debits_.push_back(t);
+  }
+
+  void
+  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &t) override {
+    credits_.push_back(t);
+  }
+
+  auto credits() -> VerifiableTransactions { return credits_; }
+
+  auto debits() -> VerifiableTransactions { return debits_; }
+
+private:
+  VerifiableTransactions credits_;
+  VerifiableTransactions debits_;
+};
+
 class IoStreamFactoryStub : public IoStreamFactory {
 public:
   explicit IoStreamFactoryStub(std::shared_ptr<std::iostream> stream)
@@ -243,8 +265,7 @@ static void assertEqual(testcpplite::TestResult &result,
 
 void loadsAccounts(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
-      R"(jeff
-credits
+      R"(credits
 50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021
@@ -252,97 +273,21 @@ debits
 ^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
-
-steve
-credits
-^50 transfer from master 1/10/2021
-^25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
-
-sue
-credits
-75 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 bakers 1/12/2021
-12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
-
-allen
-credits
-50 transfer from master 1/10/2021
-32 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
-debits
-27.34 hyvee 1/12/2021
-12.56 walmart 6/15/1984
-3.04 hyvee 2/8/2021
 )")};
-  IoStreamFactoryStub factory{input};
-  ReadsAccountFromStream::Factory accountDeserializationFactory;
-  ReadsSessionFromStream stream{factory, accountDeserializationFactory};
-  const auto jeff{std::make_shared<LoadAccountStub>()};
-  const auto steve{std::make_shared<LoadAccountStub>()};
-  const auto sue{std::make_shared<LoadAccountStub>()};
-  const auto allen{std::make_shared<LoadAccountStub>()};
-  AccountFactoryStub accountFactory;
-  accountFactory.add(jeff, "jeff");
-  accountFactory.add(steve, "steve");
-  accountFactory.add(sue, "sue");
-  accountFactory.add(allen, "allen");
-  SessionDeserializationObserverStub observer{accountFactory};
-  stream.load(observer);
+  ReadsAccountFromStream accountDeserialization{*input};
+  AccountDeserializationObserverStub observer;
+  accountDeserialization.load(observer);
   assertEqual(
       result,
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
        {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
        {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      jeff->credits());
+      observer.credits());
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
-              jeff->debits());
-  assertEqual(
-      result,
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
-        true},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}},
-        true},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      steve->credits());
-  assertEqual(result,
-              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-               {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              steve->debits());
-  assertEqual(
-      result,
-      {{{7500_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      sue->credits());
-  assertEqual(result,
-              {{{2734_cents, "bakers", Date{2021, Month::January, 12}}},
-               {{1256_cents, "walmart", Date{2021, Month::June, 15}}},
-               {{324_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              sue->debits());
-  assertEqual(
-      result,
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{3200_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      allen->credits());
-  assertEqual(result,
-              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-               {{1256_cents, "walmart", Date{1984, Month::June, 15}}},
-               {{304_cents, "hyvee", Date{2021, Month::February, 8}}}},
-              allen->debits());
+              observer.debits());
 }
 
 void loadsSession(testcpplite::TestResult &result) {
