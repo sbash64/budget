@@ -373,8 +373,24 @@ void InMemoryAccount::attach(Observer *a) { observer = a; }
 void InMemoryAccount::reduce(const Date &date) {
   VerifiableTransaction reduction{{balance(credits, debits), "reduction", date},
                                   true};
-  credits.clear();
-  debits.clear();
-  credits.push_back(std::move(reduction));
+  const auto debitsCopied{debits};
+  for (const auto &debit : debitsCopied)
+    remove(
+        debits, debit.transaction, observer,
+        [](Observer *observer, const Transaction &t) {
+          observer->notifyThatDebitHasBeenRemoved(t);
+        },
+        credits, debits);
+  const auto creditsCopied{credits};
+  for (const auto &credit : creditsCopied)
+    remove(
+        credits, credit.transaction, observer,
+        [](Observer *observer, const Transaction &t) {
+          observer->notifyThatCreditHasBeenRemoved(t);
+        },
+        credits, debits);
+  credits.push_back(reduction);
+  if (observer != nullptr)
+    observer->notifyThatCreditHasBeenAdded(reduction.transaction);
 }
 } // namespace sbash64::budget

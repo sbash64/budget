@@ -29,8 +29,11 @@ public:
 
   auto debitRemoved() -> Transaction { return debitRemoved_; }
 
+  auto debitsRemoved() -> Transactions { return debitsRemoved_; }
+
   void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
     debitRemoved_ = t;
+    debitsRemoved_.push_back(t);
   }
 
   auto creditRemoved() -> Transaction { return creditRemoved_; }
@@ -44,6 +47,7 @@ private:
   Transaction debitAdded_;
   Transaction debitRemoved_;
   Transaction creditRemoved_;
+  Transactions debitsRemoved_;
   USD balance_{};
 };
 } // namespace
@@ -428,6 +432,34 @@ void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
                 {verifiedCredit(Transaction{2300_cents - 789_cents - 456_cents,
                                             "reduction",
                                             Date{2021, Month::March, 13}})});
+  });
+}
+
+void notifiesObserverOfTransactionsWhenReducing(
+    testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account) {
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account, Transaction{2300_cents, "orangutan",
+                                Date{2020, Month::February, 2}});
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.reduce(Date{2021, Month::March, 13});
+    assertEqual(
+        result,
+        {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}},
+        observer.debitsRemoved());
+    assertEqual(
+        result,
+        Transaction{2300_cents, "orangutan", Date{2020, Month::February, 2}},
+        observer.creditRemoved());
+    assertEqual(result,
+                Transaction{2300_cents - 789_cents - 456_cents, "reduction",
+                            Date{2021, Month::March, 13}},
+                observer.creditAdded());
   });
 }
 } // namespace sbash64::budget::account
