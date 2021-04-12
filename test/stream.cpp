@@ -40,37 +40,6 @@ public:
 class SessionDeserializationObserverStub
     : public SessionDeserialization::Observer {
 public:
-  explicit SessionDeserializationObserverStub(Account::Factory &factory)
-      : factory{factory} {}
-
-  void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
-                                       std::string_view name) override {
-    factory.make(name)->load(deserialization);
-    primaryAccountName_ = name;
-  }
-
-  void
-  notifyThatSecondaryAccountIsReady(AccountDeserialization &deserialization,
-                                    std::string_view name) override {
-    factory.make(name)->load(deserialization);
-    secondaryAccountNames_.emplace_back(name);
-  }
-
-  auto primaryAccountName() -> std::string { return primaryAccountName_; }
-
-  auto secondaryAccountNames() -> std::vector<std::string> {
-    return secondaryAccountNames_;
-  }
-
-private:
-  Account::Factory &factory;
-  std::string primaryAccountName_;
-  std::vector<std::string> secondaryAccountNames_;
-};
-
-class SessionDeserializationObserver2Stub
-    : public SessionDeserialization::Observer {
-public:
   void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
                                        std::string_view name) override {
     primaryAccountName_ = name;
@@ -154,55 +123,6 @@ public:
 private:
   std::string name;
   std::ostream &stream;
-};
-
-class LoadAccountStub : public Account {
-public:
-  void attach(Observer *) override {}
-  void credit(const Transaction &) override {}
-  void debit(const Transaction &) override {}
-  void removeCredit(const Transaction &) override {}
-  void removeDebit(const Transaction &) override {}
-  void show(View &) override {}
-  void save(AccountSerialization &) override {}
-  void rename(std::string_view) override {}
-  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
-  auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
-  void verifyDebit(const Transaction &) override {}
-  void verifyCredit(const Transaction &) override {}
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &t) override {
-    debits_.push_back(t);
-  }
-
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &t) override {
-    credits_.push_back(t);
-  }
-
-  void load(AccountDeserialization &p) override { p.load(*this); }
-
-  auto credits() -> VerifiableTransactions { return credits_; }
-
-  auto debits() -> VerifiableTransactions { return debits_; }
-
-private:
-  VerifiableTransactions credits_;
-  VerifiableTransactions debits_;
-};
-
-class AccountFactoryStub : public Account::Factory {
-public:
-  void add(std::shared_ptr<Account> account, std::string_view name) {
-    accounts[std::string{name}] = std::move(account);
-  }
-
-  auto make(std::string_view s) -> std::shared_ptr<Account> override {
-    return accounts.at(std::string{s});
-  }
-
-private:
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
 };
 } // namespace
 
@@ -297,7 +217,7 @@ void loadsSession(testcpplite::TestResult &result) {
   StreamAccountDeserializationFactoryStub accountDeserializationFactory;
   ReadsSessionFromStream deserialization{streamFactory,
                                          accountDeserializationFactory};
-  SessionDeserializationObserver2Stub observer;
+  SessionDeserializationObserverStub observer;
   deserialization.load(observer);
   assertEqual(result, "jeff", observer.primaryAccountName());
   assertEqual(result, "steve", observer.secondaryAccountNames().at(0));
