@@ -33,7 +33,7 @@ public:
                                        std::string_view name) override;
   void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                          std::string_view name) override;
-  void reduce(const Date &);
+  void reduce(const Date &) override;
 
 private:
   Account::Factory &factory;
@@ -63,7 +63,7 @@ public:
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override;
   void
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
-  void reduce(const Date &);
+  void reduce(const Date &) override;
 
   class Factory : public Account::Factory {
   public:

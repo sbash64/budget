@@ -159,6 +159,8 @@ public:
   void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                          std::string_view) override {}
 
+  void reduce(const Date &) override {}
+
 private:
   Transaction verifiedCredit_;
   Transaction verifiedDebit_;
