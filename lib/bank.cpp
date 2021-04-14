@@ -51,7 +51,14 @@ Bank::Bank(Account::Factory &factory)
 void Bank::credit(const Transaction &t) {
   budget::credit(primaryAccount, t);
   if (observer != nullptr)
-    observer->notifyThatTotalBalanceHasChanged(primaryAccount->balance());
+    observer->notifyThatTotalBalanceHasChanged(std::accumulate(
+        secondaryAccounts.begin(), secondaryAccounts.end(),
+        primaryAccount->balance(),
+        [](USD total, const std::pair<std::string_view,
+                                      std::shared_ptr<Account>> &secondary) {
+          const auto &[name, account] = secondary;
+          return total + account->balance();
+        }));
 }
 
 void Bank::removeCredit(const Transaction &t) {

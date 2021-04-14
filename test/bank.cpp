@@ -521,13 +521,26 @@ void reduceReducesEachAccount(testcpplite::TestResult &result) {
 
 void notifiesThatTotalBalanceHasChangedOnCredit(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &,
+  testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
     BankObserverStub observer;
     bank.attach(&observer);
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
     masterAccount->setBalance(456_cents);
-    bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertEqual(result, 456_cents, observer.totalBalance());
+    giraffe->setBalance(123_cents);
+    penguin->setBalance(789_cents);
+    leopard->setBalance(1111_cents);
+    bank.credit({});
+    assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
+                observer.totalBalance());
   });
 }
 } // namespace sbash64::budget::bank
