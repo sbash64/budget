@@ -69,6 +69,8 @@ static auto runAllTests() -> int {
        {bank::notifiesObserverOfNewAccount,
         "bank notifies observer of new account"},
        {bank::reduceReducesEachAccount, "bank reduce reduces each account"},
+       {bank::notifiesThatTotalBalanceHasChangedOnCredit,
+        "bank notifies that total balance has changed on credit"},
        {account::showShowsAllTransactionsInChronologicalOrderAndBalance,
         "account show shows all transactions and balance"},
        {account::showAfterRemoveShowsRemainingTransactions,

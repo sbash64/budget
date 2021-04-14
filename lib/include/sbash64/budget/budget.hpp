@@ -211,6 +211,7 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatNewAccountHasBeenCreated(Account &,
                                                     std::string_view name) = 0;
+    virtual void notifyThatTotalBalanceHasChanged(USD) = 0;
   };
 
   virtual void attach(Observer *) = 0;

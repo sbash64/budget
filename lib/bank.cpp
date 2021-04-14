@@ -48,7 +48,11 @@ Bank::Bank(Account::Factory &factory)
     : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
 }
 
-void Bank::credit(const Transaction &t) { budget::credit(primaryAccount, t); }
+void Bank::credit(const Transaction &t) {
+  budget::credit(primaryAccount, t);
+  if (observer != nullptr)
+    observer->notifyThatTotalBalanceHasChanged({});
+}
 
 void Bank::removeCredit(const Transaction &t) {
   budget::removeCredit(primaryAccount, t);

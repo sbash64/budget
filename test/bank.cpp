@@ -138,9 +138,18 @@ public:
 
   auto newAccount() -> const Account * { return newAccount_; }
 
+  [[nodiscard]] auto notifiedThatTotalBalanceHasChanged() const -> bool {
+    return notifiedThatTotalBalanceHasChanged_;
+  }
+
+  void notifyThatTotalBalanceHasChanged(USD) {
+    notifiedThatTotalBalanceHasChanged_ = true;
+  }
+
 private:
   std::string newAccountName_;
   const Account *newAccount_{};
+  bool notifiedThatTotalBalanceHasChanged_{};
 };
 } // namespace
 
@@ -506,6 +515,17 @@ void reduceReducesEachAccount(testcpplite::TestResult &result) {
     assertReduced(result, Date{2021, Month::March, 13}, giraffe);
     assertReduced(result, Date{2021, Month::March, 13}, penguin);
     assertReduced(result, Date{2021, Month::March, 13}, leopard);
+  });
+}
+
+void notifiesThatTotalBalanceHasChangedOnCredit(
+    testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &, const std::shared_ptr<AccountStub> &,
+               Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertTrue(result, observer.notifiedThatTotalBalanceHasChanged());
   });
 }
 } // namespace sbash64::budget::bank
