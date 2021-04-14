@@ -109,6 +109,7 @@ static auto runAllTests() -> int {
         "account reduce reduces to one transaction"},
        {account::notifiesObserverOfTransactionsWhenReducing,
         "notifies observer of transactions when reducing"},
+       {account::returnsBalance, "account returns balance"},
        {print::accounts, "print accounts"},
        {print::account, "print account"},
        {print::prompt, "print prompt"},

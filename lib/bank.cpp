@@ -267,7 +267,7 @@ dateSortedTransactionsWithType(const VerifiableTransactions &credits,
 }
 
 void InMemoryAccount::show(View &view) {
-  view.showAccountSummary(name, balance(credits, debits),
+  view.showAccountSummary(name, budget::balance(credits, debits),
                           dateSortedTransactionsWithType(credits, debits));
 }
 
@@ -381,8 +381,8 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
 void InMemoryAccount::reduce(const Date &date) {
-  VerifiableTransaction reduction{{balance(credits, debits), "reduction", date},
-                                  true};
+  VerifiableTransaction reduction{
+      {budget::balance(credits, debits), "reduction", date}, true};
   if (observer != nullptr) {
     for (const auto &debit : debits)
       observer->notifyThatDebitHasBeenRemoved(debit.transaction);
@@ -393,5 +393,9 @@ void InMemoryAccount::reduce(const Date &date) {
   debits.clear();
   credits.clear();
   credits.push_back(reduction);
+}
+
+auto InMemoryAccount::balance() -> USD {
+  return budget::balance(credits, debits);
 }
 } // namespace sbash64::budget
