@@ -44,12 +44,10 @@ static void removeDebit(const std::shared_ptr<Account> &account,
   account->removeDebit(t);
 }
 
-Bank::Bank(Account::Factory &factory)
-    : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
-}
-
-void Bank::credit(const Transaction &t) {
-  budget::credit(primaryAccount, t);
+static void notifyThatTotalBalanceHasChanged(
+    Bank::Observer *observer, const std::shared_ptr<Account> &primaryAccount,
+    const std::map<std::string, std::shared_ptr<Account>, std::less<>>
+        &secondaryAccounts) {
   if (observer != nullptr)
     observer->notifyThatTotalBalanceHasChanged(std::accumulate(
         secondaryAccounts.begin(), secondaryAccounts.end(),
@@ -61,8 +59,18 @@ void Bank::credit(const Transaction &t) {
         }));
 }
 
+Bank::Bank(Account::Factory &factory)
+    : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
+}
+
+void Bank::credit(const Transaction &t) {
+  budget::credit(primaryAccount, t);
+  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
+}
+
 void Bank::removeCredit(const Transaction &t) {
   budget::removeCredit(primaryAccount, t);
+  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
 static auto
@@ -81,11 +89,15 @@ static void createNewAccountIfNeeded(
 void Bank::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
   budget::debit(secondaryAccounts.at(std::string{accountName}), t);
+  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
 void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
-  if (contains(secondaryAccounts, accountName))
+  if (contains(secondaryAccounts, accountName)) {
     budget::removeDebit(secondaryAccounts.at(std::string{accountName}), t);
+    notifyThatTotalBalanceHasChanged(observer, primaryAccount,
+                                     secondaryAccounts);
+  }
 }
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
@@ -135,6 +147,7 @@ void Bank::save(SessionSerialization &persistentMemory) {
 
 void Bank::load(SessionDeserialization &persistentMemory) {
   persistentMemory.load(*this);
+  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
 void Bank::renameAccount(std::string_view from, std::string_view to) {
@@ -185,7 +198,7 @@ void Bank::attach(Observer *a) { observer = a; }
 
 void Bank::reduce(const Date &date) {
   primaryAccount->reduce(date);
-  for (auto [name, account] : secondaryAccounts)
+  for (const auto &[name, account] : secondaryAccounts)
     account->reduce(date);
 }
 
