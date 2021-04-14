@@ -63,6 +63,7 @@ public:
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
   void reduce(const Date &) override {}
+  auto balance() -> USD override { return {}; }
 
 private:
   std::stringstream &stream;

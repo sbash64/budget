@@ -17,6 +17,8 @@ public:
 
 class AccountStub : public Account {
 public:
+  void setBalance(USD b) { balance_ = b; }
+
   void attach(Observer *) override {}
 
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
@@ -90,7 +92,9 @@ public:
 
   auto reducedDate() -> Date { return reducedDate_; }
 
-  void reduce(const Date &date) { reducedDate_ = date; }
+  void reduce(const Date &date) override { reducedDate_ = date; }
+
+  auto balance() -> USD { return balance_; }
 
 private:
   Transaction creditToVerify_;
@@ -106,6 +110,7 @@ private:
   const AccountDeserialization *deserialization_{};
   USD findUnverifiedDebitsAmount_{};
   USD findUnverifiedCreditsAmount_{};
+  USD balance_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -138,18 +143,14 @@ public:
 
   auto newAccount() -> const Account * { return newAccount_; }
 
-  [[nodiscard]] auto notifiedThatTotalBalanceHasChanged() const -> bool {
-    return notifiedThatTotalBalanceHasChanged_;
-  }
+  void notifyThatTotalBalanceHasChanged(USD b) override { totalBalance_ = b; }
 
-  void notifyThatTotalBalanceHasChanged(USD) {
-    notifiedThatTotalBalanceHasChanged_ = true;
-  }
+  auto totalBalance() -> USD { return totalBalance_; }
 
 private:
   std::string newAccountName_;
   const Account *newAccount_{};
-  bool notifiedThatTotalBalanceHasChanged_{};
+  USD totalBalance_{};
 };
 } // namespace
 
@@ -520,12 +521,13 @@ void reduceReducesEachAccount(testcpplite::TestResult &result) {
 
 void notifiesThatTotalBalanceHasChangedOnCredit(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &, const std::shared_ptr<AccountStub> &,
-               Bank &bank) {
+  testBank([&](AccountFactoryStub &,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
     BankObserverStub observer;
     bank.attach(&observer);
+    masterAccount->setBalance(456_cents);
     bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertTrue(result, observer.notifiedThatTotalBalanceHasChanged());
+    assertEqual(result, 456_cents, observer.totalBalance());
   });
 }
 } // namespace sbash64::budget::bank

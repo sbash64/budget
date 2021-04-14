@@ -118,6 +118,7 @@ public:
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
   void reduce(const Date &) override {}
+  auto balance() -> USD override { return {}; }
 
   void save(AccountSerialization &p) override { stream << name; }
 

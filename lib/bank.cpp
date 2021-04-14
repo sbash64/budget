@@ -51,7 +51,7 @@ Bank::Bank(Account::Factory &factory)
 void Bank::credit(const Transaction &t) {
   budget::credit(primaryAccount, t);
   if (observer != nullptr)
-    observer->notifyThatTotalBalanceHasChanged({});
+    observer->notifyThatTotalBalanceHasChanged(primaryAccount->balance());
 }
 
 void Bank::removeCredit(const Transaction &t) {
