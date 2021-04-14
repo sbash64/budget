@@ -260,7 +260,7 @@ public:
         transactionSelection{gtk_single_selection_new(
             G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
-        descriptionEntry{gtk_entry_new()} {
+        descriptionEntry{gtk_entry_new()}, totalBalance{gtk_label_new("")} {
     model.attach(this);
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
     auto *const scrolledWindowsBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
@@ -295,6 +295,7 @@ public:
     g_signal_connect(accountSelection, "selection-changed",
                      G_CALLBACK(selectionChanged), transactionSelection);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsBox);
+    gtk_box_append(GTK_BOX(verticalBox), totalBalance);
     auto *const transactionControlBox{
         gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
     gtk_entry_set_input_purpose(GTK_ENTRY(amountEntry),
@@ -333,6 +334,12 @@ public:
     account.attach(accountView.get());
     accountViews.push_back(std::move(accountView));
     g_object_unref(accountItem);
+  }
+
+  void notifyThatTotalBalanceHasChanged(USD balance) override {
+    std::stringstream stream;
+    putWithDollarSign(stream, balance);
+    gtk_label_set_label(GTK_LABEL(totalBalance), stream.str().c_str());
   }
 
 private:
@@ -437,6 +444,7 @@ private:
   GtkWidget *amountEntry;
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
+  GtkWidget *totalBalance;
 };
 
 class FileStreamFactory : public IoStreamFactory {
