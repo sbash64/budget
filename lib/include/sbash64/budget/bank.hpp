@@ -37,10 +37,10 @@ public:
 
 private:
   Account::Factory &factory;
+  Observer *observer{};
   std::shared_ptr<Account> primaryAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>>
       secondaryAccounts;
-  Observer *observer{};
 };
 
 class InMemoryAccount : public Account {

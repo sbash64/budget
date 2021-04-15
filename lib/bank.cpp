@@ -59,9 +59,17 @@ static void notifyThatTotalBalanceHasChanged(
         }));
 }
 
-Bank::Bank(Account::Factory &factory)
-    : factory{factory}, primaryAccount{factory.make(masterAccountName.data())} {
+static auto make(Account::Factory &factory, std::string_view name,
+                 Model::Observer *observer) -> std::shared_ptr<Account> {
+  auto account{factory.make(name)};
+  if (observer != nullptr)
+    observer->notifyThatNewAccountHasBeenCreated(*account, name);
+  return account;
 }
+
+Bank::Bank(Account::Factory &factory)
+    : factory{factory}, primaryAccount{make(factory, masterAccountName.data(),
+                                            observer)} {}
 
 void Bank::credit(const Transaction &t) {
   budget::credit(primaryAccount, t);
@@ -81,13 +89,14 @@ contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 
 static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
-    Account::Factory &factory, std::string_view accountName) {
+    Account::Factory &factory, std::string_view accountName,
+    Model::Observer *observer) {
   if (!contains(accounts, accountName))
-    accounts[std::string{accountName}] = factory.make(accountName);
+    accounts[std::string{accountName}] = make(factory, accountName, observer);
 }
 
 void Bank::debit(std::string_view accountName, const Transaction &t) {
-  createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
+  createNewAccountIfNeeded(secondaryAccounts, factory, accountName, observer);
   budget::debit(secondaryAccounts.at(std::string{accountName}), t);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
@@ -101,7 +110,7 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
 }
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
-  createNewAccountIfNeeded(secondaryAccounts, factory, accountName);
+  createNewAccountIfNeeded(secondaryAccounts, factory, accountName, observer);
   budget::debit(primaryAccount,
                 Transaction{amount,
                             transferToString.data() + std::string{accountName},
@@ -176,9 +185,7 @@ static auto makeAndLoad(Account::Factory &factory,
                         AccountDeserialization &deserialization,
                         std::string_view name, Model::Observer *observer)
     -> std::shared_ptr<Account> {
-  auto account{factory.make(name)};
-  if (observer != nullptr)
-    observer->notifyThatNewAccountHasBeenCreated(*account, name);
+  auto account{make(factory, name, observer)};
   account->load(deserialization);
   return account;
 }
