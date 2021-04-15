@@ -249,6 +249,8 @@ private:
   AccountItem *accountItem;
 };
 
+static std::string globalOutputFilePath{"/home/seth/budget.txt"};
+
 class GtkView : public Bank::Observer {
 public:
   explicit GtkView(Model &model, SessionSerialization &serialization,
@@ -259,6 +261,7 @@ public:
             gtk_single_selection_new(G_LIST_MODEL(accountListStore))},
         transactionSelection{gtk_single_selection_new(
             G_LIST_MODEL(g_list_store_new(G_TYPE_OBJECT)))},
+        window{window},
         amountEntry{gtk_entry_new()}, calendar{gtk_calendar_new()},
         descriptionEntry{gtk_entry_new()}, totalBalance{gtk_label_new("")} {
     model.attach(this);
@@ -319,6 +322,8 @@ public:
     addTransactionControlButton(this, transactionControlBox, "Transfer To",
                                 onTransferTo);
     addTransactionControlButton(this, transactionControlBox, "Save", onSave);
+    addTransactionControlButton(this, transactionControlBox, "Save As",
+                                onSaveAs);
     addTransactionControlButton(this, transactionControlBox, "Reduce",
                                 onReduce);
     addTransactionControlButton(this, transactionControlBox,
@@ -441,6 +446,28 @@ private:
              g_date_time_get_day_of_month(date)});
   }
 
+  static void on_save_response(GtkNativeDialog *dialog, int response,
+                               GtkView *view) {
+    if (response == GTK_RESPONSE_ACCEPT) {
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+      g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser);
+      auto *path = g_file_get_path(file);
+      globalOutputFilePath = path;
+      g_free(path);
+      view->model.save(view->serialization);
+    }
+
+    gtk_window_destroy(GTK_WINDOW(dialog));
+  }
+
+  static void onSaveAs(GtkButton *, GtkView *view) {
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    auto *const dialog = gtk_file_chooser_native_new(
+        "Save File", view->window, action, "_Save", "_Cancel");
+    g_signal_connect(dialog, "response", G_CALLBACK(on_save_response), view);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(dialog));
+  }
+
   static void onSave(GtkButton *, GtkView *view) {
     view->model.save(view->serialization);
   }
@@ -458,6 +485,7 @@ private:
   GListStore *accountListStore;
   GtkSingleSelection *accountSelection;
   GtkSingleSelection *transactionSelection;
+  GtkWindow *window;
   GtkWidget *amountEntry;
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
@@ -471,7 +499,7 @@ public:
   }
 
   auto makeOutput() -> std::shared_ptr<std::ostream> override {
-    return std::make_shared<std::ofstream>("/home/seth/budget.txt");
+    return std::make_shared<std::ofstream>(globalOutputFilePath);
   }
 };
 
