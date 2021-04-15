@@ -449,15 +449,14 @@ private:
   static void on_save_response(GtkNativeDialog *dialog, int response,
                                GtkView *view) {
     if (response == GTK_RESPONSE_ACCEPT) {
-      GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-      g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser);
+      auto *const file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(dialog));
       auto *path = g_file_get_path(file);
       globalOutputFilePath = path;
       g_free(path);
+      g_object_unref(file);
       view->model.save(view->serialization);
     }
-
-    gtk_window_destroy(GTK_WINDOW(dialog));
+    g_object_unref(dialog);
   }
 
   static void onSaveAs(GtkButton *, GtkView *view) {
