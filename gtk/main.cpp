@@ -321,6 +321,9 @@ public:
     addTransactionControlButton(this, transactionControlBox, "Save", onSave);
     addTransactionControlButton(this, transactionControlBox, "Reduce",
                                 onReduce);
+    addTransactionControlButton(this, transactionControlBox,
+                                "Transfer To New Account",
+                                onTransferToNewAccount);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     gtk_window_set_child(window, verticalBox);
   }
@@ -421,6 +424,17 @@ private:
     auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
     view->model.transferTo(
         selectedAccountName(view),
+        usd(gtk_entry_buffer_get_text(
+            gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
+        Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
+             g_date_time_get_day_of_month(date)});
+  }
+
+  static void onTransferToNewAccount(GtkButton *, GtkView *view) {
+    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
+    view->model.transferTo(
+        gtk_entry_buffer_get_text(
+            gtk_entry_get_buffer(GTK_ENTRY(view->descriptionEntry))),
         usd(gtk_entry_buffer_get_text(
             gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
         Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
