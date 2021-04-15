@@ -321,15 +321,15 @@ public:
                                 onVerifyTransaction);
     addTransactionControlButton(this, transactionControlBox, "Transfer To",
                                 onTransferTo);
-    addTransactionControlButton(this, transactionControlBox, "Save", onSave);
-    addTransactionControlButton(this, transactionControlBox, "Save As",
-                                onSaveAs);
-    addTransactionControlButton(this, transactionControlBox, "Reduce",
-                                onReduce);
     addTransactionControlButton(this, transactionControlBox,
                                 "Transfer To New Account",
                                 onTransferToNewAccount);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
+    auto *const accountControlBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    addTransactionControlButton(this, accountControlBox, "Reduce", onReduce);
+    addTransactionControlButton(this, accountControlBox, "Save", onSave);
+    addTransactionControlButton(this, accountControlBox, "Save As", onSaveAs);
+    gtk_box_append(GTK_BOX(verticalBox), accountControlBox);
     gtk_window_set_child(window, verticalBox);
   }
 
