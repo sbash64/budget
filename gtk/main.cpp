@@ -294,6 +294,7 @@ public:
                                   selectedAccountColumnView);
     gtk_paned_set_end_child(GTK_PANED(scrolledWindowsPane),
                             rightHandScrolledWindow);
+    gtk_paned_set_position(GTK_PANED(scrolledWindowsPane), 250);
     g_signal_connect(accountSelection, "selection-changed",
                      G_CALLBACK(selectionChanged), transactionSelection);
     gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsPane);
