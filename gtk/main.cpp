@@ -263,7 +263,7 @@ public:
         descriptionEntry{gtk_entry_new()}, totalBalance{gtk_label_new("")} {
     model.attach(this);
     auto *const verticalBox{gtk_box_new(GTK_ORIENTATION_VERTICAL, 8)};
-    auto *const scrolledWindowsBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    auto *const scrolledWindowsPane{gtk_paned_new(GTK_ORIENTATION_HORIZONTAL)};
     auto *const leftHandScrolledWindow{gtk_scrolled_window_new()};
     gtk_scrolled_window_set_min_content_height(
         GTK_SCROLLED_WINDOW(leftHandScrolledWindow), 300);
@@ -276,7 +276,8 @@ public:
     gtk_widget_set_hexpand(leftHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(leftHandScrolledWindow),
                                   accountsColumnView);
-    gtk_box_append(GTK_BOX(scrolledWindowsBox), leftHandScrolledWindow);
+    gtk_paned_set_start_child(GTK_PANED(scrolledWindowsPane),
+                              leftHandScrolledWindow);
     auto *const rightHandScrolledWindow{gtk_scrolled_window_new()};
     auto *const selectedAccountColumnView{
         gtk_column_view_new(GTK_SELECTION_MODEL(transactionSelection))};
@@ -291,10 +292,11 @@ public:
     gtk_widget_set_hexpand(rightHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(rightHandScrolledWindow),
                                   selectedAccountColumnView);
-    gtk_box_append(GTK_BOX(scrolledWindowsBox), rightHandScrolledWindow);
+    gtk_paned_set_end_child(GTK_PANED(scrolledWindowsPane),
+                            rightHandScrolledWindow);
     g_signal_connect(accountSelection, "selection-changed",
                      G_CALLBACK(selectionChanged), transactionSelection);
-    gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsBox);
+    gtk_box_append(GTK_BOX(verticalBox), scrolledWindowsPane);
     gtk_box_append(GTK_BOX(verticalBox), totalBalance);
     auto *const transactionControlBox{
         gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
