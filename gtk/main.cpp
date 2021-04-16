@@ -459,14 +459,7 @@ private:
   }
 
   static void onTransferToNewAccount(GtkButton *, GtkView *view) {
-    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
-    view->model.transferTo(
-        gtk_entry_buffer_get_text(
-            gtk_entry_get_buffer(GTK_ENTRY(view->descriptionEntry))),
-        usd(gtk_entry_buffer_get_text(
-            gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
-        Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
-             g_date_time_get_day_of_month(date)});
+    view->observer->notifyThatTransferToNewAccountButtonHasBeenPressed();
   }
 
   static void on_save_response(GtkNativeDialog *dialog, int response,

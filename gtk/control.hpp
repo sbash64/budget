@@ -12,6 +12,7 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatAddTransactionButtonHasBeenPressed() = 0;
     virtual void notifyThatTransferToButtonHasBeenPressed() = 0;
+    virtual void notifyThatTransferToNewAccountButtonHasBeenPressed() = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Control);
   virtual void attach(Observer *) = 0;
@@ -23,6 +24,10 @@ public:
   virtual auto accountName() -> std::string = 0;
 };
 
+static auto description(Control &control) -> std::string {
+  return control.description();
+}
+
 static auto date(Control &control) -> Date {
   return Date{control.year(), Month{control.month()}, control.day()};
 }
@@ -30,7 +35,7 @@ static auto date(Control &control) -> Date {
 static auto usd(Control &control) -> USD { return usd(control.amountUsd()); }
 
 static auto transaction(Control &control) -> Transaction {
-  return {usd(control), control.description(), date(control)};
+  return {usd(control), description(control), date(control)};
 }
 
 static auto selectedAccountName(Control &control) -> std::string {
@@ -59,6 +64,10 @@ public:
     if (masterAccountIsSelected(control))
       return;
     model.transferTo(selectedAccountName(control), usd(control), date(control));
+  }
+
+  void notifyThatTransferToNewAccountButtonHasBeenPressed() override {
+    model.transferTo(description(control), usd(control), date(control));
   }
 
 private:
