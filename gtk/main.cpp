@@ -1,3 +1,4 @@
+#include "control.hpp"
 #include <fstream>
 #include <gtk/gtk.h>
 #include <memory>
@@ -251,7 +252,7 @@ private:
 
 static std::string globalOutputFilePath{"/home/seth/budget.txt"};
 
-class GtkView : public Bank::Observer {
+class GtkView : public Bank::Observer, public Control {
 public:
   explicit GtkView(Model &model, SessionSerialization &serialization,
                    GtkWindow *window)
@@ -353,6 +354,39 @@ public:
     gtk_label_set_label(GTK_LABEL(totalBalance), stream.str().c_str());
   }
 
+  void attach(Control::Observer *a) override { observer = a; }
+
+  auto year() -> int override {
+    return g_date_time_get_year(gtk_calendar_get_date(GTK_CALENDAR(calendar)));
+  }
+
+  auto month() -> int override {
+    return g_date_time_get_month(gtk_calendar_get_date(GTK_CALENDAR(calendar)));
+  }
+
+  auto day() -> int override {
+    return g_date_time_get_day_of_month(
+        gtk_calendar_get_date(GTK_CALENDAR(calendar)));
+  }
+
+  auto amountUsd() -> std::string override {
+    return gtk_entry_buffer_get_text(
+        gtk_entry_get_buffer(GTK_ENTRY(amountEntry)));
+  }
+
+  auto description() -> std::string override {
+    return gtk_entry_buffer_get_text(
+        gtk_entry_get_buffer(GTK_ENTRY(descriptionEntry)));
+  }
+
+  auto accountName() -> std::string override {
+    return gtk_string_object_get_string(
+        ACCOUNT_ITEM(g_list_model_get_item(
+                         G_LIST_MODEL(accountListStore),
+                         gtk_single_selection_get_selected(accountSelection)))
+            ->name);
+  }
+
 private:
   static void
   addTransactionControlButton(GtkView *view, GtkWidget *transactionControlBox,
@@ -387,10 +421,7 @@ private:
   }
 
   static void onAddTransaction(GtkButton *, GtkView *view) {
-    if (masterAccountIsSelected(view))
-      view->model.credit(transaction(view));
-    else
-      view->model.debit(selectedAccountName(view), transaction(view));
+    view->observer->notifyThatAddTransactionButtonHasBeenPressed();
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
@@ -424,15 +455,7 @@ private:
   }
 
   static void onTransferTo(GtkButton *, GtkView *view) {
-    if (masterAccountIsSelected(view))
-      return;
-    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
-    view->model.transferTo(
-        selectedAccountName(view),
-        usd(gtk_entry_buffer_get_text(
-            gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
-        Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
-             g_date_time_get_day_of_month(date)});
+    view->observer->notifyThatTransferToButtonHasBeenPressed();
   }
 
   static void onTransferToNewAccount(GtkButton *, GtkView *view) {
@@ -489,6 +512,7 @@ private:
   GtkWidget *calendar;
   GtkWidget *descriptionEntry;
   GtkWidget *totalBalance;
+  Control::Observer *observer{};
 };
 
 class FileStreamFactory : public IoStreamFactory {
@@ -514,6 +538,7 @@ static void on_activate(GtkApplication *app) {
       streamFactory, accountDeserializationFactory};
   auto *window{gtk_application_window_new(app)};
   static GtkView view{bank, sessionSerialization, GTK_WINDOW(window)};
+  static Controller controller{bank, view};
   bank.load(accountDeserialization);
   gtk_window_present(GTK_WINDOW(window));
 }
