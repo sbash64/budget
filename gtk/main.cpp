@@ -488,10 +488,7 @@ private:
   }
 
   static void onReduce(GtkButton *, GtkView *view) {
-    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
-    view->model.reduce(Date{g_date_time_get_year(date),
-                            Month{g_date_time_get_month(date)},
-                            g_date_time_get_day_of_month(date)});
+    view->observer->notifyThatReduceButtonHasBeenPressed();
   }
 
   std::vector<std::unique_ptr<GtkAccountView>> accountViews;

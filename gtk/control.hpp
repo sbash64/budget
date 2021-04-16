@@ -13,6 +13,7 @@ public:
     virtual void notifyThatAddTransactionButtonHasBeenPressed() = 0;
     virtual void notifyThatTransferToButtonHasBeenPressed() = 0;
     virtual void notifyThatTransferToNewAccountButtonHasBeenPressed() = 0;
+    virtual void notifyThatReduceButtonHasBeenPressed() = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Control);
   virtual void attach(Observer *) = 0;
@@ -68,6 +69,10 @@ public:
 
   void notifyThatTransferToNewAccountButtonHasBeenPressed() override {
     model.transferTo(description(control), usd(control), date(control));
+  }
+
+  void notifyThatReduceButtonHasBeenPressed() override {
+    model.reduce(date(control));
   }
 
 private:
