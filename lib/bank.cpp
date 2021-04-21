@@ -221,6 +221,13 @@ void Bank::reduce(const Date &date) {
     account->reduce(date);
 }
 
+static void callIfObserverExists(
+    InMemoryAccount::Observer *observer,
+    const std::function<void(InMemoryAccount::Observer *)> &f) {
+  if (observer != nullptr)
+    f(observer);
+}
+
 static auto balance(const VerifiableTransactions &transactions) -> USD {
   return accumulate(transactions.begin(), transactions.end(), USD{0},
                     [](USD total, const VerifiableTransaction &t) {
@@ -240,10 +247,10 @@ static void add(VerifiableTransactions &transactions,
                 const VerifiableTransactions &credits,
                 const VerifiableTransactions &debits) {
   transactions.push_back(t);
-  if (observer != nullptr) {
-    notify(observer, t.transaction);
-    observer->notifyThatBalanceHasChanged(balance(credits, debits));
-  }
+  callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
+    notify(observer_, t.transaction);
+    observer_->notifyThatBalanceHasChanged(balance(credits, debits));
+  });
 }
 
 static auto
@@ -306,10 +313,10 @@ static void remove(VerifiableTransactions &transactions, const Transaction &t,
                    const VerifiableTransactions &debits) {
   executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
     transactions.erase(it);
-    if (observer != nullptr) {
-      notify(observer, t);
-      observer->notifyThatBalanceHasChanged(balance(credits, debits));
-    }
+    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
+      notify(observer_, t);
+      observer_->notifyThatBalanceHasChanged(balance(credits, debits));
+    });
   });
 }
 
@@ -417,13 +424,13 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
 void InMemoryAccount::reduce(const Date &date) {
   VerifiableTransaction reduction{
       {budget::balance(credits, debits), "reduction", date}, true};
-  if (observer != nullptr) {
+  callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
     for (const auto &debit : debits)
-      observer->notifyThatDebitHasBeenRemoved(debit.transaction);
+      observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
     for (const auto &credit : credits)
-      observer->notifyThatCreditHasBeenRemoved(credit.transaction);
-    observer->notifyThatCreditHasBeenAdded(reduction.transaction);
-  }
+      observer_->notifyThatCreditHasBeenRemoved(credit.transaction);
+    observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
+  });
   debits.clear();
   credits.clear();
   credits.push_back(reduction);
