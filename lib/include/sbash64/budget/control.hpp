@@ -1,8 +1,7 @@
 #ifndef SBASH64_BUDGET_CONTROL_HPP_
 #define SBASH64_BUDGET_CONTROL_HPP_
 
-#include <sbash64/budget/budget.hpp>
-#include <sbash64/budget/parse.hpp>
+#include "budget.hpp"
 
 namespace sbash64::budget {
 class Control {

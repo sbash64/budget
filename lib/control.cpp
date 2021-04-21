@@ -1,4 +1,5 @@
 #include "control.hpp"
+#include "parse.hpp"
 
 namespace sbash64::budget {
 static auto description(Control &control) -> std::string {
