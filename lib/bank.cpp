@@ -13,6 +13,10 @@ constexpr auto transferFromMasterString{concatenate(
 constexpr auto transferToString{
     concatenate(transferDescription, std::array<char, 5>{" to "})};
 
+static auto transferToString_(std::string_view accountName) -> std::string {
+  return transferToString.data() + std::string{accountName};
+}
+
 static void credit(const std::shared_ptr<Account> &account,
                    const Transaction &t) {
   account->credit(t);
@@ -111,13 +115,10 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName, observer);
   budget::debit(primaryAccount,
-                Transaction{amount,
-                            transferToString.data() + std::string{accountName},
-                            date});
+                Transaction{amount, transferToString_(accountName), date});
   budget::verifyDebit(
       primaryAccount,
-      Transaction{amount, transferToString.data() + std::string{accountName},
-                  date});
+      Transaction{amount, transferToString_(accountName), date});
   budget::credit(secondaryAccounts.at(std::string{accountName}),
                  Transaction{amount, transferFromMasterString.data(), date});
   budget::verifyCredit(
@@ -128,8 +129,7 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
   budget::removeDebit(
       primaryAccount,
-      Transaction{amount, transferToString.data() + std::string{accountName},
-                  date});
+      Transaction{amount, transferToString_(accountName), date});
   budget::removeCredit(
       secondaryAccounts.at(std::string{accountName}),
       Transaction{amount, transferFromMasterString.data(), date});
