@@ -69,7 +69,7 @@ static void account_item_finalize(GObject *object) {
   G_OBJECT_CLASS(account_item_parent_class)->finalize(object);
 }
 
-static void account_item_init(AccountItem *item) {}
+static void account_item_init(AccountItem *) {}
 
 static void account_item_class_init(AccountItemClass *c) {
   G_OBJECT_CLASS(c)->finalize = account_item_finalize;
@@ -183,6 +183,19 @@ static auto operator<(const Transaction &a, const Transaction &b) -> bool {
   return a.description < b.description;
 }
 
+static auto makeTransactionItem(const Transaction &transaction)
+    -> TransactionItem * {
+  auto *const item = static_cast<TransactionItem *>(
+      g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+  item->cents = transaction.amount.cents;
+  item->year = transaction.date.year;
+  item->month = static_cast<typename std::underlying_type<Month>::type>(
+      transaction.date.month);
+  item->day = transaction.date.day;
+  item->description = gtk_string_object_new(transaction.description.c_str());
+  return item;
+}
+
 namespace {
 class GtkTransactionView {
 public:
@@ -219,34 +232,18 @@ public:
   }
 
   void notifyThatCreditHasBeenAdded(const Transaction &transaction) override {
-    auto *const item = static_cast<TransactionItem *>(
-        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    auto *const item = makeTransactionItem(transaction);
     item->credit = TRUE;
-    item->cents = transaction.amount.cents;
-    item->year = transaction.date.year;
-    item->month = static_cast<typename std::underlying_type<Month>::type>(
-        transaction.date.month);
-    item->day = transaction.date.day;
-    item->description = gtk_string_object_new(transaction.description.c_str());
-    auto transactionView{std::make_unique<GtkTransactionView>(
-        accountItem->transactionListStore, item)};
-    credits[transaction] = std::move(transactionView);
+    credits[transaction] = std::make_unique<GtkTransactionView>(
+        accountItem->transactionListStore, item);
     g_object_unref(item);
   }
 
   void notifyThatDebitHasBeenAdded(const Transaction &transaction) override {
-    auto *const item = static_cast<TransactionItem *>(
-        g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
+    auto *const item = makeTransactionItem(transaction);
     item->credit = FALSE;
-    item->cents = transaction.amount.cents;
-    item->year = transaction.date.year;
-    item->month = static_cast<typename std::underlying_type<Month>::type>(
-        transaction.date.month);
-    item->day = transaction.date.day;
-    item->description = gtk_string_object_new(transaction.description.c_str());
-    auto transactionView{std::make_unique<GtkTransactionView>(
-        accountItem->transactionListStore, item)};
-    debits[transaction] = std::move(transactionView);
+    debits[transaction] = std::make_unique<GtkTransactionView>(
+        accountItem->transactionListStore, item);
     g_object_unref(item);
   }
 
