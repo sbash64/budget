@@ -189,6 +189,7 @@ public:
   GtkTransactionView(GListStore *listStore, TransactionItem *transactionItem)
       : listStore{listStore}, transactionItem{transactionItem} {
     g_list_store_append(listStore, transactionItem);
+    g_object_ref(listStore);
   }
 
   void notifyThatVerified() { transactionItem->verified = TRUE; }
@@ -197,6 +198,7 @@ public:
     guint position = 0;
     g_list_store_find(listStore, transactionItem, &position);
     g_list_store_remove(listStore, position);
+    g_object_unref(listStore);
   }
 
 private:
@@ -209,6 +211,7 @@ public:
   GtkAccountView(GListStore *accountListStore, AccountItem *accountItem)
       : accountListStore{accountListStore}, accountItem{accountItem} {
     g_list_store_append(accountListStore, accountItem);
+    g_object_ref(accountListStore);
   }
 
   void notifyThatBalanceHasChanged(USD balance) override {
@@ -259,6 +262,7 @@ public:
     guint position = 0;
     g_list_store_find(accountListStore, accountItem, &position);
     g_list_store_remove(accountListStore, position);
+    g_object_unref(accountListStore);
   }
 
 private:
