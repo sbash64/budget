@@ -147,8 +147,15 @@ public:
 
   auto totalBalance() -> USD { return totalBalance_; }
 
+  auto removedAccountName() -> std::string { return removedAccountName_; }
+
+  void notifyThatAccountHasBeenRemoved(std::string_view name) {
+    removedAccountName_ = name;
+  }
+
 private:
   std::string newAccountName_;
+  std::string removedAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
 };
@@ -566,6 +573,19 @@ void removesAccount(testcpplite::TestResult &result) {
     assertEqual(result, masterAccount.get(), view.primaryAccount());
     assertEqual(result, leopard.get(), view.secondaryAccounts().at(0));
     assertEqual(result, penguin.get(), view.secondaryAccounts().at(1));
+  });
+}
+
+void notifiesObserverOfRemovedAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, Bank &bank) {
+    BankObserverStub observer;
+    bank.attach(&observer);
+    const auto account{std::make_shared<AccountStub>()};
+    add(factory, account, "giraffe");
+    debit(bank, "giraffe", {});
+    bank.removeAccount("giraffe");
+    assertEqual(result, "giraffe", observer.removedAccountName());
   });
 }
 } // namespace sbash64::budget::bank

@@ -200,8 +200,12 @@ void Bank::verifyCredit(const Transaction &t) {
 }
 
 void Bank::removeAccount(std::string_view name) {
-  if (contains(secondaryAccounts, name))
+  if (contains(secondaryAccounts, name)) {
     secondaryAccounts.erase(std::string{name});
+    callIfObserverExists(observer, [&](Observer *observer_) {
+      observer_->notifyThatAccountHasBeenRemoved(name);
+    });
+  }
 }
 
 void Bank::notifyThatPrimaryAccountIsReady(
