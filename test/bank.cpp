@@ -94,7 +94,7 @@ public:
 
   void reduce(const Date &date) override { reducedDate_ = date; }
 
-  auto balance() -> USD { return balance_; }
+  auto balance() -> USD override { return balance_; }
 
 private:
   Transaction creditToVerify_;
@@ -175,11 +175,13 @@ static void debit(Bank &bank, std::string_view accountName,
   bank.debit(accountName, t);
 }
 
+static void credit(Bank &bank, const Transaction &t = {}) { bank.credit(t); }
+
 static void assertContains(testcpplite::TestResult &result,
                            const std::vector<Account *> &accounts,
                            const std::shared_ptr<Account> &account) {
-  assertTrue(result, std::find(accounts.begin(), accounts.end(),
-                               account.get()) != accounts.end());
+  assertTrue(result, find(accounts.begin(), accounts.end(), account.get()) !=
+                         accounts.end());
 }
 
 static void
@@ -222,7 +224,8 @@ void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &,
                const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
-    bank.credit(Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    credit(bank,
+           Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertCredited(
         result, masterAccount,
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
@@ -538,7 +541,7 @@ void notifiesThatTotalBalanceHasChangedOnCredit(
     giraffe->setBalance(123_cents);
     penguin->setBalance(789_cents);
     leopard->setBalance(1111_cents);
-    bank.credit({});
+    credit(bank);
     assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
                 observer.totalBalance());
   });
