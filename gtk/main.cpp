@@ -1,9 +1,9 @@
-#include "control.hpp"
 #include <fstream>
 #include <gtk/gtk.h>
 #include <memory>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
+#include <sbash64/budget/control.hpp>
 #include <sbash64/budget/format.hpp>
 #include <sbash64/budget/parse.hpp>
 #include <sbash64/budget/serialization.hpp>
