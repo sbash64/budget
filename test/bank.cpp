@@ -543,4 +543,25 @@ void notifiesThatTotalBalanceHasChangedOnCredit(
                 observer.totalBalance());
   });
 }
+
+void removesAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    bank.removeAccount("giraffe");
+    ViewStub view;
+    bank.show(view);
+    assertEqual(result, masterAccount.get(), view.primaryAccount());
+    assertEqual(result, leopard.get(), view.secondaryAccounts().at(0));
+    assertEqual(result, penguin.get(), view.secondaryAccounts().at(1));
+  });
+}
 } // namespace sbash64::budget::bank

@@ -19,6 +19,7 @@ void removesFromMasterAccountWhenRemovingCredit(testcpplite::TestResult &);
 void removeTransferRemovesDebitFromMasterAndCreditFromOther(
     testcpplite::TestResult &);
 void renameAccount(testcpplite::TestResult &);
+void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);
 void verifiesDebitForExistingAccount(testcpplite::TestResult &);

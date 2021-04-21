@@ -181,6 +181,11 @@ void Bank::verifyCredit(const Transaction &t) {
   budget::verifyCredit(primaryAccount, t);
 }
 
+void Bank::removeAccount(std::string_view name) {
+  if (contains(secondaryAccounts, name))
+    secondaryAccounts.erase(std::string{name});
+}
+
 static auto makeAndLoad(Account::Factory &factory,
                         AccountDeserialization &deserialization,
                         std::string_view name, Model::Observer *observer)
