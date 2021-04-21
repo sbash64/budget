@@ -412,28 +412,6 @@ private:
     gtk_box_append(GTK_BOX(transactionControlBox), button);
   }
 
-  static auto masterAccountIsSelected(GtkView *view) -> bool {
-    return std::string_view{selectedAccountName(view)} == "master";
-  }
-
-  static auto transaction(GtkView *view) -> Transaction {
-    auto *const date{gtk_calendar_get_date(GTK_CALENDAR(view->calendar))};
-    return {usd(gtk_entry_buffer_get_text(
-                gtk_entry_get_buffer(GTK_ENTRY(view->amountEntry)))),
-            gtk_entry_buffer_get_text(
-                gtk_entry_get_buffer(GTK_ENTRY(view->descriptionEntry))),
-            Date{g_date_time_get_year(date), Month{g_date_time_get_month(date)},
-                 g_date_time_get_day_of_month(date)}};
-  }
-
-  static auto selectedAccountName(GtkView *view) -> const char * {
-    return gtk_string_object_get_string(
-        ACCOUNT_ITEM(g_list_model_get_item(G_LIST_MODEL(view->accountListStore),
-                                           gtk_single_selection_get_selected(
-                                               view->accountSelection)))
-            ->name);
-  }
-
   static void onAddTransaction(GtkButton *, GtkView *view) {
     view->observer->notifyThatAddTransactionButtonHasBeenPressed();
   }
