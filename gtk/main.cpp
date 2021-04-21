@@ -25,7 +25,8 @@ struct _TransactionItem {
   int year;
   int month;
   int day;
-  bool credit;
+  gboolean credit;
+  gboolean verified;
 };
 
 struct _TransactionItemClass {
@@ -87,7 +88,7 @@ static void setLabel(GtkListItem *listItem, const char *string) {
 static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
-  if (transactionItem->credit) {
+  if (transactionItem->credit == TRUE) {
     std::stringstream stream;
     putWithDollarSign(stream, USD{transactionItem->cents});
     setLabel(list_item, stream.str().c_str());
@@ -97,7 +98,7 @@ static void bindCreditAmount(GtkListItemFactory *, GtkListItem *list_item) {
 static void bindDebitAmount(GtkListItemFactory *, GtkListItem *list_item) {
   auto *const transactionItem{
       TRANSACTION_ITEM(gtk_list_item_get_item(list_item))};
-  if (!transactionItem->credit) {
+  if (transactionItem->credit == FALSE) {
     std::stringstream stream;
     putWithDollarSign(stream, USD{transactionItem->cents});
     setLabel(list_item, stream.str().c_str());
@@ -120,6 +121,13 @@ static void setLabel(GtkListItem *listItem, GtkStringObject *string) {
 static void bindDescription(GtkListItemFactory *, GtkListItem *listItem) {
   setLabel(listItem,
            TRANSACTION_ITEM(gtk_list_item_get_item(listItem))->description);
+}
+
+static void bindVerification(GtkListItemFactory *, GtkListItem *listItem) {
+  setLabel(listItem,
+           TRANSACTION_ITEM(gtk_list_item_get_item(listItem))->verified == TRUE
+               ? "yes"
+               : "");
 }
 
 static void bindBalance(GtkListItemFactory *, GtkListItem *listItem) {
@@ -183,6 +191,8 @@ public:
     g_list_store_append(listStore, transactionItem);
   }
 
+  void notifyThatVerified() { transactionItem->verified = TRUE; }
+
   ~GtkTransactionView() {
     guint position = 0;
     g_list_store_find(listStore, transactionItem, &position);
@@ -208,7 +218,7 @@ public:
   void notifyThatCreditHasBeenAdded(const Transaction &transaction) override {
     auto *const item = static_cast<TransactionItem *>(
         g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
-    item->credit = true;
+    item->credit = TRUE;
     item->cents = transaction.amount.cents;
     item->year = transaction.date.year;
     item->month = static_cast<typename std::underlying_type<Month>::type>(
@@ -224,7 +234,7 @@ public:
   void notifyThatDebitHasBeenAdded(const Transaction &transaction) override {
     auto *const item = static_cast<TransactionItem *>(
         g_object_new(TRANSACTION_TYPE_ITEM, nullptr));
-    item->credit = false;
+    item->credit = FALSE;
     item->cents = transaction.amount.cents;
     item->year = transaction.date.year;
     item->month = static_cast<typename std::underlying_type<Month>::type>(
@@ -301,6 +311,8 @@ public:
                                 "Date (mm/dd/yyy)");
     appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
                                 bindDescription, "Description");
+    appendSignalGeneratedColumn(selectedAccountColumnView, setupLabel,
+                                bindVerification, "Verified");
     gtk_widget_set_hexpand(rightHandScrolledWindow, TRUE);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(rightHandScrolledWindow),
                                   selectedAccountColumnView);
@@ -412,7 +424,7 @@ public:
                g_list_model_get_item(
                    gtk_single_selection_get_model(transactionSelection),
                    gtk_single_selection_get_selected(transactionSelection)))
-        ->credit;
+               ->credit == TRUE;
   }
 
 private:
