@@ -387,6 +387,20 @@ public:
             ->name);
   }
 
+  auto selectedTransaction() -> Transaction override {
+    return budget::transaction(TRANSACTION_ITEM(g_list_model_get_item(
+        gtk_single_selection_get_model(transactionSelection),
+        gtk_single_selection_get_selected(transactionSelection))));
+  }
+
+  auto selectedTransactionIsCredit() -> bool override {
+    return TRANSACTION_ITEM(
+               g_list_model_get_item(
+                   gtk_single_selection_get_model(transactionSelection),
+                   gtk_single_selection_get_selected(transactionSelection)))
+        ->credit;
+  }
+
 private:
   static void
   addTransactionControlButton(GtkView *view, GtkWidget *transactionControlBox,
