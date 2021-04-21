@@ -81,4 +81,9 @@ void Controller::notifyThatAddTransactionButtonHasBeenPressed() {
   else
     model.debit(selectedAccountName(control), transaction(control));
 }
+
+void Controller::notifyThatRemoveAccountButtonHasBeenPressed() {
+  if (!masterAccountIsSelected(control))
+    model.removeAccount(selectedAccountName(control));
+}
 } // namespace sbash64::budget

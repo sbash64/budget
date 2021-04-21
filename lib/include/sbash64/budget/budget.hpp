@@ -225,6 +225,7 @@ public:
   virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
   virtual void removeTransfer(std::string_view accountName, USD amount,
                               Date) = 0;
+  virtual void removeAccount(std::string_view) = 0;
   virtual void show(View &) = 0;
   virtual void save(SessionSerialization &) = 0;
   virtual void load(SessionDeserialization &) = 0;

@@ -177,8 +177,11 @@ static auto sameTransaction(gconstpointer a, gconstpointer b) -> gboolean {
 
 class GtkAccountView : public Account::Observer {
 public:
-  explicit GtkAccountView(AccountItem *accountItem)
-      : accountItem{accountItem} {}
+  explicit GtkAccountView(GListStore *accountListStore,
+                          AccountItem *accountItem)
+      : accountListStore{accountListStore}, accountItem{accountItem} {
+    g_list_store_append(accountListStore, accountItem);
+  }
 
   void notifyThatBalanceHasChanged(USD balance) override {
     accountItem->balanceCents = balance.cents;
@@ -246,7 +249,14 @@ public:
     g_object_unref(item);
   }
 
+  ~GtkAccountView() override {
+    guint position = 0;
+    g_list_store_find(accountListStore, accountItem, &position);
+    g_list_store_remove(accountListStore, position);
+  }
+
 private:
+  GListStore *accountListStore;
   AccountItem *accountItem;
 };
 
@@ -327,6 +337,8 @@ public:
                                 onTransferToNewAccount);
     gtk_box_append(GTK_BOX(verticalBox), transactionControlBox);
     auto *const accountControlBox{gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8)};
+    addTransactionControlButton(this, accountControlBox, "Remove",
+                                onRemoveAccount);
     addTransactionControlButton(this, accountControlBox, "Reduce", onReduce);
     addTransactionControlButton(this, accountControlBox, "Save", onSave);
     addTransactionControlButton(this, accountControlBox, "Save As", onSaveAs);
@@ -341,11 +353,15 @@ public:
     accountItem->transactionListStore = g_list_store_new(TRANSACTION_TYPE_ITEM);
     accountItem->name = gtk_string_object_new(std::string{name}.c_str());
     accountItem->balanceCents = 0;
-    g_list_store_append(accountListStore, accountItem);
-    auto accountView{std::make_unique<GtkAccountView>(accountItem)};
+    auto accountView{
+        std::make_unique<GtkAccountView>(accountListStore, accountItem)};
     account.attach(accountView.get());
-    accountViews.push_back(std::move(accountView));
+    accountViews[std::string{name}] = std::move(accountView);
     g_object_unref(accountItem);
+  }
+
+  void notifyThatAccountHasBeenRemoved(std::string_view name) override {
+    accountViews.erase(std::string{name});
   }
 
   void notifyThatTotalBalanceHasChanged(USD balance) override {
@@ -420,6 +436,10 @@ private:
     view->observer->notifyThatRemoveTransactionButtonHasBeenPressed();
   }
 
+  static void onRemoveAccount(GtkButton *, GtkView *view) {
+    view->observer->notifyThatRemoveAccountButtonHasBeenPressed();
+  }
+
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
     view->observer->notifyThatVerifyTransactionButtonHasBeenPressed();
   }
@@ -461,7 +481,8 @@ private:
     view->observer->notifyThatReduceButtonHasBeenPressed();
   }
 
-  std::vector<std::unique_ptr<GtkAccountView>> accountViews;
+  std::map<std::string, std::unique_ptr<GtkAccountView>, std::less<>>
+      accountViews;
   Model &model;
   SessionSerialization &serialization;
   GListStore *accountListStore;

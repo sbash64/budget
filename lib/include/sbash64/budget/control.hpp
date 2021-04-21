@@ -15,6 +15,7 @@ public:
     virtual void notifyThatReduceButtonHasBeenPressed() = 0;
     virtual void notifyThatRemoveTransactionButtonHasBeenPressed() = 0;
     virtual void notifyThatVerifyTransactionButtonHasBeenPressed() = 0;
+    virtual void notifyThatRemoveAccountButtonHasBeenPressed() = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Control);
   virtual void attach(Observer *) = 0;
@@ -37,6 +38,7 @@ public:
   void notifyThatReduceButtonHasBeenPressed() override;
   void notifyThatRemoveTransactionButtonHasBeenPressed() override;
   void notifyThatVerifyTransactionButtonHasBeenPressed() override;
+  void notifyThatRemoveAccountButtonHasBeenPressed() override;
 
 private:
   Model &model;
