@@ -29,6 +29,8 @@ void notifiesObserverOfNewAccount(testcpplite::TestResult &);
 void notifiesObserverOfRemovedAccount(testcpplite::TestResult &);
 void reduceReducesEachAccount(testcpplite::TestResult &);
 void notifiesThatTotalBalanceHasChangedOnCredit(testcpplite::TestResult &);
+void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

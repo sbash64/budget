@@ -205,6 +205,8 @@ void Bank::removeAccount(std::string_view name) {
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatAccountHasBeenRemoved(name);
     });
+    notifyThatTotalBalanceHasChanged(observer, primaryAccount,
+                                     secondaryAccounts);
   }
 }
 
