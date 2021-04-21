@@ -439,20 +439,7 @@ private:
   }
 
   static void onRemoveTransaction(GtkButton *, GtkView *view) {
-    auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
-        gtk_single_selection_get_model(view->transactionSelection),
-        gtk_single_selection_get_selected(view->transactionSelection)))};
-    if (transactionItem->credit == masterAccountIsSelected(view)) {
-      if (transactionItem->credit)
-        view->model.removeCredit(budget::transaction(transactionItem));
-      else
-        view->model.removeDebit(selectedAccountName(view),
-                                budget::transaction(transactionItem));
-    } else if (!masterAccountIsSelected(view))
-      view->model.removeTransfer(
-          selectedAccountName(view), USD{transactionItem->cents},
-          Date{transactionItem->year, Month{transactionItem->month},
-               transactionItem->day});
+    view->observer->notifyThatRemoveTransactionButtonHasBeenPressed();
   }
 
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
