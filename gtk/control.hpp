@@ -15,6 +15,7 @@ public:
     virtual void notifyThatTransferToNewAccountButtonHasBeenPressed() = 0;
     virtual void notifyThatReduceButtonHasBeenPressed() = 0;
     virtual void notifyThatRemoveTransactionButtonHasBeenPressed() = 0;
+    virtual void notifyThatVerifyTransactionButtonHasBeenPressed() = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Control);
   virtual void attach(Observer *) = 0;
@@ -97,6 +98,17 @@ public:
     } else if (!masterAccountIsSelected(control))
       model.removeTransfer(selectedAccountName(control), usd(control),
                            date(control));
+  }
+
+  void notifyThatVerifyTransactionButtonHasBeenPressed() override {
+    if (selectedTransactionIsCredit(control) ==
+        masterAccountIsSelected(control)) {
+      if (selectedTransactionIsCredit(control))
+        model.verifyCredit(selectedTransaction(control));
+      else
+        model.verifyDebit(selectedAccountName(control),
+                          selectedTransaction(control));
+    }
   }
 
 private:

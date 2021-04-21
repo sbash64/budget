@@ -443,16 +443,7 @@ private:
   }
 
   static void onVerifyTransaction(GtkButton *, GtkView *view) {
-    auto *const transactionItem{TRANSACTION_ITEM(g_list_model_get_item(
-        gtk_single_selection_get_model(view->transactionSelection),
-        gtk_single_selection_get_selected(view->transactionSelection)))};
-    if (transactionItem->credit == masterAccountIsSelected(view)) {
-      if (transactionItem->credit)
-        view->model.verifyCredit(budget::transaction(transactionItem));
-      else
-        view->model.verifyDebit(selectedAccountName(view),
-                                budget::transaction(transactionItem));
-    }
+    view->observer->notifyThatVerifyTransactionButtonHasBeenPressed();
   }
 
   static void onTransferTo(GtkButton *, GtkView *view) {
