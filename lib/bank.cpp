@@ -149,23 +149,20 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
 
 void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName, observer);
-  budget::debit(primaryAccount,
-                Transaction{amount, transferToString(accountName), date});
+  budget::debit(primaryAccount, {amount, transferToString(accountName), date});
   budget::verifyDebit(primaryAccount,
-                      Transaction{amount, transferToString(accountName), date});
+                      {amount, transferToString(accountName), date});
   budget::credit(at(secondaryAccounts, accountName),
-                 Transaction{amount, transferFromMasterString.data(), date});
-  budget::verifyCredit(
-      at(secondaryAccounts, accountName),
-      Transaction{amount, transferFromMasterString.data(), date});
+                 {amount, transferFromMasterString.data(), date});
+  budget::verifyCredit(at(secondaryAccounts, accountName),
+                       {amount, transferFromMasterString.data(), date});
 }
 
 void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
   budget::removeDebit(primaryAccount,
-                      Transaction{amount, transferToString(accountName), date});
-  budget::removeCredit(
-      at(secondaryAccounts, accountName),
-      Transaction{amount, transferFromMasterString.data(), date});
+                      {amount, transferToString(accountName), date});
+  budget::removeCredit(at(secondaryAccounts, accountName),
+                       {amount, transferFromMasterString.data(), date});
 }
 
 void Bank::show(View &view) {
@@ -381,11 +378,6 @@ void InMemoryAccount::save(AccountSerialization &serialization) {
   serialization.save(name, credits, debits);
 }
 
-auto InMemoryAccount::Factory::make(std::string_view name_)
-    -> std::shared_ptr<Account> {
-  return std::make_shared<InMemoryAccount>(std::string{name_});
-}
-
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
   deserialization.load(*this);
 }
@@ -439,5 +431,10 @@ void InMemoryAccount::reduce(const Date &date) {
 
 auto InMemoryAccount::balance() -> USD {
   return budget::balance(credits, debits);
+}
+
+auto InMemoryAccount::Factory::make(std::string_view name_)
+    -> std::shared_ptr<Account> {
+  return std::make_shared<InMemoryAccount>(std::string{name_});
 }
 } // namespace sbash64::budget
