@@ -161,6 +161,8 @@ public:
 
   void reduce(const Date &) override {}
 
+  void removeAccount(std::string_view) override {}
+
 private:
   Transaction verifiedCredit_;
   Transaction verifiedDebit_;
