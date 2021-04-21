@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_BANK_HPP_
 
 #include "budget.hpp"
+#include <array>
 #include <functional>
 #include <map>
 #include <memory>
@@ -10,6 +11,8 @@
 #include <vector>
 
 namespace sbash64::budget {
+constexpr const std::array<char, 7> masterAccountName{"master"};
+
 class Bank : public Model {
 public:
   explicit Bank(Account::Factory &);

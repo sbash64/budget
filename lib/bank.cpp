@@ -7,7 +7,6 @@
 #include <numeric>
 
 namespace sbash64::budget {
-constexpr const std::array<char, 7> masterAccountName{"master"};
 constexpr const std::array<char, 9> transferDescription{"transfer"};
 constexpr auto transferFromMasterString{concatenate(
     transferDescription, std::array<char, 7>{" from "}, masterAccountName)};

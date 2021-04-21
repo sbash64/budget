@@ -165,7 +165,7 @@ static void testBank(
                              Bank &bank)> &f) {
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
-  add(factory, masterAccount, "master");
+  add(factory, masterAccount, masterAccountName.data());
   Bank bank{factory};
   f(factory, masterAccount, bank);
 }
@@ -217,8 +217,9 @@ static void assertDebitRemoved(testcpplite::TestResult &result,
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &,
-               Bank &) { assertEqual(result, "master", factory.name()); });
+               const std::shared_ptr<AccountStub> &, Bank &) {
+    assertEqual(result, masterAccountName.data(), factory.name());
+  });
 }
 
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
