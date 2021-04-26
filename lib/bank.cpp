@@ -427,6 +427,18 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
 }
 
+static void addReduction(VerifiableTransactions &transactions, USD amount,
+                         const Date &date, InMemoryAccount::Observer *observer,
+                         const std::function<void(InMemoryAccount::Observer *,
+                                                  const Transaction &)> &f) {
+  VerifiableTransaction reduction{{amount, "reduction", date}, true};
+  callIfObserverExists(observer,
+                       [&reduction, &f](InMemoryAccount::Observer *observer_) {
+                         f(observer_, reduction.transaction);
+                       });
+  transactions.push_back(std::move(reduction));
+}
+
 void InMemoryAccount::reduce(const Date &date) {
   const auto balance{budget::balance(credits, debits)};
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
@@ -442,19 +454,17 @@ void InMemoryAccount::reduce(const Date &date) {
   debits.clear();
   credits.clear();
   if (balance.cents < 0) {
-    VerifiableTransaction reduction{{USD{-balance}, "reduction", date}, true};
-    callIfObserverExists(
-        observer, [&reduction](InMemoryAccount::Observer *observer_) {
-          observer_->notifyThatDebitHasBeenAdded(reduction.transaction);
-        });
-    debits.push_back(std::move(reduction));
+    addReduction(debits, -balance, date, observer,
+                 [](InMemoryAccount::Observer *observer_,
+                    const Transaction &transaction) {
+                   observer_->notifyThatDebitHasBeenAdded(transaction);
+                 });
   } else {
-    VerifiableTransaction reduction{{balance, "reduction", date}, true};
-    callIfObserverExists(
-        observer, [&reduction](InMemoryAccount::Observer *observer_) {
-          observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
-        });
-    credits.push_back(std::move(reduction));
+    addReduction(credits, balance, date, observer,
+                 [](InMemoryAccount::Observer *observer_,
+                    const Transaction &transaction) {
+                   observer_->notifyThatCreditHasBeenAdded(transaction);
+                 });
   }
 }
 
