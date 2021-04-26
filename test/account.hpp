@@ -28,6 +28,7 @@ void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &);
 void reduceReducesToOneTransaction(testcpplite::TestResult &);
 void notifiesObserverOfTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
+void reduceReducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

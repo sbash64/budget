@@ -476,4 +476,23 @@ void returnsBalance(testcpplite::TestResult &result) {
                 account.balance());
   });
 }
+
+void reduceReducesToOneDebitForNegativeBalance(
+    testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account) {
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account,
+           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
+    account.reduce(Date{2021, Month::March, 13});
+    ViewStub view;
+    show(account, view);
+    assertShown(result, view,
+                {verifiedDebit(Transaction{789_cents + 456_cents - 300_cents,
+                                           "reduction",
+                                           Date{2021, Month::March, 13}})});
+  });
+}
 } // namespace sbash64::budget::account

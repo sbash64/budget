@@ -427,9 +427,11 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
 }
 
+static auto absolute(USD x) -> USD { return x.cents < 0 ? USD{-x.cents} : x; }
+
 void InMemoryAccount::reduce(const Date &date) {
-  VerifiableTransaction reduction{
-      {budget::balance(credits, debits), "reduction", date}, true};
+  const auto balance{budget::balance(credits, debits)};
+  VerifiableTransaction reduction{{absolute(balance), "reduction", date}, true};
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
     for (const auto &debit : debits)
       observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
@@ -439,7 +441,10 @@ void InMemoryAccount::reduce(const Date &date) {
   });
   debits.clear();
   credits.clear();
-  credits.push_back(reduction);
+  if (balance.cents < 0)
+    debits.push_back(reduction);
+  else
+    credits.push_back(reduction);
 }
 
 auto InMemoryAccount::balance() -> USD {

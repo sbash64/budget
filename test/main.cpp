@@ -112,6 +112,8 @@ static auto runAllTests() -> int {
         "notifies observer of transactions loaded"},
        {account::reduceReducesToOneTransaction,
         "account reduce reduces to one transaction"},
+       {account::reduceReducesToOneDebitForNegativeBalance,
+        "account reduce reduces to one debit for negative balance"},
        {account::notifiesObserverOfTransactionsWhenReducing,
         "notifies observer of transactions when reducing"},
        {account::returnsBalance, "account returns balance"},
