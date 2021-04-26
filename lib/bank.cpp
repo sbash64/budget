@@ -427,11 +427,8 @@ auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
   return findUnverified(credits, amount);
 }
 
-static auto absolute(USD x) -> USD { return x.cents < 0 ? USD{-x.cents} : x; }
-
 void InMemoryAccount::reduce(const Date &date) {
   const auto balance{budget::balance(credits, debits)};
-  VerifiableTransaction reduction{{absolute(balance), "reduction", date}, true};
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
     for_each(debits.begin(), debits.end(),
              [observer_](const VerifiableTransaction &debit) {
@@ -445,15 +442,19 @@ void InMemoryAccount::reduce(const Date &date) {
   debits.clear();
   credits.clear();
   if (balance.cents < 0) {
-    debits.push_back(reduction);
-    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-      observer_->notifyThatDebitHasBeenAdded(reduction.transaction);
-    });
+    VerifiableTransaction reduction{{USD{-balance}, "reduction", date}, true};
+    callIfObserverExists(
+        observer, [&reduction](InMemoryAccount::Observer *observer_) {
+          observer_->notifyThatDebitHasBeenAdded(reduction.transaction);
+        });
+    debits.push_back(std::move(reduction));
   } else {
-    credits.push_back(reduction);
-    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-      observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
-    });
+    VerifiableTransaction reduction{{balance, "reduction", date}, true};
+    callIfObserverExists(
+        observer, [&reduction](InMemoryAccount::Observer *observer_) {
+          observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
+        });
+    credits.push_back(std::move(reduction));
   }
 }
 
