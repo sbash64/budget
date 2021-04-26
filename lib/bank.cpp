@@ -433,10 +433,14 @@ void InMemoryAccount::reduce(const Date &date) {
   const auto balance{budget::balance(credits, debits)};
   VerifiableTransaction reduction{{absolute(balance), "reduction", date}, true};
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-    for (const auto &debit : debits)
-      observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
-    for (const auto &credit : credits)
-      observer_->notifyThatCreditHasBeenRemoved(credit.transaction);
+    for_each(debits.begin(), debits.end(),
+             [observer_](const VerifiableTransaction &debit) {
+               observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
+             });
+    for_each(credits.begin(), credits.end(),
+             [observer_](const VerifiableTransaction &credit) {
+               observer_->notifyThatCreditHasBeenRemoved(credit.transaction);
+             });
   });
   debits.clear();
   credits.clear();
