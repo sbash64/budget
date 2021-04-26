@@ -40,14 +40,13 @@ public:
 class SessionDeserializationObserverStub
     : public SessionDeserialization::Observer {
 public:
-  void notifyThatPrimaryAccountIsReady(AccountDeserialization &deserialization,
+  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override {
     primaryAccountName_ = name;
   }
 
-  void
-  notifyThatSecondaryAccountIsReady(AccountDeserialization &deserialization,
-                                    std::string_view name) override {
+  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
+                                         std::string_view name) override {
     secondaryAccountNames_.emplace_back(name);
   }
 
@@ -120,7 +119,7 @@ public:
   void reduce(const Date &) override {}
   auto balance() -> USD override { return {}; }
 
-  void save(AccountSerialization &p) override { stream << name; }
+  void save(AccountSerialization &) override { stream << name; }
 
 private:
   std::string name;

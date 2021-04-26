@@ -68,7 +68,7 @@ public:
   void
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
   void reduce(const Date &) override;
-  auto balance() -> USD;
+  auto balance() -> USD override;
 
   class Factory : public Account::Factory {
   public:

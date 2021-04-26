@@ -149,7 +149,7 @@ public:
 
   auto removedAccountName() -> std::string { return removedAccountName_; }
 
-  void notifyThatAccountHasBeenRemoved(std::string_view name) {
+  void notifyThatAccountHasBeenRemoved(std::string_view name) override {
     removedAccountName_ = name;
   }
 
