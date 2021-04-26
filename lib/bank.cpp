@@ -437,14 +437,20 @@ void InMemoryAccount::reduce(const Date &date) {
       observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
     for (const auto &credit : credits)
       observer_->notifyThatCreditHasBeenRemoved(credit.transaction);
-    observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
   });
   debits.clear();
   credits.clear();
-  if (balance.cents < 0)
+  if (balance.cents < 0) {
     debits.push_back(reduction);
-  else
+    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
+      observer_->notifyThatDebitHasBeenAdded(reduction.transaction);
+    });
+  } else {
     credits.push_back(reduction);
+    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
+      observer_->notifyThatCreditHasBeenAdded(reduction.transaction);
+    });
+  }
 }
 
 auto InMemoryAccount::balance() -> USD {
