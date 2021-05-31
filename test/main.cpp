@@ -173,9 +173,12 @@ static auto runAllTests() -> int {
         "command line verifies only debit found"},
        {command_line::unrecognizedCommandPrintsMessage,
         "command line shows message on unrecognized command"},
-       {entering_transaction::controller::shouldTranslateControlDataToDomain,
+       {entering_transaction::controller::shouldTranslateControlDataToDebit,
         "entering transaction controller should translate control data to "
-        "domain"}},
+        "debit"},
+       {entering_transaction::controller::shouldTranslateControlDataToCredit,
+        "entering transaction controller should translate control data to "
+        "credit"}},
       std::cout);
 }
 } // namespace sbash64::budget

@@ -21,6 +21,7 @@ public:
   virtual auto amountUsd() -> std::string = 0;
   virtual auto description() -> std::string = 0;
   virtual auto accountName() -> std::string = 0;
+  virtual auto debit() -> bool = 0;
 };
 
 class Controller : public Control::Observer {

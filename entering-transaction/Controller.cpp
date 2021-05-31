@@ -8,9 +8,13 @@ Controller::Controller(Control &control, Model &model)
 }
 
 void Controller::notifyThatEnterButtonHasBeenClicked() {
-  model.debit(
-      control.accountName(),
-      Transaction{usd(control.amountUsd()), control.description(),
-                  Date{control.year(), Month{control.month()}, control.day()}});
+  control.debit()
+      ? model.debit(control.accountName(),
+                    Transaction{usd(control.amountUsd()), control.description(),
+                                Date{control.year(), Month{control.month()},
+                                     control.day()}})
+      : model.credit(Transaction{
+            usd(control.amountUsd()), control.description(),
+            Date{control.year(), Month{control.month()}, control.day()}});
 }
 } // namespace sbash64::budget::entering_transaction
