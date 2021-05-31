@@ -1,8 +1,8 @@
 #ifndef SBASH64_BUDGET_ENTERING_TRANSACTION_CONTROLLER_HPP_
 #define SBASH64_BUDGET_ENTERING_TRANSACTION_CONTROLLER_HPP_
 
-#include "../budget.hpp"
 #include "Model.hpp"
+#include <sbash64/budget/budget.hpp>
 #include <string>
 
 namespace sbash64::budget::entering_transaction {

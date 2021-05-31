@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_ENTERING_TRANSACTION_MODEL_HPP_
 #define SBASH64_BUDGET_ENTERING_TRANSACTION_MODEL_HPP_
 
-#include "../budget.hpp"
+#include <sbash64/budget/budget.hpp>
 #include <string_view>
 
 namespace sbash64::budget::entering_transaction {

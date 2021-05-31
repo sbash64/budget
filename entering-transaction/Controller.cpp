@@ -1,5 +1,5 @@
 #include "Controller.hpp"
-#include "parse.hpp"
+#include <sbash64/budget/parse.hpp>
 
 namespace sbash64::budget::entering_transaction {
 Controller::Controller(Control &control, Model &model)
