@@ -7,14 +7,14 @@ Controller::Controller(Control &control, Model &model)
   control.attach(this);
 }
 
+static auto transaction(Control &control) -> Transaction {
+  return Transaction{
+      usd(control.amountUsd()), control.description(),
+      Date{control.year(), Month{control.month()}, control.day()}};
+}
+
 void Controller::notifyThatEnterButtonHasBeenClicked() {
-  control.debit()
-      ? model.debit(control.accountName(),
-                    Transaction{usd(control.amountUsd()), control.description(),
-                                Date{control.year(), Month{control.month()},
-                                     control.day()}})
-      : model.credit(Transaction{
-            usd(control.amountUsd()), control.description(),
-            Date{control.year(), Month{control.month()}, control.day()}});
+  control.debit() ? model.debit(control.accountName(), transaction(control))
+                  : model.credit(transaction(control));
 }
 } // namespace sbash64::budget::entering_transaction
