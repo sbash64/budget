@@ -7,7 +7,8 @@ add_executable(
   command-line.cpp
   bank.cpp
   account.cpp
-  stream.cpp)
+  stream.cpp
+  entering-transaction/Controller.cpp)
 target_link_libraries(sbash64-budget-tests sbash64-testcpplite
                       sbash64-budget-lib GSL)
 target_compile_options(sbash64-budget-tests PRIVATE ${SBASH64_BUDGET_WARNINGS})

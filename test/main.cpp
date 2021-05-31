@@ -1,3 +1,4 @@
+#include "./entering-transaction/Controller.hpp"
 #include "account.hpp"
 #include "bank.hpp"
 #include "command-line.hpp"
@@ -171,7 +172,9 @@ static auto runAllTests() -> int {
        {command_line::verifyOnlyDebitFound,
         "command line verifies only debit found"},
        {command_line::unrecognizedCommandPrintsMessage,
-        "command line shows message on unrecognized command"}},
+        "command line shows message on unrecognized command"},
+       {entering_transaction::shouldTranslateControlDataToDomain,
+        "entering a transaction should translate control data to domain"}},
       std::cout);
 }
 } // namespace sbash64::budget
