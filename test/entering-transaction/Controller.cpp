@@ -50,10 +50,17 @@ private:
 class ModelStub : public Model {
 public:
   auto transaction() -> Transaction { return transaction_; }
-  void submit(const Transaction &t) { transaction_ = t; }
+
+  auto accountName() -> std::string { return accountName_; }
+
+  void debit(std::string_view accountName, const Transaction &t) override {
+    accountName_ = accountName;
+    transaction_ = t;
+  }
 
 private:
   Transaction transaction_;
+  std::string accountName_;
 };
 } // namespace
 
@@ -71,5 +78,6 @@ void shouldTranslateControlDataToDomain(
   control.notifyThatEnterButtonHasBeenClicked();
   assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
               model.transaction());
+  assertEqual(result, "lime", model.accountName());
 }
 } // namespace sbash64::budget::entering_transaction::controller

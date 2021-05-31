@@ -174,7 +174,8 @@ static auto runAllTests() -> int {
        {command_line::unrecognizedCommandPrintsMessage,
         "command line shows message on unrecognized command"},
        {entering_transaction::controller::shouldTranslateControlDataToDomain,
-        "entering a transaction should translate control data to domain"}},
+        "entering transaction controller should translate control data to "
+        "domain"}},
       std::cout);
 }
 } // namespace sbash64::budget

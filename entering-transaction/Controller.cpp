@@ -8,7 +8,8 @@ Controller::Controller(Control &control, Model &model)
 }
 
 void Controller::notifyThatEnterButtonHasBeenClicked() {
-  model.submit(
+  model.debit(
+      control.accountName(),
       Transaction{usd(control.amountUsd()), control.description(),
                   Date{control.year(), Month{control.month()}, control.day()}});
 }
