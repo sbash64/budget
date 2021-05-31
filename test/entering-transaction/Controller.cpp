@@ -1,6 +1,7 @@
 #include "Controller.hpp"
 #include "../usd.hpp"
 #include "sbash64/testcpplite/testcpplite.hpp"
+#include <functional>
 #include <sbash64/budget/entering-transaction/Controller.hpp>
 #include <utility>
 
@@ -40,7 +41,7 @@ public:
 
   void setDebit(bool b) { debit_ = b; }
 
-  auto debit() -> bool { return debit_; }
+  auto debit() -> bool override { return debit_; }
 
 private:
   Observer *observer{};
@@ -66,7 +67,7 @@ public:
     debit_ = t;
   }
 
-  void credit(const Transaction &t) { credit_ = t; }
+  void credit(const Transaction &t) override { credit_ = t; }
 
 private:
   Transaction debit_;
@@ -75,37 +76,41 @@ private:
 };
 } // namespace
 
-void shouldTranslateControlDataToDebit(
-    sbash64::testcpplite::TestResult &result) {
+static void
+testController(const std::function<void(ControlStub &, ModelStub &)> &f) {
   ControlStub control;
   ModelStub model;
   Controller controller{control, model};
-  control.setYear(1);
-  control.setMonth(2);
-  control.setDay(3);
-  control.setAmountUsd("4.56");
-  control.setDescription("lemon");
-  control.setAccountName("lime");
-  control.setDebit(true);
-  control.notifyThatEnterButtonHasBeenClicked();
-  assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
-              model.debit());
-  assertEqual(result, "lime", model.accountName());
+  f(control, model);
 }
 
-void shouldTranslateControlDataToCredit(
-    sbash64::testcpplite::TestResult &result) {
-  ControlStub control;
-  ModelStub model;
-  Controller controller{control, model};
-  control.setYear(1);
-  control.setMonth(2);
-  control.setDay(3);
-  control.setAmountUsd("4.56");
-  control.setDescription("lemon");
-  control.setDebit(false);
-  control.notifyThatEnterButtonHasBeenClicked();
-  assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
-              model.credit());
+void shouldTranslateControlDataToDebit(testcpplite::TestResult &result) {
+  testController([&](ControlStub &control, ModelStub &model) {
+    control.setYear(1);
+    control.setMonth(2);
+    control.setDay(3);
+    control.setAmountUsd("4.56");
+    control.setDescription("lemon");
+    control.setAccountName("lime");
+    control.setDebit(true);
+    control.notifyThatEnterButtonHasBeenClicked();
+    assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
+                model.debit());
+    assertEqual(result, "lime", model.accountName());
+  });
+}
+
+void shouldTranslateControlDataToCredit(testcpplite::TestResult &result) {
+  testController([&](ControlStub &control, ModelStub &model) {
+    control.setYear(1);
+    control.setMonth(2);
+    control.setDay(3);
+    control.setAmountUsd("4.56");
+    control.setDescription("lemon");
+    control.setDebit(false);
+    control.notifyThatEnterButtonHasBeenClicked();
+    assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
+                model.credit());
+  });
 }
 } // namespace sbash64::budget::entering_transaction::controller
