@@ -173,7 +173,7 @@ static auto runAllTests() -> int {
         "command line verifies only debit found"},
        {command_line::unrecognizedCommandPrintsMessage,
         "command line shows message on unrecognized command"},
-       {entering_transaction::shouldTranslateControlDataToDomain,
+       {entering_transaction::controller::shouldTranslateControlDataToDomain,
         "entering a transaction should translate control data to domain"}},
       std::cout);
 }

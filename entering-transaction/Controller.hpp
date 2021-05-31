@@ -3,7 +3,6 @@
 
 #include "Model.hpp"
 #include <sbash64/budget/budget.hpp>
-#include <sbash64/budget/parse.hpp>
 #include <string>
 
 namespace sbash64::budget::entering_transaction {
@@ -26,16 +25,8 @@ public:
 
 class Controller : public Control::Observer {
 public:
-  explicit Controller(Control &control, Model &model)
-      : control{control}, model{model} {
-    control.attach(this);
-  }
-
-  void notifyThatEnterButtonHasBeenClicked() override {
-    model.submit(Transaction{
-        usd(control.amountUsd()), control.description(),
-        Date{control.year(), Month{control.month()}, control.day()}});
-  }
+  Controller(Control &, Model &);
+  void notifyThatEnterButtonHasBeenClicked() override;
 
 private:
   Control &control;

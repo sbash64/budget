@@ -3,7 +3,7 @@
 #include <sbash64/budget/entering-transaction/Controller.hpp>
 #include <utility>
 
-namespace sbash64::budget::entering_transaction {
+namespace sbash64::budget::entering_transaction::controller {
 namespace {
 class ControlStub : public Control {
 public:
@@ -72,4 +72,4 @@ void shouldTranslateControlDataToDomain(
   assertEqual(result, Transaction{456_cents, "lemon", Date{1, Month{2}, 3}},
               model.transaction());
 }
-} // namespace sbash64::budget::entering_transaction
+} // namespace sbash64::budget::entering_transaction::controller

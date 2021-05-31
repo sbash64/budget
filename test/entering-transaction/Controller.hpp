@@ -3,7 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::entering_transaction {
+namespace sbash64::budget::entering_transaction::controller {
 void shouldTranslateControlDataToDomain(sbash64::testcpplite::TestResult &);
 }
 
