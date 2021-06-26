@@ -1,74 +1,50 @@
 #define ASIO_STANDALONE
+#include <iostream>
+#include <utility>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
-
-// Custom logger
 #include <websocketpp/logger/syslog.hpp>
-
 #include <websocketpp/server.hpp>
 
-#include <iostream>
-
-////////////////////////////////////////////////////////////////////////////////
-///////////////// Custom Config for debugging custom policies //////////////////
-////////////////////////////////////////////////////////////////////////////////
-
 struct debug_custom : public websocketpp::config::debug_asio {
-  typedef debug_custom type;
-  typedef debug_asio base;
+  using type = debug_custom;
+  using base = debug_asio;
 
-  typedef base::concurrency_type concurrency_type;
+  using concurrency_type = base::concurrency_type;
 
-  typedef base::request_type request_type;
-  typedef base::response_type response_type;
+  using request_type = base::request_type;
+  using response_type = base::response_type;
 
-  typedef base::message_type message_type;
-  typedef base::con_msg_manager_type con_msg_manager_type;
-  typedef base::endpoint_msg_manager_type endpoint_msg_manager_type;
+  using message_type = base::message_type;
+  using con_msg_manager_type = base::con_msg_manager_type;
+  using endpoint_msg_manager_type = base::endpoint_msg_manager_type;
 
-  /// Custom Logging policies
-  /*typedef websocketpp::log::syslog<concurrency_type,
-      websocketpp::log::elevel> elog_type;
-  typedef websocketpp::log::syslog<concurrency_type,
-      websocketpp::log::alevel> alog_type;
-  */
-  typedef base::alog_type alog_type;
-  typedef base::elog_type elog_type;
+  using alog_type = base::alog_type;
+  using elog_type = base::elog_type;
 
-  typedef base::rng_type rng_type;
+  using rng_type = base::rng_type;
 
   struct transport_config : public base::transport_config {
-    typedef type::concurrency_type concurrency_type;
-    typedef type::alog_type alog_type;
-    typedef type::elog_type elog_type;
-    typedef type::request_type request_type;
-    typedef type::response_type response_type;
-    typedef websocketpp::transport::asio::basic_socket::endpoint socket_type;
+    using concurrency_type = type::concurrency_type;
+    using alog_type = type::alog_type;
+    using elog_type = type::elog_type;
+    using request_type = type::request_type;
+    using response_type = type::response_type;
+    using socket_type = websocketpp::transport::asio::basic_socket::endpoint;
   };
 
-  typedef websocketpp::transport::asio::endpoint<transport_config>
-      transport_type;
+  using transport_type =
+      websocketpp::transport::asio::endpoint<transport_config>;
 
   static const long timeout_open_handshake = 0;
 };
 
-////////////////////////////////////////////////////////////////////////////////
+using server = websocketpp::server<debug_custom>;
+using message_ptr = server::message_ptr;
 
-typedef websocketpp::server<debug_custom> server;
+static bool validate(server *, websocketpp::connection_hdl) { return true; }
 
-using websocketpp::lib::bind;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
-
-// pull out the type of messages sent by our config
-typedef server::message_ptr message_ptr;
-
-bool validate(server *, websocketpp::connection_hdl) {
-  // sleep(6);
-  return true;
-}
-
-void on_http(server *s, websocketpp::connection_hdl hdl) {
-  server::connection_ptr con = s->get_con_from_hdl(hdl);
+static void on_http(server *s, websocketpp::connection_hdl hdl) {
+  server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
 
   std::string res = con->get_request_body();
 
@@ -79,19 +55,20 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
   con->set_status(websocketpp::http::status_code::ok);
 }
 
-void on_fail(server *s, websocketpp::connection_hdl hdl) {
-  server::connection_ptr con = s->get_con_from_hdl(hdl);
+static void on_fail(server *s, websocketpp::connection_hdl hdl) {
+  server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
 
   std::cout << "Fail handler: " << con->get_ec() << " "
             << con->get_ec().message() << std::endl;
 }
 
-void on_close(websocketpp::connection_hdl) {
+static void on_close(websocketpp::connection_hdl) {
   std::cout << "Close handler" << std::endl;
 }
 
 // Define a callback to handle incoming messages
-void on_message(server *s, websocketpp::connection_hdl hdl, message_ptr msg) {
+static void on_message(server *s, const websocketpp::connection_hdl &hdl,
+                       const message_ptr &msg) {
   std::cout << "on_message called with hdl: " << hdl.lock().get()
             << " and message: " << msg->get_payload() << std::endl;
 
@@ -118,13 +95,22 @@ int main() {
 
     // Register our message handler
     echo_server.set_message_handler(
-        bind(&on_message, &echo_server, ::_1, ::_2));
+        [capture0 = &echo_server](auto &&PH1, auto &&PH2) {
+          return on_message(capture0, std::forward<decltype(PH1)>(PH1),
+                            std::forward<decltype(PH2)>(PH2));
+        });
 
-    echo_server.set_http_handler(bind(&on_http, &echo_server, ::_1));
-    echo_server.set_fail_handler(bind(&on_fail, &echo_server, ::_1));
+    echo_server.set_http_handler([capture0 = &echo_server](auto &&PH1) {
+      return on_http(capture0, std::forward<decltype(PH1)>(PH1));
+    });
+    echo_server.set_fail_handler([capture0 = &echo_server](auto &&PH1) {
+      return on_fail(capture0, std::forward<decltype(PH1)>(PH1));
+    });
     echo_server.set_close_handler(&on_close);
 
-    echo_server.set_validate_handler(bind(&validate, &echo_server, ::_1));
+    echo_server.set_validate_handler([capture0 = &echo_server](auto &&PH1) {
+      return validate(capture0, std::forward<decltype(PH1)>(PH1));
+    });
 
     // Listen on port 9012
     echo_server.listen(9012);
