@@ -1,9 +1,22 @@
+#include "websocketpp/common/connection_hdl.hpp"
+#include <sbash64/budget/bank.hpp>
+#include <sbash64/budget/budget.hpp>
+#include <sbash64/budget/control.hpp>
+#include <sbash64/budget/format.hpp>
+#include <sbash64/budget/parse.hpp>
+#include <sbash64/budget/serialization.hpp>
+
 #define ASIO_STANDALONE
-#include <iostream>
 #include <utility>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
 #include <websocketpp/server.hpp>
+
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <utility>
 
 struct debug_custom : public websocketpp::config::debug_asio {
   using type = debug_custom;
@@ -41,48 +54,63 @@ struct debug_custom : public websocketpp::config::debug_asio {
 using server = websocketpp::server<debug_custom>;
 using message_ptr = server::message_ptr;
 
-static bool validate(server *, websocketpp::connection_hdl) { return true; }
-
-static void on_http(server *s, websocketpp::connection_hdl hdl) {
-  server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
-
-  std::string res = con->get_request_body();
-
-  std::stringstream ss;
-  ss << "got HTTP request with " << res.size() << " bytes of body data.";
-
-  con->set_body(ss.str());
-  con->set_status(websocketpp::http::status_code::ok);
-}
-
-static void on_fail(server *s, websocketpp::connection_hdl hdl) {
-  server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
-
-  std::cout << "Fail handler: " << con->get_ec() << " "
-            << con->get_ec().message() << std::endl;
-}
-
-static void on_close(websocketpp::connection_hdl) {
-  std::cout << "Close handler" << std::endl;
-}
-
-// Define a callback to handle incoming messages
-static void on_message(server *s, const websocketpp::connection_hdl &hdl,
-                       const message_ptr &msg) {
-  std::cout << "on_message called with hdl: " << hdl.lock().get()
-            << " and message: " << msg->get_payload() << std::endl;
-
-  try {
-    s->send(hdl, msg->get_payload(), msg->get_opcode());
-  } catch (websocketpp::exception const &e) {
-    std::cout << "Echo failed because: "
-              << "(" << e.what() << ")" << std::endl;
+namespace {
+class FileStreamFactory : public sbash64::budget::IoStreamFactory {
+public:
+  auto makeInput() -> std::shared_ptr<std::istream> override {
+    return std::make_shared<std::ifstream>("/home/seth/budget.txt");
   }
-}
+
+  auto makeOutput() -> std::shared_ptr<std::ostream> override {
+    return std::make_shared<std::ofstream>("/home/seth/budget.txt");
+  }
+};
+
+class WebSocketNotifier : public sbash64::budget::Bank::Observer {
+public:
+  explicit WebSocketNotifier(server *s) : s{s} {}
+
+  void notifyThatNewAccountHasBeenCreated(sbash64::budget::Account &,
+                                          std::string_view name) override {
+    std::stringstream stream;
+    stream << "account added: " << name;
+    s->send(connection_, stream.str(), websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatTotalBalanceHasChanged(sbash64::budget::USD usd) override {
+    std::stringstream stream;
+    stream << "balance is now " << usd;
+    s->send(connection_, stream.str(), websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatAccountHasBeenRemoved(std::string_view name) override {}
+
+  void setConnection(websocketpp::connection_hdl connection) {
+    connection_ = std::move(connection);
+  }
+
+private:
+  websocketpp::connection_hdl connection_;
+  server *s;
+};
+} // namespace
 
 int main() {
+  sbash64::budget::InMemoryAccount::Factory accountFactory;
+  sbash64::budget::Bank bank{accountFactory};
+  FileStreamFactory streamFactory;
+  sbash64::budget::WritesAccountToStream::Factory accountSerializationFactory;
+  sbash64::budget::WritesSessionToStream sessionSerialization{
+      streamFactory, accountSerializationFactory};
+  sbash64::budget::ReadsAccountFromStream::Factory
+      accountDeserializationFactory;
+  sbash64::budget::ReadsSessionFromStream accountDeserialization{
+      streamFactory, accountDeserializationFactory};
+
   // Create a server endpoint
   server echo_server;
+  WebSocketNotifier webSocketNotifier{&echo_server};
+  bank.attach(&webSocketNotifier);
 
   try {
     // Set logging settings
@@ -93,23 +121,55 @@ int main() {
     echo_server.init_asio();
     echo_server.set_reuse_addr(true);
 
-    // Register our message handler
-    echo_server.set_message_handler(
-        [capture0 = &echo_server](auto &&PH1, auto &&PH2) {
-          return on_message(capture0, std::forward<decltype(PH1)>(PH1),
-                            std::forward<decltype(PH2)>(PH2));
+    echo_server.set_open_handler(
+        [&bank, &accountDeserialization,
+         &webSocketNotifier](websocketpp::connection_hdl connection) {
+          std::cout << "Open handler" << std::endl;
+          webSocketNotifier.setConnection(std::move(connection));
+          bank.load(accountDeserialization);
         });
 
-    echo_server.set_http_handler([capture0 = &echo_server](auto &&PH1) {
-      return on_http(capture0, std::forward<decltype(PH1)>(PH1));
-    });
-    echo_server.set_fail_handler([capture0 = &echo_server](auto &&PH1) {
-      return on_fail(capture0, std::forward<decltype(PH1)>(PH1));
-    });
-    echo_server.set_close_handler(&on_close);
+    echo_server.set_fail_handler(
+        [&echo_server](websocketpp::connection_hdl connection) {
+          server::connection_ptr con = echo_server.get_con_from_hdl(
+              std::forward<decltype(connection)>(connection));
 
-    echo_server.set_validate_handler([capture0 = &echo_server](auto &&PH1) {
-      return validate(capture0, std::forward<decltype(PH1)>(PH1));
+          std::cout << "Fail handler: " << con->get_ec() << " "
+                    << con->get_ec().message() << std::endl;
+        });
+
+    echo_server.set_close_handler([](websocketpp::connection_hdl) {
+      std::cout << "Close handler" << std::endl;
+    });
+
+    // Register our message handler
+    echo_server.set_message_handler(
+        [&echo_server](websocketpp::connection_hdl connection,
+                       message_ptr message) {
+          std::cout << "on_message called with hdl: " << connection.lock().get()
+                    << " and message: " << message->get_payload() << std::endl;
+
+          try {
+            echo_server.send(connection, message->get_payload(),
+                             message->get_opcode());
+          } catch (websocketpp::exception const &e) {
+            std::cout << "Echo failed because: "
+                      << "(" << e.what() << ")" << std::endl;
+          }
+        });
+
+    echo_server.set_http_handler([&echo_server](
+                                     websocketpp::connection_hdl connection) {
+      server::connection_ptr con =
+          echo_server.get_con_from_hdl(std::move(connection));
+
+      std::string res = con->get_request_body();
+
+      std::stringstream ss;
+      ss << "got HTTP request with " << res.size() << " bytes of body data.";
+
+      con->set_body(ss.str());
+      con->set_status(websocketpp::http::status_code::ok);
     });
 
     // Listen on port 9012
