@@ -35,6 +35,12 @@ if(${SBASH64_BUDGET_ENABLE_WEB})
         BUILD_COMMAND
         ${MAKE_EXE})
   FetchContent_MakeAvailable(asio)
+  FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY
+      https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+    GIT_TAG v3.9.1)
+  FetchContent_MakeAvailable(nlohmann_json)
 
   add_subdirectory(web)
 endif()

@@ -6,6 +6,8 @@
 #include <sbash64/budget/parse.hpp>
 #include <sbash64/budget/serialization.hpp>
 
+#include <nlohmann/json.hpp>
+
 #define ASIO_STANDALONE
 #include <utility>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
@@ -14,6 +16,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <utility>
@@ -51,11 +54,9 @@ struct debug_custom : public websocketpp::config::debug_asio {
   static const long timeout_open_handshake = 0;
 };
 
-using server = websocketpp::server<debug_custom>;
-using message_ptr = server::message_ptr;
-
+namespace sbash64::budget {
 namespace {
-class FileStreamFactory : public sbash64::budget::IoStreamFactory {
+class FileStreamFactory : public IoStreamFactory {
 public:
   auto makeInput() -> std::shared_ptr<std::istream> override {
     return std::make_shared<std::ifstream>("/home/seth/budget.txt");
@@ -66,103 +67,180 @@ public:
   }
 };
 
-class WebSocketNotifier : public sbash64::budget::Bank::Observer {
+auto put(std::ostream &stream, std::string_view method, const Transaction &t)
+    -> std::ostream & {
+  nlohmann::json json;
+  json["description"] = t.description;
+  json["amountCents"] = t.amount.cents;
+  json["day"] = t.date.day;
+  json["month"] = t.date.month;
+  json["year"] = t.date.year;
+  return stream << method << ": " << json;
+}
+
+class WebSocketAccountObserver : public Account::Observer {
 public:
-  explicit WebSocketNotifier(server *s) : s{s} {}
-
-  void notifyThatNewAccountHasBeenCreated(sbash64::budget::Account &,
-                                          std::string_view name) override {
-    std::stringstream stream;
-    stream << "account added: " << name;
-    s->send(connection_, stream.str(), websocketpp::frame::opcode::value::text);
+  WebSocketAccountObserver(websocketpp::server<debug_custom> &server,
+                           websocketpp::connection_hdl connection,
+                           Account &account)
+      : connection{std::move(connection)}, server{server} {
+    account.attach(this);
   }
 
-  void notifyThatTotalBalanceHasChanged(sbash64::budget::USD usd) override {
+  void notifyThatBalanceHasChanged(USD usd) override {
     std::stringstream stream;
-    stream << "balance is now " << usd;
-    s->send(connection_, stream.str(), websocketpp::frame::opcode::value::text);
+    stream << "updateBalance: " << usd;
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatAccountHasBeenRemoved(std::string_view name) override {}
+  void notifyThatCreditHasBeenAdded(const Transaction &t) override {
+    std::stringstream stream;
+    put(stream, "addCredit", t);
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+  }
 
-  void setConnection(websocketpp::connection_hdl connection) {
-    connection_ = std::move(connection);
+  void notifyThatDebitHasBeenAdded(const Transaction &t) override {
+    std::stringstream stream;
+    put(stream, "addDebit", t);
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
+    std::stringstream stream;
+    put(stream, "removeDebit", t);
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
+    std::stringstream stream;
+    put(stream, "removeCredit", t);
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
   }
 
 private:
-  websocketpp::connection_hdl connection_;
-  server *s;
+  websocketpp::connection_hdl connection;
+  websocketpp::server<debug_custom> &server;
+};
+
+class WebSocketModelObserver : public Model::Observer {
+public:
+  WebSocketModelObserver(websocketpp::server<debug_custom> &server,
+                         websocketpp::connection_hdl connection, Model &model)
+      : connection{std::move(connection)}, server{server} {
+    model.attach(this);
+  }
+
+  void notifyThatNewAccountHasBeenCreated(Account &account,
+                                          std::string_view name) override {
+    accountObservers[std::string{name}] =
+        std::make_unique<WebSocketAccountObserver>(server, connection, account);
+    std::stringstream stream;
+    stream << "addAccount: " << name;
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatTotalBalanceHasChanged(USD usd) override {
+    std::stringstream stream;
+    stream << "updateBalance: " << usd;
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatAccountHasBeenRemoved(std::string_view name) override {
+    std::stringstream stream;
+    stream << "removeAccount: " << name;
+    server.send(connection, stream.str(),
+                websocketpp::frame::opcode::value::text);
+    accountObservers.at(std::string{name}).reset();
+  }
+
+private:
+  websocketpp::connection_hdl connection;
+  websocketpp::server<debug_custom> &server;
+  std::map<std::string, std::unique_ptr<WebSocketAccountObserver>, std::less<>>
+      accountObservers;
+};
+
+struct App {
+  InMemoryAccount::Factory accountFactory;
+  Bank bank{accountFactory};
+  FileStreamFactory streamFactory;
+  WritesAccountToStream::Factory accountSerializationFactory;
+  WritesSessionToStream sessionSerialization{streamFactory,
+                                             accountSerializationFactory};
+  ReadsAccountFromStream::Factory accountDeserializationFactory;
+  ReadsSessionFromStream accountDeserialization{streamFactory,
+                                                accountDeserializationFactory};
+  WebSocketModelObserver webSocketNotifier;
+
+  App(websocketpp::server<debug_custom> &server,
+      websocketpp::connection_hdl connection)
+      : webSocketNotifier{server, std::move(connection), bank} {
+    bank.load(accountDeserialization);
+  }
 };
 } // namespace
+} // namespace sbash64::budget
 
 int main() {
-  sbash64::budget::InMemoryAccount::Factory accountFactory;
-  sbash64::budget::Bank bank{accountFactory};
-  FileStreamFactory streamFactory;
-  sbash64::budget::WritesAccountToStream::Factory accountSerializationFactory;
-  sbash64::budget::WritesSessionToStream sessionSerialization{
-      streamFactory, accountSerializationFactory};
-  sbash64::budget::ReadsAccountFromStream::Factory
-      accountDeserializationFactory;
-  sbash64::budget::ReadsSessionFromStream accountDeserialization{
-      streamFactory, accountDeserializationFactory};
-
+  std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   // Create a server endpoint
-  server echo_server;
-  WebSocketNotifier webSocketNotifier{&echo_server};
-  bank.attach(&webSocketNotifier);
+  websocketpp::server<debug_custom> server;
 
   try {
     // Set logging settings
-    echo_server.set_access_channels(websocketpp::log::alevel::all);
-    echo_server.clear_access_channels(websocketpp::log::alevel::frame_payload);
+    server.set_access_channels(websocketpp::log::alevel::all);
+    server.clear_access_channels(websocketpp::log::alevel::frame_payload);
 
     // Initialize ASIO
-    echo_server.init_asio();
-    echo_server.set_reuse_addr(true);
+    server.init_asio();
+    server.set_reuse_addr(true);
 
-    echo_server.set_open_handler(
-        [&bank, &accountDeserialization,
-         &webSocketNotifier](websocketpp::connection_hdl connection) {
-          std::cout << "Open handler" << std::endl;
-          webSocketNotifier.setConnection(std::move(connection));
-          bank.load(accountDeserialization);
-        });
-
-    echo_server.set_fail_handler(
-        [&echo_server](websocketpp::connection_hdl connection) {
-          server::connection_ptr con = echo_server.get_con_from_hdl(
-              std::forward<decltype(connection)>(connection));
-
-          std::cout << "Fail handler: " << con->get_ec() << " "
-                    << con->get_ec().message() << std::endl;
-        });
-
-    echo_server.set_close_handler([](websocketpp::connection_hdl) {
-      std::cout << "Close handler" << std::endl;
+    server.set_open_handler([&server, &applications](
+                                websocketpp::connection_hdl connection) {
+      applications[connection.lock().get()] =
+          std::make_unique<sbash64::budget::App>(server, std::move(connection));
     });
 
+    server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
+      websocketpp::server<debug_custom>::connection_ptr con =
+          server.get_con_from_hdl(std::move(connection));
+
+      std::cout << "Fail handler: " << con->get_ec() << " "
+                << con->get_ec().message() << std::endl;
+    });
+
+    server.set_close_handler(
+        [&applications](websocketpp::connection_hdl connection) {
+          std::cout << "Close handler" << std::endl;
+          applications[connection.lock().get()].reset();
+        });
+
     // Register our message handler
-    echo_server.set_message_handler(
-        [&echo_server](websocketpp::connection_hdl connection,
-                       message_ptr message) {
+    server.set_message_handler(
+        [&server](websocketpp::connection_hdl connection,
+                  websocketpp::server<debug_custom>::message_ptr message) {
           std::cout << "on_message called with hdl: " << connection.lock().get()
                     << " and message: " << message->get_payload() << std::endl;
 
           try {
-            echo_server.send(connection, message->get_payload(),
-                             message->get_opcode());
+            server.send(connection, message->get_payload(),
+                        message->get_opcode());
           } catch (websocketpp::exception const &e) {
             std::cout << "Echo failed because: "
                       << "(" << e.what() << ")" << std::endl;
           }
         });
 
-    echo_server.set_http_handler([&echo_server](
-                                     websocketpp::connection_hdl connection) {
-      server::connection_ptr con =
-          echo_server.get_con_from_hdl(std::move(connection));
-
+    server.set_http_handler([&server](websocketpp::connection_hdl connection) {
+      websocketpp::server<debug_custom>::connection_ptr con =
+          server.get_con_from_hdl(std::move(connection));
       std::string res = con->get_request_body();
 
       std::stringstream ss;
@@ -170,16 +248,18 @@ int main() {
 
       con->set_body(ss.str());
       con->set_status(websocketpp::http::status_code::ok);
+      std::cout << "get_host: " << con->get_host() << '\n';
+      // std::cout << "get_origin: " << con->get_origin() << '\n';
+      std::cout << "get_resource: " << con->get_resource() << '\n';
+      std::cout << "get_subprotocol: " << con->get_subprotocol() << '\n';
+      std::cout << "get_uri: " << con->get_uri()->str() << '\n';
+      std::cout << "get_remote_endpoint: " << con->get_remote_endpoint()
+                << '\n';
     });
 
-    // Listen on port 9012
-    echo_server.listen(9012);
-
-    // Start the server accept loop
-    echo_server.start_accept();
-
-    // Start the ASIO io_service run loop
-    echo_server.run();
+    server.listen(9012);
+    server.start_accept();
+    server.run();
   } catch (websocketpp::exception const &e) {
     std::cout << e.what() << std::endl;
   } catch (const std::exception &e) {
