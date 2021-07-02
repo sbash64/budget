@@ -67,57 +67,59 @@ public:
   }
 };
 
-auto put(std::ostream &stream, std::string_view method, const Transaction &t)
-    -> std::ostream & {
+auto put(std::ostream &stream, std::string_view name, std::string_view method,
+         const Transaction &t) -> std::ostream & {
   nlohmann::json json;
   json["description"] = t.description;
-  json["amountCents"] = t.amount.cents;
-  json["day"] = t.date.day;
-  json["month"] = t.date.month;
-  json["year"] = t.date.year;
-  return stream << method << ": " << json;
+  std::stringstream amountStream;
+  amountStream << t.amount;
+  json["amount"] = amountStream.str();
+  std::stringstream dateStream;
+  dateStream << t.date;
+  json["date"] = dateStream.str();
+  return stream << name << ' ' << method << ' ' << json;
 }
 
 class WebSocketAccountObserver : public Account::Observer {
 public:
   WebSocketAccountObserver(websocketpp::server<debug_custom> &server,
                            websocketpp::connection_hdl connection,
-                           Account &account)
-      : connection{std::move(connection)}, server{server} {
+                           Account &account, std::string_view name)
+      : connection{std::move(connection)}, server{server}, name{name} {
     account.attach(this);
   }
 
   void notifyThatBalanceHasChanged(USD usd) override {
     std::stringstream stream;
-    stream << "updateBalance: " << usd;
+    stream << name << " updateBalance " << usd;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatCreditHasBeenAdded(const Transaction &t) override {
     std::stringstream stream;
-    put(stream, "addCredit", t);
+    put(stream, name, "addCredit", t);
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenAdded(const Transaction &t) override {
     std::stringstream stream;
-    put(stream, "addDebit", t);
+    put(stream, name, "addDebit", t);
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
     std::stringstream stream;
-    put(stream, "removeDebit", t);
+    put(stream, name, "removeDebit", t);
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
     std::stringstream stream;
-    put(stream, "removeCredit", t);
+    put(stream, name, "removeCredit", t);
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
@@ -125,6 +127,7 @@ public:
 private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
+  std::string name;
 };
 
 class WebSocketModelObserver : public Model::Observer {
@@ -138,23 +141,24 @@ public:
   void notifyThatNewAccountHasBeenCreated(Account &account,
                                           std::string_view name) override {
     accountObservers[std::string{name}] =
-        std::make_unique<WebSocketAccountObserver>(server, connection, account);
+        std::make_unique<WebSocketAccountObserver>(server, connection, account,
+                                                   name);
     std::stringstream stream;
-    stream << "addAccount: " << name;
+    stream << "addAccount " << name;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatTotalBalanceHasChanged(USD usd) override {
     std::stringstream stream;
-    stream << "updateBalance: " << usd;
+    stream << "updateBalance " << usd;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatAccountHasBeenRemoved(std::string_view name) override {
     std::stringstream stream;
-    stream << "removeAccount: " << name;
+    stream << "removeAccount " << name;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
     accountObservers.at(std::string{name}).reset();
