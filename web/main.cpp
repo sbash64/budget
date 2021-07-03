@@ -77,7 +77,8 @@ auto put(std::ostream &stream, std::string_view name, std::string_view method,
   std::stringstream dateStream;
   dateStream << t.date;
   json["date"] = dateStream.str();
-  return stream << name << ' ' << method << ' ' << json;
+  json["name"] = name;
+  return stream << method << ' ' << json;
 }
 
 class WebSocketAccountObserver : public Account::Observer {
@@ -91,7 +92,12 @@ public:
 
   void notifyThatBalanceHasChanged(USD usd) override {
     std::stringstream stream;
-    stream << name << " updateBalance " << usd;
+    nlohmann::json json;
+    json["name"] = name;
+    std::stringstream amountStream;
+    amountStream << usd;
+    json["amount"] = amountStream.str();
+    stream << "updateAccountBalance " << json;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
@@ -144,21 +150,29 @@ public:
         std::make_unique<WebSocketAccountObserver>(server, connection, account,
                                                    name);
     std::stringstream stream;
-    stream << "addAccount " << name;
+    nlohmann::json json;
+    json["name"] = name;
+    stream << "addAccount " << json;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatTotalBalanceHasChanged(USD usd) override {
     std::stringstream stream;
-    stream << "updateBalance " << usd;
+    nlohmann::json json;
+    std::stringstream amountStream;
+    amountStream << usd;
+    json["amount"] = amountStream.str();
+    stream << "updateBalance " << json;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatAccountHasBeenRemoved(std::string_view name) override {
     std::stringstream stream;
-    stream << "removeAccount " << name;
+    nlohmann::json json;
+    json["name"] = name;
+    stream << "removeAccount " << json;
     server.send(connection, stream.str(),
                 websocketpp::frame::opcode::value::text);
     accountObservers.at(std::string{name}).reset();
