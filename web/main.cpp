@@ -67,8 +67,8 @@ public:
   }
 };
 
-auto put(std::ostream &stream, std::string_view name, std::string_view method,
-         const Transaction &t) -> std::ostream & {
+auto json(std::string_view name, std::string_view method, const Transaction &t)
+    -> nlohmann::json {
   nlohmann::json json;
   json["description"] = t.description;
   std::stringstream amountStream;
@@ -78,7 +78,8 @@ auto put(std::ostream &stream, std::string_view name, std::string_view method,
   dateStream << t.date;
   json["date"] = dateStream.str();
   json["name"] = name;
-  return stream << method << ' ' << json;
+  json["method"] = method;
+  return json;
 }
 
 class WebSocketAccountObserver : public Account::Observer {
@@ -91,42 +92,38 @@ public:
   }
 
   void notifyThatBalanceHasChanged(USD usd) override {
-    std::stringstream stream;
+    std::cout << "d\n";
     nlohmann::json json;
     json["name"] = name;
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    stream << "updateAccountBalance " << json;
-    server.send(connection, stream.str(),
+    json["method"] = "update account balance";
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatCreditHasBeenAdded(const Transaction &t) override {
-    std::stringstream stream;
-    put(stream, name, "addCredit", t);
-    server.send(connection, stream.str(),
+    std::cout << "e\n";
+    server.send(connection, json(name, "add credit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenAdded(const Transaction &t) override {
-    std::stringstream stream;
-    put(stream, name, "addDebit", t);
-    server.send(connection, stream.str(),
+    std::cout << "f\n";
+    server.send(connection, json(name, "add debit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
-    std::stringstream stream;
-    put(stream, name, "removeDebit", t);
-    server.send(connection, stream.str(),
+    std::cout << "g\n";
+    server.send(connection, json(name, "remove debit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
-    std::stringstream stream;
-    put(stream, name, "removeCredit", t);
-    server.send(connection, stream.str(),
+    std::cout << "h\n";
+    server.send(connection, json(name, "remove credit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
@@ -149,31 +146,35 @@ public:
     accountObservers[std::string{name}] =
         std::make_unique<WebSocketAccountObserver>(server, connection, account,
                                                    name);
-    std::stringstream stream;
+    std::cout << "a\n";
     nlohmann::json json;
+    std::cout << "aa\n";
     json["name"] = name;
-    stream << "addAccount " << json;
-    server.send(connection, stream.str(),
+    std::cout << "aaa\n";
+    json["method"] = "add account";
+    std::cout << "aaaa\n";
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
+    std::cout << "aaaaa\n";
   }
 
   void notifyThatTotalBalanceHasChanged(USD usd) override {
-    std::stringstream stream;
+    std::cout << "b\n";
     nlohmann::json json;
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    stream << "updateBalance " << json;
-    server.send(connection, stream.str(),
+    json["method"] = "update balance";
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatAccountHasBeenRemoved(std::string_view name) override {
-    std::stringstream stream;
+    std::cout << "c\n";
     nlohmann::json json;
     json["name"] = name;
-    stream << "removeAccount " << json;
-    server.send(connection, stream.str(),
+    json["method"] = "remove account";
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
     accountObservers.at(std::string{name}).reset();
   }
@@ -263,8 +264,18 @@ int main() {
 
       std::stringstream ss;
       ss << "got HTTP request with " << res.size() << " bytes of body data.";
-
-      con->set_body(ss.str());
+      if (con->get_resource() == "/") {
+        std::ifstream response{"index.html"};
+        std::ostringstream stream;
+        stream << response.rdbuf();
+        con->set_body(stream.str());
+      }
+      if (con->get_resource() == "/main.js") {
+        std::ifstream response{"main.js"};
+        std::ostringstream stream;
+        stream << response.rdbuf();
+        con->set_body(stream.str());
+      }
       con->set_status(websocketpp::http::status_code::ok);
       std::cout << "get_host: " << con->get_host() << '\n';
       // std::cout << "get_origin: " << con->get_origin() << '\n';
