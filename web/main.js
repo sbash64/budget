@@ -13,7 +13,9 @@ function initializeAccounts(accountTable) {
 }
 
 function main() {
-  const accountTable = createChild(document.body, "table");
+  const accountsWithSummaries = createChild(document.body, "div");
+  accountsWithSummaries.style.display = "flex";
+  const accountTable = createChild(accountsWithSummaries, "table");
   initializeAccounts(accountTable);
   const accounts = new Map();
   const accountSummaries = new Map();
@@ -29,7 +31,7 @@ function main() {
         createChild(accountSummary, "td");
         accountSummaries.set(message.name, accountSummary);
 
-        const account = createChild(document.body, "table");
+        const account = createChild(accountsWithSummaries, "table");
         const header = createChild(account, "tr");
         const description = createChild(header, "th");
         description.textContent = "Description";
