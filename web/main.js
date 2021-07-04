@@ -4,24 +4,22 @@ function createChild(parent, tagName) {
   return child;
 }
 
-function initializeAccounts(accountTable) {
+function initializeAccountTable(accountTable) {
   const header = createChild(accountTable, "tr");
-  const name = createChild(header, "th");
-  name.textContent = "Name";
-  const balance = createChild(header, "th");
-  balance.textContent = "Balance";
+  createChild(header, "th").textContent = "Name";
+  createChild(header, "th").textContent = "Balance";
 }
 
 function main() {
   const accountsWithSummaries = createChild(document.body, "div");
   accountsWithSummaries.style.display = "flex";
   const accountTable = createChild(accountsWithSummaries, "table");
-  initializeAccounts(accountTable);
+  const totalBalance = createChild(document.body, "div");
+  initializeAccountTable(accountTable);
+  let accountShowing = null;
   const accounts = new Map();
   const accountSummaries = new Map();
   const websocket = new WebSocket("ws://localhost:9012");
-  let accountShowing = null;
-  const totalBalance = createChild(document.body, "div");
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
@@ -66,8 +64,20 @@ function main() {
         createChild(transaction, "td").textContent = message.date;
         break;
       }
-      case "remove credit":
+      case "remove credit": {
+        const account = accounts.get(message.name);
+        for (let i = 0; i < account.rows.length; i += 1) {
+          if (
+            account.rows[i].cells[0].textContent === message.description &&
+            account.rows[i].cells[2].textContent === message.amount &&
+            account.rows[i].cells[3].textContent === message.date
+          ) {
+            account.deleteRow(i);
+            break;
+          }
+        }
         break;
+      }
       case "add debit": {
         const transaction = createChild(accounts.get(message.name), "tr");
         createChild(transaction, "td").textContent = message.description;
@@ -76,8 +86,20 @@ function main() {
         createChild(transaction, "td").textContent = message.date;
         break;
       }
-      case "remove debit":
+      case "remove debit": {
+        const account = accounts.get(message.name);
+        for (let i = 0; i < account.rows.length; i += 1) {
+          if (
+            account.rows[i].cells[0].textContent === message.description &&
+            account.rows[i].cells[1].textContent === message.amount &&
+            account.rows[i].cells[3].textContent === message.date
+          ) {
+            account.deleteRow(i);
+            break;
+          }
+        }
         break;
+      }
       case "update account balance": {
         const accountSummary = accountSummaries.get(message.name);
         accountSummary.lastElementChild.textContent = message.amount;
