@@ -1,4 +1,5 @@
 #include "websocketpp/common/connection_hdl.hpp"
+#include <functional>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/control.hpp>
@@ -92,7 +93,6 @@ public:
   }
 
   void notifyThatBalanceHasChanged(USD usd) override {
-    std::cout << "d\n";
     nlohmann::json json;
     json["name"] = name;
     std::stringstream amountStream;
@@ -104,25 +104,21 @@ public:
   }
 
   void notifyThatCreditHasBeenAdded(const Transaction &t) override {
-    std::cout << "e\n";
     server.send(connection, json(name, "add credit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenAdded(const Transaction &t) override {
-    std::cout << "f\n";
     server.send(connection, json(name, "add debit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
-    std::cout << "g\n";
     server.send(connection, json(name, "remove debit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
-    std::cout << "h\n";
     server.send(connection, json(name, "remove credit", t).dump(),
                 websocketpp::frame::opcode::value::text);
   }
@@ -146,20 +142,14 @@ public:
     accountObservers[std::string{name}] =
         std::make_unique<WebSocketAccountObserver>(server, connection, account,
                                                    name);
-    std::cout << "a\n";
     nlohmann::json json;
-    std::cout << "aa\n";
     json["name"] = name;
-    std::cout << "aaa\n";
     json["method"] = "add account";
-    std::cout << "aaaa\n";
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
-    std::cout << "aaaaa\n";
   }
 
   void notifyThatTotalBalanceHasChanged(USD usd) override {
-    std::cout << "b\n";
     nlohmann::json json;
     std::stringstream amountStream;
     amountStream << usd;
@@ -170,7 +160,6 @@ public:
   }
 
   void notifyThatAccountHasBeenRemoved(std::string_view name) override {
-    std::cout << "c\n";
     nlohmann::json json;
     json["name"] = name;
     json["method"] = "remove account";
@@ -222,7 +211,20 @@ static auto date(std::string_view s) -> Date {
   date.year = year;
   return date;
 }
+
+static auto transaction(const nlohmann::json &json) -> Transaction {
+  return {usd(json["amount"].get<std::string>()),
+          json["description"].get<std::string>(),
+          date(json["date"].get<std::string>())};
+}
 } // namespace sbash64::budget
+
+static void call(
+    const std::map<void *, std::unique_ptr<sbash64::budget::App>> &applications,
+    const websocketpp::connection_hdl &connection,
+    const std::function<void(sbash64::budget::Bank &)> &f) {
+  f(applications.at(connection.lock().get())->bank);
+}
 
 int main() {
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
@@ -240,13 +242,8 @@ int main() {
 
     server.set_open_handler(
         [&server, &applications](websocketpp::connection_hdl connection) {
-          std::cout << "connection id: " << connection.lock().get() << '\n';
           applications[connection.lock().get()] =
               std::make_unique<sbash64::budget::App>(server, connection);
-          std::cout << "key(s): ";
-          for (const auto &[key, value] : applications) {
-            std::cout << key << '\n';
-          }
         });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
@@ -259,7 +256,6 @@ int main() {
 
     server.set_close_handler(
         [&applications](websocketpp::connection_hdl connection) {
-          std::cout << "Close handler" << std::endl;
           applications.at(connection.lock().get()).reset();
         });
 
@@ -268,23 +264,29 @@ int main() {
         [&applications](
             websocketpp::connection_hdl connection,
             websocketpp::server<debug_custom>::message_ptr message) {
-          std::cout << connection.lock().get() << '\n';
-          std::cout << applications.size() << '\n';
-          std::cout << applications.count(connection.lock().get()) << '\n';
-          for (const auto &[key, value] : applications) {
-            std::cout << key << '\n';
-          }
-          std::cout << message->get_payload() << '\n';
           const auto json{nlohmann::json::parse(message->get_payload())};
+          if (json["method"].get<std::string>() == "debit")
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.debit(json["name"].get<std::string>(),
+                               sbash64::budget::transaction(json));
+                 });
+          else if (json["method"].get<std::string>() == "credit")
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.credit(sbash64::budget::transaction(json));
+                 });
           if (json["method"].get<std::string>() == "remove debit")
-            applications.at(connection.lock().get())
-                ->bank.removeDebit(
-                    json["name"].get<std::string>(),
-                    sbash64::budget::Transaction{
-                        sbash64::budget::usd(json["amount"].get<std::string>()),
-                        json["description"].get<std::string>(),
-                        sbash64::budget::date(
-                            json["date"].get<std::string>())});
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.removeDebit(json["name"].get<std::string>(),
+                                     sbash64::budget::transaction(json));
+                 });
+          else if (json["method"].get<std::string>() == "remove credit")
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.removeCredit(sbash64::budget::transaction(json));
+                 });
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
