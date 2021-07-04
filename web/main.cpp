@@ -226,6 +226,11 @@ static void call(
   f(applications.at(connection.lock().get())->bank);
 }
 
+static auto methodIs(const nlohmann::json &json, std::string_view method)
+    -> bool {
+  return json["method"].get<std::string>() == method;
+}
+
 int main() {
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   // Create a server endpoint
@@ -265,24 +270,24 @@ int main() {
             websocketpp::connection_hdl connection,
             websocketpp::server<debug_custom>::message_ptr message) {
           const auto json{nlohmann::json::parse(message->get_payload())};
-          if (json["method"].get<std::string>() == "debit")
+          if (methodIs(json, "debit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
                    model.debit(json["name"].get<std::string>(),
                                sbash64::budget::transaction(json));
                  });
-          else if (json["method"].get<std::string>() == "credit")
+          else if (methodIs(json, "credit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
                    model.credit(sbash64::budget::transaction(json));
                  });
-          if (json["method"].get<std::string>() == "remove debit")
+          else if (methodIs(json, "remove debit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
                    model.removeDebit(json["name"].get<std::string>(),
                                      sbash64::budget::transaction(json));
                  });
-          else if (json["method"].get<std::string>() == "remove credit")
+          else if (methodIs(json, "remove credit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
                    model.removeCredit(sbash64::budget::transaction(json));

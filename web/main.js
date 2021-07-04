@@ -15,10 +15,22 @@ function main() {
   accountsWithSummaries.style.display = "flex";
   const accountTable = createChild(accountsWithSummaries, "table");
   const totalBalance = createChild(document.body, "div");
+  const controls = createChild(document.body, "div");
+  controls.style.display = "flex";
+  const descriptionInput = createChild(controls, "input");
+  descriptionInput.type = "text";
+  const amountInput = createChild(controls, "input");
+  amountInput.type = "number";
+  amountInput.min = 0;
+  amountInput.step = "any";
+  const dateInput = createChild(controls, "input");
+  dateInput.type = "date";
+  const addTransactionButton = createChild(controls, "button");
   initializeAccountTable(accountTable);
   let accountShowing = null;
   const accounts = new Map();
   const accountSummaries = new Map();
+  const accountNames = new Map();
   const websocket = new WebSocket("ws://localhost:9012");
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -37,6 +49,7 @@ function main() {
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
         accounts.set(message.name, account);
+        accountNames.set(account, message.name);
 
         account.style.display = "none";
         accountSummary.addEventListener("mouseup", () => {
@@ -84,17 +97,6 @@ function main() {
         createChild(transaction, "td").textContent = message.amount;
         createChild(transaction, "td");
         createChild(transaction, "td").textContent = message.date;
-        transaction.addEventListener("mouseup", () => {
-          websocket.send(
-            JSON.stringify({
-              method: "remove debit",
-              name: message.name,
-              description: message.description,
-              amount: message.amount,
-              date: message.date,
-            })
-          );
-        });
         break;
       }
       case "remove debit": {
@@ -120,6 +122,17 @@ function main() {
         break;
     }
   };
+  addTransactionButton.addEventListener("mouseup", () => {
+    websocket.send(
+      JSON.stringify({
+        method: "debit",
+        name: accountNames.get(accountShowing),
+        description: descriptionInput.value,
+        amount: amountInput.value,
+        date: dateInput.value,
+      })
+    );
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
