@@ -21,6 +21,7 @@ function main() {
   const accountSummaries = new Map();
   const websocket = new WebSocket("ws://localhost:9012");
   let accountShowing = null;
+  const totalBalance = createChild(document.body, "div");
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
@@ -33,14 +34,10 @@ function main() {
 
         const account = createChild(accountsWithSummaries, "table");
         const header = createChild(account, "tr");
-        const description = createChild(header, "th");
-        description.textContent = "Description";
-        const debits = createChild(header, "th");
-        debits.textContent = "Debits";
-        const credits = createChild(header, "th");
-        credits.textContent = "Credits";
-        const date = createChild(header, "th");
-        date.textContent = "Date";
+        createChild(header, "th").textContent = "Description";
+        createChild(header, "th").textContent = "Debits";
+        createChild(header, "th").textContent = "Credits";
+        createChild(header, "th").textContent = "Date";
         accounts.set(message.name, account);
 
         account.style.display = "none";
@@ -51,34 +48,32 @@ function main() {
         });
         break;
       }
-      case "remove account":
-        break;
-      case "update balance":
-        break;
-      case "add credit": {
+      case "remove account": {
         const account = accounts.get(message.name);
-        const transaction = createChild(account, "tr");
-        const description = createChild(transaction, "td");
-        description.textContent = message.description;
-        transaction.append(document.createElement("td"));
-        const amount = createChild(transaction, "td");
-        amount.textContent = message.amount;
-        const date = createChild(transaction, "td");
-        date.textContent = message.date;
+        account.parentNode.removeChild(account);
+        accounts.delete(message.name);
+        break;
+      }
+      case "update balance": {
+        totalBalance.textContent = message.amount;
+        break;
+      }
+      case "add credit": {
+        const transaction = createChild(accounts.get(message.name), "tr");
+        createChild(transaction, "td").textContent = message.description;
+        createChild(transaction, "td");
+        createChild(transaction, "td").textContent = message.amount;
+        createChild(transaction, "td").textContent = message.date;
         break;
       }
       case "remove credit":
         break;
       case "add debit": {
-        const account = accounts.get(message.name);
-        const transaction = createChild(account, "tr");
-        const description = createChild(transaction, "td");
-        description.textContent = message.description;
-        const amount = createChild(transaction, "td");
-        amount.textContent = message.amount;
-        transaction.append(document.createElement("td"));
-        const date = createChild(transaction, "td");
-        date.textContent = message.date;
+        const transaction = createChild(accounts.get(message.name), "tr");
+        createChild(transaction, "td").textContent = message.description;
+        createChild(transaction, "td").textContent = message.amount;
+        createChild(transaction, "td");
+        createChild(transaction, "td").textContent = message.date;
         break;
       }
       case "remove debit":
