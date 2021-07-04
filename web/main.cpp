@@ -205,6 +205,23 @@ struct App {
   }
 };
 } // namespace
+
+static auto date(std::string_view s) -> Date {
+  Date date{};
+  std::stringstream stream{std::string{s}};
+  int month = 0;
+  stream >> month;
+  stream.get();
+  int day = 0;
+  stream >> day;
+  stream.get();
+  int year = 0;
+  stream >> year;
+  date.month = Month{month};
+  date.day = day;
+  date.year = year;
+  return date;
+}
 } // namespace sbash64::budget
 
 int main() {
@@ -221,11 +238,16 @@ int main() {
     server.init_asio();
     server.set_reuse_addr(true);
 
-    server.set_open_handler([&server, &applications](
-                                websocketpp::connection_hdl connection) {
-      applications[connection.lock().get()] =
-          std::make_unique<sbash64::budget::App>(server, std::move(connection));
-    });
+    server.set_open_handler(
+        [&server, &applications](websocketpp::connection_hdl connection) {
+          std::cout << "connection id: " << connection.lock().get() << '\n';
+          applications[connection.lock().get()] =
+              std::make_unique<sbash64::budget::App>(server, connection);
+          std::cout << "key(s): ";
+          for (const auto &[key, value] : applications) {
+            std::cout << key << '\n';
+          }
+        });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =
@@ -238,32 +260,37 @@ int main() {
     server.set_close_handler(
         [&applications](websocketpp::connection_hdl connection) {
           std::cout << "Close handler" << std::endl;
-          applications[connection.lock().get()].reset();
+          applications.at(connection.lock().get()).reset();
         });
 
     // Register our message handler
     server.set_message_handler(
-        [&server](websocketpp::connection_hdl connection,
-                  websocketpp::server<debug_custom>::message_ptr message) {
-          std::cout << "on_message called with hdl: " << connection.lock().get()
-                    << " and message: " << message->get_payload() << std::endl;
-
-          try {
-            server.send(connection, message->get_payload(),
-                        message->get_opcode());
-          } catch (websocketpp::exception const &e) {
-            std::cout << "Echo failed because: "
-                      << "(" << e.what() << ")" << std::endl;
+        [&applications](
+            websocketpp::connection_hdl connection,
+            websocketpp::server<debug_custom>::message_ptr message) {
+          std::cout << connection.lock().get() << '\n';
+          std::cout << applications.size() << '\n';
+          std::cout << applications.count(connection.lock().get()) << '\n';
+          for (const auto &[key, value] : applications) {
+            std::cout << key << '\n';
           }
+          std::cout << message->get_payload() << '\n';
+          const auto json{nlohmann::json::parse(message->get_payload())};
+          if (json["method"].get<std::string>() == "remove debit")
+            applications.at(connection.lock().get())
+                ->bank.removeDebit(
+                    json["name"].get<std::string>(),
+                    sbash64::budget::Transaction{
+                        sbash64::budget::usd(json["amount"].get<std::string>()),
+                        json["description"].get<std::string>(),
+                        sbash64::budget::date(
+                            json["date"].get<std::string>())});
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
-      std::string res = con->get_request_body();
 
-      std::stringstream ss;
-      ss << "got HTTP request with " << res.size() << " bytes of body data.";
       if (con->get_resource() == "/") {
         std::ifstream response{"index.html"};
         std::ostringstream stream;
@@ -277,13 +304,6 @@ int main() {
         con->set_body(stream.str());
       }
       con->set_status(websocketpp::http::status_code::ok);
-      std::cout << "get_host: " << con->get_host() << '\n';
-      // std::cout << "get_origin: " << con->get_origin() << '\n';
-      std::cout << "get_resource: " << con->get_resource() << '\n';
-      std::cout << "get_subprotocol: " << con->get_subprotocol() << '\n';
-      std::cout << "get_uri: " << con->get_uri()->str() << '\n';
-      std::cout << "get_remote_endpoint: " << con->get_remote_endpoint()
-                << '\n';
     });
 
     server.listen(9012);

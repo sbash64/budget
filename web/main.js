@@ -84,6 +84,17 @@ function main() {
         createChild(transaction, "td").textContent = message.amount;
         createChild(transaction, "td");
         createChild(transaction, "td").textContent = message.date;
+        transaction.addEventListener("mouseup", () => {
+          websocket.send(
+            JSON.stringify({
+              method: "remove debit",
+              name: message.name,
+              description: message.description,
+              amount: message.amount,
+              date: message.date,
+            })
+          );
+        });
         break;
       }
       case "remove debit": {
