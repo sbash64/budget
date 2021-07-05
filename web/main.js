@@ -53,6 +53,7 @@ function main() {
 
         const account = createChild(accountsWithSummaries, "table");
         const header = createChild(account, "tr");
+        createChild(header, "th");
         createChild(header, "th").textContent = "Description";
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
@@ -80,6 +81,9 @@ function main() {
       }
       case "add credit": {
         const transaction = createChild(accounts.get(message.name), "tr");
+        const selection = createChild(createChild(transaction, "td"), "input");
+        selection.name = "transaction selection";
+        selection.type = "radio";
         createChild(transaction, "td").textContent = message.description;
         createChild(transaction, "td");
         createChild(transaction, "td").textContent = message.amount;
@@ -90,9 +94,9 @@ function main() {
         const account = accounts.get(message.name);
         for (let i = 0; i < account.rows.length; i += 1) {
           if (
-            account.rows[i].cells[0].textContent === message.description &&
-            account.rows[i].cells[2].textContent === message.amount &&
-            account.rows[i].cells[3].textContent === message.date
+            account.rows[i].cells[1].textContent === message.description &&
+            account.rows[i].cells[3].textContent === message.amount &&
+            account.rows[i].cells[4].textContent === message.date
           ) {
             account.deleteRow(i);
             break;
@@ -102,6 +106,9 @@ function main() {
       }
       case "add debit": {
         const transaction = createChild(accounts.get(message.name), "tr");
+        const selection = createChild(createChild(transaction, "td"), "input");
+        selection.name = "transaction selection";
+        selection.type = "radio";
         createChild(transaction, "td").textContent = message.description;
         createChild(transaction, "td").textContent = message.amount;
         createChild(transaction, "td");
@@ -112,9 +119,9 @@ function main() {
         const account = accounts.get(message.name);
         for (let i = 0; i < account.rows.length; i += 1) {
           if (
-            account.rows[i].cells[0].textContent === message.description &&
-            account.rows[i].cells[1].textContent === message.amount &&
-            account.rows[i].cells[3].textContent === message.date
+            account.rows[i].cells[1].textContent === message.description &&
+            account.rows[i].cells[2].textContent === message.amount &&
+            account.rows[i].cells[4].textContent === message.date
           ) {
             account.deleteRow(i);
             break;
