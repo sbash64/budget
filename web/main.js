@@ -20,7 +20,7 @@ class CreditControl {
     return "credit";
   }
 
-  cellIndex() {
+  amountCellIndex() {
     return 3;
   }
 }
@@ -30,7 +30,7 @@ class DebitControl {
     return "debit";
   }
 
-  cellIndex() {
+  amountCellIndex() {
     return 2;
   }
 }
@@ -116,8 +116,8 @@ function main() {
         break;
       }
       case "remove account": {
-        const account = accountTables.get(message.name);
-        account.parentNode.removeChild(account);
+        const table = accountTables.get(message.name);
+        table.parentNode.removeChild(table);
         accountTables.delete(message.name);
         break;
       }
@@ -194,7 +194,17 @@ function main() {
           method: `remove ${control.name()}`,
           name: accountNames.get(selectedAccountTable),
           description: selectedTransactionRow.cells[1].textContent,
-          amount: selectedTransactionRow.cells[control.cellIndex()].textContent,
+          amount:
+            selectedTransactionRow.cells[control.amountCellIndex()].textContent,
+          date: selectedTransactionRow.cells[4].textContent,
+        })
+      );
+    } else if (accountNames.get(selectedAccountTable) !== "master") {
+      websocket.send(
+        JSON.stringify({
+          method: "remove transfer",
+          name: accountNames.get(selectedAccountTable),
+          amount: selectedTransactionRow.cells[3].textContent,
           date: selectedTransactionRow.cells[4].textContent,
         })
       );
