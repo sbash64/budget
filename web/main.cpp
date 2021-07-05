@@ -198,14 +198,14 @@ struct App {
 static auto date(std::string_view s) -> Date {
   Date date{};
   std::stringstream stream{std::string{s}};
+  int year = 0;
+  stream >> year;
+  stream.get();
   int month = 0;
   stream >> month;
   stream.get();
   int day = 0;
   stream >> day;
-  stream.get();
-  int year = 0;
-  stream >> year;
   date.month = Month{month};
   date.day = day;
   date.year = year;
