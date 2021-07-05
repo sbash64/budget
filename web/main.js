@@ -32,6 +32,9 @@ function main() {
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
   const addTransactionButton = createChild(controls, "button");
+  addTransactionButton.textContent = "add";
+  const removeTransactionButton = createChild(controls, "button");
+  removeTransactionButton.textContent = "remove";
   initializeAccountTable(accountTable);
   let accountShowing = null;
   const accounts = new Map();
@@ -132,6 +135,17 @@ function main() {
     websocket.send(
       JSON.stringify({
         method: "debit",
+        name: accountNames.get(accountShowing),
+        description: descriptionInput.value,
+        amount: amountInput.value,
+        date: dateInput.value,
+      })
+    );
+  });
+  removeTransactionButton.addEventListener("mouseup", () => {
+    websocket.send(
+      JSON.stringify({
+        method: "remove debit",
         name: accountNames.get(accountShowing),
         description: descriptionInput.value,
         amount: amountInput.value,
