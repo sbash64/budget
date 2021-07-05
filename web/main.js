@@ -14,7 +14,7 @@ function initializeAccountTable(accountTable) {
 function main() {
   const accountsWithSummaries = createChild(document.body, "div");
   accountsWithSummaries.style.display = "flex";
-  const accountTable = createChild(accountsWithSummaries, "table");
+  const accountSummaryTable = createChild(accountsWithSummaries, "table");
   const totalBalance = createChild(document.body, "div");
   const controls = createChild(document.body, "div");
   controls.style.display = "flex";
@@ -36,8 +36,9 @@ function main() {
   addTransactionButton.textContent = "add";
   const removeTransactionButton = createChild(controls, "button");
   removeTransactionButton.textContent = "remove";
-  initializeAccountTable(accountTable);
-  let accountShowing = null;
+  initializeAccountTable(accountSummaryTable);
+  let selectedAccountTable = null;
+  let selectedTransactionRow = null;
   const accounts = new Map();
   const accountSummaries = new Map();
   const accountNames = new Map();
@@ -46,7 +47,7 @@ function main() {
     const message = JSON.parse(event.data);
     switch (message.method) {
       case "add account": {
-        const accountSummary = createChild(accountTable, "tr");
+        const accountSummary = createChild(accountSummaryTable, "tr");
         const selection = createChild(
           createChild(accountSummary, "td"),
           "input"
@@ -58,21 +59,21 @@ function main() {
         createChild(accountSummary, "td");
         accountSummaries.set(message.name, accountSummary);
 
-        const account = createChild(accountsWithSummaries, "table");
-        const header = createChild(account, "tr");
+        const accountTable = createChild(accountsWithSummaries, "table");
+        const header = createChild(accountTable, "tr");
         createChild(header, "th");
         createChild(header, "th").textContent = "Description";
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
-        accounts.set(message.name, account);
-        accountNames.set(account, message.name);
+        accounts.set(message.name, accountTable);
+        accountNames.set(accountTable, message.name);
 
-        account.style.display = "none";
-        accountSummary.addEventListener("mouseup", () => {
-          if (accountShowing) accountShowing.style.display = "none";
-          account.style.display = "block";
-          accountShowing = account;
+        accountTable.style.display = "none";
+        selection.addEventListener("change", () => {
+          if (selectedAccountTable) selectedAccountTable.style.display = "none";
+          accountTable.style.display = "block";
+          selectedAccountTable = accountTable;
         });
         break;
       }
@@ -95,6 +96,9 @@ function main() {
         createChild(transaction, "td");
         createChild(transaction, "td").textContent = message.amount;
         createChild(transaction, "td").textContent = message.date;
+        selection.addEventListener("change", () => {
+          selectedTransactionRow = transaction;
+        });
         break;
       }
       case "remove credit": {
@@ -120,6 +124,9 @@ function main() {
         createChild(transaction, "td").textContent = message.amount;
         createChild(transaction, "td");
         createChild(transaction, "td").textContent = message.date;
+        selection.addEventListener("change", () => {
+          selectedTransactionRow = transaction;
+        });
         break;
       }
       case "remove debit": {
@@ -145,25 +152,25 @@ function main() {
         break;
     }
   };
-  addTransactionButton.addEventListener("mouseup", () => {
+  addTransactionButton.addEventListener("click", () => {
     websocket.send(
       JSON.stringify({
         method: "debit",
-        name: accountNames.get(accountShowing),
+        name: accountNames.get(selectedAccountTable),
         description: descriptionInput.value,
         amount: amountInput.value,
         date: dateInput.value,
       })
     );
   });
-  removeTransactionButton.addEventListener("mouseup", () => {
+  removeTransactionButton.addEventListener("click", () => {
     websocket.send(
       JSON.stringify({
         method: "remove debit",
-        name: accountNames.get(accountShowing),
-        description: descriptionInput.value,
-        amount: amountInput.value,
-        date: dateInput.value,
+        name: accountNames.get(selectedAccountTable),
+        description: selectedTransactionRow.cells[1].textContent,
+        amount: selectedTransactionRow.cells[2].textContent,
+        date: selectedTransactionRow.cells[4].textContent,
       })
     );
   });
