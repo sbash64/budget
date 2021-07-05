@@ -290,6 +290,9 @@ int main() {
           else if (methodIs(json, "remove credit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
+                   std::cout << json["amount"].get<std::string>() << '\n';
+                   std::cout << json["date"].get<std::string>() << '\n';
+                   std::cout << json["description"].get<std::string>() << '\n';
                    model.removeCredit(sbash64::budget::transaction(json));
                  });
           else if (methodIs(json, "remove transfer"))

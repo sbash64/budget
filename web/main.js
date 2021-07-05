@@ -179,7 +179,10 @@ function main() {
             : "remove debit",
           name: accountNames.get(selectedAccountTable),
           description: selectedTransactionRow.cells[1].textContent,
-          amount: selectedTransactionRow.cells[2].textContent,
+          amount:
+            selectedTransactionRow.cells[
+              transactionRowIsCredit(selectedTransactionRow) ? 3 : 2
+            ].textContent,
           date: selectedTransactionRow.cells[4].textContent,
         })
       );
