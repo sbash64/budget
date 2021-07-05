@@ -273,50 +273,48 @@ int main() {
         });
 
     // Register our message handler
-    server.set_message_handler(
-        [&applications](
-            websocketpp::connection_hdl connection,
-            websocketpp::server<debug_custom>::message_ptr message) {
-          const auto json{nlohmann::json::parse(message->get_payload())};
-          if (methodIs(json, "debit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.debit(json["name"].get<std::string>(),
-                               sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "remove debit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.removeDebit(json["name"].get<std::string>(),
-                                     sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.credit(sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "remove credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.removeCredit(sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "transfer"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.transferTo(
-                       json["name"].get<std::string>(),
-                       sbash64::budget::usd(json["amount"].get<std::string>()),
-                       sbash64::budget::date(json["date"].get<std::string>()));
-                 });
-          else if (methodIs(json, "remove transfer"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.removeTransfer(
-                       json["name"].get<std::string>(),
-                       sbash64::budget::usd(json["amount"].get<std::string>()),
-                       sbash64::budget::date(json["date"].get<std::string>()));
-                 });
+    server.set_message_handler([&applications](
+                                   websocketpp::connection_hdl connection,
+                                   websocketpp::server<
+                                       debug_custom>::message_ptr message) {
+      const auto json{nlohmann::json::parse(message->get_payload())};
+      if (methodIs(json, "debit"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.debit(json["name"].get<std::string>(),
+                      sbash64::budget::transaction(json));
         });
+      else if (methodIs(json, "remove debit"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.removeDebit(json["name"].get<std::string>(),
+                            sbash64::budget::transaction(json));
+        });
+      else if (methodIs(json, "credit"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.credit(sbash64::budget::transaction(json));
+        });
+      else if (methodIs(json, "remove credit"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.removeCredit(sbash64::budget::transaction(json));
+        });
+      else if (methodIs(json, "transfer"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.transferTo(
+              json["name"].get<std::string>(),
+              sbash64::budget::usd(json["amount"].get<std::string>()),
+              sbash64::budget::date(json["date"].get<std::string>()));
+        });
+      else if (methodIs(json, "remove transfer"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.removeTransfer(
+              json["name"].get<std::string>(),
+              sbash64::budget::usd(json["amount"].get<std::string>()),
+              sbash64::budget::date(json["date"].get<std::string>()));
+        });
+      else if (methodIs(json, "remove account"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.removeAccount(json["name"].get<std::string>());
+        });
+    });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =

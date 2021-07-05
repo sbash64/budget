@@ -54,31 +54,47 @@ function removeTransaction(accountTables, message, amountCellIndex) {
 }
 
 function main() {
-  const accountsWithSummaries = createChild(document.body, "div");
-  accountsWithSummaries.style.display = "flex";
-  const accountSummaryTable = createChild(accountsWithSummaries, "table");
+  const accountSummariesWithDetailView = createChild(document.body, "div");
+  accountSummariesWithDetailView.style.display = "flex";
+  const accountSummariesWithAccountControls = createChild(
+    accountSummariesWithDetailView,
+    "table"
+  );
+  const accountSummaryTable = createChild(
+    accountSummariesWithAccountControls,
+    "table"
+  );
   const accountsAndTransactionControls = createChild(
-    accountsWithSummaries,
+    accountSummariesWithDetailView,
     "div"
   );
+  const accountControls = createChild(
+    accountSummariesWithAccountControls,
+    "div"
+  );
+  const removeAccountButton = createChild(accountControls, "button");
+  removeAccountButton.textContent = "remove";
   const accounts = createChild(accountsAndTransactionControls, "div");
   const totalBalance = createChild(document.body, "div");
-  const controls = createChild(accountsAndTransactionControls, "div");
-  const descriptionLabel = createChild(controls, "label");
+  const transactionControls = createChild(
+    accountsAndTransactionControls,
+    "div"
+  );
+  const descriptionLabel = createChild(transactionControls, "label");
   descriptionLabel.textContent = "description";
   const descriptionInput = createChild(descriptionLabel, "input");
   descriptionInput.type = "text";
-  const amountLabel = createChild(controls, "label");
+  const amountLabel = createChild(transactionControls, "label");
   amountLabel.textContent = "amount";
   const amountInput = createChild(amountLabel, "input");
   amountInput.type = "number";
   amountInput.min = 0;
   amountInput.step = "any";
-  const dateLabel = createChild(controls, "label");
+  const dateLabel = createChild(transactionControls, "label");
   dateLabel.textContent = "date";
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
-  const buttons = createChild(controls, "div");
+  const buttons = createChild(transactionControls, "div");
   const addTransactionButton = createChild(buttons, "button");
   addTransactionButton.textContent = "add";
   const removeTransactionButton = createChild(buttons, "button");
@@ -130,6 +146,9 @@ function main() {
         const table = accountTables.get(message.name);
         table.parentNode.removeChild(table);
         accountTables.delete(message.name);
+        const row = accountSummaryRows.get(message.name);
+        row.parentNode.removeChild(row);
+        accountSummaryRows.delete(message.name);
         break;
       }
       case "update balance": {
@@ -173,14 +192,22 @@ function main() {
         break;
       }
       case "update account balance": {
-        const accountSummary = accountSummaryRows.get(message.name);
-        accountSummary.lastElementChild.textContent = message.amount;
+        const row = accountSummaryRows.get(message.name);
+        row.lastElementChild.textContent = message.amount;
         break;
       }
       default:
         break;
     }
   };
+  removeAccountButton.addEventListener("click", () => {
+    websocket.send(
+      JSON.stringify({
+        method: "remove account",
+        name: accountNames.get(selectedAccountTable),
+      })
+    );
+  });
   addTransactionButton.addEventListener("click", () => {
     const control = transactionRowIsCredit(selectedTransactionRow)
       ? new CreditControl()
