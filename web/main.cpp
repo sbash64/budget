@@ -199,13 +199,21 @@ static auto date(std::string_view s) -> Date {
   Date date{};
   std::stringstream stream{std::string{s}};
   int year = 0;
-  stream >> year;
-  stream.get();
   int month = 0;
-  stream >> month;
-  stream.get();
   int day = 0;
-  stream >> day;
+  if (s.find('-') != std::string_view::npos) {
+    stream >> year;
+    stream.get();
+    stream >> month;
+    stream.get();
+    stream >> day;
+  } else {
+    stream >> month;
+    stream.get();
+    stream >> day;
+    stream.get();
+    stream >> year;
+  }
   date.month = Month{month};
   date.day = day;
   date.year = year;
@@ -276,24 +284,29 @@ int main() {
                    model.debit(json["name"].get<std::string>(),
                                sbash64::budget::transaction(json));
                  });
-          else if (methodIs(json, "credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Model &model) {
-                   model.credit(sbash64::budget::transaction(json));
-                 });
           else if (methodIs(json, "remove debit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
                    model.removeDebit(json["name"].get<std::string>(),
                                      sbash64::budget::transaction(json));
                  });
+          else if (methodIs(json, "credit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.credit(sbash64::budget::transaction(json));
+                 });
           else if (methodIs(json, "remove credit"))
             call(applications, connection,
                  [&json](sbash64::budget::Model &model) {
-                   std::cout << json["amount"].get<std::string>() << '\n';
-                   std::cout << json["date"].get<std::string>() << '\n';
-                   std::cout << json["description"].get<std::string>() << '\n';
                    model.removeCredit(sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "transfer"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.transferTo(
+                       json["name"].get<std::string>(),
+                       sbash64::budget::usd(json["amount"].get<std::string>()),
+                       sbash64::budget::date(json["date"].get<std::string>()));
                  });
           else if (methodIs(json, "remove transfer"))
             call(applications, connection,

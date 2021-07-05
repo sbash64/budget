@@ -74,6 +74,8 @@ function main() {
   addTransactionButton.textContent = "add";
   const removeTransactionButton = createChild(controls, "button");
   removeTransactionButton.textContent = "remove";
+  const transferButton = createChild(controls, "button");
+  transferButton.textContent = "transfer";
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
   let selectedTransactionRow = null;
@@ -171,15 +173,30 @@ function main() {
     }
   };
   addTransactionButton.addEventListener("click", () => {
+    const control = transactionRowIsCredit(selectedTransactionRow)
+      ? new CreditControl()
+      : new DebitControl();
     websocket.send(
       JSON.stringify({
-        method: "debit",
+        method: control.name(),
         name: accountNames.get(selectedAccountTable),
         description: descriptionInput.value,
         amount: amountInput.value,
         date: dateInput.value,
       })
     );
+  });
+  transferButton.addEventListener("click", () => {
+    if (accountNames.get(selectedAccountTable) !== "master") {
+      websocket.send(
+        JSON.stringify({
+          method: "transfer",
+          name: accountNames.get(selectedAccountTable),
+          amount: amountInput.value,
+          date: dateInput.value,
+        })
+      );
+    }
   });
   removeTransactionButton.addEventListener("click", () => {
     if (
