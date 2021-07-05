@@ -15,6 +15,10 @@ function transactionRowIsCredit(row) {
   return row.cells[3].textContent.length !== 0;
 }
 
+function accountTableIsMaster(selectedAccountTable, accountNames) {
+  return accountNames.get(selectedAccountTable) !== "master";
+}
+
 class CreditControl {
   name() {
     return "credit";
@@ -53,8 +57,10 @@ function main() {
   const accountsWithSummaries = createChild(document.body, "div");
   accountsWithSummaries.style.display = "flex";
   const accountSummaryTable = createChild(accountsWithSummaries, "table");
+  const accountsAndControls = createChild(accountsWithSummaries, "div");
+  const accounts = createChild(accountsAndControls, "div");
   const totalBalance = createChild(document.body, "div");
-  const controls = createChild(document.body, "div");
+  const controls = createChild(accountsAndControls, "div");
   controls.style.display = "flex";
   const descriptionLabel = createChild(controls, "label");
   descriptionLabel.textContent = "description";
@@ -99,7 +105,7 @@ function main() {
         createChild(accountSummaryRow, "td");
         accountSummaryRows.set(message.name, accountSummaryRow);
 
-        const accountTable = createChild(accountsWithSummaries, "table");
+        const accountTable = createChild(accounts, "table");
         const header = createChild(accountTable, "tr");
         createChild(header, "th");
         createChild(header, "th").textContent = "Description";
@@ -187,7 +193,7 @@ function main() {
     );
   });
   transferButton.addEventListener("click", () => {
-    if (accountNames.get(selectedAccountTable) !== "master") {
+    if (!accountTableIsMaster(selectedAccountTable, accountNames)) {
       websocket.send(
         JSON.stringify({
           method: "transfer",
@@ -200,7 +206,7 @@ function main() {
   });
   removeTransactionButton.addEventListener("click", () => {
     if (
-      (accountNames.get(selectedAccountTable) === "master") ===
+      accountTableIsMaster(selectedAccountTable, accountNames) ===
       transactionRowIsCredit(selectedTransactionRow)
     ) {
       const control = transactionRowIsCredit(selectedTransactionRow)
@@ -216,7 +222,7 @@ function main() {
           date: selectedTransactionRow.cells[4].textContent,
         })
       );
-    } else if (accountNames.get(selectedAccountTable) !== "master") {
+    } else if (!accountTableIsMaster(selectedAccountTable, accountNames)) {
       websocket.send(
         JSON.stringify({
           method: "remove transfer",
