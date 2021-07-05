@@ -292,6 +292,14 @@ int main() {
                  [&json](sbash64::budget::Model &model) {
                    model.removeCredit(sbash64::budget::transaction(json));
                  });
+          else if (methodIs(json, "remove transfer"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Model &model) {
+                   model.removeTransfer(
+                       json["name"].get<std::string>(),
+                       sbash64::budget::usd(json["amount"].get<std::string>()),
+                       sbash64::budget::date(json["date"].get<std::string>()));
+                 });
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {

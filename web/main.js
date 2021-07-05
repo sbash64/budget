@@ -11,6 +11,10 @@ function initializeAccountTable(accountTable) {
   createChild(header, "th").textContent = "Balance";
 }
 
+function transactionRowIsCredit(row) {
+  return row.cells[3].textContent.length !== 0;
+}
+
 function main() {
   const accountsWithSummaries = createChild(document.body, "div");
   accountsWithSummaries.style.display = "flex";
@@ -164,15 +168,22 @@ function main() {
     );
   });
   removeTransactionButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "remove debit",
-        name: accountNames.get(selectedAccountTable),
-        description: selectedTransactionRow.cells[1].textContent,
-        amount: selectedTransactionRow.cells[2].textContent,
-        date: selectedTransactionRow.cells[4].textContent,
-      })
-    );
+    if (
+      (accountNames.get(selectedAccountTable) === "master") ===
+      transactionRowIsCredit(selectedTransactionRow)
+    ) {
+      websocket.send(
+        JSON.stringify({
+          method: transactionRowIsCredit(selectedTransactionRow)
+            ? "remove credit"
+            : "remove debit",
+          name: accountNames.get(selectedAccountTable),
+          description: selectedTransactionRow.cells[1].textContent,
+          amount: selectedTransactionRow.cells[2].textContent,
+          date: selectedTransactionRow.cells[4].textContent,
+        })
+      );
+    }
   });
 }
 
