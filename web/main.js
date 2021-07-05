@@ -16,7 +16,7 @@ function transactionRowIsCredit(row) {
 }
 
 function accountTableIsMaster(selectedAccountTable, accountNames) {
-  return accountNames.get(selectedAccountTable) !== "master";
+  return accountNames.get(selectedAccountTable) === "master";
 }
 
 class CreditControl {
@@ -57,11 +57,13 @@ function main() {
   const accountsWithSummaries = createChild(document.body, "div");
   accountsWithSummaries.style.display = "flex";
   const accountSummaryTable = createChild(accountsWithSummaries, "table");
-  const accountsAndControls = createChild(accountsWithSummaries, "div");
-  const accounts = createChild(accountsAndControls, "div");
+  const accountsAndTransactionControls = createChild(
+    accountsWithSummaries,
+    "div"
+  );
+  const accounts = createChild(accountsAndTransactionControls, "div");
   const totalBalance = createChild(document.body, "div");
-  const controls = createChild(accountsAndControls, "div");
-  controls.style.display = "flex";
+  const controls = createChild(accountsAndTransactionControls, "div");
   const descriptionLabel = createChild(controls, "label");
   descriptionLabel.textContent = "description";
   const descriptionInput = createChild(descriptionLabel, "input");
@@ -76,11 +78,12 @@ function main() {
   dateLabel.textContent = "date";
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
-  const addTransactionButton = createChild(controls, "button");
+  const buttons = createChild(controls, "div");
+  const addTransactionButton = createChild(buttons, "button");
   addTransactionButton.textContent = "add";
-  const removeTransactionButton = createChild(controls, "button");
+  const removeTransactionButton = createChild(buttons, "button");
   removeTransactionButton.textContent = "remove";
-  const transferButton = createChild(controls, "button");
+  const transferButton = createChild(buttons, "button");
   transferButton.textContent = "transfer";
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
