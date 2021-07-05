@@ -6,6 +6,7 @@ function createChild(parent, tagName) {
 
 function initializeAccountTable(accountTable) {
   const header = createChild(accountTable, "tr");
+  createChild(header, "th");
   createChild(header, "th").textContent = "Name";
   createChild(header, "th").textContent = "Balance";
 }
@@ -46,6 +47,12 @@ function main() {
     switch (message.method) {
       case "add account": {
         const accountSummary = createChild(accountTable, "tr");
+        const selection = createChild(
+          createChild(accountSummary, "td"),
+          "input"
+        );
+        selection.name = "account selection";
+        selection.type = "radio";
         const name = createChild(accountSummary, "td");
         name.textContent = message.name;
         createChild(accountSummary, "td");
