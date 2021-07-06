@@ -121,7 +121,8 @@ public:
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s) -> std::shared_ptr<Account> override {
+  auto make(std::string_view s, TransactionRecord::Factory &)
+      -> std::shared_ptr<Account> override {
     name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
   }
@@ -129,6 +130,14 @@ public:
 private:
   std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::string name_;
+};
+
+class TransactionRecordFactoryStub : public TransactionRecord::Factory {
+public:
+  auto make(const Transaction &)
+      -> std::shared_ptr<TransactionRecord> override {
+    return {};
+  }
 };
 
 class BankObserverStub : public Bank::Observer {
@@ -173,7 +182,8 @@ static void testBank(
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
   add(factory, masterAccount, masterAccountName.data());
-  Bank bank{factory};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  Bank bank{factory, transactionRecordFactory};
   f(factory, masterAccount, bank);
 }
 

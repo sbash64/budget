@@ -157,9 +157,10 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
-    virtual void notifyThatCreditHasBeenAdded(TransactionRecord *,
+    virtual void notifyThatCreditHasBeenAdded(TransactionRecord &,
                                               const Transaction &) = 0;
-    virtual void notifyThatDebitHasBeenAdded(const Transaction &) = 0;
+    virtual void notifyThatDebitHasBeenAdded(TransactionRecord &,
+                                             const Transaction &) = 0;
     virtual void notifyThatDebitHasBeenRemoved(const Transaction &) = 0;
     virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
   };
@@ -183,7 +184,8 @@ public:
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
+    virtual auto make(std::string_view name, TransactionRecord::Factory &)
+        -> std::shared_ptr<Account> = 0;
   };
 };
 

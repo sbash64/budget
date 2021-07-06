@@ -51,17 +51,18 @@ public:
 
   auto creditAdded() -> Transaction { return creditAdded_; }
 
-  void notifyThatCreditHasBeenAdded(TransactionRecord *tr,
+  void notifyThatCreditHasBeenAdded(TransactionRecord &tr,
                                     const Transaction &t) override {
     creditAdded_ = t;
-    newTransactionRecord_ = tr;
+    newTransactionRecord_ = &tr;
   }
 
   auto newTransactionRecord() -> const TransactionRecord * {
     return newTransactionRecord_;
   }
 
-  void notifyThatDebitHasBeenAdded(const Transaction &t) override {
+  void notifyThatDebitHasBeenAdded(TransactionRecord &tr,
+                                   const Transaction &t) override {
     debitAdded_ = t;
   }
 
@@ -154,7 +155,8 @@ static void assertShown(testcpplite::TestResult &result, ViewStub &view,
 
 static void testAccount(const std::function<void(InMemoryAccount &)> &f,
                         std::string name = {}) {
-  InMemoryAccount account{std::move(name)};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{std::move(name), transactionRecordFactory};
   f(account);
 }
 
@@ -389,7 +391,8 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
 
 void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
     testcpplite::TestResult &result) {
-  InMemoryAccount account{""};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{"", transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -408,7 +411,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   transactionRecordFactory.add(
       transactionRecord,
       Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  InMemoryAccount account{"", &transactionRecordFactory};
+  InMemoryAccount account{"", transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -418,7 +421,8 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  InMemoryAccount account{""};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{"", transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -427,7 +431,8 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
-  InMemoryAccount account{""};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{"", transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -438,7 +443,8 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
-  InMemoryAccount account{""};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{"", transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});

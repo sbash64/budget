@@ -15,7 +15,7 @@ constexpr const std::array<char, 7> masterAccountName{"master"};
 
 class Bank : public Model {
 public:
-  explicit Bank(Account::Factory &);
+  Bank(Account::Factory &, TransactionRecord::Factory &);
   void attach(Observer *) override;
   void debit(std::string_view accountName, const Transaction &) override;
   void removeDebit(std::string_view accountName, const Transaction &) override;
@@ -41,6 +41,7 @@ public:
 
 private:
   Account::Factory &factory;
+  TransactionRecord::Factory &transactionRecordFactory;
   Observer *observer{};
   std::shared_ptr<Account> primaryAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>>
@@ -49,8 +50,7 @@ private:
 
 class InMemoryAccount : public Account {
 public:
-  explicit InMemoryAccount(std::string name,
-                           TransactionRecord::Factory * = nullptr);
+  explicit InMemoryAccount(std::string name, TransactionRecord::Factory &);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
@@ -73,7 +73,8 @@ public:
 
   class Factory : public Account::Factory {
   public:
-    auto make(std::string_view name) -> std::shared_ptr<Account> override;
+    auto make(std::string_view name, TransactionRecord::Factory &)
+        -> std::shared_ptr<Account> override;
   };
 
 private:
@@ -81,7 +82,7 @@ private:
   VerifiableTransactions credits;
   std::string name;
   Observer *observer{};
-  TransactionRecord::Factory *factory;
+  TransactionRecord::Factory &factory;
 };
 } // namespace sbash64::budget
 
