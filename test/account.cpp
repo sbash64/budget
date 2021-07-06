@@ -150,6 +150,15 @@ static void assertShown(testcpplite::TestResult &result, ViewStub &view,
   assertEqual(result, t, view.accountTransactions());
 }
 
+static void testAccount(
+    const std::function<void(InMemoryAccount &, TransactionRecordFactoryStub &)>
+        &f,
+    std::string name = {}) {
+  TransactionRecordFactoryStub transactionRecordFactory;
+  InMemoryAccount account{std::move(name), transactionRecordFactory};
+  f(account, transactionRecordFactory);
+}
+
 static void testAccount(const std::function<void(InMemoryAccount &)> &f,
                         std::string name = {}) {
   TransactionRecordFactoryStub transactionRecordFactory;
@@ -403,33 +412,37 @@ void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
-  transactionRecordFactory.add(
-      transactionRecord,
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-              observer.creditAdded());
-  assertEqual(result, transactionRecord.get(), observer.newTransactionRecord());
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    AccountObserverStub observer;
+    account.attach(&observer);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.creditAdded());
+    assertEqual(result, transactionRecord.get(),
+                observer.newTransactionRecord());
+  });
 }
 
 void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
-  transactionRecordFactory.add(
-      transactionRecord,
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.verifyCredit(
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertTrue(result, transactionRecord->verified());
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.verifyCredit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertTrue(result, transactionRecord->verified());
+  });
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
