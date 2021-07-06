@@ -157,7 +157,7 @@ void ReadsTransactionRecordFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
   loadTransaction(stream, line,
-                  [&](const VerifiableTransaction &t) { observer.notify(t); });
+                  [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
 ReadsSessionFromStream::ReadsSessionFromStream(

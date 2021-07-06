@@ -16,6 +16,8 @@ public:
 
   [[nodiscard]] auto verified() const -> bool { return verified_; }
 
+  void ready(const VerifiableTransaction &) override {}
+
 private:
   bool verified_{};
 };

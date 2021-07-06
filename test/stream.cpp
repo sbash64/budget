@@ -88,7 +88,7 @@ class TransactionRecordDeserializationObserverStub
 public:
   auto transaction() -> VerifiableTransaction { return transaction_; }
 
-  void notify(const VerifiableTransaction &t) { transaction_ = t; }
+  void ready(const VerifiableTransaction &t) { transaction_ = t; }
 
 private:
   VerifiableTransaction transaction_;
