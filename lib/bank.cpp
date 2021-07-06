@@ -319,7 +319,12 @@ static void executeIfUnverifiedFound(
       });
 }
 
-static void verify(VerifiableTransactions &transactions, const Transaction &t) {
+static void verify(VerifiableTransactions &transactions, const Transaction &t,
+                   std::map<Transaction, std::shared_ptr<TransactionRecord>>
+                       &transactionRecords) {
+  if (transactionRecords.count(t) != 0)
+    if (transactionRecords.at(t) != nullptr)
+      transactionRecords.at(t)->verify();
   executeIfUnverifiedFound(
       transactions, t,
       [&](VerifiableTransactions::iterator it) { it->verified = true; });
@@ -434,13 +439,12 @@ void InMemoryAccount::removeCredit(const Transaction &t) {
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 
 void InMemoryAccount::verifyCredit(const Transaction &t) {
-  if (creditRecords.count(t) != 0)
-    if (creditRecords.at(t) != nullptr)
-      creditRecords.at(t)->verify();
-  verify(credits, t);
+  verify(credits, t, creditRecords);
 }
 
-void InMemoryAccount::verifyDebit(const Transaction &t) { verify(debits, t); }
+void InMemoryAccount::verifyDebit(const Transaction &t) {
+  verify(debits, t, debitRecords);
+}
 
 auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
   return findUnverified(debits, amount);
