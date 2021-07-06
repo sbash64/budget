@@ -72,8 +72,14 @@ function main() {
     accountSummariesWithAccountControls,
     "div"
   );
+  const nameLabel = createChild(accountControls, "label");
+  nameLabel.textContent = "name";
+  const nameInput = createChild(nameLabel, "input");
+  nameInput.type = "text";
   const removeAccountButton = createChild(accountControls, "button");
   removeAccountButton.textContent = "remove";
+  const transferToNewAccountButton = createChild(accountControls, "button");
+  transferToNewAccountButton.textContent = "transfer";
   const accounts = createChild(accountsAndTransactionControls, "div");
   const totalBalance = createChild(document.body, "div");
   const transactionControls = createChild(
@@ -205,6 +211,16 @@ function main() {
       JSON.stringify({
         method: "remove account",
         name: accountNames.get(selectedAccountTable),
+      })
+    );
+  });
+  transferToNewAccountButton.addEventListener("click", () => {
+    websocket.send(
+      JSON.stringify({
+        method: "transfer",
+        name: nameInput.value,
+        amount: amountInput.value,
+        date: dateInput.value,
       })
     );
   });
