@@ -127,6 +127,31 @@ class View;
 using Transactions = std::vector<Transaction>;
 using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
+class TransactionRecordDeserialization {
+public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notify(const VerifiableTransaction &) = 0;
+  };
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      TransactionRecordDeserialization);
+  virtual void load(Observer &) = 0;
+};
+
+class TransactionRecord {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionRecord);
+  virtual void verify() = 0;
+
+  class Factory {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
+    virtual auto make(const Transaction &)
+        -> std::shared_ptr<TransactionRecord> = 0;
+  };
+};
+
 class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
@@ -147,19 +172,6 @@ public:
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
   virtual void load(Observer &) = 0;
-};
-
-class TransactionRecord {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionRecord);
-  virtual void verify() = 0;
-
-  class Factory {
-  public:
-    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(const Transaction &)
-        -> std::shared_ptr<TransactionRecord> = 0;
-  };
 };
 
 class Account : public AccountDeserialization::Observer {

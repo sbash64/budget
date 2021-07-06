@@ -71,6 +71,9 @@ private:
 
 class ReadsAccountFromStream : public AccountDeserialization {
 public:
+  explicit ReadsAccountFromStream(std::istream &);
+  void load(Observer &) override;
+
   class Factory : public StreamAccountDeserializationFactory {
   public:
     auto make(std::istream &stream)
@@ -78,7 +81,15 @@ public:
       return std::make_shared<ReadsAccountFromStream>(stream);
     }
   };
-  explicit ReadsAccountFromStream(std::istream &);
+
+private:
+  std::istream &stream;
+};
+
+class ReadsTransactionRecordFromStream
+    : public TransactionRecordDeserialization {
+public:
+  explicit ReadsTransactionRecordFromStream(std::istream &);
   void load(Observer &) override;
 
 private:

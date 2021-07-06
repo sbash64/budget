@@ -153,6 +153,13 @@ void ReadsSessionFromStream::load(Observer &observer) {
     observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
 }
 
+void ReadsTransactionRecordFromStream::load(Observer &observer) {
+  std::string line;
+  getline(stream, line);
+  loadTransaction(stream, line,
+                  [&](const VerifiableTransaction &t) { observer.notify(t); });
+}
+
 ReadsSessionFromStream::ReadsSessionFromStream(
     IoStreamFactory &ioStreamFactory,
     StreamAccountDeserializationFactory &accountDeserializationFactory)
@@ -169,5 +176,9 @@ ReadsAccountFromStream::ReadsAccountFromStream(std::istream &stream)
     : stream{stream} {}
 
 WritesAccountToStream::WritesAccountToStream(std::ostream &stream)
+    : stream{stream} {}
+
+ReadsTransactionRecordFromStream::ReadsTransactionRecordFromStream(
+    std::istream &stream)
     : stream{stream} {}
 } // namespace sbash64::budget

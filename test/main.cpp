@@ -31,6 +31,7 @@ static auto runAllTests() -> int {
        {format::negativeOneDollarThirtyFourCents,
         "format negative one dollar and thirty-four cents"},
        {format::negativeFifteenCents, "format negative fifteen cents"},
+       {stream::toTransactionRecord, "stream loads transaction record"},
        {stream::fromAccounts, "stream saves accounts"},
        {stream::toAccounts, "stream loads accounts"},
        {stream::fromSession, "stream saves session"},

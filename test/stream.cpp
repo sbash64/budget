@@ -83,6 +83,17 @@ private:
   VerifiableTransactions debits_;
 };
 
+class TransactionRecordDeserializationObserverStub
+    : public TransactionRecordDeserialization::Observer {
+public:
+  auto transaction() -> VerifiableTransaction { return transaction_; }
+
+  void notify(const VerifiableTransaction &t) { transaction_ = t; }
+
+private:
+  VerifiableTransaction transaction_;
+};
+
 class IoStreamFactoryStub : public IoStreamFactory {
 public:
   explicit IoStreamFactoryStub(std::shared_ptr<std::iostream> stream)
@@ -209,6 +220,16 @@ debits
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               observer.debits());
+}
+
+void toTransactionRecord(testcpplite::TestResult &result) {
+  const auto input{std::make_shared<std::stringstream>("^3.24 hyvee 2/8/2020")};
+  ReadsTransactionRecordFromStream transactionRecordDeserialization{*input};
+  TransactionRecordDeserializationObserverStub observer;
+  transactionRecordDeserialization.load(observer);
+  assertEqual(result,
+              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
+              observer.transaction());
 }
 
 void toSession(testcpplite::TestResult &result) {
