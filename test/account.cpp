@@ -4,7 +4,7 @@
 #include "view-stub.hpp"
 #include <functional>
 #include <map>
-#include <sbash64/budget/bank.hpp>
+#include <sbash64/budget/account.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <utility>
 
