@@ -172,8 +172,10 @@ WritesSessionToStream::WritesSessionToStream(
     : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
                                             accountSerializationFactory} {}
 
-ReadsAccountFromStream::ReadsAccountFromStream(std::istream &stream)
-    : stream{stream} {}
+ReadsAccountFromStream::ReadsAccountFromStream(
+    std::istream &stream,
+    StreamTransactionRecordDeserializationFactory &factory)
+    : stream{stream}, factory{factory} {}
 
 WritesAccountToStream::WritesAccountToStream(std::ostream &stream)
     : stream{stream} {}

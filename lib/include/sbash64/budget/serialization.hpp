@@ -22,6 +22,14 @@ public:
       -> std::shared_ptr<AccountSerialization> = 0;
 };
 
+class StreamTransactionRecordDeserializationFactory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      StreamTransactionRecordDeserializationFactory);
+  virtual auto make(std::istream &)
+      -> std::shared_ptr<TransactionRecordDeserialization> = 0;
+};
+
 class StreamAccountDeserializationFactory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
@@ -71,19 +79,27 @@ private:
 
 class ReadsAccountFromStream : public AccountDeserialization {
 public:
-  explicit ReadsAccountFromStream(std::istream &);
+  explicit ReadsAccountFromStream(
+      std::istream &, StreamTransactionRecordDeserializationFactory &);
   void load(Observer &) override;
 
   class Factory : public StreamAccountDeserializationFactory {
   public:
+    explicit Factory(StreamTransactionRecordDeserializationFactory &factory)
+        : factory{factory} {}
+
     auto make(std::istream &stream)
         -> std::shared_ptr<AccountDeserialization> override {
-      return std::make_shared<ReadsAccountFromStream>(stream);
+      return std::make_shared<ReadsAccountFromStream>(stream, factory);
     }
+
+  private:
+    StreamTransactionRecordDeserializationFactory &factory;
   };
 
 private:
   std::istream &stream;
+  StreamTransactionRecordDeserializationFactory &factory;
 };
 
 class ReadsTransactionRecordFromStream

@@ -20,6 +20,12 @@ public:
   void load(Observer &) override {}
 };
 
+class TransactionRecordDeserializationStub
+    : public TransactionRecordDeserialization {
+public:
+  void load(Observer &) override {}
+};
+
 class StreamAccountSerializationFactoryStub
     : public StreamAccountSerializationFactory {
 public:
@@ -34,6 +40,15 @@ public:
   auto make(std::istream &)
       -> std::shared_ptr<AccountDeserialization> override {
     return std::make_shared<AccountDeserializationStub>();
+  }
+};
+
+class StreamTransactionRecordDeserializationFactoryStub
+    : public StreamTransactionRecordDeserializationFactory {
+public:
+  auto make(std::istream &)
+      -> std::shared_ptr<TransactionRecordDeserialization> override {
+    return std::make_shared<TransactionRecordDeserializationStub>();
   }
 };
 
@@ -88,7 +103,7 @@ class TransactionRecordDeserializationObserverStub
 public:
   auto transaction() -> VerifiableTransaction { return transaction_; }
 
-  void ready(const VerifiableTransaction &t) { transaction_ = t; }
+  void ready(const VerifiableTransaction &t) override { transaction_ = t; }
 
 private:
   VerifiableTransaction transaction_;
@@ -206,7 +221,8 @@ debits
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
 )")};
-  ReadsAccountFromStream accountDeserialization{*input};
+  StreamTransactionRecordDeserializationFactoryStub factory;
+  ReadsAccountFromStream accountDeserialization{*input, factory};
   AccountDeserializationObserverStub observer;
   accountDeserialization.load(observer);
   assertEqual(
