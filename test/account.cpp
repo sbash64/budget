@@ -12,9 +12,9 @@ namespace sbash64::budget::account {
 namespace {
 class TransactionRecordStub : public TransactionRecord {
 public:
-  void verify() { verified_ = true; }
+  void verify() override { verified_ = true; }
 
-  auto verified() -> bool { return verified_; }
+  [[nodiscard]] auto verified() const -> bool { return verified_; }
 
 private:
   bool verified_{};
@@ -388,18 +388,18 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
 
 void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
     testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, 123_cents, observer.balance());
-  debit(account,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-  assertEqual(result, 123_cents - 456_cents, observer.balance());
-  account.removeCredit(
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, -456_cents, observer.balance());
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result, 123_cents, observer.balance());
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertEqual(result, 123_cents - 456_cents, observer.balance());
+    account.removeCredit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result, -456_cents, observer.balance());
+  });
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
@@ -433,37 +433,40 @@ void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-              observer.debitAdded());
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.debitAdded());
+  });
 }
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.removeDebit(
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-              observer.debitRemoved());
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.removeDebit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.debitRemoved());
+  });
 }
 
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
-  TransactionRecordFactoryStub transactionRecordFactory;
-  InMemoryAccount account{"", transactionRecordFactory};
-  AccountObserverStub observer;
-  account.attach(&observer);
-  account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  account.removeCredit(
-      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-  assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-              observer.creditRemoved());
+  testAccount([&](InMemoryAccount &account) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.removeCredit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                observer.creditRemoved());
+  });
 }
 
 void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &result) {
