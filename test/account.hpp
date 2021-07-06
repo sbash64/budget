@@ -21,8 +21,9 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
-void verifiesCreditTransactionRecord(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
+void verifiesCreditTransactionRecord(testcpplite::TestResult &);
+void verifiesDebitTransactionRecord(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
 void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &);

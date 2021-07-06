@@ -430,20 +430,6 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   });
 }
 
-void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
-    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
-    transactionRecordFactory.add(
-        transactionRecord,
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.verifyCredit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertTrue(result, transactionRecord->verified());
-  });
-}
-
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &transactionRecordFactory) {
@@ -459,6 +445,34 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
                 observer.debitAdded());
     assertEqual(result, transactionRecord.get(),
                 observer.newTransactionRecord());
+  });
+}
+
+void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.verifyCredit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertTrue(result, transactionRecord->verified());
+  });
+}
+
+void verifiesDebitTransactionRecord(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.verifyDebit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertTrue(result, transactionRecord->verified());
   });
 }
 
