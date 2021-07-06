@@ -77,6 +77,16 @@ constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
          a.date == b.date;
 }
 
+static auto operator<(const Transaction &a, const Transaction &b) -> bool {
+  if (a.date != b.date)
+    return a.date < b.date;
+  if (a.description != b.description)
+    return a.description < b.description;
+  if (a.amount != b.amount)
+    return a.amount.cents < b.amount.cents;
+  return false;
+}
+
 struct VerifiableTransaction {
   Transaction transaction;
   bool verified{};
@@ -142,6 +152,7 @@ public:
 class TransactionRecord {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionRecord);
+  virtual void verify() = 0;
 
   class Factory {
   public:

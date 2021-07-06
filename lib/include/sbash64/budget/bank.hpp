@@ -80,6 +80,8 @@ public:
 private:
   VerifiableTransactions debits;
   VerifiableTransactions credits;
+  std::map<Transaction, std::shared_ptr<TransactionRecord>> creditRecords;
+  std::map<Transaction, std::shared_ptr<TransactionRecord>> debitRecords;
   std::string name;
   Observer *observer{};
   TransactionRecord::Factory &factory;

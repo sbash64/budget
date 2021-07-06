@@ -257,12 +257,15 @@ static auto balance(const VerifiableTransactions &credits,
 
 static void
 add(VerifiableTransactions &transactions, const VerifiableTransaction &t,
+    std::map<Transaction, std::shared_ptr<TransactionRecord>>
+        &transactionRecords,
     Account::Observer *observer,
     const std::function<void(Account::Observer *, const Transaction &t,
                              TransactionRecord &)> &notify,
     const VerifiableTransactions &credits, const VerifiableTransactions &debits,
     TransactionRecord::Factory &factory) {
   const auto transactionRecord{factory.make(t.transaction)};
+  transactionRecords[t.transaction] = transactionRecord;
   transactions.push_back(t);
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
     notify(observer_, t.transaction, *transactionRecord);
@@ -359,7 +362,7 @@ void InMemoryAccount::attach(Observer *a) { observer = a; }
 
 void InMemoryAccount::credit(const Transaction &t) {
   add(
-      credits, {t, false}, observer,
+      credits, {t, false}, creditRecords, observer,
       [](Observer *observer_, const Transaction &t_,
          TransactionRecord &transactionRecord) {
         observer_->notifyThatCreditHasBeenAdded(transactionRecord, t_);
@@ -369,7 +372,7 @@ void InMemoryAccount::credit(const Transaction &t) {
 
 void InMemoryAccount::debit(const Transaction &t) {
   add(
-      debits, {t, false}, observer,
+      debits, {t, false}, debitRecords, observer,
       [](Observer *observer_, const Transaction &t_, TransactionRecord &tr) {
         observer_->notifyThatDebitHasBeenAdded(tr, t_);
       },
@@ -379,7 +382,7 @@ void InMemoryAccount::debit(const Transaction &t) {
 void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
     const VerifiableTransaction &t) {
   add(
-      credits, t, observer,
+      credits, t, creditRecords, observer,
       [](Observer *observer_, const Transaction &t_,
          TransactionRecord &transactionRecord) {
         observer_->notifyThatCreditHasBeenAdded(transactionRecord, t_);
@@ -390,7 +393,7 @@ void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
 void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
     const VerifiableTransaction &t) {
   add(
-      debits, t, observer,
+      debits, t, debitRecords, observer,
       [](Observer *observer_, const Transaction &t_, TransactionRecord &tr) {
         observer_->notifyThatDebitHasBeenAdded(tr, t_);
       },
@@ -430,7 +433,12 @@ void InMemoryAccount::removeCredit(const Transaction &t) {
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 
-void InMemoryAccount::verifyCredit(const Transaction &t) { verify(credits, t); }
+void InMemoryAccount::verifyCredit(const Transaction &t) {
+  if (creditRecords.count(t) != 0)
+    if (creditRecords.at(t) != nullptr)
+      creditRecords.at(t)->verify();
+  verify(credits, t);
+}
 
 void InMemoryAccount::verifyDebit(const Transaction &t) { verify(debits, t); }
 
