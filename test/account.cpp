@@ -3,12 +3,46 @@
 #include "usd.hpp"
 #include "view-stub.hpp"
 #include <functional>
+#include <map>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 #include <utility>
+namespace sbash64::budget {
+static auto operator<(const Transaction &a, const Transaction &b) -> bool {
+  if (a.date != b.date)
+    return a.date < b.date;
+  if (a.description != b.description)
+    return a.description < b.description;
+  if (a.amount != b.amount)
+    return a.amount.cents < b.amount.cents;
+  return false;
+}
+} // namespace sbash64::budget
 
 namespace sbash64::budget::account {
 namespace {
+class TransactionRecordStub : public TransactionRecord {};
+
+class TransactionRecordFactoryStub : public TransactionRecord::Factory {
+public:
+  void add(std::shared_ptr<TransactionRecord> record, const Transaction &t) {
+    transactionRecords[t] = std::move(record);
+  }
+
+  auto transaction() -> Transaction { return transaction_; }
+
+  auto make(const Transaction &t)
+      -> std::shared_ptr<TransactionRecord> override {
+    transaction_ = t;
+    return transactionRecords.count(t) == 0 ? nullptr
+                                            : transactionRecords.at(t);
+  }
+
+private:
+  std::map<Transaction, std::shared_ptr<TransactionRecord>> transactionRecords;
+  Transaction transaction_;
+};
+
 class AccountObserverStub : public Account::Observer {
 public:
   auto balance() -> USD { return balance_; }
@@ -17,8 +51,14 @@ public:
 
   auto creditAdded() -> Transaction { return creditAdded_; }
 
-  void notifyThatCreditHasBeenAdded(const Transaction &t) override {
+  void notifyThatCreditHasBeenAdded(TransactionRecord *tr,
+                                    const Transaction &t) override {
     creditAdded_ = t;
+    newTransactionRecord_ = tr;
+  }
+
+  auto newTransactionRecord() -> const TransactionRecord * {
+    return newTransactionRecord_;
   }
 
   void notifyThatDebitHasBeenAdded(const Transaction &t) override {
@@ -43,6 +83,7 @@ public:
   }
 
 private:
+  TransactionRecord *newTransactionRecord_{};
   Transaction creditAdded_;
   Transaction debitAdded_;
   Transaction debitRemoved_;
@@ -362,12 +403,18 @@ void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
-  InMemoryAccount account{""};
+  TransactionRecordFactoryStub transactionRecordFactory;
+  const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+  transactionRecordFactory.add(
+      transactionRecord,
+      Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+  InMemoryAccount account{"", &transactionRecordFactory};
   AccountObserverStub observer;
   account.attach(&observer);
   credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
   assertEqual(result, Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
               observer.creditAdded());
+  assertEqual(result, transactionRecord.get(), observer.newTransactionRecord());
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {

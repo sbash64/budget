@@ -49,7 +49,8 @@ private:
 
 class InMemoryAccount : public Account {
 public:
-  explicit InMemoryAccount(std::string name);
+  explicit InMemoryAccount(std::string name,
+                           TransactionRecord::Factory * = nullptr);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
@@ -80,6 +81,7 @@ private:
   VerifiableTransactions credits;
   std::string name;
   Observer *observer{};
+  TransactionRecord::Factory *factory;
 };
 } // namespace sbash64::budget
 

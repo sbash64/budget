@@ -139,13 +139,26 @@ public:
   virtual void load(Observer &) = 0;
 };
 
+class TransactionRecord {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionRecord);
+
+  class Factory {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
+    virtual auto make(const Transaction &)
+        -> std::shared_ptr<TransactionRecord> = 0;
+  };
+};
+
 class Account : public AccountDeserialization::Observer {
 public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
-    virtual void notifyThatCreditHasBeenAdded(const Transaction &) = 0;
+    virtual void notifyThatCreditHasBeenAdded(TransactionRecord *,
+                                              const Transaction &) = 0;
     virtual void notifyThatDebitHasBeenAdded(const Transaction &) = 0;
     virtual void notifyThatDebitHasBeenRemoved(const Transaction &) = 0;
     virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
