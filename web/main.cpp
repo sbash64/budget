@@ -314,6 +314,13 @@ int main() {
         call(applications, connection, [&json](sbash64::budget::Model &model) {
           model.removeAccount(json["name"].get<std::string>());
         });
+      else if (methodIs(json, "create account"))
+        call(applications, connection, [&json](sbash64::budget::Model &model) {
+          model.transferTo(
+              json["name"].get<std::string>(),
+              sbash64::budget::usd(json["amount"].get<std::string>()),
+              sbash64::budget::date(json["date"].get<std::string>()));
+        });
     });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {

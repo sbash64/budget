@@ -76,10 +76,11 @@ function main() {
   nameLabel.textContent = "name";
   const nameInput = createChild(nameLabel, "input");
   nameInput.type = "text";
-  const removeAccountButton = createChild(accountControls, "button");
+  const accountButtons = createChild(accountControls, "div");
+  const createAccountButton = createChild(accountButtons, "button");
+  createAccountButton.textContent = "create";
+  const removeAccountButton = createChild(accountButtons, "button");
   removeAccountButton.textContent = "remove";
-  const transferToNewAccountButton = createChild(accountControls, "button");
-  transferToNewAccountButton.textContent = "transfer";
   const accounts = createChild(accountsAndTransactionControls, "div");
   const totalBalance = createChild(document.body, "div");
   const transactionControls = createChild(
@@ -100,12 +101,12 @@ function main() {
   dateLabel.textContent = "date";
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
-  const buttons = createChild(transactionControls, "div");
-  const addTransactionButton = createChild(buttons, "button");
+  const transactionButtons = createChild(transactionControls, "div");
+  const addTransactionButton = createChild(transactionButtons, "button");
   addTransactionButton.textContent = "add";
-  const removeTransactionButton = createChild(buttons, "button");
+  const removeTransactionButton = createChild(transactionButtons, "button");
   removeTransactionButton.textContent = "remove";
-  const transferButton = createChild(buttons, "button");
+  const transferButton = createChild(transactionButtons, "button");
   transferButton.textContent = "transfer";
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
@@ -214,10 +215,10 @@ function main() {
       })
     );
   });
-  transferToNewAccountButton.addEventListener("click", () => {
+  createAccountButton.addEventListener("click", () => {
     websocket.send(
       JSON.stringify({
-        method: "transfer",
+        method: "create account",
         name: nameInput.value,
         amount: amountInput.value,
         date: dateInput.value,
