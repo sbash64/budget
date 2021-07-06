@@ -503,14 +503,20 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
     AccountObserverStub observer;
     account.attach(&observer);
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.notifyThatCreditHasBeenDeserialized(
         {{123_cents, "ape", Date{2020, Month::June, 2}}, true});
     assertEqual(result,
                 Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
                 observer.creditAdded());
+    assertTrue(result, transactionRecord->verified());
     account.notifyThatDebitHasBeenDeserialized(
         {{456_cents, "gorilla", Date{2020, Month::January, 20}}, false});
     assertEqual(result, {456_cents, "gorilla", Date{2020, Month::January, 20}},

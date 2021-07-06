@@ -35,6 +35,8 @@ add(VerifiableTransactions &transactions, const VerifiableTransaction &t,
   transactions.push_back(t);
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
     notify(observer_, t.transaction, *transactionRecord);
+    if (t.verified)
+      transactionRecord->verify();
     observer_->notifyThatBalanceHasChanged(balance(credits, debits));
   });
 }
