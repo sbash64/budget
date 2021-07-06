@@ -61,6 +61,7 @@ public:
   void notifyThatDebitHasBeenAdded(TransactionRecord &tr,
                                    const Transaction &t) override {
     debitAdded_ = t;
+    newTransactionRecord_ = &tr;
   }
 
   auto debitAdded() -> Transaction { return debitAdded_; }
@@ -414,12 +415,12 @@ void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &transactionRecordFactory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
     const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
     transactionRecordFactory.add(
         transactionRecord,
         Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    AccountObserverStub observer;
-    account.attach(&observer);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertEqual(result,
                 Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
@@ -432,8 +433,6 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
 void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &transactionRecordFactory) {
-    AccountObserverStub observer;
-    account.attach(&observer);
     const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
     transactionRecordFactory.add(
         transactionRecord,
@@ -446,13 +445,20 @@ void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &transactionRecordFactory) {
     AccountObserverStub observer;
     account.attach(&observer);
+    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
+    transactionRecordFactory.add(
+        transactionRecord,
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertEqual(result,
                 Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
                 observer.debitAdded());
+    assertEqual(result, transactionRecord.get(),
+                observer.newTransactionRecord());
   });
 }
 
