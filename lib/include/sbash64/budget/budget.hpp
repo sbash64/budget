@@ -168,6 +168,9 @@ public:
     notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) = 0;
     virtual void
     notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) = 0;
+    virtual void
+    notifyThatCreditIsReady(TransactionRecordDeserialization &) = 0;
+    virtual void notifyThatDebitIsReady(TransactionRecordDeserialization &) = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
   virtual void load(Observer &) = 0;

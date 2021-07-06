@@ -76,9 +76,32 @@ private:
   std::vector<std::string> secondaryAccountNames_;
 };
 
+class TransactionRecordDeserializationObserverStub
+    : public TransactionRecordDeserialization::Observer {
+public:
+  auto transaction() -> VerifiableTransaction { return transaction_; }
+
+  void ready(const VerifiableTransaction &t) override {
+    transaction_ = t;
+    if (onReady)
+      onReady(t);
+  }
+
+  void setOnReady(std::function<void(const VerifiableTransaction &)> f) {
+    onReady = std::move(f);
+  }
+
+private:
+  VerifiableTransaction transaction_;
+  std::function<void(const VerifiableTransaction &)> onReady;
+};
+
 class AccountDeserializationObserverStub
     : public AccountDeserialization::Observer {
 public:
+  explicit AccountDeserializationObserverStub(std::istream &stream)
+      : stream{stream} {}
+
   void
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &t) override {
     debits_.push_back(t);
@@ -89,6 +112,22 @@ public:
     credits_.push_back(t);
   }
 
+  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {
+    ReadsTransactionRecordFromStream reads{stream};
+    TransactionRecordDeserializationObserverStub observer;
+    observer.setOnReady(
+        [&](const VerifiableTransaction &t) { credits_.push_back(t); });
+    reads.load(observer);
+  }
+
+  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {
+    ReadsTransactionRecordFromStream reads{stream};
+    TransactionRecordDeserializationObserverStub observer;
+    observer.setOnReady(
+        [&](const VerifiableTransaction &t) { debits_.push_back(t); });
+    reads.load(observer);
+  }
+
   auto credits() -> VerifiableTransactions { return credits_; }
 
   auto debits() -> VerifiableTransactions { return debits_; }
@@ -96,17 +135,7 @@ public:
 private:
   VerifiableTransactions credits_;
   VerifiableTransactions debits_;
-};
-
-class TransactionRecordDeserializationObserverStub
-    : public TransactionRecordDeserialization::Observer {
-public:
-  auto transaction() -> VerifiableTransaction { return transaction_; }
-
-  void ready(const VerifiableTransaction &t) override { transaction_ = t; }
-
-private:
-  VerifiableTransaction transaction_;
+  std::istream &stream;
 };
 
 class IoStreamFactoryStub : public IoStreamFactory {
@@ -142,6 +171,8 @@ public:
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
   void reduce(const Date &) override {}
   auto balance() -> USD override { return {}; }
 
@@ -210,6 +241,16 @@ static void assertEqual(testcpplite::TestResult &result,
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
+void toTransactionRecord(testcpplite::TestResult &result) {
+  const auto input{std::make_shared<std::stringstream>("^3.24 hyvee 2/8/2020")};
+  ReadsTransactionRecordFromStream transactionRecordDeserialization{*input};
+  TransactionRecordDeserializationObserverStub observer;
+  transactionRecordDeserialization.load(observer);
+  assertEqual(result,
+              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
+              observer.transaction());
+}
+
 void toAccounts(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
       R"(credits
@@ -223,7 +264,7 @@ debits
 )")};
   StreamTransactionRecordDeserializationFactoryStub factory;
   ReadsAccountFromStream accountDeserialization{*input, factory};
-  AccountDeserializationObserverStub observer;
+  AccountDeserializationObserverStub observer{*input};
   accountDeserialization.load(observer);
   assertEqual(
       result,
@@ -236,16 +277,6 @@ debits
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               observer.debits());
-}
-
-void toTransactionRecord(testcpplite::TestResult &result) {
-  const auto input{std::make_shared<std::stringstream>("^3.24 hyvee 2/8/2020")};
-  ReadsTransactionRecordFromStream transactionRecordDeserialization{*input};
-  TransactionRecordDeserializationObserverStub observer;
-  transactionRecordDeserialization.load(observer);
-  assertEqual(result,
-              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
-              observer.transaction());
 }
 
 void toSession(testcpplite::TestResult &result) {

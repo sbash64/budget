@@ -89,6 +89,8 @@ public:
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
 
   auto reducedDate() -> Date { return reducedDate_; }
 

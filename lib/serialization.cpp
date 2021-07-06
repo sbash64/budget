@@ -122,23 +122,28 @@ loadTransaction(std::istream &input, std::string &line,
   description << next;
   onDeserialization(
       {{amount, description.str(), date(eventuallyDate)}, verified});
-  getline(input, line);
+}
+
+void ReadsTransactionRecordFromStream::load(Observer &observer) {
+  std::string line;
+  getline(stream, line);
+  loadTransaction(stream, line,
+                  [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {
+  const auto transactionRecordDeserialization{factory.make(stream)};
   std::string line;
   getline(stream, line);
-  getline(stream, line);
-  while (line != "debits") {
-    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
-      observer.notifyThatCreditHasBeenDeserialized(t);
-    });
+  while (stream.peek() != 'd') {
+    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
   }
   getline(stream, line);
-  while (!line.empty()) {
-    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
-      observer.notifyThatDebitHasBeenDeserialized(t);
-    });
+  stream.get();
+  while (stream) {
+    stream.unget();
+    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
+    stream.get();
   }
 }
 
@@ -151,13 +156,6 @@ void ReadsSessionFromStream::load(Observer &observer) {
   observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
   while (getline(*stream, line))
     observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
-}
-
-void ReadsTransactionRecordFromStream::load(Observer &observer) {
-  std::string line;
-  getline(stream, line);
-  loadTransaction(stream, line,
-                  [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
 ReadsSessionFromStream::ReadsSessionFromStream(

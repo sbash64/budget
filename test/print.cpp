@@ -62,6 +62,8 @@ public:
   notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
   void
   notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
+  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
   void reduce(const Date &) override {}
   auto balance() -> USD override { return {}; }
 
