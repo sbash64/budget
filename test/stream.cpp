@@ -160,7 +160,6 @@ public:
   void debit(const Transaction &) override {}
   void removeCredit(const Transaction &) override {}
   void removeDebit(const Transaction &) override {}
-  void show(View &) override {}
   void load(AccountDeserialization &) override {}
   void rename(std::string_view) override {}
   auto findUnverifiedDebits(USD) -> Transactions override { return {}; }

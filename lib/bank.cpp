@@ -173,10 +173,6 @@ void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
                        {amount, transferFromMasterString.data(), date});
 }
 
-void Bank::show(View &view) {
-  view.show(*primaryAccount, collect(secondaryAccounts));
-}
-
 void Bank::save(SessionSerialization &persistentMemory) {
   persistentMemory.save(*primaryAccount, collect(secondaryAccounts));
 }

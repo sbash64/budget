@@ -22,7 +22,6 @@ public:
   void transferTo(std::string_view accountName, USD amount, Date) override;
   void removeTransfer(std::string_view accountName, USD amount, Date) override;
   void removeAccount(std::string_view) override;
-  void show(View &) override;
   void save(SessionSerialization &) override;
   void load(SessionDeserialization &) override;
   void renameAccount(std::string_view from, std::string_view to) override;

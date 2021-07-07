@@ -97,33 +97,6 @@ constexpr auto operator==(const VerifiableTransaction &a,
   return a.transaction == b.transaction && a.verified == b.verified;
 }
 
-struct VerifiableTransactionWithType {
-  VerifiableTransaction verifiableTransaction;
-  Transaction::Type type{};
-};
-
-template <typename T>
-auto debit(T &&transaction) -> VerifiableTransactionWithType {
-  return {{std::forward<T>(transaction)}, Transaction::Type::debit};
-}
-
-template <typename T>
-auto credit(T &&transaction) -> VerifiableTransactionWithType {
-  return {{std::forward<T>(transaction)}, Transaction::Type::credit};
-}
-
-template <typename T>
-auto verifiedDebit(T &&transaction) -> VerifiableTransactionWithType {
-  return {{std::forward<T>(transaction), true}, Transaction::Type::debit};
-}
-
-template <typename T>
-auto verifiedCredit(T &&transaction) -> VerifiableTransactionWithType {
-  return {{std::forward<T>(transaction), true}, Transaction::Type::credit};
-}
-
-class View;
-
 using Transactions = std::vector<Transaction>;
 using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
@@ -193,7 +166,6 @@ public:
   virtual void attach(Observer *) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
-  virtual void show(View &) = 0;
   virtual void save(AccountSerialization &) = 0;
   virtual void load(AccountDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
@@ -212,16 +184,6 @@ public:
     virtual auto make(std::string_view name, TransactionRecord::Factory &)
         -> std::shared_ptr<Account> = 0;
   };
-};
-
-class View {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
-  virtual void show(Account &primary,
-                    const std::vector<Account *> &secondaries) = 0;
-  virtual void showAccountSummary(
-      std::string_view name, USD balance,
-      const std::vector<VerifiableTransactionWithType> &transactions) = 0;
 };
 
 class SessionSerialization {
@@ -266,7 +228,6 @@ public:
   virtual void removeTransfer(std::string_view accountName, USD amount,
                               Date) = 0;
   virtual void removeAccount(std::string_view) = 0;
-  virtual void show(View &) = 0;
   virtual void save(SessionSerialization &) = 0;
   virtual void load(SessionDeserialization &) = 0;
   virtual void renameAccount(std::string_view from, std::string_view to) = 0;

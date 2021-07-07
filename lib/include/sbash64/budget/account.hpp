@@ -13,7 +13,6 @@ public:
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
-  void show(View &) override;
   void save(AccountSerialization &) override;
   void load(AccountDeserialization &) override;
   void removeCredit(const Transaction &) override;

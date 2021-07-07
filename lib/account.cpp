@@ -41,25 +41,6 @@ add(VerifiableTransactions &transactions, const VerifiableTransaction &t,
   });
 }
 
-static auto
-dateSortedTransactionsWithType(const VerifiableTransactions &credits,
-                               const VerifiableTransactions &debits)
-    -> std::vector<VerifiableTransactionWithType> {
-  std::vector<VerifiableTransactionWithType> transactions;
-  transactions.reserve(credits.size() + debits.size());
-  for (const auto &c : credits)
-    transactions.push_back({c, Transaction::Type::credit});
-  for (const auto &d : debits)
-    transactions.push_back({d, Transaction::Type::debit});
-  sort(transactions.begin(), transactions.end(),
-       [](const VerifiableTransactionWithType &a,
-          const VerifiableTransactionWithType &b) {
-         return a.verifiableTransaction.transaction.date <
-                b.verifiableTransaction.transaction.date;
-       });
-  return transactions;
-}
-
 static void executeIfFound(
     VerifiableTransactions &transactions,
     const std::function<void(VerifiableTransactions::iterator)> &f,
@@ -171,11 +152,6 @@ void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
         observer_->notifyThatDebitHasBeenAdded(tr, t_);
       },
       credits, debits, factory);
-}
-
-void InMemoryAccount::show(View &view) {
-  view.showAccountSummary(name, budget::balance(credits, debits),
-                          dateSortedTransactionsWithType(credits, debits));
 }
 
 void InMemoryAccount::save(AccountSerialization &serialization) {

@@ -1,0 +1,27 @@
+{
+  "extends": "eslint:all",
+  "parserOptions": { "ecmaVersion": "latest", "sourceType": "module" },
+  "env": { "browser": true, "es6": true },
+  "rules": {
+    "indent": "off",
+    "padded-blocks": "off",
+    "max-statements": "off",
+    "one-var": "off",
+    "max-lines-per-function": "off",
+    "func-style": "off",
+    "space-before-function-paren": "off",
+    "function-call-argument-newline": "off",
+    "curly": "off",
+    "id-length": "off",
+    "no-magic-numbers": "off",
+    "function-paren-newline": "off",
+    "sort-keys": "off",
+    "quote-props": "off",
+    "comma-dangle": "off",
+    "no-ternary": "off",
+    "no-extra-parens": "off",
+    "multiline-ternary": "off",
+    "class-methods-use-this": "off",
+    "max-classes-per-file": "off"
+  }
+}

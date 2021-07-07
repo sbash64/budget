@@ -1,7 +1,6 @@
 #include "account.hpp"
 #include "persistent-memory-stub.hpp"
 #include "usd.hpp"
-#include "view-stub.hpp"
 #include <functional>
 #include <map>
 #include <sbash64/budget/account.hpp>
@@ -98,14 +97,6 @@ constexpr auto to_integral(Transaction::Type e) ->
   return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);
 }
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const VerifiableTransactionWithType &expected,
-                        const VerifiableTransactionWithType &actual) {
-  assertEqual(result, expected.verifiableTransaction,
-              actual.verifiableTransaction);
-  assertEqual(result, to_integral(expected.type), to_integral(actual.type));
-}
-
 static void assertContains(testcpplite::TestResult &result,
                            const VerifiableTransactions &transactions,
                            const VerifiableTransaction &transaction) {
@@ -125,14 +116,24 @@ static void assertContainsDebit(testcpplite::TestResult &result,
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
-static void
-assertEqual(testcpplite::TestResult &result,
-            const std::vector<VerifiableTransactionWithType> &expected,
-            const std::vector<VerifiableTransactionWithType> &actual) {
+static void assertEqual(testcpplite::TestResult &result,
+                        const VerifiableTransactions &expected,
+                        const VerifiableTransactions &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<VerifiableTransactionWithType>::size_type i{0};
-       i < expected.size(); ++i)
+  for (VerifiableTransactions::size_type i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
+}
+
+static void assertDebitsSaved(testcpplite::TestResult &result,
+                              PersistentAccountStub &persistentMemory,
+                              const VerifiableTransactions &transactions) {
+  assertEqual(result, persistentMemory.debits(), transactions);
+}
+
+static void assertCreditsSaved(testcpplite::TestResult &result,
+                               PersistentAccountStub &persistentMemory,
+                               const VerifiableTransactions &transactions) {
+  assertEqual(result, persistentMemory.credits(), transactions);
 }
 
 static void credit(Account &account, const Transaction &t) {
@@ -141,16 +142,10 @@ static void credit(Account &account, const Transaction &t) {
 
 static void debit(Account &account, const Transaction &t) { account.debit(t); }
 
-static void show(Account &account, View &view) { account.show(view); }
-
-static void assertAccountName(testcpplite::TestResult &result, ViewStub &view,
+static void assertAccountName(testcpplite::TestResult &result,
+                              PersistentAccountStub &persistent,
                               std::string_view expected) {
-  assertEqual(result, std::string{expected}, view.accountName());
-}
-
-static void assertShown(testcpplite::TestResult &result, ViewStub &view,
-                        const std::vector<VerifiableTransactionWithType> &t) {
-  assertEqual(result, t, view.accountTransactions());
+  assertEqual(result, std::string{expected}, persistent.accountName());
 }
 
 static void testAccount(
@@ -173,24 +168,28 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
     testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account) {
+        AccountObserverStub observer;
+        account.attach(&observer);
         credit(account,
                Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
         debit(account, Transaction{456_cents, "gorilla",
                                    Date{2020, Month::January, 20}});
         credit(account, Transaction{789_cents, "chimpanzee",
                                     Date{2020, Month::June, 1}});
-        ViewStub view;
-        show(account, view);
-        assertAccountName(result, view, "joe");
         assertEqual(result, 123_cents - 456_cents + 789_cents,
-                    view.accountBalance());
-        assertShown(result, view,
-                    {debit(Transaction{456_cents, "gorilla",
-                                       Date{2020, Month::January, 20}}),
-                     credit(Transaction{789_cents, "chimpanzee",
-                                        Date{2020, Month::June, 1}}),
-                     credit(Transaction{123_cents, "ape",
-                                        Date{2020, Month::June, 2}})});
+                    observer.balance());
+        PersistentAccountStub persistentMemory;
+        account.save(persistentMemory);
+        assertAccountName(result, persistentMemory, "joe");
+        assertDebitsSaved(
+            result, persistentMemory,
+            {{Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+              false}});
+        assertCreditsSaved(
+            result, persistentMemory,
+            {{Transaction{123_cents, "ape", Date{2020, Month::June, 2}}, false},
+             {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+              false}});
       },
       "joe");
 }
@@ -199,6 +198,8 @@ void showAfterRemoveShowsRemainingTransactions(
     testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account) {
+        AccountObserverStub observer;
+        account.attach(&observer);
         credit(account,
                Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
         debit(account, Transaction{456_cents, "gorilla",
@@ -211,15 +212,18 @@ void showAfterRemoveShowsRemainingTransactions(
             Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
         account.removeCredit(
             Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-        ViewStub view;
-        show(account, view);
-        assertAccountName(result, view, "joe");
-        assertEqual(result, 123_cents - 789_cents, view.accountBalance());
-        assertShown(result, view,
-                    {debit(Transaction{789_cents, "chimpanzee",
-                                       Date{2020, Month::June, 1}}),
-                     credit(Transaction{123_cents, "ape",
-                                        Date{2020, Month::June, 2}})});
+        assertEqual(result, 123_cents - 789_cents, observer.balance());
+        PersistentAccountStub persistentMemory;
+        account.save(persistentMemory);
+        assertAccountName(result, persistentMemory, "joe");
+        assertDebitsSaved(
+            result, persistentMemory,
+            {{Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+              false}});
+        assertCreditsSaved(
+            result, persistentMemory,
+            {{Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+              false}});
       },
       "joe");
 }
@@ -227,6 +231,8 @@ void showAfterRemoveShowsRemainingTransactions(
 void showShowsVerifiedTransactions(testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account) {
+        AccountObserverStub observer;
+        account.attach(&observer);
         credit(account,
                Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
         debit(account, Transaction{456_cents, "gorilla",
@@ -239,20 +245,22 @@ void showShowsVerifiedTransactions(testcpplite::TestResult &result) {
             Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
         account.verifyCredit(
             Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-        ViewStub view;
-        show(account, view);
-        assertAccountName(result, view, "joe");
         assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
-                    view.accountBalance());
-        assertShown(result, view,
-                    {verifiedDebit(Transaction{456_cents, "gorilla",
-                                               Date{2020, Month::January, 20}}),
-                     verifiedCredit(Transaction{111_cents, "orangutan",
-                                                Date{2020, Month::March, 4}}),
-                     debit(Transaction{789_cents, "chimpanzee",
-                                       Date{2020, Month::June, 1}}),
-                     credit(Transaction{123_cents, "ape",
-                                        Date{2020, Month::June, 2}})});
+                    observer.balance());
+        PersistentAccountStub persistentMemory;
+        account.save(persistentMemory);
+        assertAccountName(result, persistentMemory, "joe");
+        assertDebitsSaved(
+            result, persistentMemory,
+            {{Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+              true},
+             {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+              false}});
+        assertCreditsSaved(
+            result, persistentMemory,
+            {{Transaction{123_cents, "ape", Date{2020, Month::June, 2}}, false},
+             {Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}},
+              true}});
       },
       "joe");
 }
@@ -292,15 +300,16 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false});
     account.notifyThatDebitHasBeenDeserialized(
         {{456_cents, "gorilla", Date{2020, Month::January, 20}}, false});
-    ViewStub view;
-    show(account, view);
-    assertShown(
-        result, view,
-        {debit(
-             Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}}),
-         credit(
-             Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}),
-         credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}})});
+    account.save(persistentMemory);
+    assertDebitsSaved(
+        result, persistentMemory,
+        {{Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+          false}});
+    assertCreditsSaved(
+        result, persistentMemory,
+        {{Transaction{123_cents, "ape", Date{2020, Month::June, 2}}, false},
+         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+          false}});
   });
 }
 
@@ -308,9 +317,9 @@ void rename(testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account) {
         account.rename("mike");
-        ViewStub view;
-        show(account, view);
-        assertAccountName(result, view, "mike");
+        PersistentAccountStub persistentMemory;
+        account.save(persistentMemory);
+        assertAccountName(result, persistentMemory, "mike");
       },
       "joe");
 }
@@ -370,11 +379,12 @@ void showAfterRemovingVerifiedTransactionShowsRemaining(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.removeDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    ViewStub view;
-    show(account, view);
-    assertShown(result, view,
-                {debit(Transaction{789_cents, "chimpanzee",
-                                   Date{2020, Month::June, 1}})});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertDebitsSaved(
+        result, persistentMemory,
+        {{Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+          false}});
   });
 }
 
@@ -388,13 +398,14 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.verifyDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    ViewStub view;
-    show(account, view);
-    assertShown(result, view,
-                {verifiedDebit(Transaction{456_cents, "gorilla",
-                                           Date{2020, Month::January, 20}}),
-                 verifiedDebit(Transaction{456_cents, "gorilla",
-                                           Date{2020, Month::January, 20}})});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertDebitsSaved(
+        result, persistentMemory,
+        {{Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+          true},
+         {Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+          true}});
   });
 }
 
@@ -535,12 +546,12 @@ void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     account.reduce(Date{2021, Month::March, 13});
-    ViewStub view;
-    show(account, view);
-    assertShown(result, view,
-                {verifiedCredit(Transaction{2300_cents - 789_cents - 456_cents,
-                                            "reduction",
-                                            Date{2021, Month::March, 13}})});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertCreditsSaved(result, persistentMemory,
+                       {{Transaction{2300_cents - 789_cents - 456_cents,
+                                     "reduction", Date{2021, Month::March, 13}},
+                         true}});
   });
 }
 
@@ -596,12 +607,12 @@ void reduceReducesToOneDebitForNegativeBalance(
     credit(account,
            Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
     account.reduce(Date{2021, Month::March, 13});
-    ViewStub view;
-    show(account, view);
-    assertShown(result, view,
-                {verifiedDebit(Transaction{789_cents + 456_cents - 300_cents,
-                                           "reduction",
-                                           Date{2021, Month::March, 13}})});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertDebitsSaved(result, persistentMemory,
+                      {{Transaction{789_cents + 456_cents - 300_cents,
+                                    "reduction", Date{2021, Month::March, 13}},
+                        true}});
   });
 }
 } // namespace sbash64::budget::account

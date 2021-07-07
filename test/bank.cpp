@@ -1,7 +1,6 @@
 #include "bank.hpp"
 #include "persistent-memory-stub.hpp"
 #include "usd.hpp"
-#include "view-stub.hpp"
 #include <functional>
 #include <map>
 #include <sbash64/budget/bank.hpp>
@@ -36,8 +35,6 @@ public:
   auto removedCredit() -> Transaction { return removedCredit_; }
 
   void removeCredit(const Transaction &t) override { removedCredit_ = t; }
-
-  void show(View &) override {}
 
   void save(AccountSerialization &) override {}
 
@@ -308,12 +305,12 @@ void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
     debit(bank, "giraffe", {});
     debit(bank, "penguin", {});
     debit(bank, "leopard", {});
-    ViewStub view;
-    bank.show(view);
-    assertEqual(result, masterAccount.get(), view.primaryAccount());
-    assertEqual(result, giraffe.get(), view.secondaryAccounts().at(0));
-    assertEqual(result, leopard.get(), view.secondaryAccounts().at(1));
-    assertEqual(result, penguin.get(), view.secondaryAccounts().at(2));
+    PersistentMemoryStub persistent;
+    bank.save(persistent);
+    assertEqual(result, masterAccount.get(), persistent.primaryAccount());
+    assertEqual(result, giraffe.get(), persistent.secondaryAccounts().at(0));
+    assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(1));
+    assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(2));
   });
 }
 
@@ -358,11 +355,11 @@ void loadLoadsAccounts(testcpplite::TestResult &result) {
     bank.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
     assertEqual(result, &deserialization, leopard->deserialization());
 
-    ViewStub view;
-    bank.show(view);
-    assertEqual(result, giraffe.get(), view.primaryAccount());
-    assertEqual(result, leopard.get(), view.secondaryAccounts().at(0));
-    assertEqual(result, penguin.get(), view.secondaryAccounts().at(1));
+    PersistentMemoryStub persistent;
+    bank.save(persistent);
+    assertEqual(result, giraffe.get(), persistent.primaryAccount());
+    assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(0));
+    assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(1));
   });
 }
 
@@ -580,11 +577,11 @@ void removesAccount(testcpplite::TestResult &result) {
     debit(bank, "penguin", {});
     debit(bank, "leopard", {});
     bank.removeAccount("giraffe");
-    ViewStub view;
-    bank.show(view);
-    assertEqual(result, masterAccount.get(), view.primaryAccount());
-    assertEqual(result, leopard.get(), view.secondaryAccounts().at(0));
-    assertEqual(result, penguin.get(), view.secondaryAccounts().at(1));
+    PersistentMemoryStub persistent;
+    bank.save(persistent);
+    assertEqual(result, masterAccount.get(), persistent.primaryAccount());
+    assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(0));
+    assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(1));
   });
 }
 

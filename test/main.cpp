@@ -1,6 +1,5 @@
 #include "account.hpp"
 #include "bank.hpp"
-#include "command-line.hpp"
 #include "parse.hpp"
 #include "print.hpp"
 #include "stream.hpp"
@@ -62,7 +61,8 @@ static auto runAllTests() -> int {
        {bank::transferVerifiesTransactionsByDefault,
         "bank transfer verifies transactions by default"},
        {bank::removeTransferRemovesDebitFromMasterAndCreditFromOther,
-        "bank remove transfer removes debit from master and credit from other"},
+        "bank remove transfer removes debit from master and credit from "
+        "other"},
        {bank::showShowsAccountsInAlphabeticOrder, "bank show shows accounts"},
        {bank::saveSavesAccounts, "bank save saves accounts"},
        {bank::loadLoadsAccounts, "bank load loads accounts"},
@@ -121,62 +121,7 @@ static auto runAllTests() -> int {
         "account reduce reduces to one debit for negative balance"},
        {account::notifiesObserverOfTransactionsWhenReducing,
         "notifies observer of transactions when reducing"},
-       {account::returnsBalance, "account returns balance"},
-       {print::accounts, "print accounts"},
-       {print::account, "print account"},
-       {print::prompt, "print prompt"},
-       {print::transactionWithSuffix, "print transaction with suffix"},
-       {print::enumeratedTransactions, "print enumerated transactions"},
-       {print::message, "print message"},
-       {command_line::print, "command line parses print command"},
-       {command_line::transferTo, "command line parses transfer command"},
-       {command_line::debit, "command line parses debit command"},
-       {command_line::debitMultiWordAccount,
-        "command line parses debit command for account with multiple words in "
-        "its name"},
-       {command_line::debitPromptsForDate,
-        "command line prompts for date during debit command"},
-       {command_line::debitPromptsForAccountName,
-        "command line prompts for account name during debit command"},
-       {command_line::debitPromptsForAmount,
-        "command line prompts for amount during debit command"},
-       {command_line::creditPromptsForAmount,
-        "command line prompts for amount during credit command"},
-       {command_line::debitPromptsForDesriptionAfterDateEntered,
-        "command line prompts for description after date is entered during "
-        "debit command"},
-       {command_line::debitShowsTransaction,
-        "command line shows debited transaction"},
-       {command_line::credit, "command line parses credit command"},
-       {command_line::save, "command line parses save command"},
-       {command_line::load, "command line parses load command"},
-       {command_line::renameAccount, "command line parses rename command"},
-       {command_line::renameAccountPromptsForNewName,
-        "command line prompts for new account name during rename command"},
-       {command_line::removeDebit,
-        "command line parses \"remove debit\" command"},
-       {command_line::removeCredit,
-        "command line parses \"remove credit\" command"},
-       {command_line::removeTransfer,
-        "command line parses \"remove transfer\" command"},
-       {command_line::verifyDebit,
-        "command line parses \"verify debit\" command"},
-       {command_line::verifyCredit,
-        "command line parses \"verify credit\" command"},
-       {command_line::showsDebitCandidatesForVerification,
-        "command line shows the debit candidates for verification"},
-       {command_line::showsMessageWhenNoCandidatesFoundForVerification,
-        "command line shows message when no candidates found for verification"},
-       {command_line::
-            showsDebitCandidatesForVerificationAgainWhenSelectedDebitIsOutOfRange,
-        "command line shows the debit candidates for verification again when "
-        "selected debit is out of range"},
-       {command_line::promptsForDebitVerificationConfirmation,
-        "command line prompts for debit verification confirmation"},
-       {command_line::verifyOnlyDebitFound,
-        "command line verifies only debit found"},
-       {command_line::unrecognizedCommandPrintsMessage,
-        "command line shows message on unrecognized command"}},
+       {account::returnsBalance, "account returns balance"}},
       std::cout);
 }
 } // namespace sbash64::budget
