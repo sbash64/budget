@@ -555,6 +555,14 @@ void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesObserverWhenVerified(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  TransactionRecordObserverStub observer;
+  record.attach(&observer);
+  record.verify();
+  assertTrue(result, observer.verified());
+}
+
 void notifiesObserverOfTransactionsWhenReducing(
     testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,

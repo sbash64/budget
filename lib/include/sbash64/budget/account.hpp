@@ -48,7 +48,10 @@ public:
     verifiableTransaction.transaction = t;
   }
 
-  void verify() override {}
+  void verify() override {
+    if (observer != nullptr)
+      observer->notifyThatIsVerified();
+  }
 
   auto verifies(const Transaction &t) -> bool override {
     if (!verifiableTransaction.verified &&
