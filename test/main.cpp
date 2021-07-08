@@ -116,7 +116,8 @@ static auto runAllTests() -> int {
        {account::notifiesObserverWhenRemoved, "notifiesObserverWhenRemoved"},
        {account::savesWhatWasLoaded, "savesWhatWasLoaded"},
        {account::loadPassesSelfToDeserialization,
-        "loadPassesSelfToDeserialization"}},
+        "loadPassesSelfToDeserialization"},
+       {account::notifiesThatIsAfterReady, "notifiesThatIsAfterReady"}},
       std::cout);
 }
 } // namespace sbash64::budget

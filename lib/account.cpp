@@ -235,6 +235,11 @@ auto TransactionRecordInMemory::amount() -> USD {
 
 void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
   verifiableTransaction = vt;
+  if (observer != nullptr) {
+    observer->notifyThatIs(vt.transaction);
+    if (vt.verified)
+      observer->notifyThatIsVerified();
+  }
 }
 
 void TransactionRecordInMemory::remove() {

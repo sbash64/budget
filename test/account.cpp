@@ -601,6 +601,18 @@ void loadPassesSelfToDeserialization(testcpplite::TestResult &result) {
   assertEqual(result, &record, deserialization.observer());
 }
 
+void notifiesThatIsAfterReady(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  TransactionRecordObserverStub observer;
+  record.attach(&observer);
+  record.ready(
+      {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true});
+  assertEqual(result,
+              Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+              observer.transaction());
+  assertTrue(result, observer.verified());
+}
+
 void savesWhatWasLoaded(testcpplite::TestResult &result) {
   TransactionRecordInMemory record;
   record.ready(
