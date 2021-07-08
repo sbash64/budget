@@ -31,7 +31,7 @@ public:
 
 class Controller : Control::Observer {
 public:
-  explicit Controller(Model &, Control &);
+  explicit Controller(Budget &, Control &);
   void notifyThatAddTransactionButtonHasBeenPressed() override;
   void notifyThatTransferToButtonHasBeenPressed() override;
   void notifyThatTransferToNewAccountButtonHasBeenPressed() override;
@@ -41,7 +41,7 @@ public:
   void notifyThatRemoveAccountButtonHasBeenPressed() override;
 
 private:
-  Model &model;
+  Budget &model;
   Control &control;
 };
 } // namespace sbash64::budget

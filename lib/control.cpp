@@ -32,7 +32,7 @@ static auto selectedTransactionIsCredit(Control &control) -> bool {
   return control.selectedTransactionIsCredit();
 }
 
-Controller::Controller(Model &model, Control &control)
+Controller::Controller(Budget &model, Control &control)
     : model{model}, control{control} {
   control.attach(this);
 }

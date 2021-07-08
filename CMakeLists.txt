@@ -10,9 +10,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(GSL)
 
 add_subdirectory(lib)
-add_executable(sbash64-budget main.cpp)
-target_link_libraries(sbash64-budget sbash64-budget-lib)
-set_target_properties(sbash64-budget PROPERTIES CXX_EXTENSIONS OFF)
 
 option(SBASH64_BUDGET_ENABLE_GTK "Enable GTK implementation" OFF)
 if(${SBASH64_BUDGET_ENABLE_GTK})
