@@ -117,7 +117,9 @@ static auto runAllTests() -> int {
        {account::savesWhatWasLoaded, "savesWhatWasLoaded"},
        {account::loadPassesSelfToDeserialization,
         "loadPassesSelfToDeserialization"},
-       {account::notifiesThatIsAfterReady, "notifiesThatIsAfterReady"}},
+       {account::notifiesThatIsAfterReady, "notifiesThatIsAfterReady"},
+       {account::notifiesThatIsAfterInitialize,
+        "notifiesThatIsAfterInitialize"}},
       std::cout);
 }
 } // namespace sbash64::budget

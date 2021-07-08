@@ -188,6 +188,8 @@ void TransactionRecordInMemory::attach(Observer *a) { observer = a; }
 
 void TransactionRecordInMemory::initialize(const Transaction &t) {
   verifiableTransaction.transaction = t;
+  if (observer != nullptr)
+    observer->notifyThatIs(t);
 }
 
 static void verify(VerifiableTransaction &vt,

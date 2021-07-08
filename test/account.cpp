@@ -613,6 +613,17 @@ void notifiesThatIsAfterReady(testcpplite::TestResult &result) {
   assertTrue(result, observer.verified());
 }
 
+void notifiesThatIsAfterInitialize(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  TransactionRecordObserverStub observer;
+  record.attach(&observer);
+  record.initialize(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertEqual(result,
+              Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+              observer.transaction());
+}
+
 void savesWhatWasLoaded(testcpplite::TestResult &result) {
   TransactionRecordInMemory record;
   record.ready(
