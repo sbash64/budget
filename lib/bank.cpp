@@ -47,17 +47,18 @@ static void removeDebit(const std::shared_ptr<Account> &account,
 }
 
 static void
-callIfObserverExists(Bank::Observer *observer,
-                     const std::function<void(Bank::Observer *)> &f) {
+callIfObserverExists(BudgetInMemory::Observer *observer,
+                     const std::function<void(BudgetInMemory::Observer *)> &f) {
   if (observer != nullptr)
     f(observer);
 }
 
 static void notifyThatTotalBalanceHasChanged(
-    Bank::Observer *observer, const std::shared_ptr<Account> &primaryAccount,
+    BudgetInMemory::Observer *observer,
+    const std::shared_ptr<Account> &primaryAccount,
     const std::map<std::string, std::shared_ptr<Account>, std::less<>>
         &secondaryAccounts) {
-  callIfObserverExists(observer, [&](Bank::Observer *observer_) {
+  callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatTotalBalanceHasChanged(accumulate(
         secondaryAccounts.begin(), secondaryAccounts.end(),
         primaryAccount->balance(),
@@ -71,9 +72,9 @@ static void notifyThatTotalBalanceHasChanged(
 
 static auto make(Account::Factory &factory, std::string_view name,
                  TransactionRecord::Factory &transactionRecordFactory,
-                 Model::Observer *observer) -> std::shared_ptr<Account> {
+                 Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{factory.make(name, transactionRecordFactory)};
-  callIfObserverExists(observer, [&](Bank::Observer *observer_) {
+  callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatNewAccountHasBeenCreated(*account, name);
   });
   return account;
@@ -89,7 +90,7 @@ static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
     Account::Factory &factory, std::string_view accountName,
     TransactionRecord::Factory &transactionRecordFactory,
-    Model::Observer *observer) {
+    Budget::Observer *observer) {
   if (!contains(accounts, accountName))
     accounts[std::string{accountName}] =
         make(factory, accountName, transactionRecordFactory, observer);
@@ -115,38 +116,41 @@ static auto makeAndLoad(Account::Factory &factory,
                         AccountDeserialization &deserialization,
                         std::string_view name,
                         TransactionRecord::Factory &transactionRecordFactory,
-                        Model::Observer *observer) -> std::shared_ptr<Account> {
+                        Budget::Observer *observer)
+    -> std::shared_ptr<Account> {
   auto account{make(factory, name, transactionRecordFactory, observer)};
   account->load(deserialization);
   return account;
 }
 
-Bank::Bank(Account::Factory &factory,
-           TransactionRecord::Factory &transactionRecordFactory)
+BudgetInMemory::BudgetInMemory(
+    Account::Factory &factory,
+    TransactionRecord::Factory &transactionRecordFactory)
     : factory{factory}, transactionRecordFactory{transactionRecordFactory},
       primaryAccount{make(factory, masterAccountName.data(),
                           transactionRecordFactory, observer)} {}
 
-void Bank::attach(Observer *a) { observer = a; }
+void BudgetInMemory::attach(Observer *a) { observer = a; }
 
-void Bank::credit(const Transaction &t) {
+void BudgetInMemory::credit(const Transaction &t) {
   budget::credit(primaryAccount, t);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
-void Bank::removeCredit(const Transaction &t) {
+void BudgetInMemory::removeCredit(const Transaction &t) {
   budget::removeCredit(primaryAccount, t);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
-void Bank::debit(std::string_view accountName, const Transaction &t) {
+void BudgetInMemory::debit(std::string_view accountName, const Transaction &t) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName,
                            transactionRecordFactory, observer);
   budget::debit(at(secondaryAccounts, accountName), t);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
-void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
+void BudgetInMemory::removeDebit(std::string_view accountName,
+                                 const Transaction &t) {
   if (contains(secondaryAccounts, accountName)) {
     budget::removeDebit(at(secondaryAccounts, accountName), t);
     notifyThatTotalBalanceHasChanged(observer, primaryAccount,
@@ -154,7 +158,8 @@ void Bank::removeDebit(std::string_view accountName, const Transaction &t) {
   }
 }
 
-void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
+void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
+                                Date date) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName,
                            transactionRecordFactory, observer);
   budget::debit(primaryAccount, {amount, transferToString(accountName), date});
@@ -166,35 +171,37 @@ void Bank::transferTo(std::string_view accountName, USD amount, Date date) {
                        {amount, transferFromMasterString.data(), date});
 }
 
-void Bank::removeTransfer(std::string_view accountName, USD amount, Date date) {
+void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
+                                    Date date) {
   budget::removeDebit(primaryAccount,
                       {amount, transferToString(accountName), date});
   budget::removeCredit(at(secondaryAccounts, accountName),
                        {amount, transferFromMasterString.data(), date});
 }
 
-void Bank::save(SessionSerialization &persistentMemory) {
+void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
   persistentMemory.save(*primaryAccount, collect(secondaryAccounts));
 }
 
-void Bank::load(SessionDeserialization &persistentMemory) {
+void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
   persistentMemory.load(*this);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
 
-void Bank::renameAccount(std::string_view from, std::string_view to) {
+void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
   at(secondaryAccounts, from)->rename(to);
 }
 
-void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
+void BudgetInMemory::verifyDebit(std::string_view accountName,
+                                 const Transaction &t) {
   budget::verifyDebit(at(secondaryAccounts, accountName), t);
 }
 
-void Bank::verifyCredit(const Transaction &t) {
+void BudgetInMemory::verifyCredit(const Transaction &t) {
   budget::verifyCredit(primaryAccount, t);
 }
 
-void Bank::removeAccount(std::string_view name) {
+void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(secondaryAccounts, name)) {
     secondaryAccounts.at(std::string{name})->remove();
     secondaryAccounts.erase(std::string{name});
@@ -203,19 +210,19 @@ void Bank::removeAccount(std::string_view name) {
   }
 }
 
-void Bank::notifyThatPrimaryAccountIsReady(
+void BudgetInMemory::notifyThatPrimaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   primaryAccount = makeAndLoad(factory, deserialization, name,
                                transactionRecordFactory, observer);
 }
 
-void Bank::notifyThatSecondaryAccountIsReady(
+void BudgetInMemory::notifyThatSecondaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   secondaryAccounts[std::string{name}] = makeAndLoad(
       factory, deserialization, name, transactionRecordFactory, observer);
 }
 
-void Bank::reduce(const Date &date) {
+void BudgetInMemory::reduce(const Date &date) {
   primaryAccount->reduce(date);
   for (const auto &[name, account] : secondaryAccounts)
     account->reduce(date);

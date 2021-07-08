@@ -43,7 +43,7 @@ public:
 
   void remove() override { removed_ = true; }
 
-  auto removed() -> bool { return removed_; }
+  [[nodiscard]] auto removed() const -> bool { return removed_; }
 
 private:
   Transaction initializedTransaction_;
@@ -201,7 +201,7 @@ static void testAccount(const std::function<void(InMemoryAccount &)> &f,
   f(account);
 }
 
-void showShowsAllTransactionsInChronologicalOrderAndBalance(
+void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
@@ -211,176 +211,150 @@ void showShowsAllTransactionsInChronologicalOrderAndBalance(
         factory.add(joe);
         factory.add(mike);
         factory.add(andy);
-        AccountObserverStub observer;
-        account.attach(&observer);
         joe->setAmount(3_cents);
         mike->setAmount(5_cents);
         andy->setAmount(11_cents);
-        credit(account,
-               Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-        debit(account, Transaction{456_cents, "gorilla",
-                                   Date{2020, Month::January, 20}});
-        credit(account, Transaction{789_cents, "chimpanzee",
-                                    Date{2020, Month::June, 1}});
+        AccountObserverStub observer;
+        account.attach(&observer);
+        credit(account, {});
+        assertEqual(result, 3_cents, observer.balance());
+        debit(account, {});
+        assertEqual(result, 3_cents - 5_cents, observer.balance());
+        credit(account, {});
         assertEqual(result, 3_cents - 5_cents + 11_cents, observer.balance());
+      });
+}
+
+void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
+    testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &factory) {
+    for (auto i{0}; i < 4; ++i)
+      factory.add(std::make_shared<TransactionRecordInMemory>());
+    AccountObserverStub observer;
+    account.attach(&observer);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertEqual(result, 123_cents + 111_cents - 789_cents, observer.balance());
+    account.removeCredit(
+        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    assertEqual(result, 123_cents - 789_cents, observer.balance());
+  });
+}
+
+void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &result) {
+  testAccount(
+      [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
+        const auto john{std::make_shared<TransactionRecordStub>()};
+        const auto mike{std::make_shared<TransactionRecordStub>()};
+        const auto andy{std::make_shared<TransactionRecordStub>()};
+        factory.add(john);
+        factory.add(mike);
+        factory.add(andy);
+        credit(account, {});
+        debit(account, {});
+        credit(account, {});
         PersistentAccountStub persistentMemory;
         account.save(persistentMemory);
         assertAccountName(result, persistentMemory, "joe");
+        assertCreditsSaved(result, persistentMemory, {john.get(), andy.get()});
         assertDebitsSaved(result, persistentMemory, {mike.get()});
-        assertCreditsSaved(result, persistentMemory, {joe.get(), andy.get()});
-        assertEqual(result,
-                    Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-                    joe->initializedTransaction());
-        assertEqual(
-            result,
-            Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-            andy->initializedTransaction());
-        assertEqual(
-            result,
-            Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-            mike->initializedTransaction());
       },
       "joe");
 }
 
-void showAfterRemoveShowsRemainingTransactions(
+void savesRemainingTransactionRecordsAfterRemovingSome(
+    testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &factory) {
+    const auto mike{std::make_shared<TransactionRecordInMemory>()};
+    const auto andy{std::make_shared<TransactionRecordInMemory>()};
+    const auto joe{std::make_shared<TransactionRecordInMemory>()};
+    const auto bob{std::make_shared<TransactionRecordInMemory>()};
+    factory.add(mike);
+    factory.add(andy);
+    factory.add(joe);
+    factory.add(bob);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.removeCredit(
+        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertCreditsSaved(result, persistentMemory, {mike.get()});
+    assertDebitsSaved(result, persistentMemory, {bob.get()});
+  });
+}
+
+void initializesTransactionRecords(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account,
+                  TransactionRecordFactoryStub &factory) {
+    const auto joe{std::make_shared<TransactionRecordStub>()};
+    const auto mike{std::make_shared<TransactionRecordStub>()};
+    const auto andy{std::make_shared<TransactionRecordStub>()};
+    factory.add(joe);
+    factory.add(mike);
+    factory.add(andy);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    assertEqual(result,
+                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
+                joe->initializedTransaction());
+    assertEqual(
+        result,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+        andy->initializedTransaction());
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        mike->initializedTransaction());
+  });
+}
+
+void passesSelfToDeserializationOnLoad(testcpplite::TestResult &result) {
+  testAccount([&](InMemoryAccount &account) {
+    PersistentAccountStub persistentMemory;
+    account.load(persistentMemory);
+    assertEqual(result, &account, persistentMemory.observer());
+  });
+}
+
+void passesNewTransactionRecordsToDeserialization(
     testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        const auto mike{std::make_shared<TransactionRecordInMemory>()};
-        const auto andy{std::make_shared<TransactionRecordInMemory>()};
-        const auto joe{std::make_shared<TransactionRecordInMemory>()};
-        const auto bob{std::make_shared<TransactionRecordInMemory>()};
-        factory.add(mike);
-        factory.add(andy);
-        factory.add(joe);
-        factory.add(bob);
-        credit(account,
-               Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-        debit(account, Transaction{456_cents, "gorilla",
-                                   Date{2020, Month::January, 20}});
-        credit(account, Transaction{111_cents, "orangutan",
-                                    Date{2020, Month::March, 4}});
-        debit(account,
-              Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-        account.removeDebit(
-            Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-        account.removeCredit(
-            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-        assertEqual(result, 123_cents - 789_cents, observer.balance());
-        PersistentAccountStub persistentMemory;
-        account.save(persistentMemory);
-        assertAccountName(result, persistentMemory, "joe");
-        assertDebitsSaved(result, persistentMemory, {bob.get()});
-        assertCreditsSaved(result, persistentMemory, {mike.get()});
-        // assertEqual(result,
-        //             Transaction{123_cents, "ape", Date{2020, Month::June,
-        //             2}}, mike->initializedTransaction());
-        // assertEqual(
-        //     result,
-        //     Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        //     bob->initializedTransaction());
-      },
-      "joe");
-}
-
-void showShowsVerifiedTransactions(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        const auto mike{std::make_shared<TransactionRecordInMemory>()};
-        const auto andy{std::make_shared<TransactionRecordInMemory>()};
-        const auto joe{std::make_shared<TransactionRecordInMemory>()};
-        const auto bob{std::make_shared<TransactionRecordInMemory>()};
-        factory.add(mike);
-        factory.add(andy);
-        factory.add(joe);
-        factory.add(bob);
-        credit(account,
-               Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-        debit(account, Transaction{456_cents, "gorilla",
-                                   Date{2020, Month::January, 20}});
-        credit(account, Transaction{111_cents, "orangutan",
-                                    Date{2020, Month::March, 4}});
-        debit(account,
-              Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-        account.verifyDebit(
-            Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-        account.verifyCredit(
-            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-        assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
-                    observer.balance());
-        PersistentAccountStub persistentMemory;
-        account.save(persistentMemory);
-        assertAccountName(result, persistentMemory, "joe");
-        assertDebitsSaved(result, persistentMemory, {andy.get(), bob.get()});
-        assertCreditsSaved(result, persistentMemory, {mike.get(), joe.get()});
-        // assertTrue(result, andy->verified());
-        // assertTrue(result, joe->verified());
-        // assertEqual(result,
-        //             Transaction{123_cents, "ape", Date{2020, Month::June,
-        //             2}}, mike->initializedTransaction());
-        // assertEqual(
-        //     result,
-        //     Transaction{456_cents, "gorilla", Date{2020, Month::January,
-        //     20}}, andy->initializedTransaction());
-        // assertEqual(
-        //     result,
-        //     Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}},
-        //     joe->initializedTransaction());
-        // assertEqual(
-        //     result,
-        //     Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        //     bob->initializedTransaction());
-      },
-      "joe");
-}
-
-void saveSavesAllTransactions(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
         const auto mike{std::make_shared<TransactionRecordStub>()};
-        const auto andy{std::make_shared<TransactionRecordStub>()};
         const auto joe{std::make_shared<TransactionRecordStub>()};
         factory.add(mike);
-        factory.add(andy);
         factory.add(joe);
-        credit(account,
-               Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-        debit(account, Transaction{456_cents, "gorilla",
-                                   Date{2020, Month::January, 20}});
-        credit(account, Transaction{789_cents, "chimpanzee",
-                                    Date{2020, Month::June, 1}});
-        PersistentAccountStub persistentMemory;
-        account.save(persistentMemory);
-        assertEqual(result, "joe", persistentMemory.accountName());
-        assertContainsDebit(result, persistentMemory, {andy.get()});
-        assertContainsCredit(result, persistentMemory, {joe.get()});
-        assertContainsCredit(result, persistentMemory, {mike.get()});
-        assertEqual(result,
-                    Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-                    mike->initializedTransaction());
-        assertEqual(
-            result,
-            Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-            andy->initializedTransaction());
-        assertEqual(
-            result,
-            Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-            joe->initializedTransaction());
-      },
-      "joe");
+        TransactionRecordDeserializationStub abel;
+        account.notifyThatCreditIsReady(abel);
+        assertEqual(result, mike.get(), abel.observer());
+        account.notifyThatDebitIsReady(abel);
+        assertEqual(result, joe.get(), abel.observer());
+      });
 }
 
-void loadLoadsAllTransactions(testcpplite::TestResult &result) {
+void savesTransactionRecordsLoaded(testcpplite::TestResult &result) {
   testAccount(
       [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
-        PersistentAccountStub persistentMemory;
-        account.load(persistentMemory);
-        assertEqual(result, &account, persistentMemory.observer());
         const auto mike{std::make_shared<TransactionRecordStub>()};
         const auto andy{std::make_shared<TransactionRecordStub>()};
         const auto joe{std::make_shared<TransactionRecordStub>()};
@@ -390,20 +364,14 @@ void loadLoadsAllTransactions(testcpplite::TestResult &result) {
         factory.add(joe);
         factory.add(bob);
         TransactionRecordDeserializationStub abel;
-        TransactionRecordDeserializationStub cain;
-        TransactionRecordDeserializationStub mark;
-        TransactionRecordDeserializationStub luke;
         account.notifyThatCreditIsReady(abel);
-        account.notifyThatCreditIsReady(cain);
-        account.notifyThatDebitIsReady(mark);
-        account.notifyThatDebitIsReady(luke);
-        assertEqual(result, mike.get(), abel.observer());
-        assertEqual(result, andy.get(), cain.observer());
-        assertEqual(result, joe.get(), mark.observer());
-        assertEqual(result, bob.get(), luke.observer());
+        account.notifyThatDebitIsReady(abel);
+        account.notifyThatCreditIsReady(abel);
+        account.notifyThatDebitIsReady(abel);
+        PersistentAccountStub persistentMemory;
         account.save(persistentMemory);
-        assertDebitsSaved(result, persistentMemory, {joe.get(), bob.get()});
-        assertCreditsSaved(result, persistentMemory, {mike.get(), andy.get()});
+        assertDebitsSaved(result, persistentMemory, {andy.get(), bob.get()});
+        assertCreditsSaved(result, persistentMemory, {mike.get(), joe.get()});
       });
 }
 
@@ -418,7 +386,7 @@ void rename(testcpplite::TestResult &result) {
       "joe");
 }
 
-void showAfterRemovingVerifiedTransactionShowsRemaining(
+void savesRemainingTransactionRecordsAfterRemovingVerified(
     testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &factory) {
@@ -440,7 +408,7 @@ void showAfterRemovingVerifiedTransactionShowsRemaining(
   });
 }
 
-void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
+void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &factory) {
     TransactionRecordObserverStub john;
@@ -459,74 +427,59 @@ void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &result) {
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.verifyDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistentMemory;
-    account.save(persistentMemory);
-    assertDebitsSaved(result, persistentMemory, {mike.get(), andy.get()});
     assertTrue(result, john.verified());
     assertTrue(result, alex.verified());
   });
 }
 
-void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
-    testcpplite::TestResult &result) {
+void savesDuplicateTransactionRecords(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
                   TransactionRecordFactoryStub &factory) {
-    AccountObserverStub observer;
-    account.attach(&observer);
     const auto mike{std::make_shared<TransactionRecordInMemory>()};
     const auto andy{std::make_shared<TransactionRecordInMemory>()};
     factory.add(mike);
     factory.add(andy);
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertEqual(result, 123_cents, observer.balance());
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(result, 123_cents - 456_cents, observer.balance());
-    account.removeCredit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertEqual(result, -456_cents, observer.balance());
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertDebitsSaved(result, persistentMemory, {mike.get(), andy.get()});
   });
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
+                  TransactionRecordFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
-    transactionRecordFactory.add(transactionRecord);
+    const auto record{std::make_shared<TransactionRecordStub>()};
+    factory.add(record);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertEqual(result,
-                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-                transactionRecord->initializedTransaction());
-    assertEqual(result, transactionRecord.get(),
-                observer.newTransactionRecord());
+    assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
+                  TransactionRecordFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    const auto transactionRecord{std::make_shared<TransactionRecordStub>()};
-    transactionRecordFactory.add(transactionRecord);
+    const auto record{std::make_shared<TransactionRecordStub>()};
+    factory.add(record);
     debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertEqual(result,
-                Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
-                transactionRecord->initializedTransaction());
-    assertEqual(result, transactionRecord.get(),
-                observer.newTransactionRecord());
+    assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
 
-void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
+void notifiesCreditIsVerified(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
-    const auto transactionRecord{std::make_shared<TransactionRecordInMemory>()};
-    transactionRecordFactory.add(transactionRecord);
+                  TransactionRecordFactoryStub &factory) {
+    const auto record{std::make_shared<TransactionRecordInMemory>()};
+    factory.add(record);
     TransactionRecordObserverStub observer;
-    transactionRecord->attach(&observer);
+    record->attach(&observer);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.verifyCredit(
         Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -534,13 +487,13 @@ void verifiesCreditTransactionRecord(testcpplite::TestResult &result) {
   });
 }
 
-void verifiesDebitTransactionRecord(testcpplite::TestResult &result) {
+void notifiesDebitIsVerified(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
-    const auto transactionRecord{std::make_shared<TransactionRecordInMemory>()};
-    transactionRecordFactory.add(transactionRecord);
+                  TransactionRecordFactoryStub &factory) {
+    const auto record{std::make_shared<TransactionRecordInMemory>()};
+    factory.add(record);
     TransactionRecordObserverStub observer;
-    transactionRecord->attach(&observer);
+    record->attach(&observer);
     debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.verifyDebit(
         Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -550,11 +503,11 @@ void verifiesDebitTransactionRecord(testcpplite::TestResult &result) {
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
-    const auto transactionRecord{std::make_shared<TransactionRecordInMemory>()};
-    transactionRecordFactory.add(transactionRecord);
+                  TransactionRecordFactoryStub &factory) {
+    const auto record{std::make_shared<TransactionRecordInMemory>()};
+    factory.add(record);
     TransactionRecordObserverStub observer;
-    transactionRecord->attach(&observer);
+    record->attach(&observer);
     account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.removeDebit(
         Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -564,43 +517,16 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,
-                  TransactionRecordFactoryStub &transactionRecordFactory) {
-    const auto transactionRecord{std::make_shared<TransactionRecordInMemory>()};
-    transactionRecordFactory.add(transactionRecord);
+                  TransactionRecordFactoryStub &factory) {
+    const auto record{std::make_shared<TransactionRecordInMemory>()};
+    factory.add(record);
     TransactionRecordObserverStub observer;
-    transactionRecord->attach(&observer);
+    record->attach(&observer);
     account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.removeCredit(
         Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.removed());
   });
-}
-
-void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, TransactionRecordFactoryStub &factory) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        TransactionRecordObserverStub sue;
-        TransactionRecordObserverStub sally;
-        const auto bob{std::make_shared<TransactionRecordInMemory>()};
-        bob->attach(&sue);
-        const auto jan{std::make_shared<TransactionRecordInMemory>()};
-        jan->attach(&sally);
-        factory.add(bob);
-        factory.add(jan);
-        TransactionRecordDeserializationStub abel;
-        TransactionRecordDeserializationStub luke;
-        account.notifyThatCreditIsReady(abel);
-        account.notifyThatDebitIsReady(luke);
-        // assertEqual(result,
-        //             Transaction{123_cents, "ape", Date{2020, Month::June,
-        //             2}}, observer.creditAdded());
-        // assertTrue(result, transactionRecord->verified());
-        // assertEqual(result, {456_cents, "gorilla", Date{2020, Month::January,
-        // 20}},
-        //             observer.debitAdded());
-      });
 }
 
 void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
@@ -653,10 +579,6 @@ void notifiesObserverOfTransactionsWhenReducing(
     assertTrue(result, mike->removed());
     assertTrue(result, andy->removed());
     assertTrue(result, joe->removed());
-    // assertEqual(result,
-    //             Transaction{2300_cents - 789_cents - 456_cents, "reduction",
-    //                         Date{2021, Month::March, 13}},
-    //             observer.creditAdded());
   });
 }
 

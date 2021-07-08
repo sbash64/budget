@@ -202,14 +202,14 @@ public:
   };
 };
 
-class SessionSerialization {
+class BudgetSerialization {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionSerialization);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
   virtual void save(Account &primary,
                     const std::vector<Account *> &secondaries) = 0;
 };
 
-class SessionDeserialization {
+class BudgetDeserialization {
 public:
   class Observer {
   public:
@@ -219,11 +219,11 @@ public:
     virtual void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                                    std::string_view name) = 0;
   };
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SessionDeserialization);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetDeserialization);
   virtual void load(Observer &) = 0;
 };
 
-class Model : public SessionDeserialization::Observer {
+class Budget : public BudgetDeserialization::Observer {
 public:
   class Observer {
   public:
@@ -239,12 +239,11 @@ public:
                            const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
   virtual void credit(const Transaction &) = 0;
-  virtual void transferTo(std::string_view accountName, USD amount, Date) = 0;
-  virtual void removeTransfer(std::string_view accountName, USD amount,
-                              Date) = 0;
+  virtual void transferTo(std::string_view accountName, USD, Date) = 0;
+  virtual void removeTransfer(std::string_view accountName, USD, Date) = 0;
   virtual void removeAccount(std::string_view) = 0;
-  virtual void save(SessionSerialization &) = 0;
-  virtual void load(SessionDeserialization &) = 0;
+  virtual void save(BudgetSerialization &) = 0;
+  virtual void load(BudgetDeserialization &) = 0;
   virtual void renameAccount(std::string_view from, std::string_view to) = 0;
   virtual void verifyDebit(std::string_view accountName,
                            const Transaction &) = 0;

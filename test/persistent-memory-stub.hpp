@@ -8,8 +8,8 @@
 #include <utility>
 
 namespace sbash64::budget {
-class PersistentMemoryStub : public SessionDeserialization,
-                             public SessionSerialization {
+class PersistentMemoryStub : public BudgetDeserialization,
+                             public BudgetSerialization {
 public:
   auto primaryAccount() -> const Account * { return primaryAccount_; }
 

@@ -46,7 +46,7 @@ public:
       -> std::shared_ptr<TransactionRecordDeserialization> = 0;
 };
 
-class WritesSessionToStream : public SessionSerialization {
+class WritesSessionToStream : public BudgetSerialization {
 public:
   WritesSessionToStream(IoStreamFactory &, StreamAccountSerializationFactory &);
   void save(Account &primary,
@@ -102,7 +102,7 @@ private:
   std::ostream &stream;
 };
 
-class ReadsSessionFromStream : public SessionDeserialization {
+class ReadsSessionFromStream : public BudgetDeserialization {
 public:
   ReadsSessionFromStream(IoStreamFactory &,
                          StreamAccountDeserializationFactory &);

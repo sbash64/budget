@@ -11,9 +11,9 @@
 namespace sbash64::budget {
 constexpr const std::array<char, 7> masterAccountName{"master"};
 
-class Bank : public Model {
+class BudgetInMemory : public Budget {
 public:
-  Bank(Account::Factory &, TransactionRecord::Factory &);
+  BudgetInMemory(Account::Factory &, TransactionRecord::Factory &);
   void attach(Observer *) override;
   void debit(std::string_view accountName, const Transaction &) override;
   void removeDebit(std::string_view accountName, const Transaction &) override;
@@ -22,8 +22,8 @@ public:
   void transferTo(std::string_view accountName, USD amount, Date) override;
   void removeTransfer(std::string_view accountName, USD amount, Date) override;
   void removeAccount(std::string_view) override;
-  void save(SessionSerialization &) override;
-  void load(SessionDeserialization &) override;
+  void save(BudgetSerialization &) override;
+  void load(BudgetDeserialization &) override;
   void renameAccount(std::string_view from, std::string_view to) override;
   void verifyDebit(std::string_view accountName, const Transaction &) override;
   void verifyCredit(const Transaction &) override;

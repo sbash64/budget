@@ -4,29 +4,28 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
-void showShowsAllTransactionsInChronologicalOrderAndBalance(
+void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
-void showAfterRemoveShowsRemainingTransactions(testcpplite::TestResult &);
-void showShowsVerifiedTransactions(testcpplite::TestResult &);
-void saveSavesAllTransactions(testcpplite::TestResult &);
-void loadLoadsAllTransactions(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
+    testcpplite::TestResult &);
+void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &);
+void savesRemainingTransactionRecordsAfterRemovingSome(
+    testcpplite::TestResult &);
+void initializesTransactionRecords(testcpplite::TestResult &);
+void passesSelfToDeserializationOnLoad(testcpplite::TestResult &);
+void passesNewTransactionRecordsToDeserialization(testcpplite::TestResult &);
+void savesTransactionRecordsLoaded(testcpplite::TestResult &);
 void rename(testcpplite::TestResult &);
-void findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount(
+void savesRemainingTransactionRecordsAfterRemovingVerified(
     testcpplite::TestResult &);
-void findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount(
-    testcpplite::TestResult &);
-void showAfterRemovingVerifiedTransactionShowsRemaining(
-    testcpplite::TestResult &);
-void showShowsDuplicateVerifiedTransactions(testcpplite::TestResult &);
-void notifiesObserverOfUpdatedBalanceAfterAddingOrRemovingTransactions(
-    testcpplite::TestResult &);
+void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &);
+void savesDuplicateTransactionRecords(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
-void verifiesCreditTransactionRecord(testcpplite::TestResult &);
-void verifiesDebitTransactionRecord(testcpplite::TestResult &);
+void notifiesCreditIsVerified(testcpplite::TestResult &);
+void notifiesDebitIsVerified(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
-void notifiesObserverOfTransactionsLoaded(testcpplite::TestResult &);
 void reduceReducesToOneTransaction(testcpplite::TestResult &);
 void notifiesObserverOfTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);

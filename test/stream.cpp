@@ -55,7 +55,7 @@ public:
 };
 
 class SessionDeserializationObserverStub
-    : public SessionDeserialization::Observer {
+    : public BudgetDeserialization::Observer {
 public:
   void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override {
