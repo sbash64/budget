@@ -34,6 +34,7 @@ void notifiesObserverWhenVerified(testcpplite::TestResult &);
 void saveAfterVerify(testcpplite::TestResult &);
 void notifiesObserverWhenRemoved(testcpplite::TestResult &);
 void savesWhatWasLoaded(testcpplite::TestResult &);
+void loadPassesSelfToDeserialization(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

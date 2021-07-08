@@ -224,7 +224,10 @@ void TransactionRecordInMemory::save(
   serialization.save(verifiableTransaction);
 }
 
-void TransactionRecordInMemory::load(TransactionRecordDeserialization &) {}
+void TransactionRecordInMemory::load(
+    TransactionRecordDeserialization &deserialization) {
+  deserialization.load(*this);
+}
 
 auto TransactionRecordInMemory::amount() -> USD {
   return verifiableTransaction.transaction.amount;

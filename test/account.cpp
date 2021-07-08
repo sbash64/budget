@@ -594,6 +594,13 @@ void notifiesObserverWhenRemoved(testcpplite::TestResult &result) {
   assertTrue(result, observer.removed());
 }
 
+void loadPassesSelfToDeserialization(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  TransactionRecordDeserializationStub deserialization;
+  record.load(deserialization);
+  assertEqual(result, &record, deserialization.observer());
+}
+
 void savesWhatWasLoaded(testcpplite::TestResult &result) {
   TransactionRecordInMemory record;
   record.ready(
