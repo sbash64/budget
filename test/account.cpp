@@ -586,6 +586,14 @@ void saveAfterVerify(testcpplite::TestResult &result) {
   assertTrue(result, serialization.verifiableTransaction().verified);
 }
 
+void notifiesObserverWhenRemoved(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  TransactionRecordObserverStub observer;
+  record.attach(&observer);
+  record.remove();
+  assertTrue(result, observer.removed());
+}
+
 void notifiesObserverOfTransactionsWhenReducing(
     testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,

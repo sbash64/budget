@@ -32,6 +32,7 @@ void returnsBalance(testcpplite::TestResult &);
 void reduceReducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 void notifiesObserverWhenVerified(testcpplite::TestResult &);
 void saveAfterVerify(testcpplite::TestResult &);
+void notifiesObserverWhenRemoved(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

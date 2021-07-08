@@ -232,5 +232,8 @@ auto TransactionRecordInMemory::amount() -> USD {
 
 void TransactionRecordInMemory::ready(const VerifiableTransaction &) {}
 
-void TransactionRecordInMemory::remove() {}
+void TransactionRecordInMemory::remove() {
+  if (observer != nullptr)
+    observer->notifyThatWillBeRemoved();
+}
 } // namespace sbash64::budget
