@@ -9,103 +9,67 @@ static void callIfObserverExists(
     f(observer);
 }
 
-static auto balance(const VerifiableTransactions &transactions) -> USD {
+static auto
+balance(const std::vector<std::shared_ptr<TransactionRecord>> &transactions)
+    -> USD {
   return accumulate(transactions.begin(), transactions.end(), USD{0},
-                    [](USD total, const VerifiableTransaction &t) {
-                      return total + t.transaction.amount;
+                    [](USD total, const std::shared_ptr<TransactionRecord> &t) {
+                      return total + t->amount();
                     });
 }
 
-static auto balance(const VerifiableTransactions &credits,
-                    const VerifiableTransactions &debits) -> USD {
+static auto
+balance(const std::vector<std::shared_ptr<TransactionRecord>> &credits,
+        const std::vector<std::shared_ptr<TransactionRecord>> &debits) -> USD {
   return balance(credits) - balance(debits);
 }
 
 static void
-add(VerifiableTransactions &transactions, const VerifiableTransaction &t,
-    std::map<Transaction, std::shared_ptr<TransactionRecord>>
-        &transactionRecords,
+verify(const Transaction &t,
+       std::vector<std::shared_ptr<TransactionRecord>> &transactionRecords) {
+  for (const auto &record : transactionRecords)
+    if (record->verifies(t))
+      return;
+}
+
+static auto make(TransactionRecord::Factory &factory,
+                 Account::Observer *observer,
+                 void (Account::Observer::*notify)(TransactionRecord &))
+    -> std::shared_ptr<TransactionRecord> {
+  auto transactionRecord{factory.make()};
+  callIfObserverExists(observer, [&](Account::Observer *observer_) {
+    (observer_->*notify)(*transactionRecord);
+  });
+  return transactionRecord;
+}
+
+static auto make(TransactionRecord::Factory &factory,
+                 Account::Observer *observer,
+                 void (Account::Observer::*notify)(TransactionRecord &),
+                 const Transaction &t) -> std::shared_ptr<TransactionRecord> {
+  auto transactionRecord{make(factory, observer, notify)};
+  transactionRecord->initialize(t);
+  return transactionRecord;
+}
+
+static auto make(TransactionRecord::Factory &factory,
+                 Account::Observer *observer,
+                 void (Account::Observer::*notify)(TransactionRecord &),
+                 TransactionRecordDeserialization &deserialization)
+    -> std::shared_ptr<TransactionRecord> {
+  auto transactionRecord{make(factory, observer, notify)};
+  deserialization.load(*transactionRecord);
+  return transactionRecord;
+}
+
+static void notifyUpdatedBalance(
     Account::Observer *observer,
-    const std::function<void(Account::Observer *, const Transaction &t,
-                             TransactionRecord &)> &notify,
-    const VerifiableTransactions &credits, const VerifiableTransactions &debits,
-    TransactionRecord::Factory &factory) {
-  const auto transactionRecord{factory.make(t.transaction)};
-  transactionRecords[t.transaction] = transactionRecord;
-  transactions.push_back(t);
+    const std::vector<std::shared_ptr<TransactionRecord>> &creditRecords,
+    const std::vector<std::shared_ptr<TransactionRecord>> &debitRecords) {
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-    notify(observer_, t.transaction, *transactionRecord);
-    if (t.verified)
-      transactionRecord->verify();
-    observer_->notifyThatBalanceHasChanged(balance(credits, debits));
+    observer_->notifyThatBalanceHasChanged(
+        budget::balance(creditRecords, debitRecords));
   });
-}
-
-static void executeIfFound(
-    VerifiableTransactions &transactions,
-    const std::function<void(VerifiableTransactions::iterator)> &f,
-    const std::function<bool(const VerifiableTransaction &)> &predicate) {
-  const auto it{find_if(transactions.begin(), transactions.end(), predicate)};
-  if (it != transactions.end())
-    f(it);
-}
-
-static void
-executeIfFound(VerifiableTransactions &transactions, const Transaction &t,
-               const std::function<void(VerifiableTransactions::iterator)> &f) {
-  return executeIfFound(transactions, f,
-                        [&](const VerifiableTransaction &candidate) {
-                          return candidate.transaction == t;
-                        });
-}
-
-static void executeIfUnverifiedFound(
-    VerifiableTransactions &transactions, const Transaction &t,
-    const std::function<void(VerifiableTransactions::iterator)> &f) {
-  return executeIfFound(
-      transactions, f, [&](const VerifiableTransaction &candidate) {
-        return candidate.transaction == t && !candidate.verified;
-      });
-}
-
-static void verify(VerifiableTransactions &transactions, const Transaction &t,
-                   std::map<Transaction, std::shared_ptr<TransactionRecord>>
-                       &transactionRecords) {
-  if (transactionRecords.count(t) != 0)
-    if (transactionRecords.at(t) != nullptr)
-      transactionRecords.at(t)->verify();
-  executeIfUnverifiedFound(
-      transactions, t,
-      [&](VerifiableTransactions::iterator it) { it->verified = true; });
-}
-
-static void remove(VerifiableTransactions &transactions, const Transaction &t,
-                   Account::Observer *observer,
-                   const std::function<void(Account::Observer *,
-                                            const Transaction &t)> &notify,
-                   const VerifiableTransactions &credits,
-                   const VerifiableTransactions &debits) {
-  executeIfFound(transactions, t, [&](VerifiableTransactions::iterator it) {
-    transactions.erase(it);
-    callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-      notify(observer_, t);
-      observer_->notifyThatBalanceHasChanged(balance(credits, debits));
-    });
-  });
-}
-
-static auto findUnverified(const VerifiableTransactions &verifiableTransactions,
-                           USD amount) -> Transactions {
-  Transactions transactions;
-  for (const auto &verifiableTransaction : verifiableTransactions)
-    if (verifiableTransaction.transaction.amount == amount &&
-        !verifiableTransaction.verified)
-      transactions.push_back(verifiableTransaction.transaction);
-  sort(transactions.begin(), transactions.end(),
-       [](const Transaction &a, const Transaction &b) {
-         return a.date < b.date;
-       });
-  return transactions;
 }
 
 InMemoryAccount::InMemoryAccount(std::string name,
@@ -114,48 +78,46 @@ InMemoryAccount::InMemoryAccount(std::string name,
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
-void InMemoryAccount::credit(const Transaction &t) {
-  add(
-      credits, {t, false}, creditRecords, observer,
-      [](Observer *observer_, const Transaction &t_,
-         TransactionRecord &transactionRecord) {
-        observer_->notifyThatCreditHasBeenAdded(transactionRecord, t_);
-      },
-      credits, debits, factory);
+void InMemoryAccount::credit(const Transaction &transaction) {
+  creditRecords.push_back(make(
+      factory, observer, &Observer::notifyThatCreditHasBeenAdded, transaction));
+  notifyUpdatedBalance(observer, creditRecords, debitRecords);
 }
 
-void InMemoryAccount::debit(const Transaction &t) {
-  add(
-      debits, {t, false}, debitRecords, observer,
-      [](Observer *observer_, const Transaction &t_, TransactionRecord &tr) {
-        observer_->notifyThatDebitHasBeenAdded(tr, t_);
-      },
-      credits, debits, factory);
+void InMemoryAccount::debit(const Transaction &transaction) {
+  debitRecords.push_back(make(
+      factory, observer, &Observer::notifyThatDebitHasBeenAdded, transaction));
+  notifyUpdatedBalance(observer, creditRecords, debitRecords);
 }
 
-void InMemoryAccount::notifyThatCreditHasBeenDeserialized(
-    const VerifiableTransaction &t) {
-  add(
-      credits, t, creditRecords, observer,
-      [](Observer *observer_, const Transaction &t_,
-         TransactionRecord &transactionRecord) {
-        observer_->notifyThatCreditHasBeenAdded(transactionRecord, t_);
-      },
-      credits, debits, factory);
+void InMemoryAccount::notifyThatCreditIsReady(
+    TransactionRecordDeserialization &deserialization) {
+  creditRecords.push_back(make(factory, observer,
+                               &Observer::notifyThatCreditHasBeenAdded,
+                               deserialization));
+  notifyUpdatedBalance(observer, creditRecords, debitRecords);
 }
 
-void InMemoryAccount::notifyThatDebitHasBeenDeserialized(
-    const VerifiableTransaction &t) {
-  add(
-      debits, t, debitRecords, observer,
-      [](Observer *observer_, const Transaction &t_, TransactionRecord &tr) {
-        observer_->notifyThatDebitHasBeenAdded(tr, t_);
-      },
-      credits, debits, factory);
+void InMemoryAccount::notifyThatDebitIsReady(
+    TransactionRecordDeserialization &deserialization) {
+  debitRecords.push_back(make(factory, observer,
+                              &Observer::notifyThatDebitHasBeenAdded,
+                              deserialization));
+  notifyUpdatedBalance(observer, creditRecords, debitRecords);
+}
+
+static auto
+collect(const std::vector<std::shared_ptr<TransactionRecord>> &accounts)
+    -> std::vector<TransactionRecord *> {
+  std::vector<TransactionRecord *> collected;
+  collected.reserve(accounts.size());
+  for (const auto &account : accounts)
+    collected.push_back(account.get());
+  return collected;
 }
 
 void InMemoryAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, credits, debits);
+  serialization.save(name, collect(creditRecords), collect(debitRecords));
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
@@ -163,86 +125,58 @@ void InMemoryAccount::load(AccountDeserialization &deserialization) {
 }
 
 void InMemoryAccount::removeDebit(const Transaction &t) {
-  remove(
-      debits, t, observer,
-      [](Observer *observer_, const Transaction &t_) {
-        observer_->notifyThatDebitHasBeenRemoved(t_);
-      },
-      credits, debits);
+  for (auto it{debitRecords.begin()}; it != debitRecords.end(); ++it)
+    if ((*it)->removes(t)) {
+      debitRecords.erase(it);
+      notifyUpdatedBalance(observer, creditRecords, debitRecords);
+      return;
+    }
 }
 
 void InMemoryAccount::removeCredit(const Transaction &t) {
-  remove(
-      credits, t, observer,
-      [](Observer *observer_, const Transaction &t_) {
-        observer_->notifyThatCreditHasBeenRemoved(t_);
-      },
-      credits, debits);
+  for (auto it{creditRecords.begin()}; it != creditRecords.end(); ++it)
+    if ((*it)->removes(t)) {
+      creditRecords.erase(it);
+      notifyUpdatedBalance(observer, creditRecords, debitRecords);
+      return;
+    }
 }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
 
 void InMemoryAccount::verifyCredit(const Transaction &t) {
-  verify(credits, t, creditRecords);
+  verify(t, creditRecords);
 }
 
 void InMemoryAccount::verifyDebit(const Transaction &t) {
-  verify(debits, t, debitRecords);
-}
-
-auto InMemoryAccount::findUnverifiedDebits(USD amount) -> Transactions {
-  return findUnverified(debits, amount);
-}
-
-auto InMemoryAccount::findUnverifiedCredits(USD amount) -> Transactions {
-  return findUnverified(credits, amount);
-}
-
-static void addReduction(
-    VerifiableTransactions &transactions, USD amount, const Date &date,
-    InMemoryAccount::Observer *observer, TransactionRecord::Factory &factory,
-    const std::function<void(InMemoryAccount::Observer *, const Transaction &,
-                             TransactionRecord &)> &f) {
-  VerifiableTransaction reduction{{amount, "reduction", date}, true};
-  const auto transactionRecord{factory.make(reduction.transaction)};
-  callIfObserverExists(observer, [&reduction, &transactionRecord,
-                                  &f](InMemoryAccount::Observer *observer_) {
-    f(observer_, reduction.transaction, *transactionRecord);
-  });
-  transactions.push_back(std::move(reduction));
+  verify(t, debitRecords);
 }
 
 void InMemoryAccount::reduce(const Date &date) {
-  const auto balance{budget::balance(credits, debits)};
-  callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-    for_each(debits.begin(), debits.end(),
-             [observer_](const VerifiableTransaction &debit) {
-               observer_->notifyThatDebitHasBeenRemoved(debit.transaction);
-             });
-    for_each(credits.begin(), credits.end(),
-             [observer_](const VerifiableTransaction &credit) {
-               observer_->notifyThatCreditHasBeenRemoved(credit.transaction);
-             });
-  });
-  debits.clear();
-  credits.clear();
+  const auto balance{budget::balance(creditRecords, debitRecords)};
+  for (const auto &record : debitRecords)
+    record->remove();
+  debitRecords.clear();
+  for (const auto &record : creditRecords)
+    record->remove();
+  creditRecords.clear();
   if (balance.cents < 0) {
-    addReduction(debits, -balance, date, observer, factory,
-                 [](InMemoryAccount::Observer *observer_,
-                    const Transaction &transaction, TransactionRecord &tr) {
-                   observer_->notifyThatDebitHasBeenAdded(tr, transaction);
-                 });
+    auto transactionRecord{make(factory, observer,
+                                &Observer::notifyThatDebitHasBeenAdded,
+                                {-balance, "reduction", date})};
+    transactionRecord->verify();
+    debitRecords.push_back(std::move(transactionRecord));
   } else {
-    addReduction(credits, balance, date, observer, factory,
-                 [](InMemoryAccount::Observer *observer_,
-                    const Transaction &transaction, TransactionRecord &tr) {
-                   observer_->notifyThatCreditHasBeenAdded(tr, transaction);
-                 });
+    auto transactionRecord{make(factory, observer,
+                                &Observer::notifyThatCreditHasBeenAdded,
+                                {balance, "reduction", date})};
+    transactionRecord->verify();
+    creditRecords.push_back(std::move(transactionRecord));
   }
 }
 
 auto InMemoryAccount::balance() -> USD {
-  return budget::balance(credits, debits);
+  return budget::balance(creditRecords, debitRecords);
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_,

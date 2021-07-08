@@ -2,9 +2,9 @@
 #define SBASH64_BUDGET_ACCOUNT_HPP_
 
 #include "budget.hpp"
-#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace sbash64::budget {
 class InMemoryAccount : public Account {
@@ -20,16 +20,11 @@ public:
   void rename(std::string_view) override;
   void verifyDebit(const Transaction &) override;
   void verifyCredit(const Transaction &) override;
-  auto findUnverifiedDebits(USD amount) -> Transactions override;
-  auto findUnverifiedCredits(USD amount) -> Transactions override;
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override;
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override;
-  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
-  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override;
+  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override;
   void reduce(const Date &) override;
   auto balance() -> USD override;
+  void remove() override {}
 
   class Factory : public Account::Factory {
   public:
@@ -38,13 +33,53 @@ public:
   };
 
 private:
-  VerifiableTransactions debits;
-  VerifiableTransactions credits;
-  std::map<Transaction, std::shared_ptr<TransactionRecord>> creditRecords;
-  std::map<Transaction, std::shared_ptr<TransactionRecord>> debitRecords;
+  std::vector<std::shared_ptr<TransactionRecord>> creditRecords;
+  std::vector<std::shared_ptr<TransactionRecord>> debitRecords;
   std::string name;
   Observer *observer{};
   TransactionRecord::Factory &factory;
+};
+
+class TransactionRecordInMemory : public TransactionRecord {
+public:
+  void attach(Observer *a) override { observer = a; }
+
+  void initialize(const Transaction &t) override {
+    verifiableTransaction.transaction = t;
+  }
+
+  void verify() override {}
+
+  auto verifies(const Transaction &t) -> bool override {
+    if (!verifiableTransaction.verified &&
+        verifiableTransaction.transaction == t) {
+      if (observer != nullptr)
+        observer->notifyThatIsVerified();
+      return verifiableTransaction.verified = true;
+    }
+    return false;
+  }
+
+  auto removes(const Transaction &t) -> bool override {
+    if (verifiableTransaction.transaction == t) {
+      if (observer != nullptr)
+        observer->notifyThatWillBeRemoved();
+      return true;
+    }
+    return false;
+  }
+
+  void save(TransactionRecordSerialization &) override {}
+  void load(TransactionRecordDeserialization &) override {}
+  auto amount() -> USD override {
+    return verifiableTransaction.transaction.amount;
+  }
+  void ready(const VerifiableTransaction &) override {}
+  void remove() override {}
+
+private:
+  VerifiableTransaction verifiableTransaction;
+  Observer *observer{};
 };
 } // namespace sbash64::budget
 

@@ -22,20 +22,28 @@ public:
       -> std::shared_ptr<AccountSerialization> = 0;
 };
 
-class StreamTransactionRecordDeserializationFactory {
-public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
-      StreamTransactionRecordDeserializationFactory);
-  virtual auto make(std::istream &)
-      -> std::shared_ptr<TransactionRecordDeserialization> = 0;
-};
-
 class StreamAccountDeserializationFactory {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
       StreamAccountDeserializationFactory);
   virtual auto make(std::istream &)
       -> std::shared_ptr<AccountDeserialization> = 0;
+};
+
+class StreamTransactionRecordSerializationFactory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      StreamTransactionRecordSerializationFactory);
+  virtual auto make(std::ostream &)
+      -> std::shared_ptr<TransactionRecordSerialization> = 0;
+};
+
+class StreamTransactionRecordDeserializationFactory {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      StreamTransactionRecordDeserializationFactory);
+  virtual auto make(std::istream &)
+      -> std::shared_ptr<TransactionRecordDeserialization> = 0;
 };
 
 class WritesSessionToStream : public SessionSerialization {
@@ -51,16 +59,44 @@ private:
 
 class WritesAccountToStream : public AccountSerialization {
 public:
+  explicit WritesAccountToStream(
+      std::ostream &stream,
+      StreamTransactionRecordSerializationFactory &factory);
+  void save(std::string_view name,
+            const std::vector<TransactionRecord *> &credits,
+            const std::vector<TransactionRecord *> &debits) override;
+
   class Factory : public StreamAccountSerializationFactory {
   public:
+    explicit Factory(StreamTransactionRecordSerializationFactory &factory)
+        : factory{factory} {}
+
     auto make(std::ostream &stream)
         -> std::shared_ptr<AccountSerialization> override {
-      return std::make_shared<WritesAccountToStream>(stream);
+      return std::make_shared<WritesAccountToStream>(stream, factory);
+    }
+
+  private:
+    StreamTransactionRecordSerializationFactory &factory;
+  };
+
+private:
+  std::ostream &stream;
+  StreamTransactionRecordSerializationFactory &factory;
+};
+
+class WritesTransactionRecordToStream : public TransactionRecordSerialization {
+public:
+  explicit WritesTransactionRecordToStream(std::ostream &stream);
+  void save(const VerifiableTransaction &) override;
+
+  class Factory : public StreamTransactionRecordSerializationFactory {
+  public:
+    auto make(std::ostream &stream)
+        -> std::shared_ptr<TransactionRecordSerialization> override {
+      return std::make_shared<WritesTransactionRecordToStream>(stream);
     }
   };
-  explicit WritesAccountToStream(std::ostream &stream);
-  void save(std::string_view name, const VerifiableTransactions &credits,
-            const VerifiableTransactions &debits) override;
 
 private:
   std::ostream &stream;

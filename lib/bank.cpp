@@ -186,15 +186,6 @@ void Bank::renameAccount(std::string_view from, std::string_view to) {
   at(secondaryAccounts, from)->rename(to);
 }
 
-auto Bank::findUnverifiedDebits(std::string_view accountName, USD amount)
-    -> Transactions {
-  return at(secondaryAccounts, accountName)->findUnverifiedDebits(amount);
-}
-
-auto Bank::findUnverifiedCredits(USD amount) -> Transactions {
-  return primaryAccount->findUnverifiedCredits(amount);
-}
-
 void Bank::verifyDebit(std::string_view accountName, const Transaction &t) {
   budget::verifyDebit(at(secondaryAccounts, accountName), t);
 }
@@ -205,10 +196,8 @@ void Bank::verifyCredit(const Transaction &t) {
 
 void Bank::removeAccount(std::string_view name) {
   if (contains(secondaryAccounts, name)) {
+    secondaryAccounts.at(std::string{name})->remove();
     secondaryAccounts.erase(std::string{name});
-    callIfObserverExists(observer, [&](Observer *observer_) {
-      observer_->notifyThatAccountHasBeenRemoved(name);
-    });
     notifyThatTotalBalanceHasChanged(observer, primaryAccount,
                                      secondaryAccounts);
   }

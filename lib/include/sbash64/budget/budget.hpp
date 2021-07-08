@@ -100,6 +100,13 @@ constexpr auto operator==(const VerifiableTransaction &a,
 using Transactions = std::vector<Transaction>;
 using VerifiableTransactions = std::vector<VerifiableTransaction>;
 
+class TransactionRecordSerialization {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
+      TransactionRecordSerialization);
+  virtual void save(const VerifiableTransaction &) = 0;
+};
+
 class TransactionRecordDeserialization {
 public:
   class Observer {
@@ -107,6 +114,7 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void ready(const VerifiableTransaction &) = 0;
   };
+
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
       TransactionRecordDeserialization);
   virtual void load(Observer &) = 0;
@@ -114,13 +122,28 @@ public:
 
 class TransactionRecord : public TransactionRecordDeserialization::Observer {
 public:
+  class Observer {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
+    virtual void notifyThatIsVerified() = 0;
+    virtual void notifyThatIs(const Transaction &) = 0;
+    virtual void notifyThatWillBeRemoved() = 0;
+  };
+
+  virtual void attach(Observer *) = 0;
+  virtual void initialize(const Transaction &) = 0;
   virtual void verify() = 0;
+  virtual auto verifies(const Transaction &) -> bool = 0;
+  virtual auto removes(const Transaction &) -> bool = 0;
+  virtual void remove() = 0;
+  virtual void save(TransactionRecordSerialization &) = 0;
+  virtual void load(TransactionRecordDeserialization &) = 0;
+  virtual auto amount() -> USD = 0;
 
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(const Transaction &)
-        -> std::shared_ptr<TransactionRecord> = 0;
+    virtual auto make() -> std::shared_ptr<TransactionRecord> = 0;
   };
 };
 
@@ -128,8 +151,8 @@ class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
   virtual void save(std::string_view name,
-                    const VerifiableTransactions &credits,
-                    const VerifiableTransactions &debits) = 0;
+                    const std::vector<TransactionRecord *> &credits,
+                    const std::vector<TransactionRecord *> &debits) = 0;
 };
 
 class AccountDeserialization {
@@ -138,13 +161,10 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void
-    notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) = 0;
-    virtual void
-    notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) = 0;
-    virtual void
     notifyThatCreditIsReady(TransactionRecordDeserialization &) = 0;
     virtual void notifyThatDebitIsReady(TransactionRecordDeserialization &) = 0;
   };
+
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
   virtual void load(Observer &) = 0;
 };
@@ -155,12 +175,9 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
-    virtual void notifyThatCreditHasBeenAdded(TransactionRecord &,
-                                              const Transaction &) = 0;
-    virtual void notifyThatDebitHasBeenAdded(TransactionRecord &,
-                                             const Transaction &) = 0;
-    virtual void notifyThatDebitHasBeenRemoved(const Transaction &) = 0;
-    virtual void notifyThatCreditHasBeenRemoved(const Transaction &) = 0;
+    virtual void notifyThatCreditHasBeenAdded(TransactionRecord &) = 0;
+    virtual void notifyThatDebitHasBeenAdded(TransactionRecord &) = 0;
+    virtual void notifyThatWillBeRemoved() = 0;
   };
 
   virtual void attach(Observer *) = 0;
@@ -171,12 +188,11 @@ public:
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
   virtual void rename(std::string_view) = 0;
-  virtual auto findUnverifiedDebits(USD amount) -> Transactions = 0;
-  virtual auto findUnverifiedCredits(USD amount) -> Transactions = 0;
   virtual void verifyDebit(const Transaction &) = 0;
   virtual void verifyCredit(const Transaction &) = 0;
   virtual void reduce(const Date &) = 0;
   virtual auto balance() -> USD = 0;
+  virtual void remove() = 0;
 
   class Factory {
   public:
@@ -215,7 +231,6 @@ public:
     virtual void notifyThatNewAccountHasBeenCreated(Account &,
                                                     std::string_view name) = 0;
     virtual void notifyThatTotalBalanceHasChanged(USD) = 0;
-    virtual void notifyThatAccountHasBeenRemoved(std::string_view name) = 0;
   };
 
   virtual void attach(Observer *) = 0;
@@ -231,9 +246,6 @@ public:
   virtual void save(SessionSerialization &) = 0;
   virtual void load(SessionDeserialization &) = 0;
   virtual void renameAccount(std::string_view from, std::string_view to) = 0;
-  virtual auto findUnverifiedDebits(std::string_view accountName, USD amount)
-      -> Transactions = 0;
-  virtual auto findUnverifiedCredits(USD amount) -> Transactions = 0;
   virtual void verifyDebit(std::string_view accountName,
                            const Transaction &) = 0;
   virtual void verifyCredit(const Transaction &) = 0;

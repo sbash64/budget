@@ -48,32 +48,6 @@ public:
 
   void rename(std::string_view s) override { newName_ = s; }
 
-  void setFoundUnverifiedDebits(Transactions t) {
-    foundUnverifiedDebits = std::move(t);
-  }
-
-  void setFoundUnverifiedCredits(Transactions t) {
-    foundUnverifiedCredits = std::move(t);
-  }
-
-  auto findUnverifiedDebits(USD amount) -> Transactions override {
-    findUnverifiedDebitsAmount_ = amount;
-    return foundUnverifiedDebits;
-  }
-
-  auto findUnverifiedCredits(USD amount) -> Transactions override {
-    findUnverifiedCreditsAmount_ = amount;
-    return foundUnverifiedCredits;
-  }
-
-  auto findUnverifiedDebitsAmount() -> USD {
-    return findUnverifiedDebitsAmount_;
-  }
-
-  auto findUnverifiedCreditsAmount() -> USD {
-    return findUnverifiedCreditsAmount_;
-  }
-
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
   void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
@@ -82,11 +56,8 @@ public:
 
   void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
   void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
+
   void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
 
   auto reducedDate() -> Date { return reducedDate_; }
@@ -94,6 +65,10 @@ public:
   void reduce(const Date &date) override { reducedDate_ = date; }
 
   auto balance() -> USD override { return balance_; }
+
+  void remove() override { removed_ = true; }
+
+  auto removed() -> bool { return removed_; }
 
 private:
   Transaction creditToVerify_;
@@ -107,9 +82,8 @@ private:
   Date reducedDate_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
-  USD findUnverifiedDebitsAmount_{};
-  USD findUnverifiedCreditsAmount_{};
   USD balance_{};
+  bool removed_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -133,10 +107,7 @@ private:
 
 class TransactionRecordFactoryStub : public TransactionRecord::Factory {
 public:
-  auto make(const Transaction &)
-      -> std::shared_ptr<TransactionRecord> override {
-    return {};
-  }
+  auto make() -> std::shared_ptr<TransactionRecord> override { return {}; }
 };
 
 class BankObserverStub : public Bank::Observer {
@@ -156,10 +127,6 @@ public:
   auto totalBalance() -> USD { return totalBalance_; }
 
   auto removedAccountName() -> std::string { return removedAccountName_; }
-
-  void notifyThatAccountHasBeenRemoved(std::string_view name) override {
-    removedAccountName_ = name;
-  }
 
 private:
   std::string newAccountName_;
@@ -428,42 +395,6 @@ void renameAccount(testcpplite::TestResult &result) {
   });
 }
 
-void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, Bank &bank) {
-    const auto giraffe{std::make_shared<AccountStub>()};
-    add(factory, giraffe, "giraffe");
-    debit(bank, "giraffe", {});
-    giraffe->setFoundUnverifiedDebits(
-        {{1_cents, "hi", Date{2020, Month::April, 1}},
-         {2_cents, "nye", Date{2020, Month::August, 2}},
-         {3_cents, "sigh", Date{2020, Month::December, 3}}});
-    assertEqual(result,
-                {{1_cents, "hi", Date{2020, Month::April, 1}},
-                 {2_cents, "nye", Date{2020, Month::August, 2}},
-                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
-                bank.findUnverifiedDebits("giraffe", 123_cents));
-    assertEqual(result, 123_cents, giraffe->findUnverifiedDebitsAmount());
-  });
-}
-
-void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &,
-               const std::shared_ptr<AccountStub> &masterAccount, Bank &bank) {
-    masterAccount->setFoundUnverifiedCredits(
-        {{1_cents, "hi", Date{2020, Month::April, 1}},
-         {2_cents, "nye", Date{2020, Month::August, 2}},
-         {3_cents, "sigh", Date{2020, Month::December, 3}}});
-    assertEqual(result,
-                {{1_cents, "hi", Date{2020, Month::April, 1}},
-                 {2_cents, "nye", Date{2020, Month::August, 2}},
-                 {3_cents, "sigh", Date{2020, Month::December, 3}}},
-                bank.findUnverifiedCredits(123_cents));
-    assertEqual(result, 123_cents,
-                masterAccount->findUnverifiedCreditsAmount());
-  });
-}
-
 void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
                const std::shared_ptr<AccountStub> &, Bank &bank) {
@@ -594,7 +525,7 @@ void notifiesObserverOfRemovedAccount(testcpplite::TestResult &result) {
     add(factory, account, "giraffe");
     debit(bank, "giraffe", {});
     bank.removeAccount("giraffe");
-    assertEqual(result, "giraffe", observer.removedAccountName());
+    assertTrue(result, account->removed());
   });
 }
 

@@ -48,10 +48,6 @@ static auto runAllTests() -> int {
         "bank removes transactions from accounts"},
        {bank::verifiesDebitForExistingAccount,
         "bank verifies debit for existing account"},
-       {bank::findsUnverifiedDebitsFromAccount,
-        "bank finds unverified debits from account"},
-       {bank::findsUnverifiedCreditsFromMasterAccount,
-        "bank finds unverified credits from master account"},
        {bank::doesNothingWhenRemovingDebitFromNonexistentAccount,
         "bank does nothing when removing debit from nonexistent account"},
        {bank::removesFromMasterAccountWhenRemovingCredit,
@@ -87,12 +83,6 @@ static auto runAllTests() -> int {
         "account show shows verified transactions"},
        {account::showShowsDuplicateVerifiedTransactions,
         "account show shows verified transactions having same amount"},
-       {account::findUnverifiedDebitsReturnsUnverifiedDebitsMatchingAmount,
-        "account find unverified debits returns unverified debits "
-        "matching amount"},
-       {account::findUnverifiedCreditsReturnsUnverifiedCreditsMatchingAmount,
-        "account find unverified credits returns unverified credits "
-        "matching amount"},
        {account::saveSavesAllTransactions,
         "account save saves all transactions"},
        {account::loadLoadsAllTransactions,

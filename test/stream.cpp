@@ -1,4 +1,5 @@
 #include "stream.hpp"
+#include "sbash64/budget/budget.hpp"
 #include "usd.hpp"
 #include <sbash64/budget/serialization.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
@@ -11,8 +12,9 @@ namespace sbash64::budget::stream {
 namespace {
 class AccountSerializationStub : public AccountSerialization {
 public:
-  void save(std::string_view name, const VerifiableTransactions &credits,
-            const VerifiableTransactions &debits) override {}
+  void save(std::string_view name,
+            const std::vector<TransactionRecord *> &credits,
+            const std::vector<TransactionRecord *> &debits) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -102,16 +104,6 @@ public:
   explicit AccountDeserializationObserverStub(std::istream &stream)
       : stream{stream} {}
 
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &t) override {
-    debits_.push_back(t);
-  }
-
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &t) override {
-    credits_.push_back(t);
-  }
-
   void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {
     ReadsTransactionRecordFromStream reads{stream};
     TransactionRecordDeserializationObserverStub observer;
@@ -162,20 +154,44 @@ public:
   void removeDebit(const Transaction &) override {}
   void load(AccountDeserialization &) override {}
   void rename(std::string_view) override {}
-  auto findUnverifiedDebits(USD) -> Transactions override { return {}; }
-  auto findUnverifiedCredits(USD) -> Transactions override { return {}; }
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
-  void
-  notifyThatDebitHasBeenDeserialized(const VerifiableTransaction &) override {}
-  void
-  notifyThatCreditHasBeenDeserialized(const VerifiableTransaction &) override {}
   void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
   void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
   void reduce(const Date &) override {}
   auto balance() -> USD override { return {}; }
+  void remove() override {}
 
   void save(AccountSerialization &) override { stream << name; }
+
+private:
+  std::string name;
+  std::ostream &stream;
+};
+
+class StreamTransactionRecordSerializationFactoryStub
+    : public StreamTransactionRecordSerializationFactory {
+public:
+  auto make(std::ostream &)
+      -> std::shared_ptr<TransactionRecordSerialization> override {
+    return {};
+  }
+};
+
+class SavesNameTransactionRecordStub : public TransactionRecord {
+public:
+  SavesNameTransactionRecordStub(std::ostream &stream, std::string name)
+      : name{std::move(name)}, stream{stream} {}
+  void attach(Observer *) override {}
+  void initialize(const Transaction &) override {}
+  void verify() override {}
+  auto verifies(const Transaction &) -> bool override { return {}; }
+  auto removes(const Transaction &) -> bool override { return {}; }
+  void save(TransactionRecordSerialization &) override { stream << name; }
+  void load(TransactionRecordDeserialization &) override {}
+  void ready(const VerifiableTransaction &) override {}
+  auto amount() -> USD override { return {}; }
+  void remove() override {}
 
 private:
   std::string name;
@@ -185,26 +201,21 @@ private:
 
 void fromAccounts(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
-  WritesAccountToStream accountSerialization{*stream};
-  accountSerialization.save(
-      "jeff",
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}},
-        true},
-       {{2500_cents, "transfer from master", Date{2021, Month::March, 12}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}},
-       {{1256_cents, "walmart", Date{2021, Month::June, 15}}, true},
-       {{324_cents, "hyvee", Date{2021, Month::February, 8}}}});
+  StreamTransactionRecordSerializationFactoryStub factory;
+  WritesAccountToStream accountSerialization{*stream, factory};
+  SavesNameTransactionRecordStub steve{*stream, "steve"};
+  SavesNameTransactionRecordStub sue{*stream, "sue"};
+  SavesNameTransactionRecordStub allen{*stream, "allen"};
+  SavesNameTransactionRecordStub john{*stream, "john"};
+  accountSerialization.save("jeff", {&steve, &sue}, {&allen, &john});
   assertEqual(result, R"(
 jeff
 credits
-^50 transfer from master 1/10/2021
-25 transfer from master 3/12/2021
-25 transfer from master 2/8/2021
+steve
+sue
 debits
-27.34 hyvee 1/12/2021
-^12.56 walmart 6/15/2021
-3.24 hyvee 2/8/2021
+allen
+john
 )",
               '\n' + stream->str() + '\n');
 }
