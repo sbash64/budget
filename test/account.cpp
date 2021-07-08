@@ -594,6 +594,18 @@ void notifiesObserverWhenRemoved(testcpplite::TestResult &result) {
   assertTrue(result, observer.removed());
 }
 
+void savesWhatWasLoaded(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  record.ready(
+      {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true});
+  TransactionRecordSerializationStub serialization;
+  record.save(serialization);
+  assertEqual(
+      result,
+      {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true},
+      serialization.verifiableTransaction());
+}
+
 void notifiesObserverOfTransactionsWhenReducing(
     testcpplite::TestResult &result) {
   testAccount([&](InMemoryAccount &account,

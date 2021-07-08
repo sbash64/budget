@@ -230,7 +230,9 @@ auto TransactionRecordInMemory::amount() -> USD {
   return verifiableTransaction.transaction.amount;
 }
 
-void TransactionRecordInMemory::ready(const VerifiableTransaction &) {}
+void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
+  verifiableTransaction = vt;
+}
 
 void TransactionRecordInMemory::remove() {
   if (observer != nullptr)
