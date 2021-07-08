@@ -51,6 +51,7 @@ public:
   void verify() override {
     if (observer != nullptr)
       observer->notifyThatIsVerified();
+    verifiableTransaction.verified = true;
   }
 
   auto verifies(const Transaction &t) -> bool override {
@@ -72,12 +73,18 @@ public:
     return false;
   }
 
-  void save(TransactionRecordSerialization &) override {}
+  void save(TransactionRecordSerialization &serialization) override {
+    serialization.save(verifiableTransaction);
+  }
+
   void load(TransactionRecordDeserialization &) override {}
+
   auto amount() -> USD override {
     return verifiableTransaction.transaction.amount;
   }
+
   void ready(const VerifiableTransaction &) override {}
+
   void remove() override {}
 
 private:

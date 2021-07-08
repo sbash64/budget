@@ -111,7 +111,8 @@ static auto runAllTests() -> int {
        {account::returnsBalance, "returnsBalance"},
        {account::reduceReducesToOneDebitForNegativeBalance,
         "reduceReducesToOneDebitForNegativeBalance"},
-       {account::notifiesObserverWhenVerified, "notifiesObserverWhenVerified"}},
+       {account::notifiesObserverWhenVerified, "notifiesObserverWhenVerified"},
+       {account::saveAfterVerify, "saveAfterVerify"}},
       std::cout);
 }
 } // namespace sbash64::budget

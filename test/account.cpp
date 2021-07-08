@@ -69,6 +69,21 @@ private:
   Transaction transaction_;
 };
 
+class TransactionRecordSerializationStub
+    : public TransactionRecordSerialization {
+public:
+  void save(const VerifiableTransaction &vt) override {
+    verifiableTransaction_ = vt;
+  }
+
+  auto verifiableTransaction() -> VerifiableTransaction {
+    return verifiableTransaction_;
+  }
+
+private:
+  VerifiableTransaction verifiableTransaction_;
+};
+
 class TransactionRecordObserverStub : public TransactionRecord::Observer {
 public:
   void notifyThatIsVerified() override { verified_ = true; }
@@ -561,6 +576,14 @@ void notifiesObserverWhenVerified(testcpplite::TestResult &result) {
   record.attach(&observer);
   record.verify();
   assertTrue(result, observer.verified());
+}
+
+void saveAfterVerify(testcpplite::TestResult &result) {
+  TransactionRecordInMemory record;
+  record.verify();
+  TransactionRecordSerializationStub serialization;
+  record.save(serialization);
+  assertTrue(result, serialization.verifiableTransaction().verified);
 }
 
 void notifiesObserverOfTransactionsWhenReducing(
