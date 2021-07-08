@@ -184,4 +184,53 @@ auto InMemoryAccount::Factory::make(std::string_view name_,
     -> std::shared_ptr<Account> {
   return std::make_shared<InMemoryAccount>(std::string{name_}, factory_);
 }
+void TransactionRecordInMemory::attach(Observer *a) { observer = a; }
+
+void TransactionRecordInMemory::initialize(const Transaction &t) {
+  verifiableTransaction.transaction = t;
+}
+
+static void verify(VerifiableTransaction &vt,
+                   TransactionRecord::Observer *observer) {
+  if (observer != nullptr)
+    observer->notifyThatIsVerified();
+  vt.verified = true;
+}
+
+void TransactionRecordInMemory::verify() {
+  budget::verify(verifiableTransaction, observer);
+}
+
+auto TransactionRecordInMemory::verifies(const Transaction &t) -> bool {
+  if (!verifiableTransaction.verified &&
+      verifiableTransaction.transaction == t) {
+    budget::verify(verifiableTransaction, observer);
+    return true;
+  }
+  return false;
+}
+
+auto TransactionRecordInMemory::removes(const Transaction &t) -> bool {
+  if (verifiableTransaction.transaction == t) {
+    if (observer != nullptr)
+      observer->notifyThatWillBeRemoved();
+    return true;
+  }
+  return false;
+}
+
+void TransactionRecordInMemory::save(
+    TransactionRecordSerialization &serialization) {
+  serialization.save(verifiableTransaction);
+}
+
+void TransactionRecordInMemory::load(TransactionRecordDeserialization &) {}
+
+auto TransactionRecordInMemory::amount() -> USD {
+  return verifiableTransaction.transaction.amount;
+}
+
+void TransactionRecordInMemory::ready(const VerifiableTransaction &) {}
+
+void TransactionRecordInMemory::remove() {}
 } // namespace sbash64::budget

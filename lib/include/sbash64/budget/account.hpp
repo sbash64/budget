@@ -42,50 +42,16 @@ private:
 
 class TransactionRecordInMemory : public TransactionRecord {
 public:
-  void attach(Observer *a) override { observer = a; }
-
-  void initialize(const Transaction &t) override {
-    verifiableTransaction.transaction = t;
-  }
-
-  void verify() override {
-    if (observer != nullptr)
-      observer->notifyThatIsVerified();
-    verifiableTransaction.verified = true;
-  }
-
-  auto verifies(const Transaction &t) -> bool override {
-    if (!verifiableTransaction.verified &&
-        verifiableTransaction.transaction == t) {
-      if (observer != nullptr)
-        observer->notifyThatIsVerified();
-      return verifiableTransaction.verified = true;
-    }
-    return false;
-  }
-
-  auto removes(const Transaction &t) -> bool override {
-    if (verifiableTransaction.transaction == t) {
-      if (observer != nullptr)
-        observer->notifyThatWillBeRemoved();
-      return true;
-    }
-    return false;
-  }
-
-  void save(TransactionRecordSerialization &serialization) override {
-    serialization.save(verifiableTransaction);
-  }
-
-  void load(TransactionRecordDeserialization &) override {}
-
-  auto amount() -> USD override {
-    return verifiableTransaction.transaction.amount;
-  }
-
-  void ready(const VerifiableTransaction &) override {}
-
-  void remove() override {}
+  void attach(Observer *a) override;
+  void initialize(const Transaction &t) override;
+  void verify() override;
+  auto verifies(const Transaction &t) -> bool override;
+  auto removes(const Transaction &t) -> bool override;
+  void save(TransactionRecordSerialization &serialization) override;
+  void load(TransactionRecordDeserialization &) override;
+  auto amount() -> USD override;
+  void ready(const VerifiableTransaction &) override;
+  void remove() override;
 
 private:
   VerifiableTransaction verifiableTransaction;
