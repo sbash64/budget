@@ -148,7 +148,6 @@ void ReadsAccountFromStream::load(Observer &observer) {
     observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
     next = stream.get();
   }
-  getline(stream, line);
 }
 
 void ReadsSessionFromStream::load(Observer &observer) {
