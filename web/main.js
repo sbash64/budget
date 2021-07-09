@@ -15,10 +15,6 @@ function transactionRowIsCredit(row) {
   return row.cells[3].textContent.length !== 0;
 }
 
-function accountTableIsMaster(selectedAccountTable, accountNames) {
-  return accountNames.get(selectedAccountTable) === "master";
-}
-
 class CreditControl {
   name() {
     return "credit";
@@ -97,9 +93,9 @@ function main() {
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
   let selectedTransactionRow = null;
+  let selectedAccountSummaryRow = null;
   const accountTables = [];
   const accountSummaryRows = [];
-  const accountNames = new Map();
   const websocket = new WebSocket("ws://localhost:9012");
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -125,20 +121,20 @@ function main() {
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
         accountTables.push(accountTable);
-        accountNames.set(accountTable, message.name);
 
         accountTable.style.display = "none";
         selection.addEventListener("change", () => {
           if (selectedAccountTable) selectedAccountTable.style.display = "none";
           accountTable.style.display = "block";
           selectedAccountTable = accountTable;
+          selectedAccountSummaryRow = accountSummaryRow;
         });
         break;
       }
       case "remove account": {
-        const table = accountTables.splice(message.accountIndex, 1);
+        const [table] = accountTables.splice(message.accountIndex, 1);
         table.parentNode.removeChild(table);
-        const row = accountSummaryRows.splice(message.accountIndex, 1);
+        const [row] = accountSummaryRows.splice(message.accountIndex, 1);
         row.parentNode.removeChild(row);
         break;
       }
@@ -207,7 +203,7 @@ function main() {
     websocket.send(
       JSON.stringify({
         method: "remove account",
-        name: accountNames.get(selectedAccountTable),
+        name: selectedAccountSummaryRow.cells[1].textContent,
       })
     );
   });
@@ -228,7 +224,7 @@ function main() {
     websocket.send(
       JSON.stringify({
         method: control.name(),
-        name: accountNames.get(selectedAccountTable),
+        name: selectedAccountSummaryRow.cells[1].textContent,
         description: descriptionInput.value,
         amount: amountInput.value,
         date: dateInput.value,
@@ -236,45 +232,29 @@ function main() {
     );
   });
   transferButton.addEventListener("click", () => {
-    if (!accountTableIsMaster(selectedAccountTable, accountNames)) {
-      websocket.send(
-        JSON.stringify({
-          method: "transfer",
-          name: accountNames.get(selectedAccountTable),
-          amount: amountInput.value,
-          date: dateInput.value,
-        })
-      );
-    }
+    websocket.send(
+      JSON.stringify({
+        method: "transfer",
+        name: selectedAccountSummaryRow.cells[1].textContent,
+        amount: amountInput.value,
+        date: dateInput.value,
+      })
+    );
   });
   removeTransactionButton.addEventListener("click", () => {
-    if (
-      accountTableIsMaster(selectedAccountTable, accountNames) ===
-      transactionRowIsCredit(selectedTransactionRow)
-    ) {
-      const control = transactionRowIsCredit(selectedTransactionRow)
-        ? new CreditControl()
-        : new DebitControl();
-      websocket.send(
-        JSON.stringify({
-          method: `remove ${control.name()}`,
-          name: accountNames.get(selectedAccountTable),
-          description: selectedTransactionRow.cells[1].textContent,
-          amount:
-            selectedTransactionRow.cells[control.amountCellIndex()].textContent,
-          date: selectedTransactionRow.cells[4].textContent,
-        })
-      );
-    } else if (!accountTableIsMaster(selectedAccountTable, accountNames)) {
-      websocket.send(
-        JSON.stringify({
-          method: "remove transfer",
-          name: accountNames.get(selectedAccountTable),
-          amount: selectedTransactionRow.cells[3].textContent,
-          date: selectedTransactionRow.cells[4].textContent,
-        })
-      );
-    }
+    const control = transactionRowIsCredit(selectedTransactionRow)
+      ? new CreditControl()
+      : new DebitControl();
+    websocket.send(
+      JSON.stringify({
+        method: `remove ${control.name()}`,
+        name: selectedAccountSummaryRow.cells[1].textContent,
+        description: selectedTransactionRow.cells[1].textContent,
+        amount:
+          selectedTransactionRow.cells[control.amountCellIndex()].textContent,
+        date: selectedTransactionRow.cells[4].textContent,
+      })
+    );
   });
 }
 

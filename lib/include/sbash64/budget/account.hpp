@@ -24,7 +24,10 @@ public:
   void notifyThatDebitIsReady(TransactionRecordDeserialization &) override;
   void reduce(const Date &) override;
   auto balance() -> USD override;
-  void remove() override {}
+  void remove() override {
+    if (observer != nullptr)
+      observer->notifyThatWillBeRemoved();
+  }
 
   class Factory : public Account::Factory {
   public:

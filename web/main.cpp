@@ -219,6 +219,7 @@ public:
     json["accountIndex"] = parent.index(this);
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
+    parent.release(this);
   }
 
 private:
