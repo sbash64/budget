@@ -271,7 +271,8 @@ debits
 ^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
-)")};
+
+bobby)")};
   StreamTransactionRecordDeserializationFactoryStub factory;
   ReadsAccountFromStream accountDeserialization{*input, factory};
   AccountDeserializationObserverStub observer{*input};
