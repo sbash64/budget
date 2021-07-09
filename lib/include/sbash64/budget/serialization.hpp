@@ -87,7 +87,8 @@ private:
 
 class WritesTransactionRecordToStream : public TransactionRecordSerialization {
 public:
-  explicit WritesTransactionRecordToStream(std::ostream &stream);
+  explicit WritesTransactionRecordToStream(std::ostream &stream)
+      : stream{stream} {}
   void save(const VerifiableTransaction &) override;
 
   class Factory : public StreamTransactionRecordSerializationFactory {
@@ -143,6 +144,14 @@ class ReadsTransactionRecordFromStream
 public:
   explicit ReadsTransactionRecordFromStream(std::istream &);
   void load(Observer &) override;
+
+  class Factory : public StreamTransactionRecordDeserializationFactory {
+  public:
+    auto make(std::istream &stream)
+        -> std::shared_ptr<TransactionRecordDeserialization> override {
+      return std::make_shared<ReadsTransactionRecordFromStream>(stream);
+    }
+  };
 
 private:
   std::istream &stream;

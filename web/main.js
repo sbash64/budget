@@ -40,7 +40,7 @@ class DebitControl {
 }
 
 function removeTransaction(accountTables, message, amountCellIndex) {
-  const table = accountTables.get(message.name);
+  const table = accountTables[message.accountIndex];
   for (let i = 0; i < table.rows.length; i += 1) {
     if (
       table.rows[i].cells[1].textContent === message.description &&
@@ -111,8 +111,8 @@ function main() {
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
   let selectedTransactionRow = null;
-  const accountTables = new Map();
-  const accountSummaryRows = new Map();
+  const accountTables = [];
+  const accountSummaryRows = [];
   const accountNames = new Map();
   const websocket = new WebSocket("ws://localhost:9012");
   websocket.onmessage = (event) => {
@@ -129,7 +129,7 @@ function main() {
         const name = createChild(accountSummaryRow, "td");
         name.textContent = message.name;
         createChild(accountSummaryRow, "td");
-        accountSummaryRows.set(message.name, accountSummaryRow);
+        accountSummaryRows.append(accountSummaryRow);
 
         const accountTable = createChild(accounts, "table");
         const header = createChild(accountTable, "tr");
@@ -138,7 +138,7 @@ function main() {
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
-        accountTables.set(message.name, accountTable);
+        accountTables.append(accountTable);
         accountNames.set(accountTable, message.name);
 
         accountTable.style.display = "none";
@@ -150,12 +150,10 @@ function main() {
         break;
       }
       case "remove account": {
-        const table = accountTables.get(message.name);
+        const table = accountTables.splice(message.accountIndex, 1);
         table.parentNode.removeChild(table);
-        accountTables.delete(message.name);
-        const row = accountSummaryRows.get(message.name);
+        const row = accountSummaryRows.splice(message.accountIndex, 1);
         row.parentNode.removeChild(row);
-        accountSummaryRows.delete(message.name);
         break;
       }
       case "update balance": {
@@ -163,7 +161,7 @@ function main() {
         break;
       }
       case "add credit": {
-        const row = createChild(accountTables.get(message.name), "tr");
+        const row = createChild(accountTables[message.accountIndex], "tr");
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
         selection.type = "radio";
@@ -181,7 +179,7 @@ function main() {
         break;
       }
       case "add debit": {
-        const row = createChild(accountTables.get(message.name), "tr");
+        const row = createChild(accountTables[message.accountIndex], "tr");
         const radioInput = createChild(createChild(row, "td"), "input");
         radioInput.name = "transaction selection";
         radioInput.type = "radio";
@@ -199,8 +197,8 @@ function main() {
         break;
       }
       case "update account balance": {
-        const row = accountSummaryRows.get(message.name);
-        row.lastElementChild.textContent = message.amount;
+        accountSummaryRows[message.accountIndex].lastElementChild.textContent =
+          message.amount;
         break;
       }
       default:

@@ -53,6 +53,13 @@ public:
   void ready(const VerifiableTransaction &) override;
   void remove() override;
 
+  class Factory : public TransactionRecord::Factory {
+  public:
+    auto make() -> std::shared_ptr<TransactionRecord> override {
+      return std::make_shared<TransactionRecordInMemory>();
+    }
+  };
+
 private:
   VerifiableTransaction verifiableTransaction;
   Observer *observer{};

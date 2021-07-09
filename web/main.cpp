@@ -1,5 +1,4 @@
-#include "websocketpp/common/connection_hdl.hpp"
-#include <functional>
+#include <sbash64/budget/account.hpp>
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/control.hpp>
@@ -11,12 +10,16 @@
 
 #define ASIO_STANDALONE
 #include <utility>
+#include <websocketpp/common/connection_hdl.hpp>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
 #include <websocketpp/server.hpp>
 
+#include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -83,65 +86,178 @@ auto json(std::string_view name, std::string_view method, const Transaction &t)
   return json;
 }
 
-class WebSocketAccountObserver : public Account::Observer {
+class Child {
 public:
-  WebSocketAccountObserver(websocketpp::server<debug_custom> &server,
-                           websocketpp::connection_hdl connection,
-                           Account &account, std::string_view name)
-      : connection{std::move(connection)}, server{server}, name{name} {
-    account.attach(this);
+  virtual auto index() -> long = 0;
+};
+
+class Parent {
+public:
+  virtual auto index(void *) -> long = 0;
+  virtual void release(void *) = 0;
+};
+
+class ParentAndChild : public Parent, public Child {
+public:
+  using Child::index;
+  using Parent::index;
+};
+
+class WebSocketTransactionRecordObserver : public TransactionRecord::Observer {
+public:
+  WebSocketTransactionRecordObserver(websocketpp::server<debug_custom> &server,
+                                     websocketpp::connection_hdl connection,
+                                     TransactionRecord &record,
+                                     ParentAndChild &parent)
+      : connection{std::move(connection)}, server{server}, parent{parent} {
+    record.attach(this);
   }
 
-  void notifyThatBalanceHasChanged(USD usd) override {
+  void notifyThatIsVerified() override {
     nlohmann::json json;
-    json["name"] = name;
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
-    json["method"] = "update account balance";
+    json["method"] = "verify transaction";
+    json["accountIndex"] = parent.index();
+    json["transactionIndex"] = parent.index(this);
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatCreditHasBeenAdded(const Transaction &t) override {
-    server.send(connection, json(name, "add credit", t).dump(),
+  void notifyThatIs(const Transaction &t) override {
+    nlohmann::json json;
+    json["description"] = t.description;
+    std::stringstream amountStream;
+    amountStream << t.amount;
+    json["amount"] = amountStream.str();
+    std::stringstream dateStream;
+    dateStream << t.date;
+    json["date"] = dateStream.str();
+    json["method"] = "update transaction";
+    json["accountIndex"] = parent.index();
+    json["transactionIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatDebitHasBeenAdded(const Transaction &t) override {
-    server.send(connection, json(name, "add debit", t).dump(),
+  void notifyThatWillBeRemoved() override {
+    nlohmann::json json;
+    json["method"] = "remove transaction";
+    json["accountIndex"] = parent.index();
+    json["transactionIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
+                websocketpp::frame::opcode::value::text);
+    parent.release(this);
+  }
+
+private:
+  websocketpp::connection_hdl connection;
+  websocketpp::server<debug_custom> &server;
+  ParentAndChild &parent;
+};
+
+class WebSocketAccountObserver : public Account::Observer,
+                                 public ParentAndChild {
+public:
+  WebSocketAccountObserver(websocketpp::server<debug_custom> &server,
+                           websocketpp::connection_hdl connection,
+                           Account &account, Parent &parent)
+      : connection{std::move(connection)}, server{server}, parent{parent} {
+    account.attach(this);
+  }
+
+  auto index(void *a) -> long override {
+    return std::distance(
+        children.begin(),
+        std::find_if(
+            children.begin(), children.end(),
+            [a](const std::shared_ptr<WebSocketTransactionRecordObserver>
+                    &child) { return child.get() == a; }));
+  }
+
+  auto index() -> long override { return parent.index(this); }
+
+  void release(void *a) override {
+    children.erase(std::find_if(
+        children.begin(), children.end(),
+        [&](const std::shared_ptr<WebSocketTransactionRecordObserver> &child)
+            -> bool { return child.get() == a; }));
+  }
+
+  void notifyThatBalanceHasChanged(USD usd) override {
+    nlohmann::json json;
+    json["method"] = "update account balance";
+    json["accountIndex"] = parent.index(this);
+    std::stringstream amountStream;
+    amountStream << usd;
+    json["amount"] = amountStream.str();
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatDebitHasBeenRemoved(const Transaction &t) override {
-    server.send(connection, json(name, "remove debit", t).dump(),
+  void notifyThatCreditHasBeenAdded(TransactionRecord &t) override {
+    children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
+        server, connection, t, *this));
+    nlohmann::json json;
+    json["method"] = "add credit";
+    json["accountIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatCreditHasBeenRemoved(const Transaction &t) override {
-    server.send(connection, json(name, "remove credit", t).dump(),
+  void notifyThatDebitHasBeenAdded(TransactionRecord &t) override {
+    children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
+        server, connection, t, *this));
+    nlohmann::json json;
+    json["method"] = "add debit";
+    json["accountIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
+                websocketpp::frame::opcode::value::text);
+  }
+
+  void notifyThatWillBeRemoved() override {
+    nlohmann::json json;
+    json["method"] = "remove account";
+    json["accountIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
 private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
-  std::string name;
+  std::vector<std::shared_ptr<WebSocketTransactionRecordObserver>> children;
+  Parent &parent;
 };
 
-class WebSocketModelObserver : public Model::Observer {
+class WebSocketModelObserver : public Budget::Observer, public Parent {
 public:
   WebSocketModelObserver(websocketpp::server<debug_custom> &server,
-                         websocketpp::connection_hdl connection, Model &model)
+                         websocketpp::connection_hdl connection, Budget &Budget)
       : connection{std::move(connection)}, server{server} {
-    model.attach(this);
+    Budget.attach(this);
+  }
+
+  auto index(void *a) -> long override {
+    return std::distance(
+        children.begin(),
+        std::find_if(
+            children.begin(), children.end(),
+            [a](const std::shared_ptr<WebSocketAccountObserver> &child) {
+              return child.get() == a;
+            }));
+  }
+
+  void release(void *a) override {
+    children.erase(std::find_if(
+        children.begin(), children.end(),
+        [&](const std::shared_ptr<WebSocketAccountObserver> &child) -> bool {
+          return child.get() == a;
+        }));
   }
 
   void notifyThatNewAccountHasBeenCreated(Account &account,
                                           std::string_view name) override {
-    accountObservers[std::string{name}] =
-        std::make_unique<WebSocketAccountObserver>(server, connection, account,
-                                                   name);
+    children.push_back(std::make_shared<WebSocketAccountObserver>(
+        server, connection, account, *this));
     nlohmann::json json;
     json["name"] = name;
     json["method"] = "add account";
@@ -154,35 +270,32 @@ public:
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    json["method"] = "update balance";
+    json["method"] = "update total balance";
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
-  }
-
-  void notifyThatAccountHasBeenRemoved(std::string_view name) override {
-    nlohmann::json json;
-    json["name"] = name;
-    json["method"] = "remove account";
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
-    accountObservers.at(std::string{name}).reset();
   }
 
 private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
-  std::map<std::string, std::unique_ptr<WebSocketAccountObserver>, std::less<>>
-      accountObservers;
+  std::vector<std::shared_ptr<WebSocketAccountObserver>> children;
 };
 
 struct App {
+  TransactionRecordInMemory::Factory transactionFactory;
   InMemoryAccount::Factory accountFactory;
-  Bank bank{accountFactory};
+  BudgetInMemory bank{accountFactory, transactionFactory};
   FileStreamFactory streamFactory;
-  WritesAccountToStream::Factory accountSerializationFactory;
+  WritesTransactionRecordToStream::Factory
+      transactionRecordSerializationFactory;
+  WritesAccountToStream::Factory accountSerializationFactory{
+      transactionRecordSerializationFactory};
   WritesSessionToStream sessionSerialization{streamFactory,
                                              accountSerializationFactory};
-  ReadsAccountFromStream::Factory accountDeserializationFactory;
+  ReadsTransactionRecordFromStream::Factory
+      transactionRecordDeserializationFactory;
+  ReadsAccountFromStream::Factory accountDeserializationFactory{
+      transactionRecordDeserializationFactory};
   ReadsSessionFromStream accountDeserialization{streamFactory,
                                                 accountDeserializationFactory};
   WebSocketModelObserver webSocketNotifier;
@@ -230,7 +343,7 @@ static auto transaction(const nlohmann::json &json) -> Transaction {
 static void call(
     const std::map<void *, std::unique_ptr<sbash64::budget::App>> &applications,
     const websocketpp::connection_hdl &connection,
-    const std::function<void(sbash64::budget::Bank &)> &f) {
+    const std::function<void(sbash64::budget::Budget &)> &f) {
   f(applications.at(connection.lock().get())->bank);
 }
 
@@ -273,55 +386,63 @@ int main() {
         });
 
     // Register our message handler
-    server.set_message_handler([&applications](
-                                   websocketpp::connection_hdl connection,
-                                   websocketpp::server<
-                                       debug_custom>::message_ptr message) {
-      const auto json{nlohmann::json::parse(message->get_payload())};
-      if (methodIs(json, "debit"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.debit(json["name"].get<std::string>(),
-                      sbash64::budget::transaction(json));
+    server.set_message_handler(
+        [&applications](
+            websocketpp::connection_hdl connection,
+            websocketpp::server<debug_custom>::message_ptr message) {
+          const auto json{nlohmann::json::parse(message->get_payload())};
+          if (methodIs(json, "debit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.debit(json["name"].get<std::string>(),
+                                sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "remove debit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.removeDebit(json["name"].get<std::string>(),
+                                      sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "credit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.credit(sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "remove credit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.removeCredit(sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "transfer"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.transferTo(
+                       json["name"].get<std::string>(),
+                       sbash64::budget::usd(json["amount"].get<std::string>()),
+                       sbash64::budget::date(json["date"].get<std::string>()));
+                 });
+          else if (methodIs(json, "remove transfer"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.removeTransfer(
+                       json["name"].get<std::string>(),
+                       sbash64::budget::usd(json["amount"].get<std::string>()),
+                       sbash64::budget::date(json["date"].get<std::string>()));
+                 });
+          else if (methodIs(json, "remove account"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.removeAccount(json["name"].get<std::string>());
+                 });
+          else if (methodIs(json, "create account"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &Budget) {
+                   Budget.transferTo(
+                       json["name"].get<std::string>(),
+                       sbash64::budget::usd(json["amount"].get<std::string>()),
+                       sbash64::budget::date(json["date"].get<std::string>()));
+                 });
         });
-      else if (methodIs(json, "remove debit"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.removeDebit(json["name"].get<std::string>(),
-                            sbash64::budget::transaction(json));
-        });
-      else if (methodIs(json, "credit"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.credit(sbash64::budget::transaction(json));
-        });
-      else if (methodIs(json, "remove credit"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.removeCredit(sbash64::budget::transaction(json));
-        });
-      else if (methodIs(json, "transfer"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.transferTo(
-              json["name"].get<std::string>(),
-              sbash64::budget::usd(json["amount"].get<std::string>()),
-              sbash64::budget::date(json["date"].get<std::string>()));
-        });
-      else if (methodIs(json, "remove transfer"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.removeTransfer(
-              json["name"].get<std::string>(),
-              sbash64::budget::usd(json["amount"].get<std::string>()),
-              sbash64::budget::date(json["date"].get<std::string>()));
-        });
-      else if (methodIs(json, "remove account"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.removeAccount(json["name"].get<std::string>());
-        });
-      else if (methodIs(json, "create account"))
-        call(applications, connection, [&json](sbash64::budget::Model &model) {
-          model.transferTo(
-              json["name"].get<std::string>(),
-              sbash64::budget::usd(json["amount"].get<std::string>()),
-              sbash64::budget::date(json["date"].get<std::string>()));
-        });
-    });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =
