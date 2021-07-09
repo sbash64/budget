@@ -33,6 +33,7 @@ static auto runAllTests() -> int {
        {stream::toTransactionRecord, "stream loads transaction record"},
        {stream::fromAccounts, "stream saves accounts"},
        {stream::toAccounts, "stream loads accounts"},
+       {stream::toAccounts2, "stream loads accounts 2"},
        {stream::fromSession, "stream saves session"},
        {stream::toSession, "stream loads session"},
        {bank::createsMasterAccountOnConstruction,

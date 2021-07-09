@@ -8,6 +8,7 @@ void toTransactionRecord(testcpplite::TestResult &);
 void fromAccounts(testcpplite::TestResult &);
 void fromSession(testcpplite::TestResult &);
 void toAccounts(testcpplite::TestResult &);
+void toAccounts2(testcpplite::TestResult &);
 void toSession(testcpplite::TestResult &);
 } // namespace sbash64::budget::stream
 

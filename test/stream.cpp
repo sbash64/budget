@@ -290,6 +290,33 @@ bobby)")};
               observer.debits());
 }
 
+void toAccounts2(testcpplite::TestResult &result) {
+  const auto input{std::make_shared<std::stringstream>(
+      R"(credits
+50 transfer from master 1/10/2021
+25 transfer from master 4/12/2021
+13.80 transfer from master 2/8/2021
+debits
+^27.34 hyvee 1/12/2021
+9.87 walmart 6/15/2021
+3.24 hyvee 2/8/2020)")};
+  StreamTransactionRecordDeserializationFactoryStub factory;
+  ReadsAccountFromStream accountDeserialization{*input, factory};
+  AccountDeserializationObserverStub observer{*input};
+  accountDeserialization.load(observer);
+  assertEqual(
+      result,
+      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
+       {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
+       {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
+      observer.credits());
+  assertEqual(result,
+              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
+               {{987_cents, "walmart", Date{2021, Month::June, 15}}},
+               {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
+              observer.debits());
+}
+
 void toSession(testcpplite::TestResult &result) {
   const auto input{
       std::make_shared<std::stringstream>("jeff\nsteve\nsue\nallen")};
