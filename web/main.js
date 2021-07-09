@@ -39,20 +39,6 @@ class DebitControl {
   }
 }
 
-function removeTransaction(accountTables, message, amountCellIndex) {
-  const table = accountTables[message.accountIndex];
-  for (let i = 0; i < table.rows.length; i += 1) {
-    if (
-      table.rows[i].cells[1].textContent === message.description &&
-      table.rows[i].cells[amountCellIndex].textContent === message.amount &&
-      table.rows[i].cells[4].textContent === message.date
-    ) {
-      table.deleteRow(i);
-      return;
-    }
-  }
-}
-
 function main() {
   const accountSummariesWithDetailView = createChild(document.body, "div");
   accountSummariesWithDetailView.style.display = "flex";
@@ -129,7 +115,7 @@ function main() {
         const name = createChild(accountSummaryRow, "td");
         name.textContent = message.name;
         createChild(accountSummaryRow, "td");
-        accountSummaryRows.append(accountSummaryRow);
+        accountSummaryRows.push(accountSummaryRow);
 
         const accountTable = createChild(accounts, "table");
         const header = createChild(accountTable, "tr");
@@ -138,7 +124,7 @@ function main() {
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
-        accountTables.append(accountTable);
+        accountTables.push(accountTable);
         accountNames.set(accountTable, message.name);
 
         accountTable.style.display = "none";
@@ -156,7 +142,7 @@ function main() {
         row.parentNode.removeChild(row);
         break;
       }
-      case "update balance": {
+      case "update total balance": {
         totalBalance.textContent = message.amount;
         break;
       }
@@ -165,35 +151,27 @@ function main() {
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
         selection.type = "radio";
-        createChild(row, "td").textContent = message.description;
         createChild(row, "td");
-        createChild(row, "td").textContent = message.amount;
-        createChild(row, "td").textContent = message.date;
+        createChild(row, "td");
+        createChild(row, "td");
+        createChild(row, "td");
         selection.addEventListener("change", () => {
           selectedTransactionRow = row;
         });
         break;
       }
-      case "remove credit": {
-        removeTransaction(accountTables, message, 3);
-        break;
-      }
       case "add debit": {
         const row = createChild(accountTables[message.accountIndex], "tr");
-        const radioInput = createChild(createChild(row, "td"), "input");
-        radioInput.name = "transaction selection";
-        radioInput.type = "radio";
-        createChild(row, "td").textContent = message.description;
-        createChild(row, "td").textContent = message.amount;
+        const selection = createChild(createChild(row, "td"), "input");
+        selection.name = "transaction selection";
+        selection.type = "radio";
         createChild(row, "td");
-        createChild(row, "td").textContent = message.date;
-        radioInput.addEventListener("change", () => {
+        createChild(row, "td");
+        createChild(row, "td");
+        createChild(row, "td");
+        selection.addEventListener("change", () => {
           selectedTransactionRow = row;
         });
-        break;
-      }
-      case "remove debit": {
-        removeTransaction(accountTables, message, 2);
         break;
       }
       case "update account balance": {
@@ -201,6 +179,24 @@ function main() {
           message.amount;
         break;
       }
+      case "remove transaction": {
+        accountTables[message.accountIndex].deleteRow(message.transactionIndex);
+        break;
+      }
+      case "update transaction": {
+        accountTables[message.accountIndex].rows[
+          message.transactionIndex
+        ].cells[1].textContent = message.description;
+        accountTables[message.accountIndex].rows[
+          message.transactionIndex
+        ].cells[2].textContent = message.amount;
+        accountTables[message.accountIndex].rows[
+          message.transactionIndex
+        ].cells[4].textContent = message.date;
+        break;
+      }
+      case "verify transaction":
+        break;
       default:
         break;
     }
