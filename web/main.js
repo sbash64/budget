@@ -180,18 +180,20 @@ function main() {
         break;
       }
       case "remove transaction": {
-        accountTables[message.accountIndex].deleteRow(message.transactionIndex);
+        accountTables[message.accountIndex].deleteRow(
+          message.transactionIndex + 1
+        );
         break;
       }
       case "update transaction": {
         accountTables[message.accountIndex].rows[
-          message.transactionIndex
+          message.transactionIndex + 1
         ].cells[1].textContent = message.description;
         accountTables[message.accountIndex].rows[
-          message.transactionIndex
+          message.transactionIndex + 1
         ].cells[2].textContent = message.amount;
         accountTables[message.accountIndex].rows[
-          message.transactionIndex
+          message.transactionIndex + 1
         ].cells[4].textContent = message.date;
         break;
       }
