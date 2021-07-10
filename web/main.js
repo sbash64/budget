@@ -11,30 +11,6 @@ function initializeAccountTable(accountTable) {
   createChild(header, "th").textContent = "Balance";
 }
 
-function transactionRowIsCredit(row) {
-  return row.cells[3].textContent.length !== 0;
-}
-
-class CreditControl {
-  name() {
-    return "credit";
-  }
-
-  amountCellIndex() {
-    return 3;
-  }
-}
-
-class DebitControl {
-  name() {
-    return "debit";
-  }
-
-  amountCellIndex() {
-    return 2;
-  }
-}
-
 function main() {
   const accountSummariesWithDetailView = createChild(document.body, "div");
   accountSummariesWithDetailView.style.display = "flex";
@@ -145,22 +121,7 @@ function main() {
         totalBalance.textContent = message.amount;
         break;
       }
-      case "add credit": {
-        const row = createChild(accountTables[message.accountIndex], "tr");
-        const selection = createChild(createChild(row, "td"), "input");
-        selection.name = "transaction selection";
-        selection.type = "radio";
-        createChild(row, "td");
-        createChild(row, "td");
-        createChild(row, "td");
-        createChild(row, "td");
-        createChild(row, "td");
-        selection.addEventListener("change", () => {
-          selectedTransactionRow = row;
-        });
-        break;
-      }
-      case "add debit": {
+      case "add transaction": {
         const row = createChild(accountTables[message.accountIndex], "tr");
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
@@ -192,8 +153,10 @@ function main() {
         ].cells[1].textContent = message.description;
         accountTables[message.accountIndex].rows[
           message.transactionIndex + 1
-        ].cells[message.transactionType === "credit" ? 3 : 2].textContent =
-          message.amount;
+        ].cells[2].textContent = message.debitAmount;
+        accountTables[message.accountIndex].rows[
+          message.transactionIndex + 1
+        ].cells[3].textContent = message.creditAmount;
         accountTables[message.accountIndex].rows[
           message.transactionIndex + 1
         ].cells[4].textContent = message.date;
@@ -228,12 +191,9 @@ function main() {
     );
   });
   addTransactionButton.addEventListener("click", () => {
-    const control = transactionRowIsCredit(selectedTransactionRow)
-      ? new CreditControl()
-      : new DebitControl();
     websocket.send(
       JSON.stringify({
-        method: control.name(),
+        method: "add transaction",
         name: selectedAccountSummaryRow.cells[1].textContent,
         description: descriptionInput.value,
         amount: amountInput.value,
@@ -254,25 +214,23 @@ function main() {
   verifyButton.addEventListener("click", () => {
     websocket.send(
       JSON.stringify({
-        method: "verify debit",
+        method: "verify transaction",
         name: selectedAccountSummaryRow.cells[1].textContent,
         description: selectedTransactionRow.cells[1].textContent,
-        amount: selectedTransactionRow.cells[2].textContent,
+        debitAmount: selectedTransactionRow.cells[2].textContent,
+        creditAmount: selectedTransactionRow.cells[3].textContent,
         date: selectedTransactionRow.cells[4].textContent,
       })
     );
   });
   removeTransactionButton.addEventListener("click", () => {
-    const control = transactionRowIsCredit(selectedTransactionRow)
-      ? new CreditControl()
-      : new DebitControl();
     websocket.send(
       JSON.stringify({
-        method: `remove ${control.name()}`,
+        method: "remove transaction",
         name: selectedAccountSummaryRow.cells[1].textContent,
         description: selectedTransactionRow.cells[1].textContent,
-        amount:
-          selectedTransactionRow.cells[control.amountCellIndex()].textContent,
+        debitAmount: selectedTransactionRow.cells[2].textContent,
+        creditAmount: selectedTransactionRow.cells[3].textContent,
         date: selectedTransactionRow.cells[4].textContent,
       })
     );

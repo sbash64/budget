@@ -129,15 +129,16 @@ public:
     json["description"] = t.description;
     std::stringstream amountStream;
     amountStream << t.amount;
-    json["amount"] = amountStream.str();
+    json[type == Transaction::Type::credit ? "creditAmount" : "debitAmount"] =
+        amountStream.str();
+    json[type == Transaction::Type::credit ? "debitAmount" : "creditAmount"] =
+        "";
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
     json["method"] = "update transaction";
     json["accountIndex"] = parent.index();
     json["transactionIndex"] = parent.index(this);
-    json["transactionType"] =
-        type == Transaction::Type::credit ? "credit" : "debit";
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
@@ -202,7 +203,7 @@ public:
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this, Transaction::Type::credit));
     nlohmann::json json;
-    json["method"] = "add credit";
+    json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
@@ -212,7 +213,7 @@ public:
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this, Transaction::Type::debit));
     nlohmann::json json;
-    json["method"] = "add debit";
+    json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
@@ -339,8 +340,9 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-static auto transaction(const nlohmann::json &json) -> Transaction {
-  return {usd(json["amount"].get<std::string>()),
+static auto transaction(const nlohmann::json &json, std::string_view amountKey)
+    -> Transaction {
+  return {usd(json[std::string{amountKey}].get<std::string>()),
           json["description"].get<std::string>(),
           date(json["date"].get<std::string>())};
 }
@@ -397,38 +399,40 @@ int main() {
             websocketpp::connection_hdl connection,
             websocketpp::server<debug_custom>::message_ptr message) {
           const auto json{nlohmann::json::parse(message->get_payload())};
-          if (methodIs(json, "debit"))
+          if (methodIs(json, "add transaction"))
             call(applications, connection,
                  [&json](sbash64::budget::Budget &budget) {
-                   budget.debit(json["name"].get<std::string>(),
-                                sbash64::budget::transaction(json));
+                   if (json["name"].get<std::string>() ==
+                       sbash64::budget::masterAccountName.data())
+                     budget.credit(
+                         sbash64::budget::transaction(json, "amount"));
+                   else
+                     budget.debit(json["name"].get<std::string>(),
+                                  sbash64::budget::transaction(json, "amount"));
                  });
-          else if (methodIs(json, "remove debit"))
+          else if (methodIs(json, "remove transaction"))
             call(applications, connection,
                  [&json](sbash64::budget::Budget &budget) {
-                   budget.removeDebit(json["name"].get<std::string>(),
-                                      sbash64::budget::transaction(json));
+                   if (json["name"].get<std::string>() ==
+                       sbash64::budget::masterAccountName.data())
+                     budget.removeCredit(
+                         sbash64::budget::transaction(json, "creditAmount"));
+                   else
+                     budget.removeDebit(
+                         json["name"].get<std::string>(),
+                         sbash64::budget::transaction(json, "debitAmount"));
                  });
-          else if (methodIs(json, "verify debit"))
+          else if (methodIs(json, "verify transaction"))
             call(applications, connection,
                  [&json](sbash64::budget::Budget &budget) {
-                   budget.verifyDebit(json["name"].get<std::string>(),
-                                      sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.credit(sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "remove credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.removeCredit(sbash64::budget::transaction(json));
-                 });
-          else if (methodIs(json, "verify credit"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.verifyCredit(sbash64::budget::transaction(json));
+                   if (json["name"].get<std::string>() ==
+                       sbash64::budget::masterAccountName.data())
+                     budget.verifyCredit(
+                         sbash64::budget::transaction(json, "creditAmount"));
+                   else
+                     budget.verifyDebit(
+                         json["name"].get<std::string>(),
+                         sbash64::budget::transaction(json, "debitAmount"));
                  });
           else if (methodIs(json, "transfer"))
             call(applications, connection,
@@ -438,10 +442,10 @@ int main() {
                        sbash64::budget::usd(json["amount"].get<std::string>()),
                        sbash64::budget::date(json["date"].get<std::string>()));
                  });
-          else if (methodIs(json, "remove transfer"))
+          else if (methodIs(json, "create account"))
             call(applications, connection,
                  [&json](sbash64::budget::Budget &budget) {
-                   budget.removeTransfer(
+                   budget.transferTo(
                        json["name"].get<std::string>(),
                        sbash64::budget::usd(json["amount"].get<std::string>()),
                        sbash64::budget::date(json["date"].get<std::string>()));
@@ -450,14 +454,6 @@ int main() {
             call(applications, connection,
                  [&json](sbash64::budget::Budget &budget) {
                    budget.removeAccount(json["name"].get<std::string>());
-                 });
-          else if (methodIs(json, "create account"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.transferTo(
-                       json["name"].get<std::string>(),
-                       sbash64::budget::usd(json["amount"].get<std::string>()),
-                       sbash64::budget::date(json["date"].get<std::string>()));
                  });
         });
 
