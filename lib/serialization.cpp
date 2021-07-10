@@ -43,29 +43,32 @@ static auto operator<<(std::ostream &stream, const Date &date)
   return stream;
 }
 
-void WritesAccountToStream::save(std::string_view name,
-                                 const VerifiableTransactions &credits,
-                                 const VerifiableTransactions &debits) {
+void WritesAccountToStream::save(
+    std::string_view name, const std::vector<TransactionRecord *> &credits,
+    const std::vector<TransactionRecord *> &debits) {
   stream << name << '\n';
   stream << "credits";
   for (const auto &credit : credits) {
     stream << '\n';
-    if (credit.verified)
-      stream << '^';
-    stream << credit.transaction.amount << ' ';
-    stream << credit.transaction.description << ' ';
-    stream << credit.transaction.date;
+    const auto transactionRecordSerialization{factory.make(stream)};
+    credit->save(*transactionRecordSerialization);
   }
   stream << '\n';
   stream << "debits";
   for (const auto &debit : debits) {
     stream << '\n';
-    if (debit.verified)
-      stream << '^';
-    stream << debit.transaction.amount << ' ';
-    stream << debit.transaction.description << ' ';
-    stream << debit.transaction.date;
+    const auto transactionRecordSerialization{factory.make(stream)};
+    debit->save(*transactionRecordSerialization);
   }
+}
+
+void WritesTransactionRecordToStream::save(
+    const VerifiableTransaction &credit) {
+  if (credit.verified)
+    stream << '^';
+  stream << credit.transaction.amount << ' ';
+  stream << credit.transaction.description << ' ';
+  stream << credit.transaction.date;
 }
 
 static auto date(std::string_view s) -> Date {
@@ -122,23 +125,28 @@ loadTransaction(std::istream &input, std::string &line,
   description << next;
   onDeserialization(
       {{amount, description.str(), date(eventuallyDate)}, verified});
-  getline(input, line);
+}
+
+void ReadsTransactionRecordFromStream::load(Observer &observer) {
+  std::string line;
+  getline(stream, line);
+  loadTransaction(stream, line,
+                  [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {
+  const auto transactionRecordDeserialization{factory.make(stream)};
   std::string line;
   getline(stream, line);
-  getline(stream, line);
-  while (line != "debits") {
-    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
-      observer.notifyThatCreditHasBeenDeserialized(t);
-    });
+  while (stream.peek() != 'd') {
+    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
   }
   getline(stream, line);
-  while (!line.empty()) {
-    loadTransaction(stream, line, [&](const VerifiableTransaction &t) {
-      observer.notifyThatDebitHasBeenDeserialized(t);
-    });
+  auto next{stream.get()};
+  while (stream && next != '\n') {
+    stream.unget();
+    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
+    next = stream.get();
   }
 }
 
@@ -165,9 +173,16 @@ WritesSessionToStream::WritesSessionToStream(
     : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
                                             accountSerializationFactory} {}
 
-ReadsAccountFromStream::ReadsAccountFromStream(std::istream &stream)
-    : stream{stream} {}
+ReadsAccountFromStream::ReadsAccountFromStream(
+    std::istream &stream,
+    StreamTransactionRecordDeserializationFactory &factory)
+    : stream{stream}, factory{factory} {}
 
-WritesAccountToStream::WritesAccountToStream(std::ostream &stream)
+WritesAccountToStream::WritesAccountToStream(
+    std::ostream &stream, StreamTransactionRecordSerializationFactory &factory)
+    : stream{stream}, factory{factory} {}
+
+ReadsTransactionRecordFromStream::ReadsTransactionRecordFromStream(
+    std::istream &stream)
     : stream{stream} {}
 } // namespace sbash64::budget

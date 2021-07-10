@@ -9,15 +9,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            cpp-compiler: g++-10
+          - os: macOS-latest
+            cpp-compiler: clang++
+          - os: windows-latest
+            cpp-compiler: cl
     steps:
       - uses: actions/checkout@v2
       - name: generate buildsystem
+        env:
+          CXX: ${{ matrix.cpp-compiler }}
         run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_TESTS=1 -DCMAKE_BUILD_TYPE=Release
       - name: build tests
         run: cmake --build build --config Release --target sbash64-budget-tests
       - name: test
         run: ctest -V -C Release
         working-directory: ./build
-      - name: build app
-        run: cmake --build build --config Release --target sbash64-budget

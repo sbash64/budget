@@ -4,7 +4,6 @@ add_executable(
   parse.cpp
   usd.cpp
   print.cpp
-  command-line.cpp
   bank.cpp
   account.cpp
   stream.cpp)
