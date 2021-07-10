@@ -50,11 +50,9 @@ struct Date {
   int year;
   Month month;
   int day;
-};
 
-constexpr auto operator==(const Date &a, const Date &b) -> bool {
-  return a.year == b.year && a.month == b.month && a.day == b.day;
-}
+  auto operator==(const Date &) const -> bool = default;
+};
 
 constexpr auto operator<(const Date &a, const Date &b) -> bool {
   if (a.year != b.year)
@@ -69,13 +67,10 @@ struct Transaction {
   std::string description;
   Date date;
 
+  auto operator==(const Transaction &) const -> bool = default;
+
   enum class Type { credit, debit };
 };
-
-constexpr auto operator==(const Transaction &a, const Transaction &b) -> bool {
-  return a.amount == b.amount && a.description == b.description &&
-         a.date == b.date;
-}
 
 static auto operator<(const Transaction &a, const Transaction &b) -> bool {
   if (a.date != b.date)
@@ -90,12 +85,9 @@ static auto operator<(const Transaction &a, const Transaction &b) -> bool {
 struct VerifiableTransaction {
   Transaction transaction;
   bool verified{};
-};
 
-constexpr auto operator==(const VerifiableTransaction &a,
-                          const VerifiableTransaction &b) -> bool {
-  return a.transaction == b.transaction && a.verified == b.verified;
-}
+  auto operator==(const VerifiableTransaction &) const -> bool = default;
+};
 
 using Transactions = std::vector<Transaction>;
 using VerifiableTransactions = std::vector<VerifiableTransaction>;
