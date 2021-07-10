@@ -394,51 +394,62 @@ int main() {
           const auto json{nlohmann::json::parse(message->get_payload())};
           if (methodIs(json, "debit"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.debit(json["name"].get<std::string>(),
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.debit(json["name"].get<std::string>(),
                                 sbash64::budget::transaction(json));
                  });
           else if (methodIs(json, "remove debit"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.removeDebit(json["name"].get<std::string>(),
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.removeDebit(json["name"].get<std::string>(),
+                                      sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "verify debit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.verifyDebit(json["name"].get<std::string>(),
                                       sbash64::budget::transaction(json));
                  });
           else if (methodIs(json, "credit"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.credit(sbash64::budget::transaction(json));
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.credit(sbash64::budget::transaction(json));
                  });
           else if (methodIs(json, "remove credit"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.removeCredit(sbash64::budget::transaction(json));
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.removeCredit(sbash64::budget::transaction(json));
+                 });
+          else if (methodIs(json, "verify credit"))
+            call(applications, connection,
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.verifyCredit(sbash64::budget::transaction(json));
                  });
           else if (methodIs(json, "transfer"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.transferTo(
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.transferTo(
                        json["name"].get<std::string>(),
                        sbash64::budget::usd(json["amount"].get<std::string>()),
                        sbash64::budget::date(json["date"].get<std::string>()));
                  });
           else if (methodIs(json, "remove transfer"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.removeTransfer(
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.removeTransfer(
                        json["name"].get<std::string>(),
                        sbash64::budget::usd(json["amount"].get<std::string>()),
                        sbash64::budget::date(json["date"].get<std::string>()));
                  });
           else if (methodIs(json, "remove account"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.removeAccount(json["name"].get<std::string>());
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.removeAccount(json["name"].get<std::string>());
                  });
           else if (methodIs(json, "create account"))
             call(applications, connection,
-                 [&json](sbash64::budget::Budget &Budget) {
-                   Budget.transferTo(
+                 [&json](sbash64::budget::Budget &budget) {
+                   budget.transferTo(
                        json["name"].get<std::string>(),
                        sbash64::budget::usd(json["amount"].get<std::string>()),
                        sbash64::budget::date(json["date"].get<std::string>()));

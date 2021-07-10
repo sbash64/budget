@@ -120,6 +120,7 @@ function main() {
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
+        createChild(header, "th").textContent = "Verified";
         accountTables.push(accountTable);
 
         accountTable.style.display = "none";
@@ -151,6 +152,7 @@ function main() {
         createChild(row, "td");
         createChild(row, "td");
         createChild(row, "td");
+        createChild(row, "td");
         selection.addEventListener("change", () => {
           selectedTransactionRow = row;
         });
@@ -161,6 +163,7 @@ function main() {
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
         selection.type = "radio";
+        createChild(row, "td");
         createChild(row, "td");
         createChild(row, "td");
         createChild(row, "td");
@@ -193,8 +196,12 @@ function main() {
         ].cells[4].textContent = message.date;
         break;
       }
-      case "verify transaction":
+      case "verify transaction": {
+        accountTables[message.accountIndex].rows[
+          message.transactionIndex + 1
+        ].cells[5].textContent = "✅";
         break;
+      }
       default:
         break;
     }
