@@ -90,6 +90,8 @@ function main() {
   removeTransactionButton.textContent = "remove";
   const transferButton = createChild(transactionButtons, "button");
   transferButton.textContent = "transfer";
+  const verifyButton = createChild(transactionButtons, "button");
+  verifyButton.textContent = "verify";
   initializeAccountTable(accountSummaryTable);
   let selectedAccountTable = null;
   let selectedTransactionRow = null;
@@ -245,6 +247,17 @@ function main() {
         name: selectedAccountSummaryRow.cells[1].textContent,
         amount: amountInput.value,
         date: dateInput.value,
+      })
+    );
+  });
+  verifyButton.addEventListener("click", () => {
+    websocket.send(
+      JSON.stringify({
+        method: "verify debit",
+        name: selectedAccountSummaryRow.cells[1].textContent,
+        description: selectedTransactionRow.cells[1].textContent,
+        amount: selectedTransactionRow.cells[2].textContent,
+        date: selectedTransactionRow.cells[4].textContent,
       })
     );
   });
