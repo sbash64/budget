@@ -192,7 +192,8 @@ function main() {
         ].cells[1].textContent = message.description;
         accountTables[message.accountIndex].rows[
           message.transactionIndex + 1
-        ].cells[2].textContent = message.amount;
+        ].cells[message.transactionType === "credit" ? 3 : 2].textContent =
+          message.amount;
         accountTables[message.accountIndex].rows[
           message.transactionIndex + 1
         ].cells[4].textContent = message.date;

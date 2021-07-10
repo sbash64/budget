@@ -108,8 +108,10 @@ public:
   WebSocketTransactionRecordObserver(websocketpp::server<debug_custom> &server,
                                      websocketpp::connection_hdl connection,
                                      TransactionRecord &record,
-                                     ParentAndChild &parent)
-      : connection{std::move(connection)}, server{server}, parent{parent} {
+                                     ParentAndChild &parent,
+                                     Transaction::Type type)
+      : connection{std::move(connection)}, server{server}, parent{parent},
+        type{type} {
     record.attach(this);
   }
 
@@ -134,6 +136,8 @@ public:
     json["method"] = "update transaction";
     json["accountIndex"] = parent.index();
     json["transactionIndex"] = parent.index(this);
+    json["transactionType"] =
+        type == Transaction::Type::credit ? "credit" : "debit";
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
@@ -152,6 +156,7 @@ private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
   ParentAndChild &parent;
+  Transaction::Type type;
 };
 
 class WebSocketAccountObserver : public Account::Observer,
@@ -195,7 +200,7 @@ public:
 
   void notifyThatCreditHasBeenAdded(TransactionRecord &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this));
+        server, connection, t, *this, Transaction::Type::credit));
     nlohmann::json json;
     json["method"] = "add credit";
     json["accountIndex"] = parent.index(this);
@@ -205,7 +210,7 @@ public:
 
   void notifyThatDebitHasBeenAdded(TransactionRecord &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this));
+        server, connection, t, *this, Transaction::Type::debit));
     nlohmann::json json;
     json["method"] = "add debit";
     json["accountIndex"] = parent.index(this);
