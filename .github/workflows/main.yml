@@ -13,7 +13,7 @@ jobs:
           - os: ubuntu-latest
             cpp-compiler: g++-10
           - os: macOS-latest
-            cpp-compiler: clang
+            cpp-compiler: clang++
           - os: windows-latest
             cpp-compiler: cl
     steps:
