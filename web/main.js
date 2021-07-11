@@ -4,11 +4,23 @@ function createChild(parent, tagName) {
   return child;
 }
 
-function initializeAccountTable(accountTable) {
-  const header = createChild(accountTable, "tr");
-  createChild(header, "th");
-  createChild(header, "th").textContent = "Name";
-  createChild(header, "th").textContent = "Balance";
+function sendMessage(websocket, message) {
+  websocket.send(JSON.stringify(message));
+}
+
+function transactionMessage(
+  selectedAccountSummaryRow,
+  selectedTransactionRow,
+  method
+) {
+  return {
+    method,
+    name: selectedAccountSummaryRow.cells[1].textContent,
+    description: selectedTransactionRow.cells[1].textContent,
+    debitAmount: selectedTransactionRow.cells[2].textContent,
+    creditAmount: selectedTransactionRow.cells[3].textContent,
+    date: selectedTransactionRow.cells[4].textContent,
+  };
 }
 
 function main() {
@@ -30,9 +42,9 @@ function main() {
     accountSummariesWithAccountControls,
     "div"
   );
-  const nameLabel = createChild(accountControls, "label");
-  nameLabel.textContent = "name";
-  const nameInput = createChild(nameLabel, "input");
+  const newAccountNameLabel = createChild(accountControls, "label");
+  newAccountNameLabel.textContent = "name";
+  const nameInput = createChild(newAccountNameLabel, "input");
   nameInput.type = "text";
   const accountButtons = createChild(accountControls, "div");
   const createAccountButton = createChild(accountButtons, "button");
@@ -45,17 +57,20 @@ function main() {
     accountsAndTransactionControls,
     "div"
   );
-  const descriptionLabel = createChild(transactionControls, "label");
+  const addTransactionControls = createChild(transactionControls, "div");
+  addTransactionControls.style.display = "flex";
+  addTransactionControls.style.flexDirection = "column";
+  const descriptionLabel = createChild(addTransactionControls, "label");
   descriptionLabel.textContent = "description";
   const descriptionInput = createChild(descriptionLabel, "input");
   descriptionInput.type = "text";
-  const amountLabel = createChild(transactionControls, "label");
+  const amountLabel = createChild(addTransactionControls, "label");
   amountLabel.textContent = "amount";
   const amountInput = createChild(amountLabel, "input");
   amountInput.type = "number";
   amountInput.min = 0;
   amountInput.step = "any";
-  const dateLabel = createChild(transactionControls, "label");
+  const dateLabel = createChild(addTransactionControls, "label");
   dateLabel.textContent = "date";
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
@@ -68,7 +83,12 @@ function main() {
   transferButton.textContent = "transfer";
   const verifyButton = createChild(transactionButtons, "button");
   verifyButton.textContent = "verify";
-  initializeAccountTable(accountSummaryTable);
+  const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
+  const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
+  createChild(accountSummaryTableHeadRow, "th");
+  createChild(accountSummaryTableHeadRow, "th").textContent = "Name";
+  createChild(accountSummaryTableHeadRow, "th").textContent = "Balance";
+  const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
   let selectedAccountTable = null;
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
@@ -79,7 +99,7 @@ function main() {
     const message = JSON.parse(event.data);
     switch (message.method) {
       case "add account": {
-        const accountSummaryRow = createChild(accountSummaryTable, "tr");
+        const accountSummaryRow = createChild(accountSummaryTableBody, "tr");
         const selection = createChild(
           createChild(accountSummaryRow, "td"),
           "input"
@@ -173,66 +193,54 @@ function main() {
     }
   };
   removeAccountButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "remove account",
-        name: selectedAccountSummaryRow.cells[1].textContent,
-      })
-    );
+    sendMessage(websocket, {
+      method: "remove account",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+    });
   });
   createAccountButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "create account",
-        name: nameInput.value,
-        amount: amountInput.value,
-        date: dateInput.value,
-      })
-    );
+    sendMessage(websocket, {
+      method: "create account",
+      name: nameInput.value,
+      amount: amountInput.value,
+      date: dateInput.value,
+    });
   });
   addTransactionButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "add transaction",
-        name: selectedAccountSummaryRow.cells[1].textContent,
-        description: descriptionInput.value,
-        amount: amountInput.value,
-        date: dateInput.value,
-      })
-    );
+    sendMessage(websocket, {
+      method: "add transaction",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+      description: descriptionInput.value,
+      amount: amountInput.value,
+      date: dateInput.value,
+    });
   });
   transferButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "transfer",
-        name: selectedAccountSummaryRow.cells[1].textContent,
-        amount: amountInput.value,
-        date: dateInput.value,
-      })
-    );
+    sendMessage(websocket, {
+      method: "transfer",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+      amount: amountInput.value,
+      date: dateInput.value,
+    });
   });
   verifyButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "verify transaction",
-        name: selectedAccountSummaryRow.cells[1].textContent,
-        description: selectedTransactionRow.cells[1].textContent,
-        debitAmount: selectedTransactionRow.cells[2].textContent,
-        creditAmount: selectedTransactionRow.cells[3].textContent,
-        date: selectedTransactionRow.cells[4].textContent,
-      })
+    sendMessage(
+      websocket,
+      transactionMessage(
+        selectedAccountSummaryRow,
+        selectedTransactionRow,
+        "verify transaction"
+      )
     );
   });
   removeTransactionButton.addEventListener("click", () => {
-    websocket.send(
-      JSON.stringify({
-        method: "remove transaction",
-        name: selectedAccountSummaryRow.cells[1].textContent,
-        description: selectedTransactionRow.cells[1].textContent,
-        debitAmount: selectedTransactionRow.cells[2].textContent,
-        creditAmount: selectedTransactionRow.cells[3].textContent,
-        date: selectedTransactionRow.cells[4].textContent,
-      })
+    sendMessage(
+      websocket,
+      transactionMessage(
+        selectedAccountSummaryRow,
+        selectedTransactionRow,
+        "remove transaction"
+      )
     );
   });
 }
