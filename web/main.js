@@ -93,6 +93,7 @@ function main() {
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
   const accountTables = [];
+  const accountTableBodies = [];
   const accountSummaryRows = [];
   const websocket = new WebSocket("ws://localhost:9012");
   websocket.onmessage = (event) => {
@@ -112,14 +113,17 @@ function main() {
         accountSummaryRows.push(accountSummaryRow);
 
         const accountTable = createChild(accounts, "table");
-        const header = createChild(accountTable, "tr");
+        const accountTableHead = createChild(accountTable, "thead");
+        const header = createChild(accountTableHead, "tr");
         createChild(header, "th");
         createChild(header, "th").textContent = "Description";
         createChild(header, "th").textContent = "Debits";
         createChild(header, "th").textContent = "Credits";
         createChild(header, "th").textContent = "Date";
         createChild(header, "th").textContent = "Verified";
+        const accountTableBody = createChild(accountTable, "tbody");
         accountTables.push(accountTable);
+        accountTableBodies.push(accountTableBody);
 
         accountTable.style.display = "none";
         selection.addEventListener("change", () => {
@@ -142,7 +146,7 @@ function main() {
         break;
       }
       case "add transaction": {
-        const row = createChild(accountTables[message.accountIndex], "tr");
+        const row = createChild(accountTableBodies[message.accountIndex], "tr");
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
         selection.type = "radio";
@@ -162,29 +166,29 @@ function main() {
         break;
       }
       case "remove transaction": {
-        accountTables[message.accountIndex].deleteRow(
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].deleteRow(
+          message.transactionIndex
         );
         break;
       }
       case "update transaction": {
-        accountTables[message.accountIndex].rows[
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].rows[
+          message.transactionIndex
         ].cells[1].textContent = message.description;
-        accountTables[message.accountIndex].rows[
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].rows[
+          message.transactionIndex
         ].cells[2].textContent = message.debitAmount;
-        accountTables[message.accountIndex].rows[
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].rows[
+          message.transactionIndex
         ].cells[3].textContent = message.creditAmount;
-        accountTables[message.accountIndex].rows[
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].rows[
+          message.transactionIndex
         ].cells[4].textContent = message.date;
         break;
       }
       case "verify transaction": {
-        accountTables[message.accountIndex].rows[
-          message.transactionIndex + 1
+        accountTableBodies[message.accountIndex].rows[
+          message.transactionIndex
         ].cells[5].textContent = "✅";
         break;
       }
