@@ -25,7 +25,8 @@ function transactionMessage(
 
 function main() {
   const accountSummariesWithDetailView = createChild(document.body, "div");
-  accountSummariesWithDetailView.style.display = "flex";
+  accountSummariesWithDetailView.style.display = "grid";
+  accountSummariesWithDetailView.style.gridTemplateColumns = "1fr 1fr";
   const accountSummariesWithAccountControls = createChild(
     accountSummariesWithDetailView,
     "div"
@@ -34,47 +35,77 @@ function main() {
     accountSummariesWithAccountControls,
     "table"
   );
-  const accountDetailViewAndTransactionControls = createChild(
-    accountSummariesWithDetailView,
-    "div"
-  );
   const accountControls = createChild(
     accountSummariesWithAccountControls,
     "div"
   );
+
   const createAccountControls = createChild(accountControls, "div");
+  createAccountControls.style.border = "1px solid";
   const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
   const newAccountNameInput = createChild(newAccountNameLabel, "input");
   newAccountNameInput.type = "text";
   const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
+
   const removeAccountButton = createChild(accountControls, "button");
   removeAccountButton.textContent = "remove";
+
+  const addTransactionControls = createChild(accountControls, "div");
+  addTransactionControls.style.border = "1px solid";
+  const addTransactionDescriptionLabel = createChild(
+    addTransactionControls,
+    "label"
+  );
+  addTransactionDescriptionLabel.textContent = "description";
+  const addTransactionDescriptionInput = createChild(
+    addTransactionDescriptionLabel,
+    "input"
+  );
+  addTransactionDescriptionInput.type = "text";
+  const addTransactionAmountLabel = createChild(
+    addTransactionControls,
+    "label"
+  );
+  addTransactionAmountLabel.textContent = "amount";
+  const addTransactionAmountInput = createChild(
+    addTransactionAmountLabel,
+    "input"
+  );
+  addTransactionAmountInput.type = "number";
+  addTransactionAmountInput.min = 0;
+  addTransactionAmountInput.step = "any";
+  const addTransactionDateLabel = createChild(addTransactionControls, "label");
+  addTransactionDateLabel.textContent = "date";
+  const addTransactionDateInput = createChild(addTransactionDateLabel, "input");
+  addTransactionDateInput.type = "date";
+  const addTransactionButton = createChild(addTransactionControls, "button");
+  addTransactionButton.textContent = "add";
+
+  const transferControls = createChild(accountControls, "div");
+  transferControls.style.border = "1px solid";
+  const transferAmountLabel = createChild(transferControls, "label");
+  transferAmountLabel.textContent = "amount";
+  const transferAmountInput = createChild(transferAmountLabel, "input");
+  transferAmountInput.type = "number";
+  transferAmountInput.min = 0;
+  transferAmountInput.step = "any";
+  const transferDateLabel = createChild(transferControls, "label");
+  transferDateLabel.textContent = "date";
+  const transferDateInput = createChild(transferDateLabel, "input");
+  transferDateInput.type = "date";
+  const transferButton = createChild(transferControls, "button");
+  transferButton.textContent = "transfer";
+
+  const accountDetailViewAndTransactionControls = createChild(
+    accountSummariesWithDetailView,
+    "div"
+  );
   const transactionTable = createChild(
     accountDetailViewAndTransactionControls,
     "div"
   );
-  const addTransactionControls = createChild(accountControls, "div");
-  const descriptionLabel = createChild(addTransactionControls, "label");
-  descriptionLabel.textContent = "description";
-  const descriptionInput = createChild(descriptionLabel, "input");
-  descriptionInput.type = "text";
-  const amountLabel = createChild(addTransactionControls, "label");
-  amountLabel.textContent = "amount";
-  const amountInput = createChild(amountLabel, "input");
-  amountInput.type = "number";
-  amountInput.min = 0;
-  amountInput.step = "any";
-  const dateLabel = createChild(addTransactionControls, "label");
-  dateLabel.textContent = "date";
-  const dateInput = createChild(dateLabel, "input");
-  dateInput.type = "date";
-  const addTransactionButton = createChild(addTransactionControls, "button");
-  addTransactionButton.textContent = "add";
-
-  const transferButton = createChild(accountControls, "button");
-  transferButton.textContent = "transfer";
 
   const transactionControls = createChild(
     accountDetailViewAndTransactionControls,
@@ -84,6 +115,7 @@ function main() {
   removeTransactionButton.textContent = "remove";
   const verifyButton = createChild(transactionControls, "button");
   verifyButton.textContent = "verify";
+
   const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
   const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
   createChild(accountSummaryTableHeadRow, "th");
@@ -209,25 +241,25 @@ function main() {
     sendMessage(websocket, {
       method: "create account",
       name: newAccountNameInput.value,
-      amount: amountInput.value,
-      date: dateInput.value,
+      amount: addTransactionAmountInput.value,
+      date: addTransactionDateInput.value,
     });
   });
   addTransactionButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "add transaction",
       name: selectedAccountSummaryRow.cells[1].textContent,
-      description: descriptionInput.value,
-      amount: amountInput.value,
-      date: dateInput.value,
+      description: addTransactionDescriptionInput.value,
+      amount: addTransactionAmountInput.value,
+      date: addTransactionDateInput.value,
     });
   });
   transferButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "transfer",
       name: selectedAccountSummaryRow.cells[1].textContent,
-      amount: amountInput.value,
-      date: dateInput.value,
+      amount: transferAmountInput.value,
+      date: transferDateInput.value,
     });
   });
   verifyButton.addEventListener("click", () => {
