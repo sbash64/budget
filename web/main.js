@@ -146,8 +146,18 @@ function main() {
   const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
   const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
   createChild(accountSummaryTableHeadRow, "th");
-  createChild(accountSummaryTableHeadRow, "th").textContent = "Name";
-  createChild(accountSummaryTableHeadRow, "th").textContent = "Balance";
+  const accountSummaryNameHeaderElement = createChild(
+    accountSummaryTableHeadRow,
+    "th"
+  );
+  accountSummaryNameHeaderElement.textContent = "Name";
+  accountSummaryNameHeaderElement.style.width = "20ch";
+  const accountSummaryBalanceHeaderElement = createChild(
+    accountSummaryTableHeadRow,
+    "th"
+  );
+  accountSummaryBalanceHeaderElement.textContent = "Balance";
+  accountSummaryBalanceHeaderElement.style.width = "9ch";
   const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
 
   const accountTableHead = createChild(transactionTable, "thead");
@@ -156,9 +166,15 @@ function main() {
   const descriptionHeaderElement = createChild(accountTableHeader, "th");
   descriptionHeaderElement.textContent = "Description";
   descriptionHeaderElement.style.width = "30ch";
-  createChild(accountTableHeader, "th").textContent = "Debits";
-  createChild(accountTableHeader, "th").textContent = "Credits";
-  createChild(accountTableHeader, "th").textContent = "Date";
+  const debitHeaderElement = createChild(accountTableHeader, "th");
+  debitHeaderElement.textContent = "Debits";
+  debitHeaderElement.style.width = "9ch";
+  const creditHeaderElement = createChild(accountTableHeader, "th");
+  creditHeaderElement.textContent = "Credits";
+  creditHeaderElement.style.width = "9ch";
+  const dateHeaderElement = createChild(accountTableHeader, "th");
+  dateHeaderElement.textContent = "Date";
+  dateHeaderElement.style.width = "12ch";
   createChild(accountTableHeader, "th").textContent = "Verified";
 
   const totalBalance = createChild(document.body, "div");
@@ -219,8 +235,8 @@ function main() {
         createChild(row, "td");
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "right";
-        createChild(row, "td");
-        createChild(row, "td");
+        createChild(row, "td").style.textAlign = "center";
+        createChild(row, "td").style.textAlign = "center";
         selection.addEventListener("change", () => {
           selectedTransactionRow = row;
         });
