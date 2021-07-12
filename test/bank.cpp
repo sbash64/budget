@@ -1,10 +1,14 @@
 #include "bank.hpp"
 #include "persistent-memory-stub.hpp"
 #include "usd.hpp"
-#include <functional>
-#include <map>
+
 #include <sbash64/budget/bank.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
+
+#include <gsl/gsl>
+
+#include <functional>
+#include <map>
 #include <utility>
 
 namespace sbash64::budget::bank {
@@ -160,6 +164,14 @@ static void debit(BudgetInMemory &bank, std::string_view accountName,
 
 static void credit(BudgetInMemory &bank, const Transaction &t = {}) {
   bank.credit(t);
+}
+
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<Account *> &expected,
+                        const std::vector<Account *> &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (gsl::index i{0}; i < expected.size(); ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
 }
 
 static void assertContains(testcpplite::TestResult &result,
@@ -573,6 +585,26 @@ void createsAccount(testcpplite::TestResult &result) {
                const std::shared_ptr<AccountStub> &, BudgetInMemory &budget) {
     budget.createAccount("panda");
     assertEqual(result, "panda", factory.name());
+  });
+}
+
+void closesAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    const auto penguin{std::make_shared<AccountStub>()};
+    add(factory, penguin, "penguin");
+    const auto leopard{std::make_shared<AccountStub>()};
+    add(factory, leopard, "leopard");
+    debit(bank, "giraffe", {});
+    debit(bank, "penguin", {});
+    debit(bank, "leopard", {});
+    bank.closeAccount("giraffe");
+    PersistentMemoryStub persistent;
+    bank.save(persistent);
+    assertEqual(result, {leopard.get(), penguin.get()},
+                persistent.secondaryAccounts());
   });
 }
 } // namespace sbash64::budget::bank

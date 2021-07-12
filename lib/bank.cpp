@@ -232,4 +232,11 @@ void BudgetInMemory::createAccount(std::string_view name) {
   createNewAccountIfNeeded(secondaryAccounts, factory, name,
                            transactionRecordFactory, observer);
 }
+
+void BudgetInMemory::closeAccount(std::string_view name) {
+  if (contains(secondaryAccounts, name)) {
+    secondaryAccounts.at(std::string{name})->remove();
+    secondaryAccounts.erase(std::string{name});
+  }
+}
 } // namespace sbash64::budget
