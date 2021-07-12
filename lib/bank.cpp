@@ -204,10 +204,16 @@ void BudgetInMemory::verifyCredit(const Transaction &t) {
   budget::verifyCredit(primaryAccount, t);
 }
 
+static void
+remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+       std::string_view name) {
+  at(accounts, name)->remove();
+  accounts.erase(std::string{name});
+}
+
 void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(secondaryAccounts, name)) {
-    at(secondaryAccounts, name)->remove();
-    secondaryAccounts.erase(std::string{name});
+    remove(secondaryAccounts, name);
     notifyThatTotalBalanceHasChanged(observer, primaryAccount,
                                      secondaryAccounts);
   }
@@ -252,8 +258,7 @@ void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
         transaction(secondaryAccounts, name, description, date));
     budget::verifyCredit(primaryAccount, transaction(secondaryAccounts, name,
                                                      description, date));
-    at(secondaryAccounts, name)->remove();
-    secondaryAccounts.erase(std::string{name});
+    remove(secondaryAccounts, name);
   }
 }
 } // namespace sbash64::budget
