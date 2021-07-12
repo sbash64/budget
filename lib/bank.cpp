@@ -75,7 +75,7 @@ static void notifyThatTotalBalanceHasChanged(
 }
 
 static auto make(Account::Factory &factory, std::string_view name,
-                 TransactionRecord::Factory &transactionRecordFactory,
+                 ObservableTransaction::Factory &transactionRecordFactory,
                  Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{factory.make(name, transactionRecordFactory)};
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
@@ -93,7 +93,7 @@ contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
     Account::Factory &factory, std::string_view accountName,
-    TransactionRecord::Factory &transactionRecordFactory,
+    ObservableTransaction::Factory &transactionRecordFactory,
     Budget::Observer *observer) {
   if (!contains(accounts, accountName))
     accounts[std::string{accountName}] =
@@ -116,12 +116,11 @@ at(const std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
   return accounts.at(std::string{name});
 }
 
-static auto makeAndLoad(Account::Factory &factory,
-                        AccountDeserialization &deserialization,
-                        std::string_view name,
-                        TransactionRecord::Factory &transactionRecordFactory,
-                        Budget::Observer *observer)
-    -> std::shared_ptr<Account> {
+static auto
+makeAndLoad(Account::Factory &factory, AccountDeserialization &deserialization,
+            std::string_view name,
+            ObservableTransaction::Factory &transactionRecordFactory,
+            Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{make(factory, name, transactionRecordFactory, observer)};
   account->load(deserialization);
   return account;
@@ -129,7 +128,7 @@ static auto makeAndLoad(Account::Factory &factory,
 
 BudgetInMemory::BudgetInMemory(
     Account::Factory &factory,
-    TransactionRecord::Factory &transactionRecordFactory)
+    ObservableTransaction::Factory &transactionRecordFactory)
     : factory{factory}, transactionRecordFactory{transactionRecordFactory},
       primaryAccount{make(factory, masterAccountName.data(),
                           transactionRecordFactory, observer)} {}

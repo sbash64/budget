@@ -13,8 +13,8 @@ namespace {
 class AccountSerializationStub : public AccountSerialization {
 public:
   void save(std::string_view name,
-            const std::vector<TransactionRecord *> &credits,
-            const std::vector<TransactionRecord *> &debits) override {}
+            const std::vector<ObservableTransaction *> &credits,
+            const std::vector<ObservableTransaction *> &debits) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -22,8 +22,7 @@ public:
   void load(Observer &) override {}
 };
 
-class TransactionRecordDeserializationStub
-    : public TransactionRecordDeserialization {
+class TransactionRecordDeserializationStub : public TransactionDeserialization {
 public:
   void load(Observer &) override {}
 };
@@ -49,7 +48,7 @@ class StreamTransactionRecordDeserializationFactoryStub
     : public StreamTransactionRecordDeserializationFactory {
 public:
   auto make(std::istream &)
-      -> std::shared_ptr<TransactionRecordDeserialization> override {
+      -> std::shared_ptr<TransactionDeserialization> override {
     return std::make_shared<TransactionRecordDeserializationStub>();
   }
 };
@@ -79,7 +78,7 @@ private:
 };
 
 class TransactionRecordDeserializationObserverStub
-    : public TransactionRecordDeserialization::Observer {
+    : public TransactionDeserialization::Observer {
 public:
   auto transaction() -> VerifiableTransaction { return transaction_; }
 
@@ -104,7 +103,7 @@ public:
   explicit AccountDeserializationObserverStub(std::istream &stream)
       : stream{stream} {}
 
-  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {
+  void notifyThatCreditIsReady(TransactionDeserialization &) override {
     ReadsTransactionRecordFromStream reads{stream};
     TransactionRecordDeserializationObserverStub observer;
     observer.setOnReady(
@@ -112,7 +111,7 @@ public:
     reads.load(observer);
   }
 
-  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {
+  void notifyThatDebitIsReady(TransactionDeserialization &) override {
     ReadsTransactionRecordFromStream reads{stream};
     TransactionRecordDeserializationObserverStub observer;
     observer.setOnReady(
@@ -120,13 +119,13 @@ public:
     reads.load(observer);
   }
 
-  auto credits() -> VerifiableTransactions { return credits_; }
+  auto credits() -> std::vector<VerifiableTransaction> { return credits_; }
 
-  auto debits() -> VerifiableTransactions { return debits_; }
+  auto debits() -> std::vector<VerifiableTransaction> { return debits_; }
 
 private:
-  VerifiableTransactions credits_;
-  VerifiableTransactions debits_;
+  std::vector<VerifiableTransaction> credits_;
+  std::vector<VerifiableTransaction> debits_;
   std::istream &stream;
 };
 
@@ -156,8 +155,8 @@ public:
   void rename(std::string_view) override {}
   void verifyDebit(const Transaction &) override {}
   void verifyCredit(const Transaction &) override {}
-  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
-  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatCreditIsReady(TransactionDeserialization &) override {}
+  void notifyThatDebitIsReady(TransactionDeserialization &) override {}
   void reduce(const Date &) override {}
   auto balance() -> USD override { return {}; }
   void remove() override {}
@@ -173,12 +172,12 @@ class StreamTransactionRecordSerializationFactoryStub
     : public StreamTransactionRecordSerializationFactory {
 public:
   auto make(std::ostream &)
-      -> std::shared_ptr<TransactionRecordSerialization> override {
+      -> std::shared_ptr<TransactionSerialization> override {
     return {};
   }
 };
 
-class SavesNameTransactionRecordStub : public TransactionRecord {
+class SavesNameTransactionRecordStub : public ObservableTransaction {
 public:
   SavesNameTransactionRecordStub(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
@@ -187,8 +186,8 @@ public:
   void verify() override {}
   auto verifies(const Transaction &) -> bool override { return {}; }
   auto removes(const Transaction &) -> bool override { return {}; }
-  void save(TransactionRecordSerialization &) override { stream << name; }
-  void load(TransactionRecordDeserialization &) override {}
+  void save(TransactionSerialization &) override { stream << name; }
+  void load(TransactionDeserialization &) override {}
   void ready(const VerifiableTransaction &) override {}
   auto amount() -> USD override { return {}; }
   void remove() override {}
@@ -244,10 +243,11 @@ allen
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const VerifiableTransactions &expected,
-                        const VerifiableTransactions &actual) {
+                        const std::vector<VerifiableTransaction> &expected,
+                        const std::vector<VerifiableTransaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (VerifiableTransactions::size_type i{0}; i < expected.size(); ++i)
+  for (std::vector<VerifiableTransaction>::size_type i{0}; i < expected.size();
+       ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 

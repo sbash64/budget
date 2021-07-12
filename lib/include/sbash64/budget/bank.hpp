@@ -14,7 +14,7 @@ constexpr const std::array<char, 7> masterAccountName{"master"};
 
 class BudgetInMemory : public Budget {
 public:
-  BudgetInMemory(Account::Factory &, TransactionRecord::Factory &);
+  BudgetInMemory(Account::Factory &, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void debit(std::string_view accountName, const Transaction &) override;
   void removeDebit(std::string_view accountName, const Transaction &) override;
@@ -38,7 +38,7 @@ public:
 
 private:
   Account::Factory &factory;
-  TransactionRecord::Factory &transactionRecordFactory;
+  ObservableTransaction::Factory &transactionRecordFactory;
   Observer *observer{};
   std::shared_ptr<Account> primaryAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>>

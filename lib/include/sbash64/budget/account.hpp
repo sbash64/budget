@@ -9,7 +9,7 @@
 namespace sbash64::budget {
 class InMemoryAccount : public Account {
 public:
-  explicit InMemoryAccount(std::string name, TransactionRecord::Factory &);
+  explicit InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
@@ -20,8 +20,8 @@ public:
   void rename(std::string_view) override;
   void verifyDebit(const Transaction &) override;
   void verifyCredit(const Transaction &) override;
-  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override;
-  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override;
+  void notifyThatCreditIsReady(TransactionDeserialization &) override;
+  void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void reduce(const Date &) override;
   auto balance() -> USD override;
   void remove() override {
@@ -31,34 +31,34 @@ public:
 
   class Factory : public Account::Factory {
   public:
-    auto make(std::string_view name, TransactionRecord::Factory &)
+    auto make(std::string_view name, ObservableTransaction::Factory &)
         -> std::shared_ptr<Account> override;
   };
 
 private:
-  std::vector<std::shared_ptr<TransactionRecord>> creditRecords;
-  std::vector<std::shared_ptr<TransactionRecord>> debitRecords;
+  std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
+  std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
   std::string name;
   Observer *observer{};
-  TransactionRecord::Factory &factory;
+  ObservableTransaction::Factory &factory;
 };
 
-class TransactionRecordInMemory : public TransactionRecord {
+class TransactionRecordInMemory : public ObservableTransaction {
 public:
   void attach(Observer *a) override;
   void initialize(const Transaction &t) override;
   void verify() override;
   auto verifies(const Transaction &t) -> bool override;
   auto removes(const Transaction &t) -> bool override;
-  void save(TransactionRecordSerialization &serialization) override;
-  void load(TransactionRecordDeserialization &) override;
+  void save(TransactionSerialization &serialization) override;
+  void load(TransactionDeserialization &) override;
   auto amount() -> USD override;
   void ready(const VerifiableTransaction &) override;
   void remove() override;
 
-  class Factory : public TransactionRecord::Factory {
+  class Factory : public ObservableTransaction::Factory {
   public:
-    auto make() -> std::shared_ptr<TransactionRecord> override {
+    auto make() -> std::shared_ptr<ObservableTransaction> override {
       return std::make_shared<TransactionRecordInMemory>();
     }
   };

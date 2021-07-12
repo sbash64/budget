@@ -60,9 +60,9 @@ public:
 
   void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
-  void notifyThatCreditIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatCreditIsReady(TransactionDeserialization &) override {}
 
-  void notifyThatDebitIsReady(TransactionRecordDeserialization &) override {}
+  void notifyThatDebitIsReady(TransactionDeserialization &) override {}
 
   auto reducedDate() -> Date { return reducedDate_; }
 
@@ -72,7 +72,7 @@ public:
 
   void remove() override { removed_ = true; }
 
-  auto removed() -> bool { return removed_; }
+  [[nodiscard]] auto removed() const -> bool { return removed_; }
 
 private:
   Transaction creditToVerify_;
@@ -81,8 +81,8 @@ private:
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
-  Transactions foundUnverifiedDebits;
-  Transactions foundUnverifiedCredits;
+  std::vector<Transaction> foundUnverifiedDebits;
+  std::vector<Transaction> foundUnverifiedCredits;
   Date reducedDate_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
@@ -98,7 +98,7 @@ public:
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s, TransactionRecord::Factory &)
+  auto make(std::string_view s, ObservableTransaction::Factory &)
       -> std::shared_ptr<Account> override {
     name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
@@ -109,9 +109,9 @@ private:
   std::string name_;
 };
 
-class TransactionRecordFactoryStub : public TransactionRecord::Factory {
+class TransactionRecordFactoryStub : public ObservableTransaction::Factory {
 public:
-  auto make() -> std::shared_ptr<TransactionRecord> override { return {}; }
+  auto make() -> std::shared_ptr<ObservableTransaction> override { return {}; }
 };
 
 class BankObserverStub : public BudgetInMemory::Observer {

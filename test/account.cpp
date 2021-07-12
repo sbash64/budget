@@ -11,7 +11,7 @@
 
 namespace sbash64::budget::account {
 namespace {
-class TransactionRecordStub : public TransactionRecord {
+class TransactionRecordStub : public ObservableTransaction {
 public:
   void verify() override { verified_ = true; }
 
@@ -33,9 +33,9 @@ public:
 
   auto removes(const Transaction &) -> bool override { return {}; }
 
-  void save(TransactionRecordSerialization &) override {}
+  void save(TransactionSerialization &) override {}
 
-  void load(TransactionRecordDeserialization &) override {}
+  void load(TransactionDeserialization &) override {}
 
   auto amount() -> USD override { return amount_; }
 
@@ -52,25 +52,24 @@ private:
   bool removed_{};
 };
 
-class TransactionRecordFactoryStub : public TransactionRecord::Factory {
+class TransactionRecordFactoryStub : public ObservableTransaction::Factory {
 public:
-  void add(std::shared_ptr<TransactionRecord> record) {
+  void add(std::shared_ptr<ObservableTransaction> record) {
     transactionRecords.push_back(std::move(record));
   }
 
-  auto make() -> std::shared_ptr<TransactionRecord> override {
+  auto make() -> std::shared_ptr<ObservableTransaction> override {
     auto next{transactionRecords.front()};
     transactionRecords.erase(transactionRecords.begin());
     return next;
   }
 
 private:
-  std::vector<std::shared_ptr<TransactionRecord>> transactionRecords;
+  std::vector<std::shared_ptr<ObservableTransaction>> transactionRecords;
   Transaction transaction_;
 };
 
-class TransactionRecordSerializationStub
-    : public TransactionRecordSerialization {
+class TransactionRecordSerializationStub : public TransactionSerialization {
 public:
   void save(const VerifiableTransaction &vt) override {
     verifiableTransaction_ = vt;
@@ -84,7 +83,7 @@ private:
   VerifiableTransaction verifiableTransaction_;
 };
 
-class TransactionRecordObserverStub : public TransactionRecord::Observer {
+class TransactionRecordObserverStub : public ObservableTransaction::Observer {
 public:
   void notifyThatIsVerified() override { verified_ = true; }
 
@@ -110,27 +109,26 @@ public:
 
   void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
 
-  void notifyThatCreditHasBeenAdded(TransactionRecord &tr) override {
+  void notifyThatCreditHasBeenAdded(ObservableTransaction &tr) override {
     newTransactionRecord_ = &tr;
   }
 
-  auto newTransactionRecord() -> const TransactionRecord * {
+  auto newTransactionRecord() -> const ObservableTransaction * {
     return newTransactionRecord_;
   }
 
-  void notifyThatDebitHasBeenAdded(TransactionRecord &tr) override {
+  void notifyThatDebitHasBeenAdded(ObservableTransaction &tr) override {
     newTransactionRecord_ = &tr;
   }
 
   void notifyThatWillBeRemoved() override {}
 
 private:
-  TransactionRecord *newTransactionRecord_{};
+  ObservableTransaction *newTransactionRecord_{};
   USD balance_{};
 };
 
-class TransactionRecordDeserializationStub
-    : public TransactionRecordDeserialization {
+class TransactionRecordDeserializationStub : public TransactionDeserialization {
 public:
   void load(Observer &a) override { observer_ = &a; }
 
@@ -141,45 +139,46 @@ private:
 };
 } // namespace
 
-static void assertContains(testcpplite::TestResult &result,
-                           const std::vector<TransactionRecord *> &transactions,
-                           const TransactionRecord *transaction) {
+static void
+assertContains(testcpplite::TestResult &result,
+               const std::vector<ObservableTransaction *> &transactions,
+               const ObservableTransaction *transaction) {
   assertTrue(result, std::find(transactions.begin(), transactions.end(),
                                transaction) != transactions.end());
 }
 
 static void assertContainsCredit(testcpplite::TestResult &result,
                                  PersistentAccountStub &persistentMemory,
-                                 const TransactionRecord *transaction) {
+                                 const ObservableTransaction *transaction) {
   assertContains(result, persistentMemory.credits(), transaction);
 }
 
 static void assertContainsDebit(testcpplite::TestResult &result,
                                 PersistentAccountStub &persistentMemory,
-                                const TransactionRecord *transaction) {
+                                const ObservableTransaction *transaction) {
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<TransactionRecord *> &expected,
-                        const std::vector<TransactionRecord *> &actual) {
+                        const std::vector<ObservableTransaction *> &expected,
+                        const std::vector<ObservableTransaction *> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<TransactionRecord *>::size_type i{0}; i < expected.size();
-       ++i)
+  for (std::vector<ObservableTransaction *>::size_type i{0};
+       i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
 static void
 assertDebitsSaved(testcpplite::TestResult &result,
                   PersistentAccountStub &persistentMemory,
-                  const std::vector<TransactionRecord *> &transactions) {
+                  const std::vector<ObservableTransaction *> &transactions) {
   assertEqual(result, persistentMemory.debits(), transactions);
 }
 
 static void
 assertCreditsSaved(testcpplite::TestResult &result,
                    PersistentAccountStub &persistentMemory,
-                   const std::vector<TransactionRecord *> &transactions) {
+                   const std::vector<ObservableTransaction *> &transactions) {
   assertEqual(result, persistentMemory.credits(), transactions);
 }
 

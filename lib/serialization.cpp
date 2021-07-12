@@ -44,8 +44,8 @@ static auto operator<<(std::ostream &stream, const Date &date)
 }
 
 void WritesAccountToStream::save(
-    std::string_view name, const std::vector<TransactionRecord *> &credits,
-    const std::vector<TransactionRecord *> &debits) {
+    std::string_view name, const std::vector<ObservableTransaction *> &credits,
+    const std::vector<ObservableTransaction *> &debits) {
   stream << name << '\n';
   stream << "credits";
   for (const auto &credit : credits) {

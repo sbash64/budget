@@ -54,22 +54,22 @@ public:
   auto accountName() -> std::string { return accountName_; }
 
   void save(std::string_view name,
-            const std::vector<TransactionRecord *> &credits,
-            const std::vector<TransactionRecord *> &debits) override {
+            const std::vector<ObservableTransaction *> &credits,
+            const std::vector<ObservableTransaction *> &debits) override {
     accountName_ = name;
     credits_ = credits;
     debits_ = debits;
   }
 
-  auto credits() -> std::vector<TransactionRecord *> { return credits_; }
+  auto credits() -> std::vector<ObservableTransaction *> { return credits_; }
 
-  auto debits() -> std::vector<TransactionRecord *> { return debits_; }
+  auto debits() -> std::vector<ObservableTransaction *> { return debits_; }
 
-  void setCreditsToLoad(VerifiableTransactions t) {
+  void setCreditsToLoad(std::vector<VerifiableTransaction> t) {
     creditsToLoad = std::move(t);
   }
 
-  void setDebitsToLoad(VerifiableTransactions t) {
+  void setDebitsToLoad(std::vector<VerifiableTransaction> t) {
     debitsToLoad = std::move(t);
   }
 
@@ -78,11 +78,11 @@ public:
   auto observer() -> const Observer * { return observer_; }
 
 private:
-  VerifiableTransactions creditsToLoad;
-  VerifiableTransactions debitsToLoad;
+  std::vector<VerifiableTransaction> creditsToLoad;
+  std::vector<VerifiableTransaction> debitsToLoad;
   std::string accountName_;
-  std::vector<TransactionRecord *> credits_;
-  std::vector<TransactionRecord *> debits_;
+  std::vector<ObservableTransaction *> credits_;
+  std::vector<ObservableTransaction *> debits_;
   const Observer *observer_{};
 };
 } // namespace sbash64::budget

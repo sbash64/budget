@@ -104,11 +104,12 @@ public:
 
 enum class TransactionType { credit, debit };
 
-class WebSocketTransactionRecordObserver : public TransactionRecord::Observer {
+class WebSocketTransactionRecordObserver
+    : public ObservableTransaction::Observer {
 public:
   WebSocketTransactionRecordObserver(websocketpp::server<debug_custom> &server,
                                      websocketpp::connection_hdl connection,
-                                     TransactionRecord &record,
+                                     ObservableTransaction &record,
                                      ParentAndChild &parent,
                                      TransactionType type)
       : connection{std::move(connection)}, server{server}, parent{parent},
@@ -198,7 +199,7 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatCreditHasBeenAdded(TransactionRecord &t) override {
+  void notifyThatCreditHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this, TransactionType::credit));
     nlohmann::json json;
@@ -208,7 +209,7 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatDebitHasBeenAdded(TransactionRecord &t) override {
+  void notifyThatDebitHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this, TransactionType::debit));
     nlohmann::json json;

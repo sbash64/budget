@@ -85,17 +85,13 @@ struct VerifiableTransaction {
   auto operator==(const VerifiableTransaction &) const -> bool = default;
 };
 
-using Transactions = std::vector<Transaction>;
-using VerifiableTransactions = std::vector<VerifiableTransaction>;
-
-class TransactionRecordSerialization {
+class TransactionSerialization {
 public:
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
-      TransactionRecordSerialization);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionSerialization);
   virtual void save(const VerifiableTransaction &) = 0;
 };
 
-class TransactionRecordDeserialization {
+class TransactionDeserialization {
 public:
   class Observer {
   public:
@@ -103,12 +99,11 @@ public:
     virtual void ready(const VerifiableTransaction &) = 0;
   };
 
-  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(
-      TransactionRecordDeserialization);
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionDeserialization);
   virtual void load(Observer &) = 0;
 };
 
-class TransactionRecord : public TransactionRecordDeserialization::Observer {
+class ObservableTransaction : public TransactionDeserialization::Observer {
 public:
   class Observer {
   public:
@@ -124,14 +119,14 @@ public:
   virtual auto verifies(const Transaction &) -> bool = 0;
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
-  virtual void save(TransactionRecordSerialization &) = 0;
-  virtual void load(TransactionRecordDeserialization &) = 0;
+  virtual void save(TransactionSerialization &) = 0;
+  virtual void load(TransactionDeserialization &) = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make() -> std::shared_ptr<TransactionRecord> = 0;
+    virtual auto make() -> std::shared_ptr<ObservableTransaction> = 0;
   };
 };
 
@@ -139,8 +134,8 @@ class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
   virtual void save(std::string_view name,
-                    const std::vector<TransactionRecord *> &credits,
-                    const std::vector<TransactionRecord *> &debits) = 0;
+                    const std::vector<ObservableTransaction *> &credits,
+                    const std::vector<ObservableTransaction *> &debits) = 0;
 };
 
 class AccountDeserialization {
@@ -148,9 +143,8 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void
-    notifyThatCreditIsReady(TransactionRecordDeserialization &) = 0;
-    virtual void notifyThatDebitIsReady(TransactionRecordDeserialization &) = 0;
+    virtual void notifyThatCreditIsReady(TransactionDeserialization &) = 0;
+    virtual void notifyThatDebitIsReady(TransactionDeserialization &) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
@@ -163,8 +157,8 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
-    virtual void notifyThatCreditHasBeenAdded(TransactionRecord &) = 0;
-    virtual void notifyThatDebitHasBeenAdded(TransactionRecord &) = 0;
+    virtual void notifyThatCreditHasBeenAdded(ObservableTransaction &) = 0;
+    virtual void notifyThatDebitHasBeenAdded(ObservableTransaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };
 
@@ -185,7 +179,7 @@ public:
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(std::string_view name, TransactionRecord::Factory &)
+    virtual auto make(std::string_view name, ObservableTransaction::Factory &)
         -> std::shared_ptr<Account> = 0;
   };
 };
