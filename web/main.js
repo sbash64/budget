@@ -25,8 +25,7 @@ function transactionMessage(
 
 function main() {
   const accountSummariesWithDetailView = createChild(document.body, "div");
-  accountSummariesWithDetailView.style.display = "grid";
-  accountSummariesWithDetailView.style.gridTemplateColumns = "1fr 1fr";
+  accountSummariesWithDetailView.style.display = "flex";
   const accountSummariesWithAccountControls = createChild(
     accountSummariesWithDetailView,
     "div"
@@ -39,9 +38,17 @@ function main() {
     accountSummariesWithAccountControls,
     "div"
   );
+  accountControls.style.display = "flex";
+  accountControls.style.flexDirection = "column";
+  accountControls.style.alignItems = "flex-start";
+
+  const removeAccountButton = createChild(accountControls, "button");
+  removeAccountButton.textContent = "remove";
 
   const createAccountControls = createChild(accountControls, "div");
   createAccountControls.style.border = "1px solid";
+  createAccountControls.style.margin = "5px";
+  createAccountControls.style.padding = "10px";
   const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
   const newAccountNameInput = createChild(newAccountNameLabel, "input");
@@ -49,10 +56,12 @@ function main() {
   const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
 
-  const removeAccountButton = createChild(accountControls, "button");
-  removeAccountButton.textContent = "remove";
-
   const addTransactionControls = createChild(accountControls, "div");
+  addTransactionControls.style.margin = "5px";
+  addTransactionControls.style.padding = "10px";
+  addTransactionControls.style.display = "flex";
+  addTransactionControls.style.flexDirection = "column";
+  addTransactionControls.style.alignItems = "flex-start";
   addTransactionControls.style.border = "1px solid";
   const addTransactionDescriptionLabel = createChild(
     addTransactionControls,
@@ -84,6 +93,11 @@ function main() {
   addTransactionButton.textContent = "add";
 
   const transferControls = createChild(accountControls, "div");
+  transferControls.style.margin = "5px";
+  transferControls.style.padding = "10px";
+  transferControls.style.display = "flex";
+  transferControls.style.flexDirection = "column";
+  transferControls.style.alignItems = "flex-start";
   transferControls.style.border = "1px solid";
   const transferAmountLabel = createChild(transferControls, "label");
   transferAmountLabel.textContent = "amount";
