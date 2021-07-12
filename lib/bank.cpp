@@ -204,7 +204,7 @@ void BudgetInMemory::verifyCredit(const Transaction &t) {
 
 void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(secondaryAccounts, name)) {
-    secondaryAccounts.at(std::string{name})->remove();
+    at(secondaryAccounts, name)->remove();
     secondaryAccounts.erase(std::string{name});
     notifyThatTotalBalanceHasChanged(observer, primaryAccount,
                                      secondaryAccounts);
@@ -238,12 +238,12 @@ void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
     std::stringstream description;
     description << "close " << name;
-    primaryAccount->credit({secondaryAccounts.at(std::string{name})->balance(),
-                            description.str(), date});
-    budget::verifyCredit(primaryAccount,
-                         {secondaryAccounts.at(std::string{name})->balance(),
-                          description.str(), date});
-    secondaryAccounts.at(std::string{name})->remove();
+    primaryAccount->credit(
+        {at(secondaryAccounts, name)->balance(), description.str(), date});
+    budget::verifyCredit(
+        primaryAccount,
+        {at(secondaryAccounts, name)->balance(), description.str(), date});
+    at(secondaryAccounts, name)->remove();
     secondaryAccounts.erase(std::string{name});
   }
 }
