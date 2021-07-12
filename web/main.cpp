@@ -71,28 +71,15 @@ public:
   }
 };
 
-auto json(std::string_view name, std::string_view method, const Transaction &t)
-    -> nlohmann::json {
-  nlohmann::json json;
-  json["description"] = t.description;
-  std::stringstream amountStream;
-  amountStream << t.amount;
-  json["amount"] = amountStream.str();
-  std::stringstream dateStream;
-  dateStream << t.date;
-  json["date"] = dateStream.str();
-  json["name"] = name;
-  json["method"] = method;
-  return json;
-}
-
 class Child {
 public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Child);
   virtual auto index() -> long = 0;
 };
 
 class Parent {
 public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Parent);
   virtual auto index(void *) -> long = 0;
   virtual void release(void *) = 0;
 };
@@ -171,18 +158,17 @@ public:
   }
 
   auto index(void *a) -> long override {
-    return std::distance(
+    return distance(
         children.begin(),
-        std::find_if(
-            children.begin(), children.end(),
-            [a](const std::shared_ptr<WebSocketTransactionRecordObserver>
-                    &child) { return child.get() == a; }));
+        find_if(children.begin(), children.end(),
+                [a](const std::shared_ptr<WebSocketTransactionRecordObserver>
+                        &child) { return child.get() == a; }));
   }
 
   auto index() -> long override { return parent.index(this); }
 
   void release(void *a) override {
-    children.erase(std::find_if(
+    children.erase(find_if(
         children.begin(), children.end(),
         [&](const std::shared_ptr<WebSocketTransactionRecordObserver> &child)
             -> bool { return child.get() == a; }));
@@ -244,17 +230,16 @@ public:
   }
 
   auto index(void *a) -> long override {
-    return std::distance(
+    return distance(
         children.begin(),
-        std::find_if(
-            children.begin(), children.end(),
-            [a](const std::shared_ptr<WebSocketAccountObserver> &child) {
-              return child.get() == a;
-            }));
+        find_if(children.begin(), children.end(),
+                [a](const std::shared_ptr<WebSocketAccountObserver> &child) {
+                  return child.get() == a;
+                }));
   }
 
   void release(void *a) override {
-    children.erase(std::find_if(
+    children.erase(find_if(
         children.begin(), children.end(),
         [&](const std::shared_ptr<WebSocketAccountObserver> &child) -> bool {
           return child.get() == a;
@@ -346,13 +331,10 @@ static auto transaction(const nlohmann::json &json, std::string_view amountKey)
           json["description"].get<std::string>(),
           date(json["date"].get<std::string>())};
 }
-} // namespace sbash64::budget
 
-static void call(
-    const std::map<void *, std::unique_ptr<sbash64::budget::App>> &applications,
-    const websocketpp::connection_hdl &connection,
-    const std::function<void(sbash64::budget::Budget &)> &f) {
-  f(applications.at(connection.lock().get())->bank);
+static void call(const std::unique_ptr<App> &application,
+                 const std::function<void(Budget &)> &f) {
+  f(application->bank);
 }
 
 static auto methodIs(const nlohmann::json &json, std::string_view method)
@@ -360,9 +342,59 @@ static auto methodIs(const nlohmann::json &json, std::string_view method)
   return json["method"].get<std::string>() == method;
 }
 
+static auto accountName(const nlohmann::json &json) -> std::string {
+  return json["name"].get<std::string>();
+}
+
+static auto accountIsMaster(const nlohmann::json &json) -> bool {
+  return accountName(json) == masterAccountName.data();
+}
+
+static void
+handleMessage(const std::unique_ptr<App> &application,
+              const websocketpp::server<debug_custom>::message_ptr &message) {
+  const auto json{nlohmann::json::parse(message->get_payload())};
+  if (methodIs(json, "add transaction"))
+    call(application, [&json](Budget &budget) {
+      if (accountIsMaster(json))
+        budget.credit(transaction(json, "amount"));
+      else
+        budget.debit(accountName(json), transaction(json, "amount"));
+    });
+  else if (methodIs(json, "remove transaction"))
+    call(application, [&json](Budget &budget) {
+      if (accountIsMaster(json))
+        budget.removeCredit(transaction(json, "creditAmount"));
+      else
+        budget.removeDebit(accountName(json), transaction(json, "debitAmount"));
+    });
+  else if (methodIs(json, "verify transaction"))
+    call(application, [&json](Budget &budget) {
+      if (accountIsMaster(json))
+        budget.verifyCredit(transaction(json, "creditAmount"));
+      else
+        budget.verifyDebit(accountName(json), transaction(json, "debitAmount"));
+    });
+  else if (methodIs(json, "transfer"))
+    call(application, [&json](Budget &budget) {
+      budget.transferTo(accountName(json),
+                        usd(json["amount"].get<std::string>()),
+                        date(json["date"].get<std::string>()));
+    });
+  else if (methodIs(json, "create account"))
+    call(application, [&json](Budget &budget) {
+      budget.transferTo(accountName(json),
+                        usd(json["amount"].get<std::string>()),
+                        date(json["date"].get<std::string>()));
+    });
+  else if (methodIs(json, "remove account"))
+    call(application,
+         [&json](Budget &budget) { budget.removeAccount(accountName(json)); });
+}
+} // namespace sbash64::budget
+
 int main() {
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
-  // Create a server endpoint
   websocketpp::server<debug_custom> server;
 
   try {
@@ -393,68 +425,12 @@ int main() {
           applications.at(connection.lock().get()).reset();
         });
 
-    // Register our message handler
     server.set_message_handler(
         [&applications](
             websocketpp::connection_hdl connection,
             websocketpp::server<debug_custom>::message_ptr message) {
-          const auto json{nlohmann::json::parse(message->get_payload())};
-          if (methodIs(json, "add transaction"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   if (json["name"].get<std::string>() ==
-                       sbash64::budget::masterAccountName.data())
-                     budget.credit(
-                         sbash64::budget::transaction(json, "amount"));
-                   else
-                     budget.debit(json["name"].get<std::string>(),
-                                  sbash64::budget::transaction(json, "amount"));
-                 });
-          else if (methodIs(json, "remove transaction"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   if (json["name"].get<std::string>() ==
-                       sbash64::budget::masterAccountName.data())
-                     budget.removeCredit(
-                         sbash64::budget::transaction(json, "creditAmount"));
-                   else
-                     budget.removeDebit(
-                         json["name"].get<std::string>(),
-                         sbash64::budget::transaction(json, "debitAmount"));
-                 });
-          else if (methodIs(json, "verify transaction"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   if (json["name"].get<std::string>() ==
-                       sbash64::budget::masterAccountName.data())
-                     budget.verifyCredit(
-                         sbash64::budget::transaction(json, "creditAmount"));
-                   else
-                     budget.verifyDebit(
-                         json["name"].get<std::string>(),
-                         sbash64::budget::transaction(json, "debitAmount"));
-                 });
-          else if (methodIs(json, "transfer"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.transferTo(
-                       json["name"].get<std::string>(),
-                       sbash64::budget::usd(json["amount"].get<std::string>()),
-                       sbash64::budget::date(json["date"].get<std::string>()));
-                 });
-          else if (methodIs(json, "create account"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.transferTo(
-                       json["name"].get<std::string>(),
-                       sbash64::budget::usd(json["amount"].get<std::string>()),
-                       sbash64::budget::date(json["date"].get<std::string>()));
-                 });
-          else if (methodIs(json, "remove account"))
-            call(applications, connection,
-                 [&json](sbash64::budget::Budget &budget) {
-                   budget.removeAccount(json["name"].get<std::string>());
-                 });
+          sbash64::budget::handleMessage(
+              applications.at(connection.lock().get()), message);
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
