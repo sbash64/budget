@@ -237,7 +237,7 @@ void BudgetInMemory::createAccount(std::string_view name) {
 void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
     std::stringstream description;
-    description << "close \"" << name << '"';
+    description << "close " << name;
     primaryAccount->credit({secondaryAccounts.at(std::string{name})->balance(),
                             description.str(), date});
     secondaryAccounts.at(std::string{name})->remove();

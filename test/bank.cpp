@@ -608,7 +608,7 @@ void closesAccount(testcpplite::TestResult &result) {
     assertEqual(result, {leopard.get(), penguin.get()},
                 persistent.secondaryAccounts());
     assertEqual(result,
-                {123_cents, "close \"giraffe\"", Date{2021, Month::April, 3}},
+                {123_cents, "close giraffe", Date{2021, Month::April, 3}},
                 masterAccount->creditedTransaction());
   });
 }
