@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_BANK_HPP_
 
 #include "budget.hpp"
+
 #include <array>
 #include <functional>
 #include <map>
