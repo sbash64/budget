@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <memory>
 #include <numeric>
+#include <sstream>
 
 namespace sbash64::budget {
 constexpr const std::array<char, 9> transferString{"transfer"};
@@ -233,8 +234,12 @@ void BudgetInMemory::createAccount(std::string_view name) {
                            transactionRecordFactory, observer);
 }
 
-void BudgetInMemory::closeAccount(std::string_view name) {
+void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
+    std::stringstream description;
+    description << "close \"" << name << '"';
+    primaryAccount->credit({secondaryAccounts.at(std::string{name})->balance(),
+                            description.str(), date});
     secondaryAccounts.at(std::string{name})->remove();
     secondaryAccounts.erase(std::string{name});
   }

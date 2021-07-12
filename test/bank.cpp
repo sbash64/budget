@@ -590,7 +590,8 @@ void createsAccount(testcpplite::TestResult &result) {
 
 void closesAccount(testcpplite::TestResult &result) {
   testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+               const std::shared_ptr<AccountStub> &masterAccount,
+               BudgetInMemory &bank) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
@@ -600,11 +601,15 @@ void closesAccount(testcpplite::TestResult &result) {
     debit(bank, "giraffe", {});
     debit(bank, "penguin", {});
     debit(bank, "leopard", {});
-    bank.closeAccount("giraffe");
+    giraffe->setBalance(123_cents);
+    bank.closeAccount("giraffe", Date{2021, Month::April, 3});
     PersistentMemoryStub persistent;
     bank.save(persistent);
     assertEqual(result, {leopard.get(), penguin.get()},
                 persistent.secondaryAccounts());
+    assertEqual(result,
+                {123_cents, "close \"giraffe\"", Date{2021, Month::April, 3}},
+                masterAccount->creditedTransaction());
   });
 }
 } // namespace sbash64::budget::bank
