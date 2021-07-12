@@ -615,4 +615,22 @@ void closesAccount(testcpplite::TestResult &result) {
                 masterAccount->creditToVerify());
   });
 }
+
+void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &masterAccount,
+               BudgetInMemory &bank) {
+    const auto giraffe{std::make_shared<AccountStub>()};
+    add(factory, giraffe, "giraffe");
+    debit(bank, "giraffe", {});
+    giraffe->setBalance(-123_cents);
+    bank.closeAccount("giraffe", Date{2021, Month::April, 3});
+    assertEqual(result,
+                {123_cents, "close giraffe", Date{2021, Month::April, 3}},
+                masterAccount->debitedTransaction());
+    assertEqual(result,
+                {123_cents, "close giraffe", Date{2021, Month::April, 3}},
+                masterAccount->debitToVerify());
+  });
+}
 } // namespace sbash64::budget::bank

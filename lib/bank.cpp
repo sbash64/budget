@@ -255,22 +255,25 @@ void BudgetInMemory::createAccount(std::string_view name) {
                            transactionRecordFactory, observer);
 }
 
-static auto
-transaction(const std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                &accounts,
-            std::string_view name, const std::stringstream &description,
-            const Date &date) -> Transaction {
-  return {at(accounts, name)->balance(), description.str(), date};
+static auto transaction(USD amount, const std::stringstream &description,
+                        const Date &date) -> Transaction {
+  return {amount, description.str(), date};
 }
 
 void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
     std::stringstream description;
     description << "close " << name;
-    budget::credit(primaryAccount,
-                   transaction(secondaryAccounts, name, description, date));
-    budget::verifyCredit(primaryAccount, transaction(secondaryAccounts, name,
-                                                     description, date));
+    const auto balance{at(secondaryAccounts, name)->balance()};
+    if (balance.cents > 0) {
+      budget::credit(primaryAccount, transaction(balance, description, date));
+      budget::verifyCredit(primaryAccount,
+                           transaction(balance, description, date));
+    } else if (balance.cents < 0) {
+      budget::debit(primaryAccount, transaction(-balance, description, date));
+      budget::verifyDebit(primaryAccount,
+                          transaction(-balance, description, date));
+    }
     remove(secondaryAccounts, name);
   }
 }

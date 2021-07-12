@@ -33,6 +33,7 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
     testcpplite::TestResult &);
 void createsAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);
+void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
 } // namespace sbash64::budget::bank
 
 #endif

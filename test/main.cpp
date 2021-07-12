@@ -76,6 +76,8 @@ static auto runAllTests() -> int {
         "bank notifies that total balance has changed on remove account"},
        {bank::removesAccount, "bank removes account"},
        {bank::closesAccount, "bank closes account"},
+       {bank::closesAccountHavingNegativeBalance,
+        "bank closes account having negative balance"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,
