@@ -34,7 +34,7 @@ function main() {
     accountSummariesWithAccountControls,
     "table"
   );
-  const accountsAndTransactionControls = createChild(
+  const accountDetailViewAndTransactionControls = createChild(
     accountSummariesWithDetailView,
     "div"
   );
@@ -42,24 +42,20 @@ function main() {
     accountSummariesWithAccountControls,
     "div"
   );
-  const newAccountNameLabel = createChild(accountControls, "label");
+  const createAccountControls = createChild(accountControls, "div");
+  const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
-  const nameInput = createChild(newAccountNameLabel, "input");
-  nameInput.type = "text";
-  const accountButtons = createChild(accountControls, "div");
-  const createAccountButton = createChild(accountButtons, "button");
+  const newAccountNameInput = createChild(newAccountNameLabel, "input");
+  newAccountNameInput.type = "text";
+  const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
-  const removeAccountButton = createChild(accountButtons, "button");
+  const removeAccountButton = createChild(accountControls, "button");
   removeAccountButton.textContent = "remove";
-  const accounts = createChild(accountsAndTransactionControls, "div");
-  const totalBalance = createChild(document.body, "div");
-  const transactionControls = createChild(
-    accountsAndTransactionControls,
+  const transactionTable = createChild(
+    accountDetailViewAndTransactionControls,
     "div"
   );
-  const addTransactionControls = createChild(transactionControls, "div");
-  addTransactionControls.style.display = "flex";
-  addTransactionControls.style.flexDirection = "column";
+  const addTransactionControls = createChild(accountControls, "div");
   const descriptionLabel = createChild(addTransactionControls, "label");
   descriptionLabel.textContent = "description";
   const descriptionInput = createChild(descriptionLabel, "input");
@@ -74,14 +70,19 @@ function main() {
   dateLabel.textContent = "date";
   const dateInput = createChild(dateLabel, "input");
   dateInput.type = "date";
-  const transactionButtons = createChild(transactionControls, "div");
-  const addTransactionButton = createChild(transactionButtons, "button");
+  const addTransactionButton = createChild(addTransactionControls, "button");
   addTransactionButton.textContent = "add";
-  const removeTransactionButton = createChild(transactionButtons, "button");
-  removeTransactionButton.textContent = "remove";
-  const transferButton = createChild(transactionButtons, "button");
+
+  const transferButton = createChild(accountControls, "button");
   transferButton.textContent = "transfer";
-  const verifyButton = createChild(transactionButtons, "button");
+
+  const transactionControls = createChild(
+    accountDetailViewAndTransactionControls,
+    "div"
+  );
+  const removeTransactionButton = createChild(transactionControls, "button");
+  removeTransactionButton.textContent = "remove";
+  const verifyButton = createChild(transactionControls, "button");
   verifyButton.textContent = "verify";
   const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
   const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
@@ -90,8 +91,7 @@ function main() {
   createChild(accountSummaryTableHeadRow, "th").textContent = "Balance";
   const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
 
-  const accountTable = createChild(accounts, "table");
-  const accountTableHead = createChild(accountTable, "thead");
+  const accountTableHead = createChild(transactionTable, "thead");
   const accountTableHeader = createChild(accountTableHead, "tr");
   createChild(accountTableHeader, "th");
   createChild(accountTableHeader, "th").textContent = "Description";
@@ -99,6 +99,8 @@ function main() {
   createChild(accountTableHeader, "th").textContent = "Credits";
   createChild(accountTableHeader, "th").textContent = "Date";
   createChild(accountTableHeader, "th").textContent = "Verified";
+
+  const totalBalance = createChild(document.body, "div");
 
   let selectedAccountTableBody = null;
   let selectedTransactionRow = null;
@@ -122,7 +124,7 @@ function main() {
         createChild(accountSummaryRow, "td");
         accountSummaryRows.push(accountSummaryRow);
 
-        const accountTableBody = createChild(accountTable, "tbody");
+        const accountTableBody = createChild(transactionTable, "tbody");
         accountTableBodies.push(accountTableBody);
 
         accountTableBody.style.display = "none";
@@ -206,7 +208,7 @@ function main() {
   createAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "create account",
-      name: nameInput.value,
+      name: newAccountNameInput.value,
       amount: amountInput.value,
       date: dateInput.value,
     });
