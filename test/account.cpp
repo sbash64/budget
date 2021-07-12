@@ -141,11 +141,6 @@ private:
 };
 } // namespace
 
-constexpr auto to_integral(Transaction::Type e) ->
-    typename std::underlying_type<Transaction::Type>::type {
-  return static_cast<typename std::underlying_type<Transaction::Type>::type>(e);
-}
-
 static void assertContains(testcpplite::TestResult &result,
                            const std::vector<TransactionRecord *> &transactions,
                            const TransactionRecord *transaction) {

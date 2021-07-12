@@ -3,11 +3,9 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #define SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(a)                   \
@@ -21,13 +19,13 @@
 namespace sbash64::budget {
 struct USD {
   std::int_least64_t cents;
+
+  auto operator==(const USD &) const -> bool = default;
 };
 
 constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
 
 constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
-
-constexpr auto operator==(USD a, USD b) -> bool { return a.cents == b.cents; }
 
 constexpr auto operator-(USD a) -> USD { return USD{-a.cents}; }
 
@@ -68,8 +66,6 @@ struct Transaction {
   Date date;
 
   auto operator==(const Transaction &) const -> bool = default;
-
-  enum class Type { credit, debit };
 };
 
 static auto operator<(const Transaction &a, const Transaction &b) -> bool {

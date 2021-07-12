@@ -102,13 +102,15 @@ public:
   using Parent::index;
 };
 
+enum class TransactionType { credit, debit };
+
 class WebSocketTransactionRecordObserver : public TransactionRecord::Observer {
 public:
   WebSocketTransactionRecordObserver(websocketpp::server<debug_custom> &server,
                                      websocketpp::connection_hdl connection,
                                      TransactionRecord &record,
                                      ParentAndChild &parent,
-                                     Transaction::Type type)
+                                     TransactionType type)
       : connection{std::move(connection)}, server{server}, parent{parent},
         type{type} {
     record.attach(this);
@@ -128,10 +130,9 @@ public:
     json["description"] = t.description;
     std::stringstream amountStream;
     amountStream << t.amount;
-    json[type == Transaction::Type::credit ? "creditAmount" : "debitAmount"] =
+    json[type == TransactionType::credit ? "creditAmount" : "debitAmount"] =
         amountStream.str();
-    json[type == Transaction::Type::credit ? "debitAmount" : "creditAmount"] =
-        "";
+    json[type == TransactionType::credit ? "debitAmount" : "creditAmount"] = "";
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
@@ -156,7 +157,7 @@ private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
   ParentAndChild &parent;
-  Transaction::Type type;
+  TransactionType type;
 };
 
 class WebSocketAccountObserver : public Account::Observer,
@@ -199,7 +200,7 @@ public:
 
   void notifyThatCreditHasBeenAdded(TransactionRecord &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this, Transaction::Type::credit));
+        server, connection, t, *this, TransactionType::credit));
     nlohmann::json json;
     json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
@@ -209,7 +210,7 @@ public:
 
   void notifyThatDebitHasBeenAdded(TransactionRecord &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this, Transaction::Type::debit));
+        server, connection, t, *this, TransactionType::debit));
     nlohmann::json json;
     json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
