@@ -34,6 +34,9 @@ function main() {
     accountSummariesWithAccountControls,
     "table"
   );
+  accountSummaryTable.style.border = "2px solid";
+  accountSummaryTable.style.margin = "5px";
+
   const accountControls = createChild(
     accountSummariesWithAccountControls,
     "div"
@@ -120,6 +123,8 @@ function main() {
     accountDetailViewAndTransactionControls,
     "div"
   );
+  transactionTable.style.border = "2px solid";
+  transactionTable.style.margin = "5px";
 
   const transactionControls = createChild(
     accountDetailViewAndTransactionControls,
