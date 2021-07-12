@@ -36,6 +36,7 @@ function main() {
   );
   accountSummaryTable.style.border = "2px solid";
   accountSummaryTable.style.margin = "5px";
+  accountSummaryTable.style.tableLayout = "fixed";
 
   const accountControls = createChild(
     accountSummariesWithAccountControls,
@@ -121,10 +122,11 @@ function main() {
   );
   const transactionTable = createChild(
     accountDetailViewAndTransactionControls,
-    "div"
+    "table"
   );
   transactionTable.style.border = "2px solid";
   transactionTable.style.margin = "5px";
+  transactionTable.style.tableLayout = "fixed";
 
   const transactionControls = createChild(
     accountDetailViewAndTransactionControls,
@@ -145,7 +147,9 @@ function main() {
   const accountTableHead = createChild(transactionTable, "thead");
   const accountTableHeader = createChild(accountTableHead, "tr");
   createChild(accountTableHeader, "th");
-  createChild(accountTableHeader, "th").textContent = "Description";
+  const descriptionHeaderElement = createChild(accountTableHeader, "th");
+  descriptionHeaderElement.textContent = "Description";
+  descriptionHeaderElement.style.width = "30ch";
   createChild(accountTableHeader, "th").textContent = "Debits";
   createChild(accountTableHeader, "th").textContent = "Credits";
   createChild(accountTableHeader, "th").textContent = "Date";
