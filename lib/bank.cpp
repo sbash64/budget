@@ -227,4 +227,9 @@ void BudgetInMemory::reduce(const Date &date) {
   for (const auto &[name, account] : secondaryAccounts)
     account->reduce(date);
 }
+
+void BudgetInMemory::createAccount(std::string_view name) {
+  createNewAccountIfNeeded(secondaryAccounts, factory, name,
+                           transactionRecordFactory, observer);
+}
 } // namespace sbash64::budget

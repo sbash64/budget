@@ -38,6 +38,7 @@ static auto runAllTests() -> int {
        {stream::toSession, "stream loads session"},
        {bank::createsMasterAccountOnConstruction,
         "bank creates master account on construction"},
+       {bank::createsAccount, "bank creates account"},
        {bank::creditsMasterAccountWhenCredited,
         "bank credits master account when credited"},
        {bank::verifiesCreditForMasterAccount,
