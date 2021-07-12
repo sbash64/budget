@@ -37,6 +37,7 @@ function main() {
   accountSummaryTable.style.border = "2px solid";
   accountSummaryTable.style.margin = "5px";
   accountSummaryTable.style.tableLayout = "fixed";
+  accountSummaryTable.style.borderCollapse = "collapse";
 
   const accountControls = createChild(
     accountSummariesWithAccountControls,
@@ -127,6 +128,7 @@ function main() {
   transactionTable.style.border = "2px solid";
   transactionTable.style.margin = "5px";
   transactionTable.style.tableLayout = "fixed";
+  transactionTable.style.borderCollapse = "collapse";
 
   const transactionControls = createChild(
     accountDetailViewAndTransactionControls,
