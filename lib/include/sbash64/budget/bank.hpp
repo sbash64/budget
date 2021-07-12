@@ -32,6 +32,7 @@ public:
   void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                          std::string_view name) override;
   void reduce(const Date &) override;
+  void createAccount(std::string_view name) override;
 
 private:
   Account::Factory &factory;

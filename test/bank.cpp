@@ -567,4 +567,12 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
                 observer.totalBalance());
   });
 }
+
+void createsAccount(testcpplite::TestResult &result) {
+  testBank([&](AccountFactoryStub &factory,
+               const std::shared_ptr<AccountStub> &, BudgetInMemory &budget) {
+    budget.createAccount("panda");
+    assertEqual(result, "panda", factory.name());
+  });
+}
 } // namespace sbash64::budget::bank

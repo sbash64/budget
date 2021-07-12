@@ -412,11 +412,8 @@ handleMessage(const std::unique_ptr<App> &application,
                         date(json["date"].get<std::string>()));
     });
   else if (methodIs(json, "create account"))
-    call(application, [&json](Budget &budget) {
-      budget.transferTo(accountName(json),
-                        usd(json["amount"].get<std::string>()),
-                        date(json["date"].get<std::string>()));
-    });
+    call(application,
+         [&json](Budget &budget) { budget.createAccount(accountName(json)); });
   else if (methodIs(json, "remove account"))
     call(application,
          [&json](Budget &budget) { budget.removeAccount(accountName(json)); });
