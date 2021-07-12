@@ -174,7 +174,7 @@ function main() {
         selection.type = "radio";
         const name = createChild(accountSummaryRow, "td");
         name.textContent = message.name;
-        createChild(accountSummaryRow, "td");
+        createChild(accountSummaryRow, "td").style.textAlign = "right";
         accountSummaryRows.push(accountSummaryRow);
 
         const accountTableBody = createChild(transactionTable, "tbody");
@@ -207,8 +207,8 @@ function main() {
         selection.name = "transaction selection";
         selection.type = "radio";
         createChild(row, "td");
-        createChild(row, "td");
-        createChild(row, "td");
+        createChild(row, "td").style.textAlign = "right";
+        createChild(row, "td").style.textAlign = "right";
         createChild(row, "td");
         createChild(row, "td");
         selection.addEventListener("change", () => {
