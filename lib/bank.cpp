@@ -8,6 +8,7 @@
 #include <numeric>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 namespace sbash64::budget {
 constexpr const std::array<char, 9> transferString{"transfer"};
@@ -161,17 +162,29 @@ void BudgetInMemory::removeDebit(std::string_view accountName,
   }
 }
 
+template <std::size_t N>
+auto transaction(USD amount, std::array<char, N> description, Date date)
+    -> Transaction {
+  return {amount, description.data(), date};
+}
+
+static auto transferToTransaction(USD amount, std::string_view accountName,
+                                  Date date) -> Transaction {
+  return {amount, transferToString(accountName), date};
+}
+
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
                                 Date date) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName,
                            transactionRecordFactory, observer);
-  budget::debit(primaryAccount, {amount, transferToString(accountName), date});
+  budget::debit(primaryAccount,
+                transferToTransaction(amount, accountName, date));
   budget::verifyDebit(primaryAccount,
-                      {amount, transferToString(accountName), date});
+                      transferToTransaction(amount, accountName, date));
   budget::credit(at(secondaryAccounts, accountName),
-                 {amount, transferFromMasterString.data(), date});
+                 transaction(amount, transferFromMasterString, date));
   budget::verifyCredit(at(secondaryAccounts, accountName),
-                       {amount, transferFromMasterString.data(), date});
+                       transaction(amount, transferFromMasterString, date));
 }
 
 void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
@@ -254,8 +267,8 @@ void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
     std::stringstream description;
     description << "close " << name;
-    primaryAccount->credit(
-        transaction(secondaryAccounts, name, description, date));
+    budget::credit(primaryAccount,
+                   transaction(secondaryAccounts, name, description, date));
     budget::verifyCredit(primaryAccount, transaction(secondaryAccounts, name,
                                                      description, date));
     remove(secondaryAccounts, name);
