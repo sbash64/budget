@@ -152,6 +152,8 @@ function main() {
   createChild(accountTableHeader, "th").textContent = "Verified";
 
   const totalBalance = createChild(document.body, "div");
+  const saveButton = createChild(document.body, "button");
+  saveButton.textContent = "save";
 
   let selectedAccountTableBody = null;
   let selectedTransactionRow = null;
@@ -250,6 +252,11 @@ function main() {
         break;
     }
   };
+  saveButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "save",
+    });
+  });
   removeAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "remove account",
