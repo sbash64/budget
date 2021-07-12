@@ -2,7 +2,6 @@
 #define SBASH64_BUDGET_BUDGET_HPP_
 
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
