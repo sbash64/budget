@@ -1,10 +1,14 @@
 #include "bank.hpp"
 #include "constexpr-string.hpp"
+
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
 #include <memory>
 #include <numeric>
+#include <sstream>
+#include <string_view>
+#include <utility>
 
 namespace sbash64::budget {
 constexpr const std::array<char, 9> transferString{"transfer"};
@@ -158,17 +162,29 @@ void BudgetInMemory::removeDebit(std::string_view accountName,
   }
 }
 
+template <std::size_t N>
+auto transaction(USD amount, std::array<char, N> description, Date date)
+    -> Transaction {
+  return {amount, description.data(), date};
+}
+
+static auto transferToTransaction(USD amount, std::string_view accountName,
+                                  Date date) -> Transaction {
+  return {amount, transferToString(accountName), date};
+}
+
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
                                 Date date) {
   createNewAccountIfNeeded(secondaryAccounts, factory, accountName,
                            transactionRecordFactory, observer);
-  budget::debit(primaryAccount, {amount, transferToString(accountName), date});
+  budget::debit(primaryAccount,
+                transferToTransaction(amount, accountName, date));
   budget::verifyDebit(primaryAccount,
-                      {amount, transferToString(accountName), date});
+                      transferToTransaction(amount, accountName, date));
   budget::credit(at(secondaryAccounts, accountName),
-                 {amount, transferFromMasterString.data(), date});
+                 transaction(amount, transferFromMasterString, date));
   budget::verifyCredit(at(secondaryAccounts, accountName),
-                       {amount, transferFromMasterString.data(), date});
+                       transaction(amount, transferFromMasterString, date));
 }
 
 void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
@@ -201,10 +217,16 @@ void BudgetInMemory::verifyCredit(const Transaction &t) {
   budget::verifyCredit(primaryAccount, t);
 }
 
+static void
+remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+       std::string_view name) {
+  at(accounts, name)->remove();
+  accounts.erase(std::string{name});
+}
+
 void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(secondaryAccounts, name)) {
-    secondaryAccounts.at(std::string{name})->remove();
-    secondaryAccounts.erase(std::string{name});
+    remove(secondaryAccounts, name);
     notifyThatTotalBalanceHasChanged(observer, primaryAccount,
                                      secondaryAccounts);
   }
@@ -231,5 +253,28 @@ void BudgetInMemory::reduce(const Date &date) {
 void BudgetInMemory::createAccount(std::string_view name) {
   createNewAccountIfNeeded(secondaryAccounts, factory, name,
                            transactionRecordFactory, observer);
+}
+
+static auto transaction(USD amount, const std::stringstream &description,
+                        const Date &date) -> Transaction {
+  return {amount, description.str(), date};
+}
+
+void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
+  if (contains(secondaryAccounts, name)) {
+    std::stringstream description;
+    description << "close " << name;
+    const auto balance{at(secondaryAccounts, name)->balance()};
+    if (balance.cents > 0) {
+      budget::credit(primaryAccount, transaction(balance, description, date));
+      budget::verifyCredit(primaryAccount,
+                           transaction(balance, description, date));
+    } else if (balance.cents < 0) {
+      budget::debit(primaryAccount, transaction(-balance, description, date));
+      budget::verifyDebit(primaryAccount,
+                          transaction(-balance, description, date));
+    }
+    remove(secondaryAccounts, name);
+  }
 }
 } // namespace sbash64::budget

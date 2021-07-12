@@ -61,6 +61,17 @@ function main() {
   const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
 
+  const closeAccountControls = createChild(accountControls, "div");
+  closeAccountControls.style.border = "1px solid";
+  closeAccountControls.style.margin = "5px";
+  closeAccountControls.style.padding = "10px";
+  const closeAccountDateLabel = createChild(closeAccountControls, "label");
+  closeAccountDateLabel.textContent = "date";
+  const closeAccountDateInput = createChild(closeAccountDateLabel, "input");
+  closeAccountDateInput.type = "date";
+  const closeAccountButton = createChild(closeAccountControls, "button");
+  closeAccountButton.textContent = "close";
+
   const addTransactionControls = createChild(accountControls, "div");
   addTransactionControls.style.margin = "5px";
   addTransactionControls.style.padding = "10px";
@@ -275,6 +286,13 @@ function main() {
       name: newAccountNameInput.value,
       amount: addTransactionAmountInput.value,
       date: addTransactionDateInput.value,
+    });
+  });
+  closeAccountButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "close account",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+      date: closeAccountDateInput.value,
     });
   });
   addTransactionButton.addEventListener("click", () => {

@@ -423,7 +423,11 @@ handleMessage(const std::unique_ptr<App> &application,
     std::filesystem::copy(application->budgetFilePath,
                           application->backupDirectory / backupFileName.str());
     application->bank.save(application->sessionSerialization);
-  }
+  } else if (methodIs(json, "close account"))
+    call(application, [&json](Budget &budget) {
+      budget.closeAccount(accountName(json),
+                          date(json["date"].get<std::string>()));
+    });
 }
 } // namespace sbash64::budget
 

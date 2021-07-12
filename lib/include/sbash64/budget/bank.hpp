@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace sbash64::budget {
 constexpr const std::array<char, 7> masterAccountName{"master"};
@@ -33,6 +34,7 @@ public:
                                          std::string_view name) override;
   void reduce(const Date &) override;
   void createAccount(std::string_view name) override;
+  void closeAccount(std::string_view name, const Date &) override;
 
 private:
   Account::Factory &factory;
