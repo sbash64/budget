@@ -610,6 +610,9 @@ void closesAccount(testcpplite::TestResult &result) {
     assertEqual(result,
                 {123_cents, "close giraffe", Date{2021, Month::April, 3}},
                 masterAccount->creditedTransaction());
+    assertEqual(result,
+                {123_cents, "close giraffe", Date{2021, Month::April, 3}},
+                masterAccount->creditToVerify());
   });
 }
 } // namespace sbash64::budget::bank

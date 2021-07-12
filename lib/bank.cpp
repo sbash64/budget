@@ -240,6 +240,9 @@ void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
     description << "close " << name;
     primaryAccount->credit({secondaryAccounts.at(std::string{name})->balance(),
                             description.str(), date});
+    budget::verifyCredit(primaryAccount,
+                         {secondaryAccounts.at(std::string{name})->balance(),
+                          description.str(), date});
     secondaryAccounts.at(std::string{name})->remove();
     secondaryAccounts.erase(std::string{name});
   }
