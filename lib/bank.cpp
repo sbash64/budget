@@ -1,11 +1,13 @@
 #include "bank.hpp"
 #include "constexpr-string.hpp"
+
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
 #include <memory>
 #include <numeric>
 #include <sstream>
+#include <string_view>
 
 namespace sbash64::budget {
 constexpr const std::array<char, 9> transferString{"transfer"};
@@ -234,15 +236,22 @@ void BudgetInMemory::createAccount(std::string_view name) {
                            transactionRecordFactory, observer);
 }
 
+static auto
+transaction(const std::map<std::string, std::shared_ptr<Account>, std::less<>>
+                &accounts,
+            std::string_view name, const std::stringstream &description,
+            const Date &date) -> Transaction {
+  return {at(accounts, name)->balance(), description.str(), date};
+}
+
 void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
   if (contains(secondaryAccounts, name)) {
     std::stringstream description;
     description << "close " << name;
     primaryAccount->credit(
-        {at(secondaryAccounts, name)->balance(), description.str(), date});
-    budget::verifyCredit(
-        primaryAccount,
-        {at(secondaryAccounts, name)->balance(), description.str(), date});
+        transaction(secondaryAccounts, name, description, date));
+    budget::verifyCredit(primaryAccount, transaction(secondaryAccounts, name,
+                                                     description, date));
     at(secondaryAccounts, name)->remove();
     secondaryAccounts.erase(std::string{name});
   }
