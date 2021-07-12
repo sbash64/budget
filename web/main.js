@@ -51,10 +51,7 @@ function main() {
   removeAccountButton.textContent = "remove";
 
   const createAccountControls = createChild(accountControls, "section");
-  createChild(createAccountControls, "h3").textContent = "Create Account";
-  createAccountControls.style.border = "1px solid";
-  createAccountControls.style.margin = "5px";
-  createAccountControls.style.padding = "5px";
+  createChild(createAccountControls, "h4").textContent = "Create Account";
   const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
   const newAccountNameInput = createChild(newAccountNameLabel, "input");
@@ -63,10 +60,7 @@ function main() {
   createAccountButton.textContent = "create";
 
   const closeAccountControls = createChild(accountControls, "section");
-  createChild(closeAccountControls, "h3").textContent = "Close Account";
-  closeAccountControls.style.border = "1px solid";
-  closeAccountControls.style.margin = "5px";
-  closeAccountControls.style.padding = "5px";
+  createChild(closeAccountControls, "h4").textContent = "Close Account";
   const closeAccountDateLabel = createChild(closeAccountControls, "label");
   closeAccountDateLabel.textContent = "date";
   const closeAccountDateInput = createChild(closeAccountDateLabel, "input");
@@ -75,14 +69,11 @@ function main() {
   closeAccountButton.textContent = "close";
 
   const addTransactionControls = createChild(accountControls, "section");
-  createChild(addTransactionControls, "h3").textContent =
+  createChild(addTransactionControls, "h4").textContent =
     "Add Transaction to Account";
-  addTransactionControls.style.margin = "5px";
-  addTransactionControls.style.padding = "5px";
   addTransactionControls.style.display = "flex";
   addTransactionControls.style.flexDirection = "column";
   addTransactionControls.style.alignItems = "flex-start";
-  addTransactionControls.style.border = "1px solid";
   const addTransactionDescriptionLabel = createChild(
     addTransactionControls,
     "label"
@@ -113,13 +104,10 @@ function main() {
   addTransactionButton.textContent = "add";
 
   const transferControls = createChild(accountControls, "section");
-  createChild(transferControls, "h3").textContent = "Transfer to Account";
-  transferControls.style.margin = "5px";
-  transferControls.style.padding = "5px";
+  createChild(transferControls, "h4").textContent = "Transfer to Account";
   transferControls.style.display = "flex";
   transferControls.style.flexDirection = "column";
   transferControls.style.alignItems = "flex-start";
-  transferControls.style.border = "1px solid";
   const transferAmountLabel = createChild(transferControls, "label");
   transferAmountLabel.textContent = "amount";
   const transferAmountInput = createChild(transferAmountLabel, "input");
