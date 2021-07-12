@@ -28,7 +28,7 @@ function main() {
   accountSummariesWithDetailView.style.display = "flex";
   const accountSummariesWithAccountControls = createChild(
     accountSummariesWithDetailView,
-    "table"
+    "div"
   );
   const accountSummaryTable = createChild(
     accountSummariesWithAccountControls,
@@ -89,10 +89,20 @@ function main() {
   createChild(accountSummaryTableHeadRow, "th").textContent = "Name";
   createChild(accountSummaryTableHeadRow, "th").textContent = "Balance";
   const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
-  let selectedAccountTable = null;
+
+  const accountTable = createChild(accounts, "table");
+  const accountTableHead = createChild(accountTable, "thead");
+  const accountTableHeader = createChild(accountTableHead, "tr");
+  createChild(accountTableHeader, "th");
+  createChild(accountTableHeader, "th").textContent = "Description";
+  createChild(accountTableHeader, "th").textContent = "Debits";
+  createChild(accountTableHeader, "th").textContent = "Credits";
+  createChild(accountTableHeader, "th").textContent = "Date";
+  createChild(accountTableHeader, "th").textContent = "Verified";
+
+  let selectedAccountTableBody = null;
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
-  const accountTables = [];
   const accountTableBodies = [];
   const accountSummaryRows = [];
   const websocket = new WebSocket("ws://localhost:9012");
@@ -112,31 +122,22 @@ function main() {
         createChild(accountSummaryRow, "td");
         accountSummaryRows.push(accountSummaryRow);
 
-        const accountTable = createChild(accounts, "table");
-        const accountTableHead = createChild(accountTable, "thead");
-        const header = createChild(accountTableHead, "tr");
-        createChild(header, "th");
-        createChild(header, "th").textContent = "Description";
-        createChild(header, "th").textContent = "Debits";
-        createChild(header, "th").textContent = "Credits";
-        createChild(header, "th").textContent = "Date";
-        createChild(header, "th").textContent = "Verified";
         const accountTableBody = createChild(accountTable, "tbody");
-        accountTables.push(accountTable);
         accountTableBodies.push(accountTableBody);
 
-        accountTable.style.display = "none";
+        accountTableBody.style.display = "none";
         selection.addEventListener("change", () => {
-          if (selectedAccountTable) selectedAccountTable.style.display = "none";
-          accountTable.style.display = "block";
-          selectedAccountTable = accountTable;
+          if (selectedAccountTableBody)
+            selectedAccountTableBody.style.display = "none";
+          accountTableBody.style.display = "";
+          selectedAccountTableBody = accountTableBody;
           selectedAccountSummaryRow = accountSummaryRow;
         });
         break;
       }
       case "remove account": {
-        const [table] = accountTables.splice(message.accountIndex, 1);
-        table.parentNode.removeChild(table);
+        const [body] = accountTableBodies.splice(message.accountIndex, 1);
+        body.parentNode.removeChild(body);
         const [row] = accountSummaryRows.splice(message.accountIndex, 1);
         row.parentNode.removeChild(row);
         break;
