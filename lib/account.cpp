@@ -184,10 +184,15 @@ auto InMemoryAccount::balance() -> USD {
   return budget::balance(creditRecords, debitRecords);
 }
 
-auto InMemoryAccount::Factory::make(std::string_view name_,
-                                    ObservableTransaction::Factory &factory_)
+void InMemoryAccount::remove() {
+  if (observer != nullptr)
+    observer->notifyThatWillBeRemoved();
+}
+
+auto InMemoryAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<Account> {
-  return std::make_shared<InMemoryAccount>(std::string{name_}, factory_);
+  return std::make_shared<InMemoryAccount>(std::string{name_},
+                                           observableTransactionFactory);
 }
 void TransactionRecordInMemory::attach(Observer *a) { observer = a; }
 
@@ -251,5 +256,10 @@ void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
 void TransactionRecordInMemory::remove() {
   if (observer != nullptr)
     observer->notifyThatWillBeRemoved();
+}
+
+auto TransactionRecordInMemory::Factory::make()
+    -> std::shared_ptr<ObservableTransaction> {
+  return std::make_shared<TransactionRecordInMemory>();
 }
 } // namespace sbash64::budget

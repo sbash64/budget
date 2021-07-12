@@ -24,15 +24,18 @@ public:
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void reduce(const Date &) override;
   auto balance() -> USD override;
-  void remove() override {
-    if (observer != nullptr)
-      observer->notifyThatWillBeRemoved();
-  }
+  void remove() override;
 
   class Factory : public Account::Factory {
   public:
-    auto make(std::string_view name, ObservableTransaction::Factory &)
-        -> std::shared_ptr<Account> override;
+    explicit Factory(
+        ObservableTransaction::Factory &observableTransactionFactory)
+        : observableTransactionFactory{observableTransactionFactory} {}
+
+    auto make(std::string_view name) -> std::shared_ptr<Account> override;
+
+  private:
+    ObservableTransaction::Factory &observableTransactionFactory;
   };
 
 private:
@@ -58,9 +61,7 @@ public:
 
   class Factory : public ObservableTransaction::Factory {
   public:
-    auto make() -> std::shared_ptr<ObservableTransaction> override {
-      return std::make_shared<TransactionRecordInMemory>();
-    }
+    auto make() -> std::shared_ptr<ObservableTransaction> override;
   };
 
 private:

@@ -117,8 +117,7 @@ public:
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(std::string_view name, ObservableTransaction::Factory &)
-        -> std::shared_ptr<Account> = 0;
+    virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
   };
 };
 

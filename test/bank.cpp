@@ -98,8 +98,7 @@ public:
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s, ObservableTransaction::Factory &)
-      -> std::shared_ptr<Account> override {
+  auto make(std::string_view s) -> std::shared_ptr<Account> override {
     name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
   }
@@ -152,8 +151,7 @@ static void testBank(
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
   add(factory, masterAccount, masterAccountName.data());
-  TransactionRecordFactoryStub transactionRecordFactory;
-  BudgetInMemory bank{factory, transactionRecordFactory};
+  BudgetInMemory bank{factory};
   f(factory, masterAccount, bank);
 }
 
