@@ -98,7 +98,7 @@ static auto usd(std::string_view s) -> USD {
 }
 
 static void
-loadTransaction(std::istream &input, std::string &line,
+loadTransaction(std::string &line,
                 const std::function<void(const VerifiableTransaction &)>
                     &onDeserialization) {
   std::stringstream transaction{line};
@@ -130,7 +130,7 @@ loadTransaction(std::istream &input, std::string &line,
 void ReadsTransactionRecordFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
-  loadTransaction(stream, line,
+  loadTransaction(line,
                   [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
