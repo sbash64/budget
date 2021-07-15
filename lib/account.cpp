@@ -149,22 +149,27 @@ void InMemoryAccount::load(AccountDeserialization &deserialization) {
   deserialization.load(*this);
 }
 
-void InMemoryAccount::removeDebit(const Transaction &t) {
-  for (auto it{debitRecords.begin()}; it != debitRecords.end(); ++it)
-    if ((*it)->removes(t)) {
-      debitRecords.erase(it);
+static void removeTransaction(
+    std::vector<std::shared_ptr<ObservableTransaction>> &records,
+    Account::Observer *observer, const Transaction &transaction,
+    const std::vector<std::shared_ptr<ObservableTransaction>> &creditRecords,
+    const std::vector<std::shared_ptr<ObservableTransaction>> &debitRecords) {
+  for (auto it{records.begin()}; it != records.end(); ++it)
+    if ((*it)->removes(transaction)) {
+      records.erase(it);
       notifyUpdatedBalance(observer, creditRecords, debitRecords);
       return;
     }
 }
 
-void InMemoryAccount::removeCredit(const Transaction &t) {
-  for (auto it{creditRecords.begin()}; it != creditRecords.end(); ++it)
-    if ((*it)->removes(t)) {
-      creditRecords.erase(it);
-      notifyUpdatedBalance(observer, creditRecords, debitRecords);
-      return;
-    }
+void InMemoryAccount::removeDebit(const Transaction &transaction) {
+  removeTransaction(debitRecords, observer, transaction, creditRecords,
+                    debitRecords);
+}
+
+void InMemoryAccount::removeCredit(const Transaction &transaction) {
+  removeTransaction(creditRecords, observer, transaction, creditRecords,
+                    debitRecords);
 }
 
 void InMemoryAccount::rename(std::string_view s) { name = s; }
