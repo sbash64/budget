@@ -1,10 +1,34 @@
 #include "serialization.hpp"
+
 #include <functional>
 #include <sstream>
 #include <string>
 #include <string_view>
 
 namespace sbash64::budget {
+ReadsBudgetFromStream::ReadsBudgetFromStream(
+    IoStreamFactory &ioStreamFactory,
+    AccountFromStreamFactory &accountDeserializationFactory)
+    : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
+                                            accountDeserializationFactory} {}
+
+void ReadsBudgetFromStream::load(Observer &observer) {
+  const auto stream{ioStreamFactory.makeInput()};
+  const auto accountDeserialization{
+      accountDeserializationFactory.make(*stream)};
+  std::string line;
+  getline(*stream, line);
+  observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
+  while (getline(*stream, line))
+    observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
+}
+
+WritesBudgetToStream::WritesBudgetToStream(
+    IoStreamFactory &ioStreamFactory,
+    AccountToStreamFactory &accountSerializationFactory)
+    : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
+                                            accountSerializationFactory} {}
+
 void WritesBudgetToStream::save(Account &primary,
                                 const std::vector<Account *> &secondaries) {
   const auto stream{ioStreamFactory.makeOutput()};
@@ -18,29 +42,46 @@ void WritesBudgetToStream::save(Account &primary,
   }
 }
 
-static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
-  stream << amount.cents / 100;
-  const auto leftoverCents{amount.cents % 100};
-  if (leftoverCents != 0) {
-    stream << '.';
-    if (leftoverCents < 10)
-      stream << '0';
-    stream << leftoverCents;
+ReadsAccountFromStream::ReadsAccountFromStream(
+    std::istream &stream, ObservableTransactionFromStreamFactory &factory)
+    : stream{stream}, factory{factory} {}
+
+ReadsAccountFromStream::Factory::Factory(
+    ObservableTransactionFromStreamFactory &factory)
+    : factory{factory} {}
+
+auto ReadsAccountFromStream::Factory::make(std::istream &stream)
+    -> std::shared_ptr<AccountDeserialization> {
+  return std::make_shared<ReadsAccountFromStream>(stream, factory);
+}
+
+void ReadsAccountFromStream::load(Observer &observer) {
+  const auto transactionRecordDeserialization{factory.make(stream)};
+  std::string line;
+  getline(stream, line);
+  while (stream.peek() != 'd') {
+    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
   }
-  return stream;
+  getline(stream, line);
+  auto next{stream.get()};
+  while (stream && next != '\n') {
+    stream.unget();
+    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
+    next = stream.get();
+  }
 }
 
-constexpr auto to_integral(Month e) ->
-    typename std::underlying_type<Month>::type {
-  return static_cast<typename std::underlying_type<Month>::type>(e);
-}
+WritesAccountToStream::WritesAccountToStream(
+    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
+    : stream{stream}, factory{factory} {}
 
-static auto operator<<(std::ostream &stream, const Date &date)
-    -> std::ostream & {
-  stream << to_integral(date.month) << '/';
-  stream << date.day << '/';
-  stream << date.year;
-  return stream;
+WritesAccountToStream::Factory::Factory(
+    ObservableTransactionToStreamFactory &factory)
+    : factory{factory} {}
+
+auto WritesAccountToStream::Factory::make(std::ostream &stream)
+    -> std::shared_ptr<AccountSerialization> {
+  return std::make_shared<WritesAccountToStream>(stream, factory);
 }
 
 void WritesAccountToStream::save(
@@ -62,13 +103,12 @@ void WritesAccountToStream::save(
   }
 }
 
-void WritesObservableTransactionToStream::save(
-    const VerifiableTransaction &credit) {
-  if (credit.verified)
-    stream << '^';
-  stream << credit.transaction.amount << ' ';
-  stream << credit.transaction.description << ' ';
-  stream << credit.transaction.date;
+ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)
+    : stream{stream} {}
+
+auto ReadsTransactionFromStream::Factory::make(std::istream &stream)
+    -> std::shared_ptr<TransactionDeserialization> {
+  return std::make_shared<ReadsTransactionFromStream>(stream);
 }
 
 static auto date(std::string_view s) -> Date {
@@ -134,85 +174,44 @@ void ReadsTransactionFromStream::load(Observer &observer) {
                   [&](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
-void ReadsAccountFromStream::load(Observer &observer) {
-  const auto transactionRecordDeserialization{factory.make(stream)};
-  std::string line;
-  getline(stream, line);
-  while (stream.peek() != 'd') {
-    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
-  }
-  getline(stream, line);
-  auto next{stream.get()};
-  while (stream && next != '\n') {
-    stream.unget();
-    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
-    next = stream.get();
-  }
-}
-
-void ReadsSessionFromStream::load(Observer &observer) {
-  const auto stream{ioStreamFactory.makeInput()};
-  const auto accountDeserialization{
-      accountDeserializationFactory.make(*stream)};
-  std::string line;
-  getline(*stream, line);
-  observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
-  while (getline(*stream, line))
-    observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
-}
-
-ReadsSessionFromStream::ReadsSessionFromStream(
-    IoStreamFactory &ioStreamFactory,
-    AccountFromStreamFactory &accountDeserializationFactory)
-    : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
-                                            accountDeserializationFactory} {}
-
-WritesBudgetToStream::WritesBudgetToStream(
-    IoStreamFactory &ioStreamFactory,
-    AccountToStreamFactory &accountSerializationFactory)
-    : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
-                                            accountSerializationFactory} {}
-
-ReadsAccountFromStream::ReadsAccountFromStream(
-    std::istream &stream, ObservableTransactionFromStreamFactory &factory)
-    : stream{stream}, factory{factory} {}
-
-ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)
+WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)
     : stream{stream} {}
 
-WritesObservableTransactionToStream::WritesObservableTransactionToStream(
-    std::ostream &stream)
-    : stream{stream} {}
-
-auto WritesObservableTransactionToStream::Factory::make(std::ostream &stream)
+auto WritesTransactionToStream::Factory::make(std::ostream &stream)
     -> std::shared_ptr<TransactionSerialization> {
-  return std::make_shared<WritesObservableTransactionToStream>(stream);
+  return std::make_shared<WritesTransactionToStream>(stream);
 }
 
-WritesAccountToStream::WritesAccountToStream(
-    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
-    : stream{stream}, factory{factory} {}
-
-WritesAccountToStream::Factory::Factory(
-    ObservableTransactionToStreamFactory &factory)
-    : factory{factory} {}
-
-auto ReadsAccountFromStream::Factory::make(std::istream &stream)
-    -> std::shared_ptr<AccountDeserialization> {
-  return std::make_shared<ReadsAccountFromStream>(stream, factory);
+static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
+  stream << amount.cents / 100;
+  const auto leftoverCents{amount.cents % 100};
+  if (leftoverCents != 0) {
+    stream << '.';
+    if (leftoverCents < 10)
+      stream << '0';
+    stream << leftoverCents;
+  }
+  return stream;
 }
 
-ReadsAccountFromStream::Factory::Factory(
-    ObservableTransactionFromStreamFactory &factory)
-    : factory{factory} {}
-
-auto ReadsTransactionFromStream::Factory::make(std::istream &stream)
-    -> std::shared_ptr<TransactionDeserialization> {
-  return std::make_shared<ReadsTransactionFromStream>(stream);
+constexpr auto to_integral(Month e) ->
+    typename std::underlying_type<Month>::type {
+  return static_cast<typename std::underlying_type<Month>::type>(e);
 }
 
-auto WritesAccountToStream::Factory::make(std::ostream &stream)
-    -> std::shared_ptr<AccountSerialization> {
-  return std::make_shared<WritesAccountToStream>(stream, factory);
+static auto operator<<(std::ostream &stream, const Date &date)
+    -> std::ostream & {
+  stream << to_integral(date.month) << '/';
+  stream << date.day << '/';
+  stream << date.year;
+  return stream;
+}
+
+void WritesTransactionToStream::save(const VerifiableTransaction &credit) {
+  if (credit.verified)
+    stream << '^';
+  stream << credit.transaction.amount << ' ';
+  stream << credit.transaction.description << ' ';
+  stream << credit.transaction.date;
 }
 } // namespace sbash64::budget

@@ -321,8 +321,8 @@ void toSession(testcpplite::TestResult &result) {
       std::make_shared<std::stringstream>("jeff\nsteve\nsue\nallen")};
   IoStreamFactoryStub streamFactory{input};
   StreamAccountDeserializationFactoryStub accountDeserializationFactory;
-  ReadsSessionFromStream deserialization{streamFactory,
-                                         accountDeserializationFactory};
+  ReadsBudgetFromStream deserialization{streamFactory,
+                                        accountDeserializationFactory};
   SessionDeserializationObserverStub observer;
   deserialization.load(observer);
   assertEqual(result, "jeff", observer.primaryAccountName());

@@ -78,9 +78,9 @@ private:
   ObservableTransactionToStreamFactory &factory;
 };
 
-class WritesObservableTransactionToStream : public TransactionSerialization {
+class WritesTransactionToStream : public TransactionSerialization {
 public:
-  explicit WritesObservableTransactionToStream(std::ostream &);
+  explicit WritesTransactionToStream(std::ostream &);
   void save(const VerifiableTransaction &) override;
 
   class Factory : public ObservableTransactionToStreamFactory {
@@ -93,9 +93,9 @@ private:
   std::ostream &stream;
 };
 
-class ReadsSessionFromStream : public BudgetDeserialization {
+class ReadsBudgetFromStream : public BudgetDeserialization {
 public:
-  ReadsSessionFromStream(IoStreamFactory &, AccountFromStreamFactory &);
+  ReadsBudgetFromStream(IoStreamFactory &, AccountFromStreamFactory &);
   void load(Observer &) override;
 
 private:

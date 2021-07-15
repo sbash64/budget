@@ -301,8 +301,7 @@ struct App {
   InMemoryAccount::Factory accountFactory;
   BudgetInMemory bank{accountFactory, transactionFactory};
   FileStreamFactory streamFactory;
-  WritesObservableTransactionToStream::Factory
-      transactionRecordSerializationFactory;
+  WritesTransactionToStream::Factory transactionRecordSerializationFactory;
   WritesAccountToStream::Factory accountSerializationFactory{
       transactionRecordSerializationFactory};
   WritesBudgetToStream sessionSerialization{streamFactory,
@@ -311,8 +310,8 @@ struct App {
       transactionRecordDeserializationFactory;
   ReadsAccountFromStream::Factory accountDeserializationFactory{
       transactionRecordDeserializationFactory};
-  ReadsSessionFromStream accountDeserialization{streamFactory,
-                                                accountDeserializationFactory};
+  ReadsBudgetFromStream accountDeserialization{streamFactory,
+                                               accountDeserializationFactory};
   WebSocketModelObserver webSocketNotifier;
   std::filesystem::path backupDirectory;
   std::string budgetFilePath;
