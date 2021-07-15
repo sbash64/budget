@@ -297,7 +297,7 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
 }
 
 struct App {
-  TransactionRecordInMemory::Factory transactionFactory;
+  ObservableTransactionInMemory::Factory transactionFactory;
   InMemoryAccount::Factory accountFactory;
   BudgetInMemory bank{accountFactory, transactionFactory};
   FileStreamFactory streamFactory;

@@ -238,9 +238,9 @@ auto InMemoryAccount::Factory::make(std::string_view name_)
   return std::make_shared<InMemoryAccount>(std::string{name_},
                                            observableTransactionFactory);
 }
-void TransactionRecordInMemory::attach(Observer *a) { observer = a; }
+void ObservableTransactionInMemory::attach(Observer *a) { observer = a; }
 
-void TransactionRecordInMemory::initialize(const Transaction &transaction) {
+void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
   verifiableTransaction.transaction = transaction;
   callIfObserverExists(observer, [&transaction](Observer *observer_) {
     observer_->notifyThatIs(transaction);
@@ -256,11 +256,11 @@ static void verify(VerifiableTransaction &verifiableTransaction,
   verifiableTransaction.verified = true;
 }
 
-void TransactionRecordInMemory::verify() {
+void ObservableTransactionInMemory::verify() {
   budget::verify(verifiableTransaction, observer);
 }
 
-auto TransactionRecordInMemory::verifies(const Transaction &transaction)
+auto ObservableTransactionInMemory::verifies(const Transaction &transaction)
     -> bool {
   if (!verifiableTransaction.verified &&
       verifiableTransaction.transaction == transaction) {
@@ -270,7 +270,7 @@ auto TransactionRecordInMemory::verifies(const Transaction &transaction)
   return false;
 }
 
-auto TransactionRecordInMemory::removes(const Transaction &transaction)
+auto ObservableTransactionInMemory::removes(const Transaction &transaction)
     -> bool {
   if (verifiableTransaction.transaction == transaction) {
     callIfObserverExists(observer,
@@ -282,20 +282,21 @@ auto TransactionRecordInMemory::removes(const Transaction &transaction)
   return false;
 }
 
-void TransactionRecordInMemory::save(TransactionSerialization &serialization) {
+void ObservableTransactionInMemory::save(
+    TransactionSerialization &serialization) {
   serialization.save(verifiableTransaction);
 }
 
-void TransactionRecordInMemory::load(
+void ObservableTransactionInMemory::load(
     TransactionDeserialization &deserialization) {
   deserialization.load(*this);
 }
 
-auto TransactionRecordInMemory::amount() -> USD {
+auto ObservableTransactionInMemory::amount() -> USD {
   return verifiableTransaction.transaction.amount;
 }
 
-void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
+void ObservableTransactionInMemory::ready(const VerifiableTransaction &vt) {
   verifiableTransaction = vt;
   if (observer != nullptr) {
     observer->notifyThatIs(vt.transaction);
@@ -304,15 +305,15 @@ void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
   }
 }
 
-void TransactionRecordInMemory::remove() {
+void ObservableTransactionInMemory::remove() {
   callIfObserverExists(observer,
                        [&](ObservableTransaction::Observer *observer_) {
                          observer_->notifyThatWillBeRemoved();
                        });
 }
 
-auto TransactionRecordInMemory::Factory::make()
+auto ObservableTransactionInMemory::Factory::make()
     -> std::shared_ptr<ObservableTransaction> {
-  return std::make_shared<TransactionRecordInMemory>();
+  return std::make_shared<ObservableTransactionInMemory>();
 }
 } // namespace sbash64::budget

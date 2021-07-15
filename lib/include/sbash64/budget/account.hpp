@@ -46,7 +46,7 @@ private:
   ObservableTransaction::Factory &factory;
 };
 
-class TransactionRecordInMemory : public ObservableTransaction {
+class ObservableTransactionInMemory : public ObservableTransaction {
 public:
   void attach(Observer *a) override;
   void initialize(const Transaction &t) override;
