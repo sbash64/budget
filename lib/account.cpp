@@ -182,27 +182,35 @@ void InMemoryAccount::verifyDebit(const Transaction &t) {
   verify(t, debitRecords);
 }
 
+static void
+addReduction(ObservableTransaction::Factory &factory,
+             Account::Observer *observer,
+             void (Account::Observer::*notify)(ObservableTransaction &),
+             USD amount, const Date &date,
+             std::vector<std::shared_ptr<ObservableTransaction>> &records) {
+  auto transactionRecord{
+      make(factory, observer, notify, {amount, "reduction", date})};
+  transactionRecord->verify();
+  records.push_back(std::move(transactionRecord));
+}
+
+static void
+clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
+  for (const auto &record : records)
+    record->remove();
+  records.clear();
+}
+
 void InMemoryAccount::reduce(const Date &date) {
   const auto balance{budget::balance(creditRecords, debitRecords)};
-  for (const auto &record : debitRecords)
-    record->remove();
-  debitRecords.clear();
-  for (const auto &record : creditRecords)
-    record->remove();
-  creditRecords.clear();
-  if (balance.cents < 0) {
-    auto transactionRecord{make(factory, observer,
-                                &Observer::notifyThatDebitHasBeenAdded,
-                                {-balance, "reduction", date})};
-    transactionRecord->verify();
-    debitRecords.push_back(std::move(transactionRecord));
-  } else {
-    auto transactionRecord{make(factory, observer,
-                                &Observer::notifyThatCreditHasBeenAdded,
-                                {balance, "reduction", date})};
-    transactionRecord->verify();
-    creditRecords.push_back(std::move(transactionRecord));
-  }
+  clear(debitRecords);
+  clear(creditRecords);
+  if (balance.cents < 0)
+    addReduction(factory, observer, &Observer::notifyThatDebitHasBeenAdded,
+                 -balance, date, debitRecords);
+  else
+    addReduction(factory, observer, &Observer::notifyThatCreditHasBeenAdded,
+                 balance, date, creditRecords);
 }
 
 auto InMemoryAccount::balance() -> USD {
