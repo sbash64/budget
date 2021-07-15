@@ -124,9 +124,9 @@ private:
   ObservableTransactionFromStreamFactory &factory;
 };
 
-class ReadsTransactionRecordFromStream : public TransactionDeserialization {
+class ReadsTransactionFromStream : public TransactionDeserialization {
 public:
-  explicit ReadsTransactionRecordFromStream(std::istream &);
+  explicit ReadsTransactionFromStream(std::istream &);
   void load(Observer &) override;
 
   class Factory : public ObservableTransactionFromStreamFactory {

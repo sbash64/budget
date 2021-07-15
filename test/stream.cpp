@@ -103,7 +103,7 @@ public:
       : stream{stream} {}
 
   void notifyThatCreditIsReady(TransactionDeserialization &) override {
-    ReadsTransactionRecordFromStream reads{stream};
+    ReadsTransactionFromStream reads{stream};
     TransactionRecordDeserializationObserverStub observer;
     observer.setOnReady(
         [&](const VerifiableTransaction &t) { credits_.push_back(t); });
@@ -111,7 +111,7 @@ public:
   }
 
   void notifyThatDebitIsReady(TransactionDeserialization &) override {
-    ReadsTransactionRecordFromStream reads{stream};
+    ReadsTransactionFromStream reads{stream};
     TransactionRecordDeserializationObserverStub observer;
     observer.setOnReady(
         [&](const VerifiableTransaction &t) { debits_.push_back(t); });
@@ -252,7 +252,7 @@ static void assertEqual(testcpplite::TestResult &result,
 
 void toTransactionRecord(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>("^3.24 hyvee 2/8/2020")};
-  ReadsTransactionRecordFromStream transactionRecordDeserialization{*input};
+  ReadsTransactionFromStream transactionRecordDeserialization{*input};
   TransactionRecordDeserializationObserverStub observer;
   transactionRecordDeserialization.load(observer);
   assertEqual(result,

@@ -307,7 +307,7 @@ struct App {
       transactionRecordSerializationFactory};
   WritesBudgetToStream sessionSerialization{streamFactory,
                                             accountSerializationFactory};
-  ReadsTransactionRecordFromStream::Factory
+  ReadsObservableTransactionFromStream::Factory
       transactionRecordDeserializationFactory;
   ReadsAccountFromStream::Factory accountDeserializationFactory{
       transactionRecordDeserializationFactory};

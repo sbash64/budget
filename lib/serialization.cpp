@@ -127,7 +127,7 @@ loadTransaction(std::string &line,
       {{amount, description.str(), date(eventuallyDate)}, verified});
 }
 
-void ReadsTransactionRecordFromStream::load(Observer &observer) {
+void ReadsTransactionFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
   loadTransaction(line,
@@ -177,12 +177,7 @@ ReadsAccountFromStream::ReadsAccountFromStream(
     std::istream &stream, ObservableTransactionFromStreamFactory &factory)
     : stream{stream}, factory{factory} {}
 
-WritesAccountToStream::WritesAccountToStream(
-    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
-    : stream{stream}, factory{factory} {}
-
-ReadsTransactionRecordFromStream::ReadsTransactionRecordFromStream(
-    std::istream &stream)
+ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)
     : stream{stream} {}
 
 WritesObservableTransactionToStream::WritesObservableTransactionToStream(
@@ -194,6 +189,14 @@ auto WritesObservableTransactionToStream::Factory::make(std::ostream &stream)
   return std::make_shared<WritesObservableTransactionToStream>(stream);
 }
 
+WritesAccountToStream::WritesAccountToStream(
+    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
+    : stream{stream}, factory{factory} {}
+
+WritesAccountToStream::Factory::Factory(
+    ObservableTransactionToStreamFactory &factory)
+    : factory{factory} {}
+
 auto ReadsAccountFromStream::Factory::make(std::istream &stream)
     -> std::shared_ptr<AccountDeserialization> {
   return std::make_shared<ReadsAccountFromStream>(stream, factory);
@@ -203,17 +206,13 @@ ReadsAccountFromStream::Factory::Factory(
     ObservableTransactionFromStreamFactory &factory)
     : factory{factory} {}
 
-auto ReadsTransactionRecordFromStream::Factory::make(std::istream &stream)
+auto ReadsTransactionFromStream::Factory::make(std::istream &stream)
     -> std::shared_ptr<TransactionDeserialization> {
-  return std::make_shared<ReadsTransactionRecordFromStream>(stream);
+  return std::make_shared<ReadsTransactionFromStream>(stream);
 }
 
 auto WritesAccountToStream::Factory::make(std::ostream &stream)
     -> std::shared_ptr<AccountSerialization> {
   return std::make_shared<WritesAccountToStream>(stream, factory);
 }
-
-WritesAccountToStream::Factory::Factory(
-    ObservableTransactionToStreamFactory &factory)
-    : factory{factory} {}
 } // namespace sbash64::budget
