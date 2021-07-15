@@ -260,19 +260,23 @@ void TransactionRecordInMemory::verify() {
   budget::verify(verifiableTransaction, observer);
 }
 
-auto TransactionRecordInMemory::verifies(const Transaction &t) -> bool {
+auto TransactionRecordInMemory::verifies(const Transaction &transaction)
+    -> bool {
   if (!verifiableTransaction.verified &&
-      verifiableTransaction.transaction == t) {
+      verifiableTransaction.transaction == transaction) {
     budget::verify(verifiableTransaction, observer);
     return true;
   }
   return false;
 }
 
-auto TransactionRecordInMemory::removes(const Transaction &t) -> bool {
-  if (verifiableTransaction.transaction == t) {
-    if (observer != nullptr)
-      observer->notifyThatWillBeRemoved();
+auto TransactionRecordInMemory::removes(const Transaction &transaction)
+    -> bool {
+  if (verifiableTransaction.transaction == transaction) {
+    callIfObserverExists(observer,
+                         [&](ObservableTransaction::Observer *observer_) {
+                           observer_->notifyThatWillBeRemoved();
+                         });
     return true;
   }
   return false;
@@ -301,8 +305,10 @@ void TransactionRecordInMemory::ready(const VerifiableTransaction &vt) {
 }
 
 void TransactionRecordInMemory::remove() {
-  if (observer != nullptr)
-    observer->notifyThatWillBeRemoved();
+  callIfObserverExists(observer,
+                       [&](ObservableTransaction::Observer *observer_) {
+                         observer_->notifyThatWillBeRemoved();
+                       });
 }
 
 auto TransactionRecordInMemory::Factory::make()
