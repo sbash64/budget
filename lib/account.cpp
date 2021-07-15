@@ -247,11 +247,13 @@ void TransactionRecordInMemory::initialize(const Transaction &transaction) {
   });
 }
 
-static void verify(VerifiableTransaction &vt,
+static void verify(VerifiableTransaction &verifiableTransaction,
                    ObservableTransaction::Observer *observer) {
-  if (observer != nullptr)
-    observer->notifyThatIsVerified();
-  vt.verified = true;
+  callIfObserverExists(observer,
+                       [&](ObservableTransaction::Observer *observer_) {
+                         observer_->notifyThatIsVerified();
+                       });
+  verifiableTransaction.verified = true;
 }
 
 void TransactionRecordInMemory::verify() {
