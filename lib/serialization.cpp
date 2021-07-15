@@ -5,8 +5,8 @@
 #include <string_view>
 
 namespace sbash64::budget {
-void WritesSessionToStream::save(Account &primary,
-                                 const std::vector<Account *> &secondaries) {
+void WritesBudgetToStream::save(Account &primary,
+                                const std::vector<Account *> &secondaries) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
   primary.save(*accountSerialization);
@@ -62,7 +62,7 @@ void WritesAccountToStream::save(
   }
 }
 
-void WritesTransactionRecordToStream::save(
+void WritesObservableTransactionToStream::save(
     const VerifiableTransaction &credit) {
   if (credit.verified)
     stream << '^';
@@ -163,26 +163,48 @@ void ReadsSessionFromStream::load(Observer &observer) {
 
 ReadsSessionFromStream::ReadsSessionFromStream(
     IoStreamFactory &ioStreamFactory,
-    StreamAccountDeserializationFactory &accountDeserializationFactory)
+    AccountFromStreamFactory &accountDeserializationFactory)
     : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
                                             accountDeserializationFactory} {}
 
-WritesSessionToStream::WritesSessionToStream(
+WritesBudgetToStream::WritesBudgetToStream(
     IoStreamFactory &ioStreamFactory,
-    StreamAccountSerializationFactory &accountSerializationFactory)
+    AccountToStreamFactory &accountSerializationFactory)
     : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
                                             accountSerializationFactory} {}
 
 ReadsAccountFromStream::ReadsAccountFromStream(
-    std::istream &stream,
-    StreamTransactionRecordDeserializationFactory &factory)
+    std::istream &stream, ObservableTransactionFromStreamFactory &factory)
     : stream{stream}, factory{factory} {}
 
 WritesAccountToStream::WritesAccountToStream(
-    std::ostream &stream, StreamTransactionRecordSerializationFactory &factory)
+    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
     : stream{stream}, factory{factory} {}
 
 ReadsTransactionRecordFromStream::ReadsTransactionRecordFromStream(
     std::istream &stream)
     : stream{stream} {}
+
+WritesObservableTransactionToStream::WritesObservableTransactionToStream(
+    std::ostream &stream)
+    : stream{stream} {}
+
+auto WritesObservableTransactionToStream::Factory::make(std::ostream &stream)
+    -> std::shared_ptr<TransactionSerialization> {
+  return std::make_shared<WritesObservableTransactionToStream>(stream);
+}
+
+auto ReadsAccountFromStream::Factory::make(std::istream &stream)
+    -> std::shared_ptr<AccountDeserialization> {
+  return std::make_shared<ReadsAccountFromStream>(stream, factory);
+}
+
+ReadsAccountFromStream::Factory::Factory(
+    ObservableTransactionFromStreamFactory &factory)
+    : factory{factory} {}
+
+auto ReadsTransactionRecordFromStream::Factory::make(std::istream &stream)
+    -> std::shared_ptr<TransactionDeserialization> {
+  return std::make_shared<ReadsTransactionRecordFromStream>(stream);
+}
 } // namespace sbash64::budget

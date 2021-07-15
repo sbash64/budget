@@ -301,12 +301,12 @@ struct App {
   InMemoryAccount::Factory accountFactory;
   BudgetInMemory bank{accountFactory, transactionFactory};
   FileStreamFactory streamFactory;
-  WritesTransactionRecordToStream::Factory
+  WritesObservableTransactionToStream::Factory
       transactionRecordSerializationFactory;
   WritesAccountToStream::Factory accountSerializationFactory{
       transactionRecordSerializationFactory};
-  WritesSessionToStream sessionSerialization{streamFactory,
-                                             accountSerializationFactory};
+  WritesBudgetToStream sessionSerialization{streamFactory,
+                                            accountSerializationFactory};
   ReadsTransactionRecordFromStream::Factory
       transactionRecordDeserializationFactory;
   ReadsAccountFromStream::Factory accountDeserializationFactory{

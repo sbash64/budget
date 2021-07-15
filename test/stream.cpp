@@ -27,8 +27,7 @@ public:
   void load(Observer &) override {}
 };
 
-class StreamAccountSerializationFactoryStub
-    : public StreamAccountSerializationFactory {
+class StreamAccountSerializationFactoryStub : public AccountToStreamFactory {
 public:
   auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
     return std::make_shared<AccountSerializationStub>();
@@ -36,7 +35,7 @@ public:
 };
 
 class StreamAccountDeserializationFactoryStub
-    : public StreamAccountDeserializationFactory {
+    : public AccountFromStreamFactory {
 public:
   auto make(std::istream &)
       -> std::shared_ptr<AccountDeserialization> override {
@@ -45,7 +44,7 @@ public:
 };
 
 class StreamTransactionRecordDeserializationFactoryStub
-    : public StreamTransactionRecordDeserializationFactory {
+    : public ObservableTransactionFromStreamFactory {
 public:
   auto make(std::istream &)
       -> std::shared_ptr<TransactionDeserialization> override {
@@ -169,7 +168,7 @@ private:
 };
 
 class StreamTransactionRecordSerializationFactoryStub
-    : public StreamTransactionRecordSerializationFactory {
+    : public ObservableTransactionToStreamFactory {
 public:
   auto make(std::ostream &)
       -> std::shared_ptr<TransactionSerialization> override {
@@ -223,8 +222,8 @@ void fromSession(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub streamFactory{stream};
   StreamAccountSerializationFactoryStub accountSerializationFactory;
-  WritesSessionToStream sessionSerialization{streamFactory,
-                                             accountSerializationFactory};
+  WritesBudgetToStream sessionSerialization{streamFactory,
+                                            accountSerializationFactory};
   SavesNameAccountStub jeff{*stream, "jeff"};
   SavesNameAccountStub steve{*stream, "steve"};
   SavesNameAccountStub sue{*stream, "sue"};
