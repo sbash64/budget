@@ -154,12 +154,15 @@ static void removeTransaction(
     Account::Observer *observer, const Transaction &transaction,
     const std::vector<std::shared_ptr<ObservableTransaction>> &creditRecords,
     const std::vector<std::shared_ptr<ObservableTransaction>> &debitRecords) {
-  for (auto it{records.begin()}; it != records.end(); ++it)
-    if ((*it)->removes(transaction)) {
-      records.erase(it);
-      notifyUpdatedBalance(observer, creditRecords, debitRecords);
-      return;
-    }
+  if (const auto found = find_if(
+          records.begin(), records.end(),
+          [&transaction](const std::shared_ptr<ObservableTransaction> &record) {
+            return record->removes(transaction);
+          });
+      found != records.end()) {
+    records.erase(found);
+    notifyUpdatedBalance(observer, creditRecords, debitRecords);
+  }
 }
 
 void InMemoryAccount::removeDebit(const Transaction &transaction) {
@@ -172,14 +175,14 @@ void InMemoryAccount::removeCredit(const Transaction &transaction) {
                     debitRecords);
 }
 
-void InMemoryAccount::rename(std::string_view s) { name = s; }
+void InMemoryAccount::rename(std::string_view to) { name = to; }
 
-void InMemoryAccount::verifyCredit(const Transaction &t) {
-  verify(t, creditRecords);
+void InMemoryAccount::verifyCredit(const Transaction &transaction) {
+  verify(transaction, creditRecords);
 }
 
-void InMemoryAccount::verifyDebit(const Transaction &t) {
-  verify(t, debitRecords);
+void InMemoryAccount::verifyDebit(const Transaction &transaction) {
+  verify(transaction, debitRecords);
 }
 
 static void
