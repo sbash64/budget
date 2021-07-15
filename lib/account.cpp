@@ -77,6 +77,17 @@ static void notifyUpdatedBalance(
   });
 }
 
+static void addTransaction(
+    std::vector<std::shared_ptr<ObservableTransaction>> &records,
+    ObservableTransaction::Factory &factory, Account::Observer *observer,
+    void (Account::Observer::*notify)(ObservableTransaction &),
+    const Transaction &transaction,
+    const std::vector<std::shared_ptr<ObservableTransaction>> &creditRecords,
+    const std::vector<std::shared_ptr<ObservableTransaction>> &debitRecords) {
+  records.push_back(make(factory, observer, notify, transaction));
+  notifyUpdatedBalance(observer, creditRecords, debitRecords);
+}
+
 InMemoryAccount::InMemoryAccount(std::string name,
                                  ObservableTransaction::Factory &factory)
     : name{std::move(name)}, factory{factory} {}
@@ -84,15 +95,15 @@ InMemoryAccount::InMemoryAccount(std::string name,
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
 void InMemoryAccount::credit(const Transaction &transaction) {
-  creditRecords.push_back(make(
-      factory, observer, &Observer::notifyThatCreditHasBeenAdded, transaction));
-  notifyUpdatedBalance(observer, creditRecords, debitRecords);
+  addTransaction(creditRecords, factory, observer,
+                 &Observer::notifyThatCreditHasBeenAdded, transaction,
+                 creditRecords, debitRecords);
 }
 
 void InMemoryAccount::debit(const Transaction &transaction) {
-  debitRecords.push_back(make(
-      factory, observer, &Observer::notifyThatDebitHasBeenAdded, transaction));
-  notifyUpdatedBalance(observer, creditRecords, debitRecords);
+  addTransaction(debitRecords, factory, observer,
+                 &Observer::notifyThatDebitHasBeenAdded, transaction,
+                 creditRecords, debitRecords);
 }
 
 void InMemoryAccount::notifyThatCreditIsReady(
