@@ -4,9 +4,16 @@
 #include <numeric>
 
 namespace sbash64::budget {
+static void
+callIfObserverExists(Account::Observer *observer,
+                     const std::function<void(Account::Observer *)> &f) {
+  if (observer != nullptr)
+    f(observer);
+}
+
 static void callIfObserverExists(
-    InMemoryAccount::Observer *observer,
-    const std::function<void(InMemoryAccount::Observer *)> &f) {
+    ObservableTransaction::Observer *observer,
+    const std::function<void(ObservableTransaction::Observer *)> &f) {
   if (observer != nullptr)
     f(observer);
 }
@@ -233,10 +240,11 @@ auto InMemoryAccount::Factory::make(std::string_view name_)
 }
 void TransactionRecordInMemory::attach(Observer *a) { observer = a; }
 
-void TransactionRecordInMemory::initialize(const Transaction &t) {
-  verifiableTransaction.transaction = t;
-  if (observer != nullptr)
-    observer->notifyThatIs(t);
+void TransactionRecordInMemory::initialize(const Transaction &transaction) {
+  verifiableTransaction.transaction = transaction;
+  callIfObserverExists(observer, [&transaction](Observer *observer_) {
+    observer_->notifyThatIs(transaction);
+  });
 }
 
 static void verify(VerifiableTransaction &vt,
