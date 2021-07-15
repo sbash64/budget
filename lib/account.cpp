@@ -238,6 +238,7 @@ auto InMemoryAccount::Factory::make(std::string_view name_)
   return std::make_shared<InMemoryAccount>(std::string{name_},
                                            observableTransactionFactory);
 }
+
 void ObservableTransactionInMemory::attach(Observer *a) { observer = a; }
 
 void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
@@ -249,11 +250,11 @@ void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
 
 static void verify(VerifiableTransaction &verifiableTransaction,
                    ObservableTransaction::Observer *observer) {
+  verifiableTransaction.verified = true;
   callIfObserverExists(observer,
-                       [&](ObservableTransaction::Observer *observer_) {
+                       [](ObservableTransaction::Observer *observer_) {
                          observer_->notifyThatIsVerified();
                        });
-  verifiableTransaction.verified = true;
 }
 
 void ObservableTransactionInMemory::verify() {
@@ -273,10 +274,9 @@ auto ObservableTransactionInMemory::verifies(const Transaction &transaction)
 auto ObservableTransactionInMemory::removes(const Transaction &transaction)
     -> bool {
   if (verifiableTransaction.transaction == transaction) {
-    callIfObserverExists(observer,
-                         [&](ObservableTransaction::Observer *observer_) {
-                           observer_->notifyThatWillBeRemoved();
-                         });
+    callIfObserverExists(observer, [](Observer *observer_) {
+      observer_->notifyThatWillBeRemoved();
+    });
     return true;
   }
   return false;
@@ -296,24 +296,29 @@ auto ObservableTransactionInMemory::amount() -> USD {
   return verifiableTransaction.transaction.amount;
 }
 
-void ObservableTransactionInMemory::ready(const VerifiableTransaction &vt) {
-  verifiableTransaction = vt;
-  if (observer != nullptr) {
-    observer->notifyThatIs(vt.transaction);
-    if (vt.verified)
-      observer->notifyThatIsVerified();
-  }
+void ObservableTransactionInMemory::ready(
+    const VerifiableTransaction &loadedVerifiableTransaction) {
+  verifiableTransaction = loadedVerifiableTransaction;
+  callIfObserverExists(
+      observer, [&loadedVerifiableTransaction](Observer *observer_) {
+        observer_->notifyThatIs(loadedVerifiableTransaction.transaction);
+        if (loadedVerifiableTransaction.verified)
+          observer_->notifyThatIsVerified();
+      });
 }
 
 void ObservableTransactionInMemory::remove() {
-  callIfObserverExists(observer,
-                       [&](ObservableTransaction::Observer *observer_) {
-                         observer_->notifyThatWillBeRemoved();
-                       });
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatWillBeRemoved();
+  });
 }
 
 auto ObservableTransactionInMemory::Factory::make()
     -> std::shared_ptr<ObservableTransaction> {
   return std::make_shared<ObservableTransactionInMemory>();
 }
+
+InMemoryAccount::Factory::Factory(
+    ObservableTransaction::Factory &observableTransactionFactory)
+    : observableTransactionFactory{observableTransactionFactory} {}
 } // namespace sbash64::budget

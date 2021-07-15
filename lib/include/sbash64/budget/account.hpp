@@ -2,6 +2,7 @@
 #define SBASH64_BUDGET_ACCOUNT_HPP_
 
 #include "budget.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,9 +30,7 @@ public:
   class Factory : public Account::Factory {
   public:
     explicit Factory(
-        ObservableTransaction::Factory &observableTransactionFactory)
-        : observableTransactionFactory{observableTransactionFactory} {}
-
+        ObservableTransaction::Factory &observableTransactionFactory);
     auto make(std::string_view name) -> std::shared_ptr<Account> override;
 
   private:
@@ -48,12 +47,12 @@ private:
 
 class ObservableTransactionInMemory : public ObservableTransaction {
 public:
-  void attach(Observer *a) override;
-  void initialize(const Transaction &t) override;
+  void attach(Observer *) override;
+  void initialize(const Transaction &) override;
   void verify() override;
-  auto verifies(const Transaction &t) -> bool override;
-  auto removes(const Transaction &t) -> bool override;
-  void save(TransactionSerialization &serialization) override;
+  auto verifies(const Transaction &) -> bool override;
+  auto removes(const Transaction &) -> bool override;
+  void save(TransactionSerialization &) override;
   void load(TransactionDeserialization &) override;
   auto amount() -> USD override;
   void ready(const VerifiableTransaction &) override;
