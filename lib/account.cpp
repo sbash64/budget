@@ -210,8 +210,9 @@ auto InMemoryAccount::balance() -> USD {
 }
 
 void InMemoryAccount::remove() {
-  if (observer != nullptr)
-    observer->notifyThatWillBeRemoved();
+  callIfObserverExists(observer, [&](Account::Observer *observer_) {
+    observer_->notifyThatWillBeRemoved();
+  });
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
