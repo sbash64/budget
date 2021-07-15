@@ -58,21 +58,16 @@ private:
 
 class WritesAccountToStream : public AccountSerialization {
 public:
-  explicit WritesAccountToStream(std::ostream &stream,
-                                 ObservableTransactionToStreamFactory &factory);
+  explicit WritesAccountToStream(std::ostream &,
+                                 ObservableTransactionToStreamFactory &);
   void save(std::string_view name,
             const std::vector<ObservableTransaction *> &credits,
             const std::vector<ObservableTransaction *> &debits) override;
 
   class Factory : public AccountToStreamFactory {
   public:
-    explicit Factory(ObservableTransactionToStreamFactory &factory)
-        : factory{factory} {}
-
-    auto make(std::ostream &stream)
-        -> std::shared_ptr<AccountSerialization> override {
-      return std::make_shared<WritesAccountToStream>(stream, factory);
-    }
+    explicit Factory(ObservableTransactionToStreamFactory &);
+    auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override;
 
   private:
     ObservableTransactionToStreamFactory &factory;
@@ -116,8 +111,8 @@ public:
 
   class Factory : public AccountFromStreamFactory {
   public:
-    explicit Factory(ObservableTransactionFromStreamFactory &factory);
-    auto make(std::istream &stream)
+    explicit Factory(ObservableTransactionFromStreamFactory &);
+    auto make(std::istream &)
         -> std::shared_ptr<AccountDeserialization> override;
 
   private:
@@ -136,7 +131,7 @@ public:
 
   class Factory : public ObservableTransactionFromStreamFactory {
   public:
-    auto make(std::istream &stream)
+    auto make(std::istream &)
         -> std::shared_ptr<TransactionDeserialization> override;
   };
 

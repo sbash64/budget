@@ -207,4 +207,13 @@ auto ReadsTransactionRecordFromStream::Factory::make(std::istream &stream)
     -> std::shared_ptr<TransactionDeserialization> {
   return std::make_shared<ReadsTransactionRecordFromStream>(stream);
 }
+
+auto WritesAccountToStream::Factory::make(std::ostream &stream)
+    -> std::shared_ptr<AccountSerialization> {
+  return std::make_shared<WritesAccountToStream>(stream, factory);
+}
+
+WritesAccountToStream::Factory::Factory(
+    ObservableTransactionToStreamFactory &factory)
+    : factory{factory} {}
 } // namespace sbash64::budget
