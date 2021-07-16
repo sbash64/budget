@@ -46,7 +46,7 @@ static auto runAllTests() -> int {
        {debitsExistingAccount, "debits existing account"},
        {removesDebit, "removes transactions from accounts"},
        {verifiesDebitForExistingAccount, "verifies debit for existing account"},
-       {doesNothingWhenRemovingDebitFromNonexistentAccount,
+       {doesNotRemoveDebitFromNonexistentAccount,
         "does nothing when removing debit from nonexistent account"},
        {removesCredit, "removes from master account when removing credit"},
        {transfersFromMasterAccountToOther,

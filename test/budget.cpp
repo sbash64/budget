@@ -35,7 +35,10 @@ public:
 
   auto removedDebit() -> Transaction { return removedDebit_; }
 
-  void removeDebit(const Transaction &t) override { removedDebit_ = t; }
+  void removeDebit(const Transaction &t) override {
+    debitRemoved_ = true;
+    removedDebit_ = t;
+  }
 
   auto removedCredit() -> Transaction { return removedCredit_; }
 
@@ -75,6 +78,8 @@ public:
 
   [[nodiscard]] auto removed() const -> bool { return removed_; }
 
+  [[nodiscard]] auto debitRemoved() const -> bool { return debitRemoved_; }
+
 private:
   Transaction creditToVerify_;
   Transaction debitToVerify_;
@@ -89,6 +94,7 @@ private:
   const AccountDeserialization *deserialization_{};
   USD balance_{};
   bool removed_{};
+  bool debitRemoved_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -341,13 +347,14 @@ void removesDebit(testcpplite::TestResult &result) {
   });
 }
 
-void doesNothingWhenRemovingDebitFromNonexistentAccount(
-    testcpplite::TestResult &) {
-  testBudgetInMemory([&](AccountFactoryStub &factory,
-                         const std::shared_ptr<AccountStub> &, Budget &budget) {
+void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               const std::shared_ptr<AccountStub> &,
+                               Budget &budget) {
     const auto account{addAccountStub(factory, "giraffe")};
     budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
                                               Date{2013, Month::April, 3}});
+    assertFalse(result, account->debitRemoved());
   });
 }
 
