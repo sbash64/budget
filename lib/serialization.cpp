@@ -93,21 +93,23 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream)
   return std::make_shared<WritesAccountToStream>(stream, factory);
 }
 
+static void save(std::ostream &stream, std::string_view name,
+                 const std::vector<ObservableTransaction *> &transactions,
+                 ObservableTransactionToStreamFactory &factory) {
+  stream << name;
+  for (const auto &transaction : transactions) {
+    putNewLine(stream);
+    transaction->save(*factory.make(stream));
+  }
+}
+
 void WritesAccountToStream::save(
     std::string_view name, const std::vector<ObservableTransaction *> &credits,
     const std::vector<ObservableTransaction *> &debits) {
   putNewLine(stream << name);
-  stream << "credits";
-  for (const auto &credit : credits) {
-    putNewLine(stream);
-    credit->save(*factory.make(stream));
-  }
+  budget::save(stream, "credits", credits, factory);
   putNewLine(stream);
-  stream << "debits";
-  for (const auto &debit : debits) {
-    putNewLine(stream);
-    debit->save(*factory.make(stream));
-  }
+  budget::save(stream, "debits", debits, factory);
 }
 
 ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)
