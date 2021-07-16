@@ -38,8 +38,9 @@ static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
   return putNewLine(*stream);
 }
 
-void WritesBudgetToStream::save(Account &primary,
-                                const std::vector<Account *> &secondaries) {
+void WritesBudgetToStream::save(
+    SerializableAccount &primary,
+    const std::vector<SerializableAccount *> &secondaries) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
   primary.save(*accountSerialization);

@@ -95,7 +95,15 @@ public:
   virtual void load(Observer &) = 0;
 };
 
-class Account : public AccountDeserialization::Observer {
+class SerializableAccount {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SerializableAccount);
+  virtual void save(AccountSerialization &) = 0;
+  virtual void load(AccountDeserialization &) = 0;
+};
+
+class Account : public AccountDeserialization::Observer,
+                public SerializableAccount {
 public:
   class Observer {
   public:
@@ -109,8 +117,6 @@ public:
   virtual void attach(Observer *) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
-  virtual void save(AccountSerialization &) = 0;
-  virtual void load(AccountDeserialization &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
   virtual void rename(std::string_view) = 0;
@@ -130,8 +136,8 @@ public:
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
-  virtual void save(Account &primary,
-                    const std::vector<Account *> &secondaries) = 0;
+  virtual void save(SerializableAccount &primary,
+                    const std::vector<SerializableAccount *> &secondaries) = 0;
 };
 
 class BudgetDeserialization {

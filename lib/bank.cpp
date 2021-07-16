@@ -100,8 +100,8 @@ static void createNewAccountIfNeeded(
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
                                    std::less<>> &accounts)
-    -> std::vector<Account *> {
-  std::vector<Account *> collected;
+    -> std::vector<SerializableAccount *> {
+  std::vector<SerializableAccount *> collected;
   transform(
       accounts.begin(), accounts.end(), back_inserter(collected),
       [](const std::pair<const std::string, std::shared_ptr<Account>> &pair) {

@@ -11,15 +11,17 @@ namespace sbash64::budget {
 class PersistentMemoryStub : public BudgetDeserialization,
                              public BudgetSerialization {
 public:
-  auto primaryAccount() -> const Account * { return primaryAccount_; }
+  auto primaryAccount() -> const SerializableAccount * {
+    return primaryAccount_;
+  }
 
-  void save(Account &primary,
-            const std::vector<Account *> &secondaries) override {
+  void save(SerializableAccount &primary,
+            const std::vector<SerializableAccount *> &secondaries) override {
     primaryAccount_ = &primary;
     secondaryAccounts_ = secondaries;
   }
 
-  auto secondaryAccounts() -> std::vector<Account *> {
+  auto secondaryAccounts() -> std::vector<SerializableAccount *> {
     return secondaryAccounts_;
   }
 
@@ -39,8 +41,8 @@ public:
   auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
-  std::vector<Account *> secondaryAccounts_;
-  const Account *primaryAccount_{};
+  std::vector<SerializableAccount *> secondaryAccounts_;
+  const SerializableAccount *primaryAccount_{};
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>
       *secondaryAccountsToLoadInto_{};

@@ -165,15 +165,22 @@ static void credit(BudgetInMemory &bank, const Transaction &t = {}) {
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<Account *> &expected,
-                        const std::vector<Account *> &actual) {
+                        const SerializableAccount *expected,
+                        const SerializableAccount *actual) {
+  assertEqual(result, static_cast<const void *>(expected),
+              static_cast<const void *>(actual));
+}
+
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<SerializableAccount *> &expected,
+                        const std::vector<SerializableAccount *> &actual) {
   assertEqual(result, expected.size(), actual.size());
   for (gsl::index i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
 static void assertContains(testcpplite::TestResult &result,
-                           const std::vector<Account *> &accounts,
+                           const std::vector<SerializableAccount *> &accounts,
                            const std::shared_ptr<Account> &account) {
   assertTrue(result, find(accounts.begin(), accounts.end(), account.get()) !=
                          accounts.end());
