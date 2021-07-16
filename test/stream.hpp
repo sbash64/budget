@@ -5,12 +5,13 @@
 
 namespace sbash64::budget::stream {
 void toTransaction(testcpplite::TestResult &);
+void fromTransaction(testcpplite::TestResult &);
 void toVerifiedTransaction(testcpplite::TestResult &);
 void fromAccount(testcpplite::TestResult &);
 void fromBudget(testcpplite::TestResult &);
-void toAccounts(testcpplite::TestResult &);
-void toAccounts2(testcpplite::TestResult &);
-void toSession(testcpplite::TestResult &);
+void beforeFinalToAccount(testcpplite::TestResult &);
+void finalToAccount(testcpplite::TestResult &);
+void toBudget(testcpplite::TestResult &);
 } // namespace sbash64::budget::stream
 
 #endif
