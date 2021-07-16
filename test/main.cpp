@@ -1,10 +1,12 @@
 #include "account.hpp"
 #include "bank.hpp"
+#include "format.hpp"
 #include "parse.hpp"
-#include "print.hpp"
 #include "stream.hpp"
-#include <iostream>
+
 #include <sbash64/testcpplite/testcpplite.hpp>
+
+#include <iostream>
 
 namespace sbash64::budget {
 static auto runAllTests() -> int {
@@ -23,13 +25,13 @@ static auto runAllTests() -> int {
         "parses number having three decimal places (X.XXX) as USD"},
        {parses::oneCentIgnoringThirdDecimalPlace,
         "parses twelve one-thousandths (0.012) as USD"},
-       {format::zeroDollars, "format zero dollars"},
-       {format::oneDollar, "format one dollar"},
-       {format::oneCent, "format one cent"},
-       {format::tenCents, "format ten cents"},
-       {format::negativeOneDollarThirtyFourCents,
-        "format negative one dollar and thirty-four cents"},
-       {format::negativeFifteenCents, "format negative fifteen cents"},
+       {formats::zeroDollars, "formats zero dollars"},
+       {formats::oneDollar, "formats one dollar"},
+       {formats::oneCent, "formats one cent"},
+       {formats::tenCents, "formats ten cents"},
+       {formats::negativeOneDollarThirtyFourCents,
+        "formats negative one dollar and thirty-four cents"},
+       {formats::negativeFifteenCents, "formats negative fifteen cents"},
        {stream::toTransactionRecord, "stream loads transaction record"},
        {stream::fromAccounts, "stream saves accounts"},
        {stream::toAccounts, "stream loads accounts"},

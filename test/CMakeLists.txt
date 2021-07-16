@@ -3,7 +3,7 @@ add_executable(
   main.cpp
   parse.cpp
   usd.cpp
-  print.cpp
+  format.cpp
   bank.cpp
   account.cpp
   stream.cpp)
