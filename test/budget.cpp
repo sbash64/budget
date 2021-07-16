@@ -522,24 +522,12 @@ void removesAccount(testcpplite::TestResult &result) {
     debit(budget, "penguin", {});
     debit(budget, "leopard", {});
     budget.removeAccount("giraffe");
+    assertTrue(result, giraffe->removed());
     PersistentMemoryStub persistent;
     budget.save(persistent);
     assertEqual(result, masterAccount.get(), persistent.primaryAccount());
     assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(0));
     assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(1));
-  });
-}
-
-void notifiesObserverOfRemovedAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&](AccountFactoryStub &factory,
-                         const std::shared_ptr<AccountStub> &, Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto account{std::make_shared<AccountStub>()};
-    add(factory, account, "giraffe");
-    debit(budget, "giraffe", {});
-    budget.removeAccount("giraffe");
-    assertTrue(result, account->removed());
   });
 }
 

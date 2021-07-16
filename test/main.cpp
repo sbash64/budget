@@ -60,8 +60,6 @@ static auto runAllTests() -> int {
        {loadsAccounts, "load loads accounts"},
        {renamesAccount, "rename account"},
        {notifiesObserverOfNewAccount, "notifies observer of new account"},
-       {notifiesObserverOfRemovedAccount,
-        "notifies observer of removed account"},
        {reducesEachAccount, "reduce reduces each account"},
        {notifiesThatTotalBalanceHasChangedOnCredit,
         "notifies that total balance has changed on credit"},
