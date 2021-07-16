@@ -76,7 +76,7 @@ private:
   std::vector<std::string> secondaryAccountNames_;
 };
 
-class TransactionRecordDeserializationObserverStub
+class TransactionDeserializationObserverStub
     : public TransactionDeserialization::Observer {
 public:
   auto transaction() -> VerifiableTransaction { return transaction_; }
@@ -104,7 +104,7 @@ public:
 
   void notifyThatCreditIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
-    TransactionRecordDeserializationObserverStub observer;
+    TransactionDeserializationObserverStub observer;
     observer.setOnReady(
         [&](const VerifiableTransaction &t) { credits_.push_back(t); });
     reads.load(observer);
@@ -112,7 +112,7 @@ public:
 
   void notifyThatDebitIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
-    TransactionRecordDeserializationObserverStub observer;
+    TransactionDeserializationObserverStub observer;
     observer.setOnReady(
         [&](const VerifiableTransaction &t) { debits_.push_back(t); });
     reads.load(observer);
@@ -196,15 +196,15 @@ void fromVerifiedTransaction(testcpplite::TestResult &result) {
   std::stringstream stream;
   WritesTransactionToStream writesTransaction{stream};
   writesTransaction.save(
-      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true});
-  assertEqual(result, "^3.24 hyvee 2/8/2020", stream.str());
+      {{20_cents, "hyvee", Date{2020, Month::February, 8}}, true});
+  assertEqual(result, "^0.20 hyvee 2/8/2020", stream.str());
 }
 
 void toTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"3.24 hyvee 2/8/2020"};
-  ReadsTransactionFromStream transactionRecordDeserialization{input};
-  TransactionRecordDeserializationObserverStub observer;
-  transactionRecordDeserialization.load(observer);
+  ReadsTransactionFromStream readsTransaction{input};
+  TransactionDeserializationObserverStub observer;
+  readsTransaction.load(observer);
   assertEqual(result,
               {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false},
               observer.transaction());
@@ -212,22 +212,22 @@ void toTransaction(testcpplite::TestResult &result) {
 
 void toVerifiedTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"^3.24 hyvee 2/8/2020"};
-  ReadsTransactionFromStream transactionRecordDeserialization{input};
-  TransactionRecordDeserializationObserverStub observer;
-  transactionRecordDeserialization.load(observer);
+  ReadsTransactionFromStream readsTransaction{input};
+  TransactionDeserializationObserverStub observer;
+  readsTransaction.load(observer);
   assertEqual(result,
               {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
               observer.transaction());
 }
 
 void fromAccount(testcpplite::TestResult &result) {
-  const auto stream{std::make_shared<std::stringstream>()};
+  std::stringstream stream;
   StreamTransactionRecordSerializationFactoryStub factory;
-  WritesAccountToStream accountSerialization{*stream, factory};
-  SavesNameTransaction steve{*stream, "steve"};
-  SavesNameTransaction sue{*stream, "sue"};
-  SavesNameTransaction allen{*stream, "allen"};
-  SavesNameTransaction john{*stream, "john"};
+  WritesAccountToStream accountSerialization{stream, factory};
+  SavesNameTransaction steve{stream, "steve"};
+  SavesNameTransaction sue{stream, "sue"};
+  SavesNameTransaction allen{stream, "allen"};
+  SavesNameTransaction john{stream, "john"};
   accountSerialization.save("jeff", {&steve, &sue}, {&allen, &john});
   assertEqual(result, R"(
 jeff
@@ -238,7 +238,7 @@ debits
 allen
 john
 )",
-              '\n' + stream->str() + '\n');
+              '\n' + stream.str() + '\n');
 }
 
 void beforeFinalToAccount(testcpplite::TestResult &result) {
