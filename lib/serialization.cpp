@@ -179,8 +179,8 @@ loadTransaction(std::string &line,
 void ReadsTransactionFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
-  loadTransaction(line,
-                  [&](const VerifiableTransaction &t) { observer.ready(t); });
+  loadTransaction(
+      line, [&observer](const VerifiableTransaction &t) { observer.ready(t); });
 }
 
 WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)
