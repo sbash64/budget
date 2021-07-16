@@ -4,9 +4,10 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::stream {
-void toTransactionRecord(testcpplite::TestResult &);
-void fromAccounts(testcpplite::TestResult &);
-void fromSession(testcpplite::TestResult &);
+void toTransaction(testcpplite::TestResult &);
+void toVerifiedTransaction(testcpplite::TestResult &);
+void fromAccount(testcpplite::TestResult &);
+void fromBudget(testcpplite::TestResult &);
 void toAccounts(testcpplite::TestResult &);
 void toAccounts2(testcpplite::TestResult &);
 void toSession(testcpplite::TestResult &);

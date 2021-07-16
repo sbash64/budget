@@ -141,9 +141,9 @@ private:
   std::shared_ptr<std::iostream> stream;
 };
 
-class SavesNameAccountStub : public SerializableAccount {
+class SavesNameAccount : public SerializableAccount {
 public:
-  SavesNameAccountStub(std::ostream &stream, std::string name)
+  SavesNameAccount(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
   void load(AccountDeserialization &) override {}
   void save(AccountSerialization &) override { stream << name; }
@@ -162,9 +162,9 @@ public:
   }
 };
 
-class SavesNameTransactionRecordStub : public SerializableTransaction {
+class SavesNameTransaction : public SerializableTransaction {
 public:
-  SavesNameTransactionRecordStub(std::ostream &stream, std::string name)
+  SavesNameTransaction(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
   void save(TransactionSerialization &) override { stream << name; }
   void load(TransactionDeserialization &) override {}
@@ -175,14 +175,23 @@ private:
 };
 } // namespace
 
-void fromAccounts(testcpplite::TestResult &result) {
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<VerifiableTransaction> &expected,
+                        const std::vector<VerifiableTransaction> &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (std::vector<VerifiableTransaction>::size_type i{0}; i < expected.size();
+       ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
+}
+
+void fromAccount(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   StreamTransactionRecordSerializationFactoryStub factory;
   WritesAccountToStream accountSerialization{*stream, factory};
-  SavesNameTransactionRecordStub steve{*stream, "steve"};
-  SavesNameTransactionRecordStub sue{*stream, "sue"};
-  SavesNameTransactionRecordStub allen{*stream, "allen"};
-  SavesNameTransactionRecordStub john{*stream, "john"};
+  SavesNameTransaction steve{*stream, "steve"};
+  SavesNameTransaction sue{*stream, "sue"};
+  SavesNameTransaction allen{*stream, "allen"};
+  SavesNameTransaction john{*stream, "john"};
   accountSerialization.save("jeff", {&steve, &sue}, {&allen, &john});
   assertEqual(result, R"(
 jeff
@@ -196,16 +205,16 @@ john
               '\n' + stream->str() + '\n');
 }
 
-void fromSession(testcpplite::TestResult &result) {
+void fromBudget(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub streamFactory{stream};
   StreamAccountSerializationFactoryStub accountSerializationFactory;
   WritesBudgetToStream sessionSerialization{streamFactory,
                                             accountSerializationFactory};
-  SavesNameAccountStub jeff{*stream, "jeff"};
-  SavesNameAccountStub steve{*stream, "steve"};
-  SavesNameAccountStub sue{*stream, "sue"};
-  SavesNameAccountStub allen{*stream, "allen"};
+  SavesNameAccount jeff{*stream, "jeff"};
+  SavesNameAccount steve{*stream, "steve"};
+  SavesNameAccount sue{*stream, "sue"};
+  SavesNameAccount allen{*stream, "allen"};
   sessionSerialization.save(jeff, {&steve, &sue, &allen});
   assertEqual(result, R"(
 jeff
@@ -219,18 +228,19 @@ allen
               '\n' + stream->str());
 }
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<VerifiableTransaction> &expected,
-                        const std::vector<VerifiableTransaction> &actual) {
-  assertEqual(result, expected.size(), actual.size());
-  for (std::vector<VerifiableTransaction>::size_type i{0}; i < expected.size();
-       ++i)
-    assertEqual(result, expected.at(i), actual.at(i));
+void toTransaction(testcpplite::TestResult &result) {
+  std::stringstream input{"3.24 hyvee 2/8/2020"};
+  ReadsTransactionFromStream transactionRecordDeserialization{input};
+  TransactionRecordDeserializationObserverStub observer;
+  transactionRecordDeserialization.load(observer);
+  assertEqual(result,
+              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false},
+              observer.transaction());
 }
 
-void toTransactionRecord(testcpplite::TestResult &result) {
-  const auto input{std::make_shared<std::stringstream>("^3.24 hyvee 2/8/2020")};
-  ReadsTransactionFromStream transactionRecordDeserialization{*input};
+void toVerifiedTransaction(testcpplite::TestResult &result) {
+  std::stringstream input{"^3.24 hyvee 2/8/2020"};
+  ReadsTransactionFromStream transactionRecordDeserialization{input};
   TransactionRecordDeserializationObserverStub observer;
   transactionRecordDeserialization.load(observer);
   assertEqual(result,
