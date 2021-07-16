@@ -60,7 +60,6 @@ static auto runAllTests() -> int {
        {removeTransferRemovesDebitFromMasterAndCreditFromOther,
         "remove transfer removes debit from master and credit from "
         "other"},
-       {showShowsAccountsInAlphabeticOrder, "show shows accounts"},
        {saveSavesAccounts, "save saves accounts"},
        {loadLoadsAccounts, "load loads accounts"},
        {renameAccount, "rename account"},

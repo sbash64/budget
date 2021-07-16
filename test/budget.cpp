@@ -108,12 +108,12 @@ private:
   std::string name_;
 };
 
-class TransactionRecordFactoryStub : public ObservableTransaction::Factory {
+class ObservableTransactionFactoryStub : public ObservableTransaction::Factory {
 public:
   auto make() -> std::shared_ptr<ObservableTransaction> override { return {}; }
 };
 
-class BankObserverStub : public BudgetInMemory::Observer {
+class BudgetObserverStub : public Budget::Observer {
 public:
   auto newAccountName() -> std::string { return newAccountName_; }
 
@@ -129,11 +129,8 @@ public:
 
   auto totalBalance() -> USD { return totalBalance_; }
 
-  auto removedAccountName() -> std::string { return removedAccountName_; }
-
 private:
   std::string newAccountName_;
-  std::string removedAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
 };
@@ -144,24 +141,24 @@ static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
   factory.add(std::move(account), accountName);
 }
 
-static void testBank(
-    const std::function<void(AccountFactoryStub &factory,
-                             const std::shared_ptr<AccountStub> &masterAccount,
-                             BudgetInMemory &bank)> &f) {
+static void
+test(const std::function<void(AccountFactoryStub &factory,
+                              const std::shared_ptr<AccountStub> &masterAccount,
+                              BudgetInMemory &budget)> &f) {
   AccountFactoryStub factory;
   const auto masterAccount{std::make_shared<AccountStub>()};
   add(factory, masterAccount, masterAccountName.data());
-  BudgetInMemory bank{factory};
-  f(factory, masterAccount, bank);
+  BudgetInMemory budget{factory};
+  f(factory, masterAccount, budget);
 }
 
-static void debit(BudgetInMemory &bank, std::string_view accountName,
+static void debit(BudgetInMemory &budget, std::string_view accountName,
                   const Transaction &t) {
-  bank.debit(accountName, t);
+  budget.debit(accountName, t);
 }
 
-static void credit(BudgetInMemory &bank, const Transaction &t = {}) {
-  bank.credit(t);
+static void credit(BudgetInMemory &budget, const Transaction &t = {}) {
+  budget.credit(t);
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -218,17 +215,17 @@ static void assertDebitRemoved(testcpplite::TestResult &result,
 }
 
 void createsMasterAccountOnConstruction(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &) {
     assertEqual(result, masterAccountName.data(), factory.name());
   });
 }
 
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    credit(bank,
+  test([&](AccountFactoryStub &,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
+    credit(budget,
            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertCredited(
         result, masterAccount,
@@ -237,11 +234,11 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &result) {
 }
 
 void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    debit(bank, "giraffe",
+    debit(budget, "giraffe",
           Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
     assertDebited(
         result, account,
@@ -250,14 +247,14 @@ void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &result) {
 }
 
 void debitsExistingAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    debit(bank, "giraffe",
+    debit(budget, "giraffe",
           Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
     add(factory, nullptr, "giraffe");
-    debit(bank, "giraffe",
+    debit(budget, "giraffe",
           Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertDebited(
         result, account,
@@ -266,12 +263,12 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
 }
 
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
+    budget.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
     assertCredited(result, account,
                    Transaction{456_cents, "transfer from master",
                                Date{1776, Month::July, 4}});
@@ -281,53 +278,31 @@ void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &result) {
   });
 }
 
-void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    const auto giraffe{std::make_shared<AccountStub>()};
-    add(factory, giraffe, "giraffe");
-    const auto penguin{std::make_shared<AccountStub>()};
-    add(factory, penguin, "penguin");
-    const auto leopard{std::make_shared<AccountStub>()};
-    add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
-    PersistentMemoryStub persistent;
-    bank.save(persistent);
-    assertEqual(result, masterAccount.get(), persistent.primaryAccount());
-    assertEqual(result, giraffe.get(), persistent.secondaryAccounts().at(0));
-    assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(1));
-    assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(2));
-  });
-}
-
 void saveSavesAccounts(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
-    PersistentMemoryStub persistentMemory;
-    bank.save(persistentMemory);
-    assertEqual(result, masterAccount.get(), persistentMemory.primaryAccount());
-    assertContainsSecondaryAccount(result, persistentMemory, giraffe);
-    assertContainsSecondaryAccount(result, persistentMemory, penguin);
-    assertContainsSecondaryAccount(result, persistentMemory, leopard);
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
+    PersistentMemoryStub persistence;
+    budget.save(persistence);
+    assertEqual(result, masterAccount.get(), persistence.primaryAccount());
+    assertEqual(result, giraffe.get(), persistence.secondaryAccounts().at(0));
+    assertEqual(result, leopard.get(), persistence.secondaryAccounts().at(1));
+    assertEqual(result, penguin.get(), persistence.secondaryAccounts().at(2));
   });
 }
 
 void loadLoadsAccounts(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
@@ -335,18 +310,18 @@ void loadLoadsAccounts(testcpplite::TestResult &result) {
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
     PersistentMemoryStub persistentMemory;
-    bank.load(persistentMemory);
-    assertEqual(result, &bank, persistentMemory.observer());
+    budget.load(persistentMemory);
+    assertEqual(result, &budget, persistentMemory.observer());
     AccountDeserializationStub deserialization;
-    bank.notifyThatPrimaryAccountIsReady(deserialization, "giraffe");
+    budget.notifyThatPrimaryAccountIsReady(deserialization, "giraffe");
     assertEqual(result, &deserialization, giraffe->deserialization());
-    bank.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
+    budget.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
     assertEqual(result, &deserialization, penguin->deserialization());
-    bank.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
+    budget.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
     assertEqual(result, &deserialization, leopard->deserialization());
 
     PersistentMemoryStub persistent;
-    bank.save(persistent);
+    budget.save(persistent);
     assertEqual(result, giraffe.get(), persistent.primaryAccount());
     assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(0));
     assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(1));
@@ -354,13 +329,13 @@ void loadLoadsAccounts(testcpplite::TestResult &result) {
 }
 
 void removesDebitFromAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    debit(bank, "giraffe", {});
-    bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                            Date{2013, Month::April, 3}});
+    debit(budget, "giraffe", {});
+    budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                              Date{2013, Month::April, 3}});
     assertDebitRemoved(
         result, account,
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
@@ -369,21 +344,21 @@ void removesDebitFromAccount(testcpplite::TestResult &result) {
 
 void doesNothingWhenRemovingDebitFromNonexistentAccount(
     testcpplite::TestResult &) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    bank.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                            Date{2013, Month::April, 3}});
+    budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                              Date{2013, Month::April, 3}});
   });
 }
 
 void removesFromMasterAccountWhenRemovingCredit(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    bank.removeCredit(
+  test([&](AccountFactoryStub &,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
+    budget.removeCredit(
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertCreditRemoved(
         result, masterAccount,
@@ -393,13 +368,13 @@ void removesFromMasterAccountWhenRemovingCredit(
 
 void removeTransferRemovesDebitFromMasterAndCreditFromOther(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    debit(bank, "giraffe", {});
-    bank.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
+    debit(budget, "giraffe", {});
+    budget.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
     assertCreditRemoved(result, account,
                         Transaction{456_cents, "transfer from master",
                                     Date{1776, Month::July, 4}});
@@ -410,45 +385,45 @@ void removeTransferRemovesDebitFromMasterAndCreditFromOther(
 }
 
 void renameAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
-    debit(bank, "giraffe", {});
-    bank.renameAccount("giraffe", "zebra");
+    debit(budget, "giraffe", {});
+    budget.renameAccount("giraffe", "zebra");
     assertEqual(result, "zebra", giraffe->newName());
   });
 }
 
 void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
-    debit(bank, "giraffe", {});
-    bank.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
+    debit(budget, "giraffe", {});
+    budget.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
                 giraffe->debitToVerify());
   });
 }
 
 void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    bank.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
+  test([&](AccountFactoryStub &,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
+    budget.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
                 masterAccount->creditToVerify());
   });
 }
 
 void transferVerifiesTransactionsByDefault(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    bank.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
+    budget.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
     assertEqual(result,
                 {456_cents, "transfer from master", Date{1776, Month::July, 4}},
                 account->creditToVerify());
@@ -459,14 +434,14 @@ void transferVerifiesTransactionsByDefault(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
-    BankObserverStub observer;
-    bank.attach(&observer);
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
     AccountDeserializationStub deserialization;
-    bank.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
+    budget.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
     assertEqual(result, "giraffe", observer.newAccountName());
     assertEqual(result, account.get(), observer.newAccount());
   });
@@ -478,19 +453,19 @@ static void assertReduced(testcpplite::TestResult &result, const Date &date,
 }
 
 void reduceReducesEachAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
-    bank.reduce(Date{2021, Month::March, 13});
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
+    budget.reduce(Date{2021, Month::March, 13});
     assertReduced(result, Date{2021, Month::March, 13}, masterAccount);
     assertReduced(result, Date{2021, Month::March, 13}, giraffe);
     assertReduced(result, Date{2021, Month::March, 13}, penguin);
@@ -500,46 +475,46 @@ void reduceReducesEachAccount(testcpplite::TestResult &result) {
 
 void notifiesThatTotalBalanceHasChangedOnCredit(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    BankObserverStub observer;
-    bank.attach(&observer);
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
     masterAccount->setBalance(456_cents);
     giraffe->setBalance(123_cents);
     penguin->setBalance(789_cents);
     leopard->setBalance(1111_cents);
-    credit(bank);
+    credit(budget);
     assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
                 observer.totalBalance());
   });
 }
 
 void removesAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
-    bank.removeAccount("giraffe");
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
+    budget.removeAccount("giraffe");
     PersistentMemoryStub persistent;
-    bank.save(persistent);
+    budget.save(persistent);
     assertEqual(result, masterAccount.get(), persistent.primaryAccount());
     assertEqual(result, leopard.get(), persistent.secondaryAccounts().at(0));
     assertEqual(result, penguin.get(), persistent.secondaryAccounts().at(1));
@@ -547,69 +522,69 @@ void removesAccount(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &bank) {
-    BankObserverStub observer;
-    bank.attach(&observer);
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto account{std::make_shared<AccountStub>()};
     add(factory, account, "giraffe");
-    debit(bank, "giraffe", {});
-    bank.removeAccount("giraffe");
+    debit(budget, "giraffe", {});
+    budget.removeAccount("giraffe");
     assertTrue(result, account->removed());
   });
 }
 
 void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
     testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
-    BankObserverStub observer;
-    bank.attach(&observer);
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
     masterAccount->setBalance(456_cents);
     giraffe->setBalance(123_cents);
     penguin->setBalance(789_cents);
     leopard->setBalance(1111_cents);
-    bank.removeAccount("penguin");
+    budget.removeAccount("penguin");
     assertEqual(result, 456_cents + 123_cents + 1111_cents,
                 observer.totalBalance());
   });
 }
 
 void createsAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &, BudgetInMemory &budget) {
+  test([&](AccountFactoryStub &factory, const std::shared_ptr<AccountStub> &,
+           BudgetInMemory &budget) {
     budget.createAccount("panda");
     assertEqual(result, "panda", factory.name());
   });
 }
 
 void closesAccount(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
     const auto penguin{std::make_shared<AccountStub>()};
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
-    debit(bank, "giraffe", {});
-    debit(bank, "penguin", {});
-    debit(bank, "leopard", {});
+    debit(budget, "giraffe", {});
+    debit(budget, "penguin", {});
+    debit(budget, "leopard", {});
     giraffe->setBalance(123_cents);
-    bank.closeAccount("giraffe", Date{2021, Month::April, 3});
+    budget.closeAccount("giraffe", Date{2021, Month::April, 3});
     PersistentMemoryStub persistent;
-    bank.save(persistent);
+    budget.save(persistent);
     assertEqual(result, {leopard.get(), penguin.get()},
                 persistent.secondaryAccounts());
     assertEqual(result,
@@ -622,14 +597,14 @@ void closesAccount(testcpplite::TestResult &result) {
 }
 
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
-  testBank([&](AccountFactoryStub &factory,
-               const std::shared_ptr<AccountStub> &masterAccount,
-               BudgetInMemory &bank) {
+  test([&](AccountFactoryStub &factory,
+           const std::shared_ptr<AccountStub> &masterAccount,
+           BudgetInMemory &budget) {
     const auto giraffe{std::make_shared<AccountStub>()};
     add(factory, giraffe, "giraffe");
-    debit(bank, "giraffe", {});
+    debit(budget, "giraffe", {});
     giraffe->setBalance(-123_cents);
-    bank.closeAccount("giraffe", Date{2021, Month::April, 3});
+    budget.closeAccount("giraffe", Date{2021, Month::April, 3});
     assertEqual(result,
                 {123_cents, "close giraffe", Date{2021, Month::April, 3}},
                 masterAccount->debitedTransaction());

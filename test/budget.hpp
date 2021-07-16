@@ -9,7 +9,6 @@ void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
 void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);
 void transferDebitsMasterAndCreditsOther(testcpplite::TestResult &);
-void showShowsAccountsInAlphabeticOrder(testcpplite::TestResult &);
 void saveSavesAccounts(testcpplite::TestResult &);
 void loadLoadsAccounts(testcpplite::TestResult &);
 void removesDebitFromAccount(testcpplite::TestResult &);
