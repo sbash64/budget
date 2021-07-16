@@ -10,49 +10,7 @@
 
 namespace sbash64::budget::stream {
 namespace {
-class AccountSerializationStub : public AccountSerialization {
-public:
-  void save(std::string_view name,
-            const std::vector<SerializableTransaction *> &credits,
-            const std::vector<SerializableTransaction *> &debits) override {}
-};
-
-class AccountDeserializationStub : public AccountDeserialization {
-public:
-  void load(Observer &) override {}
-};
-
-class TransactionRecordDeserializationStub : public TransactionDeserialization {
-public:
-  void load(Observer &) override {}
-};
-
-class StreamAccountSerializationFactoryStub : public AccountToStreamFactory {
-public:
-  auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
-    return std::make_shared<AccountSerializationStub>();
-  }
-};
-
-class StreamAccountDeserializationFactoryStub
-    : public AccountFromStreamFactory {
-public:
-  auto make(std::istream &)
-      -> std::shared_ptr<AccountDeserialization> override {
-    return std::make_shared<AccountDeserializationStub>();
-  }
-};
-
-class StreamTransactionRecordDeserializationFactoryStub
-    : public ObservableTransactionFromStreamFactory {
-public:
-  auto make(std::istream &)
-      -> std::shared_ptr<TransactionDeserialization> override {
-    return std::make_shared<TransactionRecordDeserializationStub>();
-  }
-};
-
-class SessionDeserializationObserverStub
+class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
   void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
@@ -74,6 +32,58 @@ public:
 private:
   std::string primaryAccountName_;
   std::vector<std::string> secondaryAccountNames_;
+};
+
+class SavesNameAccount : public SerializableAccount {
+public:
+  SavesNameAccount(std::ostream &stream, std::string name)
+      : name{std::move(name)}, stream{stream} {}
+  void load(AccountDeserialization &) override {}
+  void save(AccountSerialization &) override { stream << name; }
+
+private:
+  std::string name;
+  std::ostream &stream;
+};
+
+class AccountSerializationStub : public AccountSerialization {
+public:
+  void save(std::string_view name,
+            const std::vector<SerializableTransaction *> &credits,
+            const std::vector<SerializableTransaction *> &debits) override {}
+};
+
+class AccountDeserializationStub : public AccountDeserialization {
+public:
+  void load(Observer &) override {}
+};
+
+class AccountToStreamFactoryStub : public AccountToStreamFactory {
+public:
+  auto make(std::ostream &) -> std::shared_ptr<AccountSerialization> override {
+    return std::make_shared<AccountSerializationStub>();
+  }
+};
+
+class AccountFromStreamFactoryStub : public AccountFromStreamFactory {
+public:
+  auto make(std::istream &)
+      -> std::shared_ptr<AccountDeserialization> override {
+    return std::make_shared<AccountDeserializationStub>();
+  }
+};
+
+class TransactionDeserializationStub : public TransactionDeserialization {
+public:
+  void load(Observer &) override {}
+};
+
+class TransactionFromStreamFactoryStub : public TransactionFromStreamFactory {
+public:
+  auto make(std::istream &)
+      -> std::shared_ptr<TransactionDeserialization> override {
+    return std::make_shared<TransactionDeserializationStub>();
+  }
 };
 
 class TransactionDeserializationObserverStub
@@ -141,20 +151,7 @@ private:
   std::shared_ptr<std::iostream> stream;
 };
 
-class SavesNameAccount : public SerializableAccount {
-public:
-  SavesNameAccount(std::ostream &stream, std::string name)
-      : name{std::move(name)}, stream{stream} {}
-  void load(AccountDeserialization &) override {}
-  void save(AccountSerialization &) override { stream << name; }
-
-private:
-  std::string name;
-  std::ostream &stream;
-};
-
-class StreamTransactionRecordSerializationFactoryStub
-    : public ObservableTransactionToStreamFactory {
+class TransactionToStreamFactoryStub : public TransactionToStreamFactory {
 public:
   auto make(std::ostream &)
       -> std::shared_ptr<TransactionSerialization> override {
@@ -222,23 +219,21 @@ void toVerifiedTransaction(testcpplite::TestResult &result) {
 
 void fromAccount(testcpplite::TestResult &result) {
   std::stringstream stream;
-  StreamTransactionRecordSerializationFactoryStub factory;
+  TransactionToStreamFactoryStub factory;
   WritesAccountToStream accountSerialization{stream, factory};
   SavesNameTransaction steve{stream, "steve"};
   SavesNameTransaction sue{stream, "sue"};
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
   accountSerialization.save("jeff", {&steve, &sue}, {&allen, &john});
-  assertEqual(result, R"(
-jeff
+  assertEqual(result, R"(jeff
 credits
 steve
 sue
 debits
 allen
-john
-)",
-              '\n' + stream.str() + '\n');
+john)",
+              stream.str());
 }
 
 void beforeFinalToAccount(testcpplite::TestResult &result) {
@@ -253,7 +248,7 @@ debits
 3.24 hyvee 2/8/2020
 
 bobby)"};
-  StreamTransactionRecordDeserializationFactoryStub factory;
+  TransactionFromStreamFactoryStub factory;
   ReadsAccountFromStream readsAccount{input, factory};
   AccountDeserializationObserverStub observer{input};
   readsAccount.load(observer);
@@ -280,7 +275,7 @@ debits
 ^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020)"};
-  StreamTransactionRecordDeserializationFactoryStub factory;
+  TransactionFromStreamFactoryStub factory;
   ReadsAccountFromStream accountDeserialization{input, factory};
   AccountDeserializationObserverStub observer{input};
   accountDeserialization.load(observer);
@@ -300,7 +295,7 @@ debits
 void fromBudget(testcpplite::TestResult &result) {
   const auto stream{std::make_shared<std::stringstream>()};
   IoStreamFactoryStub streamFactory{stream};
-  StreamAccountSerializationFactoryStub accountSerializationFactory;
+  AccountToStreamFactoryStub accountSerializationFactory;
   WritesBudgetToStream sessionSerialization{streamFactory,
                                             accountSerializationFactory};
   SavesNameAccount jeff{*stream, "jeff"};
@@ -327,10 +322,10 @@ steve
 sue
 allen)")};
   IoStreamFactoryStub streamFactory{input};
-  StreamAccountDeserializationFactoryStub accountDeserializationFactory;
+  AccountFromStreamFactoryStub accountDeserializationFactory;
   ReadsBudgetFromStream readsBudget{streamFactory,
                                     accountDeserializationFactory};
-  SessionDeserializationObserverStub observer;
+  BudgetDeserializationObserverStub observer;
   readsBudget.load(observer);
   assertEqual(result, "jeff", observer.primaryAccountName());
   assertEqual(result, "steve", observer.secondaryAccountNames().at(0));

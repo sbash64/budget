@@ -53,11 +53,10 @@ void WritesBudgetToStream::save(
 }
 
 ReadsAccountFromStream::ReadsAccountFromStream(
-    std::istream &stream, ObservableTransactionFromStreamFactory &factory)
+    std::istream &stream, TransactionFromStreamFactory &factory)
     : stream{stream}, factory{factory} {}
 
-ReadsAccountFromStream::Factory::Factory(
-    ObservableTransactionFromStreamFactory &factory)
+ReadsAccountFromStream::Factory::Factory(TransactionFromStreamFactory &factory)
     : factory{factory} {}
 
 auto ReadsAccountFromStream::Factory::make(std::istream &stream)
@@ -82,11 +81,10 @@ void ReadsAccountFromStream::load(Observer &observer) {
 }
 
 WritesAccountToStream::WritesAccountToStream(
-    std::ostream &stream, ObservableTransactionToStreamFactory &factory)
+    std::ostream &stream, TransactionToStreamFactory &factory)
     : stream{stream}, factory{factory} {}
 
-WritesAccountToStream::Factory::Factory(
-    ObservableTransactionToStreamFactory &factory)
+WritesAccountToStream::Factory::Factory(TransactionToStreamFactory &factory)
     : factory{factory} {}
 
 auto WritesAccountToStream::Factory::make(std::ostream &stream)
@@ -96,7 +94,7 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream)
 
 static void save(std::ostream &stream, std::string_view name,
                  const std::vector<SerializableTransaction *> &transactions,
-                 ObservableTransactionToStreamFactory &factory) {
+                 TransactionToStreamFactory &factory) {
   stream << name;
   for (const auto &transaction : transactions) {
     putNewLine(stream);
