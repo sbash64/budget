@@ -61,8 +61,8 @@ public:
   explicit WritesAccountToStream(std::ostream &,
                                  ObservableTransactionToStreamFactory &);
   void save(std::string_view name,
-            const std::vector<ObservableTransaction *> &credits,
-            const std::vector<ObservableTransaction *> &debits) override;
+            const std::vector<SerializableTransaction *> &credits,
+            const std::vector<SerializableTransaction *> &debits) override;
 
   class Factory : public AccountToStreamFactory {
   public:

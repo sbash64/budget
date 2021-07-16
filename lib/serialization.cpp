@@ -94,7 +94,7 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream)
 }
 
 static void save(std::ostream &stream, std::string_view name,
-                 const std::vector<ObservableTransaction *> &transactions,
+                 const std::vector<SerializableTransaction *> &transactions,
                  ObservableTransactionToStreamFactory &factory) {
   stream << name;
   for (const auto &transaction : transactions) {
@@ -104,8 +104,9 @@ static void save(std::ostream &stream, std::string_view name,
 }
 
 void WritesAccountToStream::save(
-    std::string_view name, const std::vector<ObservableTransaction *> &credits,
-    const std::vector<ObservableTransaction *> &debits) {
+    std::string_view name,
+    const std::vector<SerializableTransaction *> &credits,
+    const std::vector<SerializableTransaction *> &debits) {
   putNewLine(stream << name);
   budget::save(stream, "credits", credits, factory);
   putNewLine(stream);

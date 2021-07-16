@@ -140,8 +140,8 @@ void InMemoryAccount::notifyThatDebitIsReady(
 
 static auto
 collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
-    -> std::vector<ObservableTransaction *> {
-  std::vector<ObservableTransaction *> collected;
+    -> std::vector<SerializableTransaction *> {
+  std::vector<SerializableTransaction *> collected;
   collected.reserve(accounts.size());
   for (const auto &account : accounts)
     collected.push_back(account.get());

@@ -141,29 +141,29 @@ private:
 
 static void
 assertContains(testcpplite::TestResult &result,
-               const std::vector<ObservableTransaction *> &transactions,
-               const ObservableTransaction *transaction) {
+               const std::vector<SerializableTransaction *> &transactions,
+               const SerializableTransaction *transaction) {
   assertTrue(result, std::find(transactions.begin(), transactions.end(),
                                transaction) != transactions.end());
 }
 
 static void assertContainsCredit(testcpplite::TestResult &result,
                                  PersistentAccountStub &persistentMemory,
-                                 const ObservableTransaction *transaction) {
+                                 const SerializableTransaction *transaction) {
   assertContains(result, persistentMemory.credits(), transaction);
 }
 
 static void assertContainsDebit(testcpplite::TestResult &result,
                                 PersistentAccountStub &persistentMemory,
-                                const ObservableTransaction *transaction) {
+                                const SerializableTransaction *transaction) {
   assertContains(result, persistentMemory.debits(), transaction);
 }
 
 static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<ObservableTransaction *> &expected,
-                        const std::vector<ObservableTransaction *> &actual) {
+                        const std::vector<SerializableTransaction *> &expected,
+                        const std::vector<SerializableTransaction *> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<ObservableTransaction *>::size_type i{0};
+  for (std::vector<SerializableTransaction *>::size_type i{0};
        i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
@@ -171,14 +171,14 @@ static void assertEqual(testcpplite::TestResult &result,
 static void
 assertDebitsSaved(testcpplite::TestResult &result,
                   PersistentAccountStub &persistentMemory,
-                  const std::vector<ObservableTransaction *> &transactions) {
+                  const std::vector<SerializableTransaction *> &transactions) {
   assertEqual(result, persistentMemory.debits(), transactions);
 }
 
 static void
 assertCreditsSaved(testcpplite::TestResult &result,
                    PersistentAccountStub &persistentMemory,
-                   const std::vector<ObservableTransaction *> &transactions) {
+                   const std::vector<SerializableTransaction *> &transactions) {
   assertEqual(result, persistentMemory.credits(), transactions);
 }
 

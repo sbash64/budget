@@ -41,7 +41,15 @@ public:
   virtual void load(Observer &) = 0;
 };
 
-class ObservableTransaction : public TransactionDeserialization::Observer {
+class SerializableTransaction {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SerializableTransaction);
+  virtual void save(TransactionSerialization &) = 0;
+  virtual void load(TransactionDeserialization &) = 0;
+};
+
+class ObservableTransaction : public TransactionDeserialization::Observer,
+                              public SerializableTransaction {
 public:
   class Observer {
   public:
@@ -57,8 +65,6 @@ public:
   virtual auto verifies(const Transaction &) -> bool = 0;
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
-  virtual void save(TransactionSerialization &) = 0;
-  virtual void load(TransactionDeserialization &) = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {
@@ -72,8 +78,8 @@ class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
   virtual void save(std::string_view name,
-                    const std::vector<ObservableTransaction *> &credits,
-                    const std::vector<ObservableTransaction *> &debits) = 0;
+                    const std::vector<SerializableTransaction *> &credits,
+                    const std::vector<SerializableTransaction *> &debits) = 0;
 };
 
 class AccountDeserialization {

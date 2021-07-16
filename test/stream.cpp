@@ -13,8 +13,8 @@ namespace {
 class AccountSerializationStub : public AccountSerialization {
 public:
   void save(std::string_view name,
-            const std::vector<ObservableTransaction *> &credits,
-            const std::vector<ObservableTransaction *> &debits) override {}
+            const std::vector<SerializableTransaction *> &credits,
+            const std::vector<SerializableTransaction *> &debits) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -176,20 +176,12 @@ public:
   }
 };
 
-class SavesNameTransactionRecordStub : public ObservableTransaction {
+class SavesNameTransactionRecordStub : public SerializableTransaction {
 public:
   SavesNameTransactionRecordStub(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
-  void attach(Observer *) override {}
-  void initialize(const Transaction &) override {}
-  void verify() override {}
-  auto verifies(const Transaction &) -> bool override { return {}; }
-  auto removes(const Transaction &) -> bool override { return {}; }
   void save(TransactionSerialization &) override { stream << name; }
   void load(TransactionDeserialization &) override {}
-  void ready(const VerifiableTransaction &) override {}
-  auto amount() -> USD override { return {}; }
-  void remove() override {}
 
 private:
   std::string name;
