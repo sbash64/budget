@@ -29,16 +29,21 @@ WritesBudgetToStream::WritesBudgetToStream(
     : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
                                             accountSerializationFactory} {}
 
+static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
+    -> std::ostream & {
+  return *stream << '\n';
+}
+
 void WritesBudgetToStream::save(Account &primary,
                                 const std::vector<Account *> &secondaries) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
   primary.save(*accountSerialization);
-  *stream << '\n';
+  putNewLine(stream);
   for (auto *account : secondaries) {
-    *stream << '\n';
+    putNewLine(stream);
     account->save(*accountSerialization);
-    *stream << '\n';
+    putNewLine(stream);
   }
 }
 
