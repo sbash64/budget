@@ -285,6 +285,16 @@ void savesAccounts(testcpplite::TestResult &result) {
   });
 }
 
+static void assertDeserializes(testcpplite::TestResult &result, Budget &budget,
+                               void (Budget::*notify)(AccountDeserialization &,
+                                                      std::string_view),
+                               AccountDeserialization &deserialization,
+                               std::string_view name,
+                               const std::shared_ptr<AccountStub> &account) {
+  (budget.*notify)(deserialization, name);
+  assertEqual(result, &deserialization, account->deserialization());
+}
+
 void loadsAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&](AccountFactoryStub &factory,
                          const std::shared_ptr<AccountStub> &, Budget &budget) {
@@ -294,21 +304,25 @@ void loadsAccounts(testcpplite::TestResult &result) {
     add(factory, penguin, "penguin");
     const auto leopard{std::make_shared<AccountStub>()};
     add(factory, leopard, "leopard");
+
     PersistentMemoryStub persistence;
     budget.load(persistence);
     assertEqual(result, &budget, persistence.observer());
+
     AccountDeserializationStub deserialization;
-    budget.notifyThatPrimaryAccountIsReady(deserialization, "giraffe");
-    assertEqual(result, &deserialization, giraffe->deserialization());
-    budget.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
-    assertEqual(result, &deserialization, penguin->deserialization());
-    budget.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
-    assertEqual(result, &deserialization, leopard->deserialization());
+    assertDeserializes(result, budget, &Budget::notifyThatPrimaryAccountIsReady,
+                       deserialization, "giraffe", giraffe);
+    assertDeserializes(result, budget,
+                       &Budget::notifyThatSecondaryAccountIsReady,
+                       deserialization, "penguin", penguin);
+    assertDeserializes(result, budget,
+                       &Budget::notifyThatSecondaryAccountIsReady,
+                       deserialization, "leopard", leopard);
 
     budget.save(persistence);
     assertEqual(result, giraffe.get(), persistence.primaryAccount());
-    assertEqual(result, leopard.get(), persistence.secondaryAccounts().at(0));
-    assertEqual(result, penguin.get(), persistence.secondaryAccounts().at(1));
+    assertEqual(result, {leopard.get(), penguin.get()},
+                persistence.secondaryAccounts());
   });
 }
 
