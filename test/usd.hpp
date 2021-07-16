@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_TEST_USD_HPP_
 #define SBASH64_BUDGET_TEST_USD_HPP_
 
-#include <sbash64/budget/budget.hpp>
+#include <sbash64/budget/domain.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {

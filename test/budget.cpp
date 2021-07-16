@@ -1,8 +1,8 @@
-#include "bank.hpp"
+#include "budget.hpp"
 #include "persistent-memory-stub.hpp"
 #include "usd.hpp"
 
-#include <sbash64/budget/bank.hpp>
+#include <sbash64/budget/budget.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 #include <gsl/gsl>
@@ -11,7 +11,7 @@
 #include <map>
 #include <utility>
 
-namespace sbash64::budget::bank {
+namespace sbash64::budget {
 namespace {
 class AccountDeserializationStub : public AccountDeserialization {
 public:
@@ -638,4 +638,4 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
                 masterAccount->debitToVerify());
   });
 }
-} // namespace sbash64::budget::bank
+} // namespace sbash64::budget

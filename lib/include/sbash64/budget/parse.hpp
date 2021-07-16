@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_PARSE_HPP_
 #define SBASH64_BUDGET_PARSE_HPP_
 
-#include "budget.hpp"
+#include "domain.hpp"
 
 #include <string_view>
 

@@ -1,9 +1,10 @@
 #ifndef SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 #define SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 
+#include <sbash64/budget/domain.hpp>
+
 #include <functional>
 #include <map>
-#include <sbash64/budget/budget.hpp>
 #include <string_view>
 #include <utility>
 

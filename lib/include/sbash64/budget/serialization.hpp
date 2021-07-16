@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_SERIALIZATION_HPP_
 #define SBASH64_BUDGET_SERIALIZATION_HPP_
 
-#include "budget.hpp"
+#include "domain.hpp"
 
 #include <istream>
 #include <memory>

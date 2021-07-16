@@ -1,9 +1,9 @@
-#ifndef SBASH64_BUDGET_TEST_BANK_HPP_
-#define SBASH64_BUDGET_TEST_BANK_HPP_
+#ifndef SBASH64_BUDGET_TEST_BUDGET_HPP_
+#define SBASH64_BUDGET_TEST_BUDGET_HPP_
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::bank {
+namespace sbash64::budget {
 void createsMasterAccountOnConstruction(testcpplite::TestResult &);
 void creditsMasterAccountWhenCredited(testcpplite::TestResult &);
 void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &);
@@ -34,6 +34,6 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
 void createsAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
-} // namespace sbash64::budget::bank
+} // namespace sbash64::budget
 
 #endif

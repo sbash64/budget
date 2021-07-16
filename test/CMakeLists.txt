@@ -4,7 +4,7 @@ add_executable(
   parse.cpp
   usd.cpp
   format.cpp
-  bank.cpp
+  budget.cpp
   account.cpp
   stream.cpp)
 target_link_libraries(sbash64-budget-tests sbash64-testcpplite

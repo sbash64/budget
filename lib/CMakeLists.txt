@@ -1,4 +1,4 @@
-add_library(sbash64-budget-lib bank.cpp account.cpp serialization.cpp
+add_library(sbash64-budget-lib budget.cpp account.cpp serialization.cpp
                                format.cpp parse.cpp)
 target_include_directories(sbash64-budget-lib PUBLIC include)
 target_include_directories(sbash64-budget-lib PRIVATE include/sbash64/budget)

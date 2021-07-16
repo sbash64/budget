@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_ACCOUNT_HPP_
 #define SBASH64_BUDGET_ACCOUNT_HPP_
 
-#include "budget.hpp"
+#include "domain.hpp"
 
 #include <memory>
 #include <string>

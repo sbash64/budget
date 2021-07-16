@@ -1,4 +1,5 @@
 #include "usd.hpp"
+
 #include <gsl/gsl>
 
 namespace sbash64::budget {

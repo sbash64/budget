@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_FORMAT_HPP_
 #define SBASH64_BUDGET_FORMAT_HPP_
 
-#include "budget.hpp"
+#include "domain.hpp"
 
 #include <ostream>
 
