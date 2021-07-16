@@ -1,8 +1,9 @@
 #include "parse.hpp"
 #include "usd.hpp"
+
 #include <sbash64/budget/parse.hpp>
 
-namespace sbash64::budget::parse {
+namespace sbash64::budget::parses {
 static void assertEqual(testcpplite::TestResult &result, USD expected,
                         std::string_view s) {
   assertEqual(result, expected, usd(s));
@@ -43,4 +44,4 @@ void twelveCentsIgnoringThirdDecimalPlace(testcpplite::TestResult &result) {
 void oneCentIgnoringThirdDecimalPlace(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, ".012");
 }
-} // namespace sbash64::budget::parse
+} // namespace sbash64::budget::parses

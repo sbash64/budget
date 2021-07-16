@@ -3,7 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::parse {
+namespace sbash64::budget::parses {
 void zeroDollars(testcpplite::TestResult &);
 void oneDollar(testcpplite::TestResult &);
 void oneDollarTwentyThreeCents(testcpplite::TestResult &);
@@ -13,6 +13,6 @@ void tenCents(testcpplite::TestResult &);
 void twelveCentsWithoutLeadingZero(testcpplite::TestResult &);
 void twelveCentsIgnoringThirdDecimalPlace(testcpplite::TestResult &);
 void oneCentIgnoringThirdDecimalPlace(testcpplite::TestResult &);
-} // namespace sbash64::budget::parse
+} // namespace sbash64::budget::parses
 
 #endif
