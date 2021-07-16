@@ -4,8 +4,9 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::stream {
-void toTransaction(testcpplite::TestResult &);
 void fromTransaction(testcpplite::TestResult &);
+void fromVerifiedTransaction(testcpplite::TestResult &);
+void toTransaction(testcpplite::TestResult &);
 void toVerifiedTransaction(testcpplite::TestResult &);
 void fromAccount(testcpplite::TestResult &);
 void fromBudget(testcpplite::TestResult &);

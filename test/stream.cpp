@@ -192,6 +192,14 @@ void fromTransaction(testcpplite::TestResult &result) {
   assertEqual(result, "3.24 hyvee 2/8/2020", stream.str());
 }
 
+void fromVerifiedTransaction(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  WritesTransactionToStream writesTransaction{stream};
+  writesTransaction.save(
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true});
+  assertEqual(result, "^3.24 hyvee 2/8/2020", stream.str());
+}
+
 void toTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"3.24 hyvee 2/8/2020"};
   ReadsTransactionFromStream transactionRecordDeserialization{input};

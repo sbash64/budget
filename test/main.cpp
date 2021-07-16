@@ -30,6 +30,7 @@ static auto runAllTests() -> int {
         "formats minus $1.34 as \"$-1.34\""},
        {formats::negativeFifteenCents, "formats minus 15¢ as \"$-0.15\""},
        {stream::fromTransaction, "streams from transaction"},
+       {stream::fromVerifiedTransaction, "streams from verified transaction"},
        {stream::toTransaction, "streams to transaction"},
        {stream::toVerifiedTransaction, "streams to verified transaction"},
        {stream::fromAccount, "streams from account"},
