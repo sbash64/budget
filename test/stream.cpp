@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace sbash64::budget::stream {
+namespace sbash64::budget::streams {
 namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
@@ -236,7 +236,7 @@ john)",
               stream.str());
 }
 
-void beforeFinalToAccount(testcpplite::TestResult &result) {
+void nonfinalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
       R"(credits
 50 transfer from master 1/10/2021
@@ -332,4 +332,4 @@ allen)")};
   assertEqual(result, "sue", observer.secondaryAccountNames().at(1));
   assertEqual(result, "allen", observer.secondaryAccountNames().at(2));
 }
-} // namespace sbash64::budget::stream
+} // namespace sbash64::budget::streams
