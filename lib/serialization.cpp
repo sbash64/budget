@@ -29,9 +29,13 @@ WritesBudgetToStream::WritesBudgetToStream(
     : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
                                             accountSerializationFactory} {}
 
+static auto putNewLine(std::ostream &stream) -> std::ostream & {
+  return stream << '\n';
+}
+
 static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
     -> std::ostream & {
-  return *stream << '\n';
+  return putNewLine(*stream);
 }
 
 void WritesBudgetToStream::save(Account &primary,
@@ -92,19 +96,17 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream)
 void WritesAccountToStream::save(
     std::string_view name, const std::vector<ObservableTransaction *> &credits,
     const std::vector<ObservableTransaction *> &debits) {
-  stream << name << '\n';
+  putNewLine(stream << name);
   stream << "credits";
   for (const auto &credit : credits) {
-    stream << '\n';
-    const auto transactionRecordSerialization{factory.make(stream)};
-    credit->save(*transactionRecordSerialization);
+    putNewLine(stream);
+    credit->save(*factory.make(stream));
   }
-  stream << '\n';
+  putNewLine(stream);
   stream << "debits";
   for (const auto &debit : debits) {
-    stream << '\n';
-    const auto transactionRecordSerialization{factory.make(stream)};
-    debit->save(*transactionRecordSerialization);
+    putNewLine(stream);
+    debit->save(*factory.make(stream));
   }
 }
 
