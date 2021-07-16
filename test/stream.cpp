@@ -141,25 +141,11 @@ private:
   std::shared_ptr<std::iostream> stream;
 };
 
-class SavesNameAccountStub : public Account {
+class SavesNameAccountStub : public SerializableAccount {
 public:
   SavesNameAccountStub(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
-  void attach(Observer *) override {}
-  void credit(const Transaction &) override {}
-  void debit(const Transaction &) override {}
-  void removeCredit(const Transaction &) override {}
-  void removeDebit(const Transaction &) override {}
   void load(AccountDeserialization &) override {}
-  void rename(std::string_view) override {}
-  void verifyDebit(const Transaction &) override {}
-  void verifyCredit(const Transaction &) override {}
-  void notifyThatCreditIsReady(TransactionDeserialization &) override {}
-  void notifyThatDebitIsReady(TransactionDeserialization &) override {}
-  void reduce(const Date &) override {}
-  auto balance() -> USD override { return {}; }
-  void remove() override {}
-
   void save(AccountSerialization &) override { stream << name; }
 
 private:
