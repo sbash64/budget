@@ -151,20 +151,20 @@ loadTransaction(std::string &line,
                 const std::function<void(const VerifiableTransaction &)>
                     &onDeserialization) {
   std::stringstream transaction{line};
-  std::string next;
-  std::string eventuallyDate;
-  std::string eventuallyEndOfLine;
   auto verified{false};
   if (transaction.peek() == '^') {
     transaction.get();
     verified = true;
   }
+  std::string next;
   transaction >> next;
   const auto amount{usd(next)};
-  std::stringstream description;
   transaction >> next;
+  std::string eventuallyDate;
   transaction >> eventuallyDate;
+  std::string eventuallyEndOfLine;
   transaction >> eventuallyEndOfLine;
+  std::stringstream description;
   while (transaction) {
     description << next << ' ';
     next = eventuallyDate;
@@ -210,17 +210,18 @@ constexpr auto to_integral(Month e) ->
 
 static auto operator<<(std::ostream &stream, const Date &date)
     -> std::ostream & {
-  stream << to_integral(date.month) << '/';
-  stream << date.day << '/';
-  stream << date.year;
-  return stream;
+  return stream << to_integral(date.month) << '/' << date.day << '/'
+                << date.year;
+}
+
+static void save(std::ostream &stream, const Transaction &transaction) {
+  stream << transaction.amount << ' ' << transaction.description << ' '
+         << transaction.date;
 }
 
 void WritesTransactionToStream::save(const VerifiableTransaction &credit) {
   if (credit.verified)
     stream << '^';
-  stream << credit.transaction.amount << ' ';
-  stream << credit.transaction.description << ' ';
-  stream << credit.transaction.date;
+  budget::save(stream, credit.transaction);
 }
 } // namespace sbash64::budget
