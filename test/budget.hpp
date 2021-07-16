@@ -6,9 +6,9 @@
 namespace sbash64::budget {
 void createsMasterAccount(testcpplite::TestResult &);
 void creditsMasterAccount(testcpplite::TestResult &);
-void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &);
+void debitsNonexistentAccount(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);
-void transfersFromMasterToOther(testcpplite::TestResult &);
+void transfersFromMasterAccountToOther(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 void removesDebit(testcpplite::TestResult &);

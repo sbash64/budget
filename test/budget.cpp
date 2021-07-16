@@ -219,7 +219,7 @@ void creditsMasterAccount(testcpplite::TestResult &result) {
   });
 }
 
-void createsAccountWhenDebitingNonexistent(testcpplite::TestResult &result) {
+void debitsNonexistentAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&](AccountFactoryStub &factory,
                          const std::shared_ptr<AccountStub> &, Budget &budget) {
     const auto account{std::make_shared<AccountStub>()};
@@ -248,7 +248,7 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
   });
 }
 
-void transfersFromMasterToOther(testcpplite::TestResult &result) {
+void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
   testBudgetInMemory([&](AccountFactoryStub &factory,
                          const std::shared_ptr<AccountStub> &masterAccount,
                          Budget &budget) {
@@ -280,9 +280,8 @@ void savesAccounts(testcpplite::TestResult &result) {
     PersistentMemoryStub persistence;
     budget.save(persistence);
     assertEqual(result, masterAccount.get(), persistence.primaryAccount());
-    assertEqual(result, giraffe.get(), persistence.secondaryAccounts().at(0));
-    assertEqual(result, leopard.get(), persistence.secondaryAccounts().at(1));
-    assertEqual(result, penguin.get(), persistence.secondaryAccounts().at(2));
+    assertEqual(result, {giraffe.get(), leopard.get(), penguin.get()},
+                persistence.secondaryAccounts());
   });
 }
 
