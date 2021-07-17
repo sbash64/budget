@@ -593,9 +593,9 @@ void closesAccount(testcpplite::TestResult &result) {
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        budget.createAccount("giraffe");
+        budget.createAccount("penguin");
+        budget.createAccount("leopard");
         giraffe->setBalance(123_cents);
         budget.closeAccount("giraffe", Date{2021, Month::April, 3});
         PersistentMemoryStub persistence;
