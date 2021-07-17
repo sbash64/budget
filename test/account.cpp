@@ -408,16 +408,17 @@ void savesRemainingTransactionAfterRemovingVerified(
   });
 }
 
-void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &result) {
+void notifiesObserverThatDuplicateTransactionsAreVerified(
+    testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    TransactionObserverStub john;
-    TransactionObserverStub alex;
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(andy);
+    TransactionObserverStub john;
     mike->attach(&john);
+    TransactionObserverStub alex;
     andy->attach(&alex);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -432,12 +433,12 @@ void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &result) {
   });
 }
 
-void savesDuplicateTransactionRecords(testcpplite::TestResult &result) {
+void savesDuplicateTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(andy);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -473,7 +474,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesCreditIsVerified(testcpplite::TestResult &result) {
+void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};
@@ -487,7 +488,7 @@ void notifiesCreditIsVerified(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesDebitIsVerified(testcpplite::TestResult &result) {
+void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};

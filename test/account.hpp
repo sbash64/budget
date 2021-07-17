@@ -16,12 +16,13 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void savesLoadedTransactions(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
 void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
-void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &);
-void savesDuplicateTransactionRecords(testcpplite::TestResult &);
+void notifiesObserverThatDuplicateTransactionsAreVerified(
+    testcpplite::TestResult &);
+void savesDuplicateTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
-void notifiesCreditIsVerified(testcpplite::TestResult &);
-void notifiesDebitIsVerified(testcpplite::TestResult &);
+void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
+void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
 void reduceReducesToOneTransaction(testcpplite::TestResult &);
