@@ -25,17 +25,17 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
-void reduceReducesToOneTransaction(testcpplite::TestResult &);
+void reducesToOneTransaction(testcpplite::TestResult &);
 void notifiesObserverOfTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void reduceReducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
-void notifiesObserverWhenVerified(testcpplite::TestResult &);
-void saveAfterVerify(testcpplite::TestResult &);
-void notifiesObserverWhenRemoved(testcpplite::TestResult &);
-void savesWhatWasLoaded(testcpplite::TestResult &);
+void notifiesObserverOfVerification(testcpplite::TestResult &);
+void savesVerification(testcpplite::TestResult &);
+void notifiesObserverOfRemoval(testcpplite::TestResult &);
+void savesLoadedValue(testcpplite::TestResult &);
 void loadPassesSelfToDeserialization(testcpplite::TestResult &);
-void notifiesThatIsAfterReady(testcpplite::TestResult &);
-void notifiesThatIsAfterInitialize(testcpplite::TestResult &);
+void notifiesObserverOfLoadedValue(testcpplite::TestResult &);
+void notifiesObserverOfInitializedValue(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

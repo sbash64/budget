@@ -530,16 +530,16 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   });
 }
 
-void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
+void reducesToOneTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(andy);
+    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(joe);
+    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(bob);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -556,7 +556,7 @@ void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesObserverWhenVerified(testcpplite::TestResult &result) {
+void notifiesObserverOfVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
   record.attach(&observer);
@@ -564,7 +564,7 @@ void notifiesObserverWhenVerified(testcpplite::TestResult &result) {
   assertTrue(result, observer.verified());
 }
 
-void saveAfterVerify(testcpplite::TestResult &result) {
+void savesVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   record.verify();
   TransactionSerializationStub serialization;
@@ -572,7 +572,7 @@ void saveAfterVerify(testcpplite::TestResult &result) {
   assertTrue(result, serialization.verifiableTransaction().verified);
 }
 
-void notifiesObserverWhenRemoved(testcpplite::TestResult &result) {
+void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
   record.attach(&observer);
@@ -587,7 +587,7 @@ void loadPassesSelfToDeserialization(testcpplite::TestResult &result) {
   assertEqual(result, &record, deserialization.observer());
 }
 
-void notifiesThatIsAfterReady(testcpplite::TestResult &result) {
+void notifiesObserverOfLoadedValue(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
   record.attach(&observer);
@@ -599,7 +599,7 @@ void notifiesThatIsAfterReady(testcpplite::TestResult &result) {
   assertTrue(result, observer.verified());
 }
 
-void notifiesThatIsAfterInitialize(testcpplite::TestResult &result) {
+void notifiesObserverOfInitializedValue(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
   record.attach(&observer);
@@ -610,7 +610,7 @@ void notifiesThatIsAfterInitialize(testcpplite::TestResult &result) {
               observer.transaction());
 }
 
-void savesWhatWasLoaded(testcpplite::TestResult &result) {
+void savesLoadedValue(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   record.ready(
       {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true});
