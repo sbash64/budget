@@ -165,11 +165,13 @@ assertCreditsSaved(testcpplite::TestResult &result,
   assertEqual(result, persistentMemory.credits(), transactions);
 }
 
-static void credit(Account &account, const Transaction &t) {
+static void credit(Account &account, const Transaction &t = {}) {
   account.credit(t);
 }
 
-static void debit(Account &account, const Transaction &t) { account.debit(t); }
+static void debit(Account &account, const Transaction &t = {}) {
+  account.debit(t);
+}
 
 static void assertAccountName(testcpplite::TestResult &result,
                               PersistentAccountStub &persistent,
@@ -194,27 +196,32 @@ testInMemoryAccount(const std::function<void(InMemoryAccount &)> &test,
   test(account);
 }
 
+static void assertBalanceEquals(testcpplite::TestResult &result, USD actual,
+                                AccountObserverStub &observer) {
+  assertEqual(result, actual, observer.balance());
+}
+
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto joe{std::make_shared<ObservableTransactionStub>()};
-    const auto mike{std::make_shared<ObservableTransactionStub>()};
-    const auto andy{std::make_shared<ObservableTransactionStub>()};
-    factory.add(joe);
-    factory.add(mike);
-    factory.add(andy);
-    joe->setAmount(3_cents);
-    mike->setAmount(5_cents);
-    andy->setAmount(11_cents);
+    const auto threeCents{std::make_shared<ObservableTransactionStub>()};
+    const auto fiveCents{std::make_shared<ObservableTransactionStub>()};
+    const auto elevenCents{std::make_shared<ObservableTransactionStub>()};
+    factory.add(threeCents);
+    factory.add(fiveCents);
+    factory.add(elevenCents);
+    threeCents->setAmount(3_cents);
+    fiveCents->setAmount(5_cents);
+    elevenCents->setAmount(11_cents);
     AccountObserverStub observer;
     account.attach(&observer);
-    credit(account, {});
-    assertEqual(result, 3_cents, observer.balance());
-    debit(account, {});
-    assertEqual(result, 3_cents - 5_cents, observer.balance());
-    credit(account, {});
-    assertEqual(result, 3_cents - 5_cents + 11_cents, observer.balance());
+    credit(account);
+    assertBalanceEquals(result, 3_cents, observer);
+    debit(account);
+    assertBalanceEquals(result, 3_cents - 5_cents, observer);
+    credit(account);
+    assertBalanceEquals(result, 3_cents - 5_cents + 11_cents, observer);
   });
 }
 
@@ -235,10 +242,10 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     account.removeDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(result, 123_cents + 111_cents - 789_cents, observer.balance());
+    assertBalanceEquals(result, 123_cents + 111_cents - 789_cents, observer);
     account.removeCredit(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    assertEqual(result, 123_cents - 789_cents, observer.balance());
+    assertBalanceEquals(result, 123_cents - 789_cents, observer);
   });
 }
 
@@ -252,9 +259,9 @@ void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &result) {
         factory.add(john);
         factory.add(mike);
         factory.add(andy);
-        credit(account, {});
-        debit(account, {});
-        credit(account, {});
+        credit(account);
+        debit(account);
+        credit(account);
         PersistentAccountStub persistentMemory;
         account.save(persistentMemory);
         assertAccountName(result, persistentMemory, "joe");
