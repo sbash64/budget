@@ -142,14 +142,6 @@ private:
 };
 } // namespace
 
-static void
-assertContains(testcpplite::TestResult &result,
-               const std::vector<SerializableTransaction *> &transactions,
-               const SerializableTransaction *transaction) {
-  assertTrue(result, std::find(transactions.begin(), transactions.end(),
-                               transaction) != transactions.end());
-}
-
 static void assertEqual(testcpplite::TestResult &result,
                         const std::vector<SerializableTransaction *> &expected,
                         const std::vector<SerializableTransaction *> &actual) {
@@ -185,50 +177,51 @@ static void assertAccountName(testcpplite::TestResult &result,
   assertEqual(result, std::string{expected}, persistent.accountName());
 }
 
-static void
-testAccount(const std::function<void(InMemoryAccount &,
-                                     ObservableTransactionFactoryStub &)> &f,
-            std::string name = {}) {
-  ObservableTransactionFactoryStub transactionRecordFactory;
-  InMemoryAccount account{std::move(name), transactionRecordFactory};
-  f(account, transactionRecordFactory);
+static void testInMemoryAccount(
+    const std::function<void(InMemoryAccount &,
+                             ObservableTransactionFactoryStub &)> &test,
+    std::string name = {}) {
+  ObservableTransactionFactoryStub factory;
+  InMemoryAccount account{std::move(name), factory};
+  test(account, factory);
 }
 
-static void testAccount(const std::function<void(InMemoryAccount &)> &f,
-                        std::string name = {}) {
-  ObservableTransactionFactoryStub transactionRecordFactory;
-  InMemoryAccount account{std::move(name), transactionRecordFactory};
-  f(account);
+static void
+testInMemoryAccount(const std::function<void(InMemoryAccount &)> &test,
+                    std::string name = {}) {
+  ObservableTransactionFactoryStub factory;
+  InMemoryAccount account{std::move(name), factory};
+  test(account);
 }
 
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, ObservableTransactionFactoryStub &factory) {
-        const auto joe{std::make_shared<ObservableTransactionStub>()};
-        const auto mike{std::make_shared<ObservableTransactionStub>()};
-        const auto andy{std::make_shared<ObservableTransactionStub>()};
-        factory.add(joe);
-        factory.add(mike);
-        factory.add(andy);
-        joe->setAmount(3_cents);
-        mike->setAmount(5_cents);
-        andy->setAmount(11_cents);
-        AccountObserverStub observer;
-        account.attach(&observer);
-        credit(account, {});
-        assertEqual(result, 3_cents, observer.balance());
-        debit(account, {});
-        assertEqual(result, 3_cents - 5_cents, observer.balance());
-        credit(account, {});
-        assertEqual(result, 3_cents - 5_cents + 11_cents, observer.balance());
-      });
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto joe{std::make_shared<ObservableTransactionStub>()};
+    const auto mike{std::make_shared<ObservableTransactionStub>()};
+    const auto andy{std::make_shared<ObservableTransactionStub>()};
+    factory.add(joe);
+    factory.add(mike);
+    factory.add(andy);
+    joe->setAmount(3_cents);
+    mike->setAmount(5_cents);
+    andy->setAmount(11_cents);
+    AccountObserverStub observer;
+    account.attach(&observer);
+    credit(account, {});
+    assertEqual(result, 3_cents, observer.balance());
+    debit(account, {});
+    assertEqual(result, 3_cents - 5_cents, observer.balance());
+    credit(account, {});
+    assertEqual(result, 3_cents - 5_cents + 11_cents, observer.balance());
+  });
 }
 
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     for (auto i{0}; i < 4; ++i)
       factory.add(std::make_shared<ObservableTransactionInMemory>());
     AccountObserverStub observer;
@@ -250,8 +243,9 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 }
 
 void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account,
+                ObservableTransactionFactoryStub &factory) {
         const auto john{std::make_shared<ObservableTransactionStub>()};
         const auto mike{std::make_shared<ObservableTransactionStub>()};
         const auto andy{std::make_shared<ObservableTransactionStub>()};
@@ -272,8 +266,8 @@ void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &result) {
 
 void savesRemainingTransactionRecordsAfterRemovingSome(
     testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     const auto joe{std::make_shared<ObservableTransactionInMemory>()};
@@ -301,8 +295,8 @@ void savesRemainingTransactionRecordsAfterRemovingSome(
 }
 
 void initializesTransactionRecords(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto joe{std::make_shared<ObservableTransactionStub>()};
     const auto mike{std::make_shared<ObservableTransactionStub>()};
     const auto andy{std::make_shared<ObservableTransactionStub>()};
@@ -329,7 +323,7 @@ void initializesTransactionRecords(testcpplite::TestResult &result) {
 }
 
 void passesSelfToDeserializationOnLoad(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account) {
+  testInMemoryAccount([&result](InMemoryAccount &account) {
     PersistentAccountStub persistentMemory;
     account.load(persistentMemory);
     assertEqual(result, &account, persistentMemory.observer());
@@ -338,46 +332,46 @@ void passesSelfToDeserializationOnLoad(testcpplite::TestResult &result) {
 
 void passesNewTransactionRecordsToDeserialization(
     testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, ObservableTransactionFactoryStub &factory) {
-        const auto mike{std::make_shared<ObservableTransactionStub>()};
-        const auto joe{std::make_shared<ObservableTransactionStub>()};
-        factory.add(mike);
-        factory.add(joe);
-        TransactionDeserializationStub abel;
-        account.notifyThatCreditIsReady(abel);
-        assertEqual(result, mike.get(), abel.observer());
-        account.notifyThatDebitIsReady(abel);
-        assertEqual(result, joe.get(), abel.observer());
-      });
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{std::make_shared<ObservableTransactionStub>()};
+    const auto joe{std::make_shared<ObservableTransactionStub>()};
+    factory.add(mike);
+    factory.add(joe);
+    TransactionDeserializationStub abel;
+    account.notifyThatCreditIsReady(abel);
+    assertEqual(result, mike.get(), abel.observer());
+    account.notifyThatDebitIsReady(abel);
+    assertEqual(result, joe.get(), abel.observer());
+  });
 }
 
 void savesTransactionRecordsLoaded(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account, ObservableTransactionFactoryStub &factory) {
-        const auto mike{std::make_shared<ObservableTransactionStub>()};
-        const auto andy{std::make_shared<ObservableTransactionStub>()};
-        const auto joe{std::make_shared<ObservableTransactionStub>()};
-        const auto bob{std::make_shared<ObservableTransactionStub>()};
-        factory.add(mike);
-        factory.add(andy);
-        factory.add(joe);
-        factory.add(bob);
-        TransactionDeserializationStub abel;
-        account.notifyThatCreditIsReady(abel);
-        account.notifyThatDebitIsReady(abel);
-        account.notifyThatCreditIsReady(abel);
-        account.notifyThatDebitIsReady(abel);
-        PersistentAccountStub persistentMemory;
-        account.save(persistentMemory);
-        assertDebitsSaved(result, persistentMemory, {andy.get(), bob.get()});
-        assertCreditsSaved(result, persistentMemory, {mike.get(), joe.get()});
-      });
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{std::make_shared<ObservableTransactionStub>()};
+    const auto andy{std::make_shared<ObservableTransactionStub>()};
+    const auto joe{std::make_shared<ObservableTransactionStub>()};
+    const auto bob{std::make_shared<ObservableTransactionStub>()};
+    factory.add(mike);
+    factory.add(andy);
+    factory.add(joe);
+    factory.add(bob);
+    TransactionDeserializationStub abel;
+    account.notifyThatCreditIsReady(abel);
+    account.notifyThatDebitIsReady(abel);
+    account.notifyThatCreditIsReady(abel);
+    account.notifyThatDebitIsReady(abel);
+    PersistentAccountStub persistentMemory;
+    account.save(persistentMemory);
+    assertDebitsSaved(result, persistentMemory, {andy.get(), bob.get()});
+    assertCreditsSaved(result, persistentMemory, {mike.get(), joe.get()});
+  });
 }
 
 void rename(testcpplite::TestResult &result) {
-  testAccount(
-      [&](InMemoryAccount &account) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account) {
         account.rename("mike");
         PersistentAccountStub persistentMemory;
         account.save(persistentMemory);
@@ -388,8 +382,8 @@ void rename(testcpplite::TestResult &result) {
 
 void savesRemainingTransactionRecordsAfterRemovingVerified(
     testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(mike);
@@ -409,8 +403,8 @@ void savesRemainingTransactionRecordsAfterRemovingVerified(
 }
 
 void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     TransactionObserverStub john;
     TransactionObserverStub alex;
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
@@ -433,8 +427,8 @@ void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &result) {
 }
 
 void savesDuplicateTransactionRecords(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(mike);
@@ -450,8 +444,8 @@ void savesDuplicateTransactionRecords(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
     const auto record{std::make_shared<ObservableTransactionStub>()};
@@ -462,8 +456,8 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
     const auto record{std::make_shared<ObservableTransactionStub>()};
@@ -474,8 +468,8 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
 }
 
 void notifiesCreditIsVerified(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(record);
     TransactionObserverStub observer;
@@ -488,8 +482,8 @@ void notifiesCreditIsVerified(testcpplite::TestResult &result) {
 }
 
 void notifiesDebitIsVerified(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(record);
     TransactionObserverStub observer;
@@ -502,8 +496,8 @@ void notifiesDebitIsVerified(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(record);
     TransactionObserverStub observer;
@@ -516,8 +510,8 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto record{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(record);
     TransactionObserverStub observer;
@@ -530,8 +524,8 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 }
 
 void reduceReducesToOneTransaction(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     const auto joe{std::make_shared<ObservableTransactionInMemory>()};
@@ -623,8 +617,8 @@ void savesWhatWasLoaded(testcpplite::TestResult &result) {
 
 void notifiesObserverOfTransactionsWhenReducing(
     testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionStub>()};
     const auto andy{std::make_shared<ObservableTransactionStub>()};
     const auto joe{std::make_shared<ObservableTransactionStub>()};
@@ -649,8 +643,8 @@ void notifiesObserverOfTransactionsWhenReducing(
 }
 
 void returnsBalance(testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     const auto joe{std::make_shared<ObservableTransactionInMemory>()};
@@ -673,8 +667,8 @@ void returnsBalance(testcpplite::TestResult &result) {
 
 void reduceReducesToOneDebitForNegativeBalance(
     testcpplite::TestResult &result) {
-  testAccount([&](InMemoryAccount &account,
-                  ObservableTransactionFactoryStub &factory) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
     const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     const auto joe{std::make_shared<ObservableTransactionInMemory>()};
