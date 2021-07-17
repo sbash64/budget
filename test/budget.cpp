@@ -212,6 +212,9 @@ static void assertDebitRemoved(testcpplite::TestResult &result,
                                const Transaction &t) {
   assertEqual(result, t, account->removedDebit());
 }
+static void createAccount(Budget &budget, std::string_view name) {
+  budget.createAccount(name);
+}
 
 void createsMasterAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
@@ -286,9 +289,9 @@ void savesAccounts(testcpplite::TestResult &result) {
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         PersistentMemoryStub persistence;
         budget.save(persistence);
         assertEqual(result, masterAccount.get(), persistence.primaryAccount());
@@ -345,7 +348,7 @@ void removesDebit(testcpplite::TestResult &result) {
                                const std::shared_ptr<AccountStub> &,
                                Budget &budget) {
     const auto account{addAccountStub(factory, "giraffe")};
-    debit(budget, "giraffe", {});
+    createAccount(budget, "giraffe");
     budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
                                               Date{2013, Month::April, 3}});
     assertDebitRemoved(
@@ -384,7 +387,7 @@ void removesTransfer(testcpplite::TestResult &result) {
                 const std::shared_ptr<AccountStub> &masterAccount,
                 Budget &budget) {
         const auto account{addAccountStub(factory, "giraffe")};
-        debit(budget, "giraffe", {});
+        createAccount(budget, "giraffe");
         budget.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
         assertCreditRemoved(result, account,
                             Transaction{456_cents, "transfer from master",
@@ -400,7 +403,7 @@ void renamesAccount(testcpplite::TestResult &result) {
                                const std::shared_ptr<AccountStub> &,
                                Budget &budget) {
     const auto giraffe{addAccountStub(factory, "giraffe")};
-    debit(budget, "giraffe", {});
+    createAccount(budget, "giraffe");
     budget.renameAccount("giraffe", "zebra");
     assertEqual(result, "zebra", giraffe->newName());
   });
@@ -411,7 +414,7 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
                                const std::shared_ptr<AccountStub> &,
                                Budget &budget) {
     const auto giraffe{addAccountStub(factory, "giraffe")};
-    debit(budget, "giraffe", {});
+    createAccount(budget, "giraffe");
     budget.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
                 giraffe->debitToVerify());
@@ -472,9 +475,9 @@ void reducesEachAccount(testcpplite::TestResult &result) {
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         budget.reduce(Date{2021, Month::March, 13});
         assertReduced(result, Date{2021, Month::March, 13}, masterAccount);
         assertReduced(result, Date{2021, Month::March, 13}, giraffe);
@@ -494,9 +497,9 @@ void notifiesThatTotalBalanceHasChangedOnCredit(
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         masterAccount->setBalance(456_cents);
         giraffe->setBalance(123_cents);
         penguin->setBalance(789_cents);
@@ -518,9 +521,9 @@ void notifiesThatTotalBalanceHasChangedOnDebit(
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         masterAccount->setBalance(456_cents);
         giraffe->setBalance(123_cents);
         penguin->setBalance(789_cents);
@@ -542,9 +545,9 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         masterAccount->setBalance(456_cents);
         giraffe->setBalance(123_cents);
         penguin->setBalance(789_cents);
@@ -563,9 +566,9 @@ void removesAccount(testcpplite::TestResult &result) {
         const auto giraffe{addAccountStub(factory, "giraffe")};
         const auto penguin{addAccountStub(factory, "penguin")};
         const auto leopard{addAccountStub(factory, "leopard")};
-        debit(budget, "giraffe", {});
-        debit(budget, "penguin", {});
-        debit(budget, "leopard", {});
+        createAccount(budget, "giraffe");
+        createAccount(budget, "penguin");
+        createAccount(budget, "leopard");
         budget.removeAccount("giraffe");
         assertTrue(result, giraffe->removed());
         PersistentMemoryStub persistence;
@@ -617,7 +620,7 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
                 const std::shared_ptr<AccountStub> &masterAccount,
                 Budget &budget) {
         const auto giraffe{addAccountStub(factory, "giraffe")};
-        debit(budget, "giraffe", {});
+        createAccount(budget, "giraffe");
         giraffe->setBalance(-123_cents);
         budget.closeAccount("giraffe", Date{2021, Month::April, 3});
         assertEqual(result,
