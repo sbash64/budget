@@ -622,17 +622,16 @@ void savesLoadedValue(testcpplite::TestResult &result) {
       serialization.verifiableTransaction());
 }
 
-void notifiesObserverOfTransactionsWhenReducing(
-    testcpplite::TestResult &result) {
+void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionStub>()};
-    const auto andy{std::make_shared<ObservableTransactionStub>()};
-    const auto joe{std::make_shared<ObservableTransactionStub>()};
-    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionStub>()};
     factory.add(andy);
+    const auto joe{std::make_shared<ObservableTransactionStub>()};
     factory.add(joe);
+    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(bob);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -640,8 +639,6 @@ void notifiesObserverOfTransactionsWhenReducing(
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
-    AccountObserverStub observer;
-    account.attach(&observer);
     account.reduce(Date{2021, Month::March, 13});
     assertTrue(result, mike->removed());
     assertTrue(result, andy->removed());

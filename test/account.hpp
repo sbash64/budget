@@ -26,7 +26,7 @@ void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
 void reducesToOneTransaction(testcpplite::TestResult &);
-void notifiesObserverOfTransactionsWhenReducing(testcpplite::TestResult &);
+void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void reduceReducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 void notifiesObserverOfVerification(testcpplite::TestResult &);

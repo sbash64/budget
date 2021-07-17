@@ -101,7 +101,7 @@ static auto runAllTests() -> int {
        {account::notifiesObserverOfRemovedCredit,
         "notifiesObserverOfRemovedCredit"},
        {account::reducesToOneTransaction, "reduceReducesToOneTransaction"},
-       {account::notifiesObserverOfTransactionsWhenReducing,
+       {account::removesTransactionsWhenReducing,
         "notifiesObserverOfTransactionsWhenReducing"},
        {account::returnsBalance, "returnsBalance"},
        {account::reduceReducesToOneDebitForNegativeBalance,
