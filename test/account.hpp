@@ -10,13 +10,12 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
-void initializesTransactionRecords(testcpplite::TestResult &);
-void passesSelfToDeserializationOnLoad(testcpplite::TestResult &);
-void passesNewTransactionRecordsToDeserialization(testcpplite::TestResult &);
-void savesTransactionRecordsLoaded(testcpplite::TestResult &);
-void rename(testcpplite::TestResult &);
-void savesRemainingTransactionRecordsAfterRemovingVerified(
-    testcpplite::TestResult &);
+void initializesAddedTransactions(testcpplite::TestResult &);
+void observesDeserialization(testcpplite::TestResult &);
+void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
+void savesLoadedTransactions(testcpplite::TestResult &);
+void savesNewName(testcpplite::TestResult &);
+void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
 void notifiesDuplicateTransactionsAreVerified(testcpplite::TestResult &);
 void savesDuplicateTransactionRecords(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
