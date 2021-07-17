@@ -650,12 +650,12 @@ void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    const auto bob{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(andy);
+    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(joe);
+    const auto bob{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(bob);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     debit(account,
@@ -669,17 +669,16 @@ void returnsBalance(testcpplite::TestResult &result) {
   });
 }
 
-void reduceReducesToOneDebitForNegativeBalance(
-    testcpplite::TestResult &result) {
+void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(andy);
+    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
     factory.add(joe);
+    const auto bob{std::make_shared<ObservableTransactionStub>()};
     factory.add(bob);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -690,6 +689,32 @@ void reduceReducesToOneDebitForNegativeBalance(
     account.reduce(Date{2021, Month::March, 13});
     assertEqual(result,
                 Transaction{789_cents + 456_cents - 300_cents, "reduction",
+                            Date{2021, Month::March, 13}},
+                bob->initializedTransaction());
+    assertTrue(result, bob->verified());
+  });
+}
+
+void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(mike);
+    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(andy);
+    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(joe);
+    const auto bob{std::make_shared<ObservableTransactionStub>()};
+    factory.add(bob);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account,
+           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
+    account.reduce(Date{2021, Month::March, 13});
+    assertEqual(result,
+                Transaction{789_cents + 300_cents - 456_cents, "reduction",
                             Date{2021, Month::March, 13}},
                 bob->initializedTransaction());
     assertTrue(result, bob->verified());
