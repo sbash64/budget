@@ -8,9 +8,8 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
-void savesAllTransactionRecordsAndAccountName(testcpplite::TestResult &);
-void savesRemainingTransactionRecordsAfterRemovingSome(
-    testcpplite::TestResult &);
+void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
+void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void initializesTransactionRecords(testcpplite::TestResult &);
 void passesSelfToDeserializationOnLoad(testcpplite::TestResult &);
 void passesNewTransactionRecordsToDeserialization(testcpplite::TestResult &);
