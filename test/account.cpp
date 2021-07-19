@@ -32,7 +32,15 @@ public:
 
   auto verifies(const Transaction &) -> bool override { return {}; }
 
-  auto removes(const Transaction &) -> bool override { return removes_; }
+  auto removes(const Transaction &t) -> bool override {
+    removesed_ = true;
+    removesTransaction_ = t;
+    return removes_;
+  }
+
+  auto removesed() -> bool { return removesed_; }
+
+  auto removesTransaction() -> Transaction { return removesTransaction_; }
 
   void setRemoves() { removes_ = true; }
 
@@ -50,10 +58,12 @@ public:
 
 private:
   Transaction initializedTransaction_;
+  Transaction removesTransaction_;
   USD amount_;
   bool verified_{};
   bool removed_{};
   bool removes_{};
+  bool removesed_{};
 };
 
 class ObservableTransactionFactoryStub : public ObservableTransaction::Factory {
@@ -281,6 +291,37 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
         assertDebitsSaved(result, persistence, {mike.get()});
       },
       "joe");
+}
+
+void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    TransactionDeserializationStub deserialization;
+    const auto mike{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    const auto andy{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    const auto joe{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    const auto bob{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    joe->setRemoves();
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        mike->removesTransaction());
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        andy->removesTransaction());
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        joe->removesTransaction());
+    assertFalse(result, bob->removesed());
+  });
 }
 
 void savesLoadedTransactions(testcpplite::TestResult &result) {

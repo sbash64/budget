@@ -109,6 +109,8 @@ static auto runAllTests() -> int {
         "reduceReducesToOneDebitForNegativeBalance"},
        {account::reducesToOneCreditForPositiveBalance,
         "reduceReducesToOneDebitForNegativeBalance"},
+       {account::attemptsToRemoveEachDebitUntilFound,
+        "attemptsToRemoveEachDebitUntilFound"},
        {transaction::notifiesObserverOfVerification,
         "notifiesObserverWhenVerified"},
        {transaction::savesVerification, "saveAfterVerify"},

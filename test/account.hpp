@@ -8,6 +8,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
+void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void initializesAddedTransactions(testcpplite::TestResult &);
