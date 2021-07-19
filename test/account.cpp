@@ -209,6 +209,14 @@ addObservableTransactionStub(ObservableTransactionFactoryStub &factory)
   return transaction;
 }
 
+static auto
+addObservableTransactionInMemory(ObservableTransactionFactoryStub &factory)
+    -> std::shared_ptr<ObservableTransactionInMemory> {
+  auto transaction{std::make_shared<ObservableTransactionInMemory>()};
+  factory.add(transaction);
+  return transaction;
+}
+
 void initializesAddedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -309,19 +317,15 @@ void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto ape{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(ape);
+    const auto ape{addObservableTransactionInMemory(factory)};
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    const auto gorilla{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(gorilla);
+    const auto gorilla{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto orangutan{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(orangutan);
+    const auto orangutan{addObservableTransactionInMemory(factory)};
     credit(account,
            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    const auto chimpanzee{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(chimpanzee);
+    const auto chimpanzee{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     account.removeDebit(
@@ -339,12 +343,10 @@ void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto gorilla{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(gorilla);
+    const auto gorilla{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto chimpanzee{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(chimpanzee);
+    const auto chimpanzee{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     account.verifyDebit(
@@ -360,12 +362,10 @@ void savesRemainingTransactionAfterRemovingVerified(
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto gorilla1{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(gorilla1);
+    const auto gorilla1{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto gorilla2{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(gorilla2);
+    const auto gorilla2{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     PersistentAccountStub persistence;
@@ -434,10 +434,8 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
     TransactionObserverStub john;
     mike->attach(&john);
     TransactionObserverStub alex;
@@ -458,8 +456,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto record{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(record);
+    const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -472,8 +469,7 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto record{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(record);
+    const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
     debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -486,8 +482,7 @@ void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto record{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(record);
+    const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
     account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -500,8 +495,7 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto record{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(record);
+    const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
     account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -514,12 +508,9 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 void reducesToOneTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(joe);
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
     const auto bob{addObservableTransactionStub(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -625,14 +616,10 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(joe);
-    const auto bob{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(bob);
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
+    const auto bob{addObservableTransactionInMemory(factory)};
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -648,12 +635,9 @@ void returnsBalance(testcpplite::TestResult &result) {
 void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(joe);
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
     const auto bob{addObservableTransactionStub(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
@@ -673,12 +657,9 @@ void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
 void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(joe);
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
     const auto bob{addObservableTransactionStub(factory)};
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
