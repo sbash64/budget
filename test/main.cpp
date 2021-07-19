@@ -3,6 +3,7 @@
 #include "format.hpp"
 #include "parse.hpp"
 #include "stream.hpp"
+#include "transaction.hpp"
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
@@ -108,20 +109,20 @@ static auto runAllTests() -> int {
         "reduceReducesToOneDebitForNegativeBalance"},
        {account::reducesToOneCreditForPositiveBalance,
         "reduceReducesToOneDebitForNegativeBalance"},
-       {account::notifiesObserverOfVerification,
+       {transaction::notifiesObserverOfVerification,
         "notifiesObserverWhenVerified"},
-       {account::savesVerification, "saveAfterVerify"},
-       {account::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
-       {account::savesLoadedValue, "savesWhatWasLoaded"},
-       {account::loadPassesSelfToDeserialization,
+       {transaction::savesVerification, "saveAfterVerify"},
+       {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
+       {transaction::savesLoadedValue, "savesWhatWasLoaded"},
+       {transaction::loadPassesSelfToDeserialization,
         "loadPassesSelfToDeserialization"},
-       {account::notifiesObserverOfLoadedValue, "notifiesThatIsAfterReady"},
-       {account::notifiesObserverOfInitializedValue,
+       {transaction::notifiesObserverOfLoadedValue, "notifiesThatIsAfterReady"},
+       {transaction::notifiesObserverOfInitializedValue,
         "notifiesThatIsAfterInitialize"},
-       {account::removesLoadedValue, "removesLoadedValue"},
-       {account::notifiesObserverOfRemovalByQuery,
+       {transaction::removesLoadedValue, "removesLoadedValue"},
+       {transaction::notifiesObserverOfRemovalByQuery,
         "notifiesObserverOfRemovalByQuery"},
-       {account::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"}},
+       {transaction::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"}},
       std::cout);
 }
 } // namespace sbash64::budget

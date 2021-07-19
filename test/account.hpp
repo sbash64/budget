@@ -30,16 +30,6 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &);
-void notifiesObserverOfVerification(testcpplite::TestResult &);
-void savesVerification(testcpplite::TestResult &);
-void notifiesObserverOfRemoval(testcpplite::TestResult &);
-void savesLoadedValue(testcpplite::TestResult &);
-void loadPassesSelfToDeserialization(testcpplite::TestResult &);
-void notifiesObserverOfLoadedValue(testcpplite::TestResult &);
-void notifiesObserverOfInitializedValue(testcpplite::TestResult &);
-void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
-void removesLoadedValue(testcpplite::TestResult &);
-void doesNotRemoveUnequalValue(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif
