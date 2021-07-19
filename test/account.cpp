@@ -527,6 +527,89 @@ void reducesToOneTransaction(testcpplite::TestResult &result) {
   });
 }
 
+void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto chimpanzee{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    const auto orangutan{addObservableTransactionStub(factory)};
+    credit(account, Transaction{2300_cents, "orangutan",
+                                Date{2020, Month::February, 2}});
+    addObservableTransactionStub(factory);
+    account.reduce(Date{2021, Month::March, 13});
+    assertTrue(result, gorilla->removed());
+    assertTrue(result, chimpanzee->removed());
+    assertTrue(result, orangutan->removed());
+  });
+}
+
+void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
+    const auto bob{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account,
+           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
+    account.reduce(Date{2021, Month::March, 13});
+    assertEqual(result,
+                Transaction{789_cents + 456_cents - 300_cents, "reduction",
+                            Date{2021, Month::March, 13}},
+                bob->initializedTransaction());
+    assertTrue(result, bob->verified());
+  });
+}
+
+void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
+    const auto bob{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account,
+           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
+    account.reduce(Date{2021, Month::March, 13});
+    assertEqual(result,
+                Transaction{789_cents + 300_cents - 456_cents, "reduction",
+                            Date{2021, Month::March, 13}},
+                bob->initializedTransaction());
+    assertTrue(result, bob->verified());
+  });
+}
+
+void returnsBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{addObservableTransactionInMemory(factory)};
+    const auto andy{addObservableTransactionInMemory(factory)};
+    const auto joe{addObservableTransactionInMemory(factory)};
+    const auto bob{addObservableTransactionInMemory(factory)};
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
+                account.balance());
+  });
+}
+
 void notifiesObserverOfVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
@@ -591,88 +674,5 @@ void savesLoadedValue(testcpplite::TestResult &result) {
       result,
       {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true},
       serialization.verifiableTransaction());
-}
-
-void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionStub(factory)};
-    const auto andy{addObservableTransactionStub(factory)};
-    const auto joe{addObservableTransactionStub(factory)};
-    const auto bob{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    credit(account, Transaction{2300_cents, "orangutan",
-                                Date{2020, Month::February, 2}});
-    account.reduce(Date{2021, Month::March, 13});
-    assertTrue(result, mike->removed());
-    assertTrue(result, andy->removed());
-    assertTrue(result, joe->removed());
-  });
-}
-
-void returnsBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionInMemory(factory)};
-    const auto andy{addObservableTransactionInMemory(factory)};
-    const auto joe{addObservableTransactionInMemory(factory)};
-    const auto bob{addObservableTransactionInMemory(factory)};
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    credit(account,
-           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
-                account.balance());
-  });
-}
-
-void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionInMemory(factory)};
-    const auto andy{addObservableTransactionInMemory(factory)};
-    const auto joe{addObservableTransactionInMemory(factory)};
-    const auto bob{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    credit(account,
-           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
-    account.reduce(Date{2021, Month::March, 13});
-    assertEqual(result,
-                Transaction{789_cents + 456_cents - 300_cents, "reduction",
-                            Date{2021, Month::March, 13}},
-                bob->initializedTransaction());
-    assertTrue(result, bob->verified());
-  });
-}
-
-void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionInMemory(factory)};
-    const auto andy{addObservableTransactionInMemory(factory)};
-    const auto joe{addObservableTransactionInMemory(factory)};
-    const auto bob{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    credit(account,
-           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    credit(account,
-           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
-    account.reduce(Date{2021, Month::March, 13});
-    assertEqual(result,
-                Transaction{789_cents + 300_cents - 456_cents, "reduction",
-                            Date{2021, Month::March, 13}},
-                bob->initializedTransaction());
-    assertTrue(result, bob->verified());
-  });
 }
 } // namespace sbash64::budget::account
