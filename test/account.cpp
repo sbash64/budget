@@ -434,22 +434,22 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionInMemory(factory)};
-    const auto andy{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub john;
-    mike->attach(&john);
-    TransactionObserverStub alex;
-    andy->attach(&alex);
+    const auto gorilla1{addObservableTransactionInMemory(factory)};
+    TransactionObserverStub gorilla1Observer;
+    gorilla1->attach(&gorilla1Observer);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto gorilla2{addObservableTransactionInMemory(factory)};
+    TransactionObserverStub gorilla2Observer;
+    gorilla2->attach(&gorilla2Observer);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.verifyDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.verifyDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertTrue(result, john.verified());
-    assertTrue(result, alex.verified());
+    assertTrue(result, gorilla1Observer.verified());
+    assertTrue(result, gorilla2Observer.verified());
   });
 }
 
