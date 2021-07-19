@@ -34,13 +34,15 @@ public:
 
   auto removes(const Transaction &t) -> bool override {
     removesed_ = true;
-    removesTransaction_ = t;
+    removesTransaction_ = &t;
     return removes_;
   }
 
-  auto removesed() -> bool { return removesed_; }
+  [[nodiscard]] auto removesed() const -> bool { return removesed_; }
 
-  auto removesTransaction() -> Transaction { return removesTransaction_; }
+  auto removesTransaction() -> const Transaction * {
+    return removesTransaction_;
+  }
 
   void setRemoves() { removes_ = true; }
 
@@ -58,7 +60,7 @@ public:
 
 private:
   Transaction initializedTransaction_;
-  Transaction removesTransaction_;
+  const Transaction *removesTransaction_{};
   USD amount_;
   bool verified_{};
   bool removed_{};
@@ -306,20 +308,11 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
     const auto bob{addObservableTransactionStub(factory)};
     account.notifyThatDebitIsReady(deserialization);
     joe->setRemoves();
-    account.removeDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        mike->removesTransaction());
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        andy->removesTransaction());
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        joe->removesTransaction());
+    Transaction transaction;
+    account.removeDebit(transaction);
+    assertEqual(result, &transaction, mike->removesTransaction());
+    assertEqual(result, &transaction, andy->removesTransaction());
+    assertEqual(result, &transaction, joe->removesTransaction());
     assertFalse(result, bob->removesed());
   });
 }
@@ -337,16 +330,10 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
     const auto bob{addObservableTransactionStub(factory)};
     account.notifyThatCreditIsReady(deserialization);
     andy->setRemoves();
-    account.removeCredit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        mike->removesTransaction());
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        andy->removesTransaction());
+    Transaction transaction;
+    account.removeCredit(transaction);
+    assertEqual(result, &transaction, mike->removesTransaction());
+    assertEqual(result, &transaction, andy->removesTransaction());
     assertFalse(result, joe->removesed());
     assertFalse(result, bob->removesed());
   });
