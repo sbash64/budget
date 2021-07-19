@@ -224,7 +224,6 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
         result,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
         gorilla->initializedTransaction());
-    const auto chimpanzee{addObservableTransactionStub(factory)};
   });
 }
 
@@ -234,7 +233,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
     AccountObserverStub observer;
     account.attach(&observer);
     const auto record{addObservableTransactionStub(factory)};
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    credit(account);
     assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
@@ -245,7 +244,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
     AccountObserverStub observer;
     account.attach(&observer);
     const auto record{addObservableTransactionStub(factory)};
-    debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    debit(account);
     assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
