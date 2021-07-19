@@ -305,6 +305,36 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
   });
 }
 
+void savesRemainingTransactionsAfterRemovingSome(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto ape{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(ape);
+    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    const auto gorilla{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(gorilla);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto orangutan{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(orangutan);
+    credit(account,
+           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    const auto chimpanzee{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(chimpanzee);
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.removeCredit(
+        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertCreditsSaved(result, persistence, {ape.get()});
+    assertDebitsSaved(result, persistence, {chimpanzee.get()});
+  });
+}
+
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -326,36 +356,6 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     account.removeCredit(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
     assertBalanceEquals(result, 123_cents - 789_cents, observer);
-  });
-}
-
-void savesRemainingTransactionsAfterRemovingSome(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    const auto joe{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(joe);
-    const auto bob{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(bob);
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    credit(account,
-           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.removeDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.removeCredit(
-        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertCreditsSaved(result, persistence, {mike.get()});
-    assertDebitsSaved(result, persistence, {bob.get()});
   });
 }
 
