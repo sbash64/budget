@@ -324,6 +324,34 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
   });
 }
 
+void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    TransactionDeserializationStub deserialization;
+    const auto mike{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    const auto andy{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    const auto joe{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    const auto bob{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    andy->setRemoves();
+    account.removeCredit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        mike->removesTransaction());
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        andy->removesTransaction());
+    assertFalse(result, joe->removesed());
+    assertFalse(result, bob->removesed());
+  });
+}
+
 void savesLoadedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
