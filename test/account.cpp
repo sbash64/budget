@@ -686,6 +686,14 @@ void removesLoadedValue(testcpplite::TestResult &result) {
                                                 Date{2020, Month::June, 1}}));
 }
 
+void doesNotRemoveUnequalValue(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  record.ready(
+      {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true});
+  assertFalse(result, record.removes(Transaction{789_cents, "chimpanzee",
+                                                 Date{2021, Month::June, 1}}));
+}
+
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;

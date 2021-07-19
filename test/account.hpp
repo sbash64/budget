@@ -39,6 +39,7 @@ void notifiesObserverOfLoadedValue(testcpplite::TestResult &);
 void notifiesObserverOfInitializedValue(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
 void removesLoadedValue(testcpplite::TestResult &);
+void doesNotRemoveUnequalValue(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

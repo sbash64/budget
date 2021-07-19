@@ -120,7 +120,8 @@ static auto runAllTests() -> int {
         "notifiesThatIsAfterInitialize"},
        {account::removesLoadedValue, "removesLoadedValue"},
        {account::notifiesObserverOfRemovalByQuery,
-        "notifiesObserverOfRemovalByQuery"}},
+        "notifiesObserverOfRemovalByQuery"},
+       {account::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"}},
       std::cout);
 }
 } // namespace sbash64::budget
