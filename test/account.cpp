@@ -371,11 +371,9 @@ void savesRemainingTransactionsAfterRemovingSome(
     const auto chimpanzee{addObservableTransactionStub(factory)};
     debit(account);
     gorilla->setRemoves();
-    account.removeDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.removeDebit({});
     orangutan->setRemoves();
-    account.removeCredit(
-        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
+    account.removeCredit({});
     PersistentAccountStub persistence;
     account.save(persistence);
     assertCreditsSaved(result, persistence, {ape.get()});
