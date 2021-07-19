@@ -508,22 +508,22 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 void reducesToOneTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionInMemory(factory)};
-    const auto andy{addObservableTransactionInMemory(factory)};
-    const auto joe{addObservableTransactionInMemory(factory)};
-    const auto bob{addObservableTransactionStub(factory)};
+    addObservableTransactionInMemory(factory);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    addObservableTransactionInMemory(factory);
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    addObservableTransactionInMemory(factory);
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
+    const auto reduction{addObservableTransactionStub(factory)};
     account.reduce(Date{2021, Month::March, 13});
     assertEqual(result,
                 Transaction{2300_cents - 789_cents - 456_cents, "reduction",
                             Date{2021, Month::March, 13}},
-                bob->initializedTransaction());
-    assertTrue(result, bob->verified());
+                reduction->initializedTransaction());
+    assertTrue(result, reduction->verified());
   });
 }
 
