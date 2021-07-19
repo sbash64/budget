@@ -267,6 +267,44 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
   });
 }
 
+void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account,
+                ObservableTransactionFactoryStub &factory) {
+        const auto john{addObservableTransactionStub(factory)};
+        credit(account);
+        const auto mike{addObservableTransactionStub(factory)};
+        debit(account);
+        const auto andy{addObservableTransactionStub(factory)};
+        credit(account);
+        PersistentAccountStub persistence;
+        account.save(persistence);
+        assertAccountName(result, persistence, "joe");
+        assertCreditsSaved(result, persistence, {john.get(), andy.get()});
+        assertDebitsSaved(result, persistence, {mike.get()});
+      },
+      "joe");
+}
+
+void savesLoadedTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    TransactionDeserializationStub deserialization;
+    const auto mike{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    const auto andy{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    const auto joe{addObservableTransactionStub(factory)};
+    account.notifyThatCreditIsReady(deserialization);
+    const auto bob{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {andy.get(), bob.get()});
+    assertCreditsSaved(result, persistence, {mike.get(), joe.get()});
+  });
+}
+
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -289,25 +327,6 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
     assertBalanceEquals(result, 123_cents - 789_cents, observer);
   });
-}
-
-void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account,
-                ObservableTransactionFactoryStub &factory) {
-        const auto john{addObservableTransactionStub(factory)};
-        const auto mike{addObservableTransactionStub(factory)};
-        const auto andy{addObservableTransactionStub(factory)};
-        credit(account);
-        debit(account);
-        credit(account);
-        PersistentAccountStub persistence;
-        account.save(persistence);
-        assertAccountName(result, persistence, "joe");
-        assertCreditsSaved(result, persistence, {john.get(), andy.get()});
-        assertDebitsSaved(result, persistence, {mike.get()});
-      },
-      "joe");
 }
 
 void savesRemainingTransactionsAfterRemovingSome(
@@ -358,25 +377,6 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
     assertEqual(result, mike.get(), abel.observer());
     account.notifyThatDebitIsReady(abel);
     assertEqual(result, joe.get(), abel.observer());
-  });
-}
-
-void savesLoadedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{addObservableTransactionStub(factory)};
-    const auto andy{addObservableTransactionStub(factory)};
-    const auto joe{addObservableTransactionStub(factory)};
-    const auto bob{addObservableTransactionStub(factory)};
-    TransactionDeserializationStub abel;
-    account.notifyThatCreditIsReady(abel);
-    account.notifyThatDebitIsReady(abel);
-    account.notifyThatCreditIsReady(abel);
-    account.notifyThatDebitIsReady(abel);
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {andy.get(), bob.get()});
-    assertCreditsSaved(result, persistence, {mike.get(), joe.get()});
   });
 }
 
