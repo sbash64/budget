@@ -117,7 +117,10 @@ static auto runAllTests() -> int {
         "loadPassesSelfToDeserialization"},
        {account::notifiesObserverOfLoadedValue, "notifiesThatIsAfterReady"},
        {account::notifiesObserverOfInitializedValue,
-        "notifiesThatIsAfterInitialize"}},
+        "notifiesThatIsAfterInitialize"},
+       {account::removesLoadedValue, "removesLoadedValue"},
+       {account::notifiesObserverOfRemovalByQuery,
+        "notifiesObserverOfRemovalByQuery"}},
       std::cout);
 }
 } // namespace sbash64::budget

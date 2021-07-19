@@ -32,7 +32,9 @@ public:
 
   auto verifies(const Transaction &) -> bool override { return {}; }
 
-  auto removes(const Transaction &) -> bool override { return {}; }
+  auto removes(const Transaction &) -> bool override { return removes_; }
+
+  void setRemoves() { removes_ = true; }
 
   void save(TransactionSerialization &) override {}
 
@@ -51,6 +53,7 @@ private:
   USD amount_;
   bool verified_{};
   bool removed_{};
+  bool removes_{};
 };
 
 class ObservableTransactionFactoryStub : public ObservableTransaction::Factory {
@@ -317,19 +320,18 @@ void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto ape{addObservableTransactionInMemory(factory)};
-    credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    const auto gorilla{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto orangutan{addObservableTransactionInMemory(factory)};
-    credit(account,
-           Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    const auto chimpanzee{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    const auto ape{addObservableTransactionStub(factory)};
+    credit(account);
+    const auto gorilla{addObservableTransactionStub(factory)};
+    debit(account);
+    const auto orangutan{addObservableTransactionStub(factory)};
+    credit(account);
+    const auto chimpanzee{addObservableTransactionStub(factory)};
+    debit(account);
+    gorilla->setRemoves();
     account.removeDebit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    orangutan->setRemoves();
     account.removeCredit(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
     PersistentAccountStub persistence;
@@ -674,5 +676,24 @@ void savesLoadedValue(testcpplite::TestResult &result) {
       result,
       {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true},
       serialization.verifiableTransaction());
+}
+
+void removesLoadedValue(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  record.ready(
+      {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true});
+  assertTrue(result, record.removes(Transaction{789_cents, "chimpanzee",
+                                                Date{2020, Month::June, 1}}));
+}
+
+void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  TransactionObserverStub observer;
+  record.attach(&observer);
+  record.initialize(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  record.removes(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertTrue(result, observer.removed());
 }
 } // namespace sbash64::budget::account
