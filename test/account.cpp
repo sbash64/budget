@@ -72,20 +72,6 @@ private:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
 };
 
-class TransactionSerializationStub : public TransactionSerialization {
-public:
-  void save(const VerifiableTransaction &vt) override {
-    verifiableTransaction_ = vt;
-  }
-
-  auto verifiableTransaction() -> VerifiableTransaction {
-    return verifiableTransaction_;
-  }
-
-private:
-  VerifiableTransaction verifiableTransaction_;
-};
-
 class TransactionObserverStub : public ObservableTransaction::Observer {
 public:
   void notifyThatIsVerified() override { verified_ = true; }
