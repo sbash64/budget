@@ -335,6 +335,45 @@ void savesRemainingTransactionsAfterRemovingSome(
   });
 }
 
+void savesRemainingTransactionAfterRemovingVerified(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(gorilla);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto chimpanzee{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(chimpanzee);
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.verifyDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {chimpanzee.get()});
+  });
+}
+
+void savesDuplicateTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla1{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(gorilla1);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto gorilla2{std::make_shared<ObservableTransactionInMemory>()};
+    factory.add(gorilla2);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {gorilla1.get(), gorilla2.get()});
+  });
+}
+
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -391,28 +430,6 @@ void savesNewName(testcpplite::TestResult &result) {
       "joe");
 }
 
-void savesRemainingTransactionAfterRemovingVerified(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.verifyDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.removeDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {andy.get()});
-  });
-}
-
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -435,23 +452,6 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertTrue(result, john.verified());
     assertTrue(result, alex.verified());
-  });
-}
-
-void savesDuplicateTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto mike{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(mike);
-    const auto andy{std::make_shared<ObservableTransactionInMemory>()};
-    factory.add(andy);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {mike.get(), andy.get()});
   });
 }
 
