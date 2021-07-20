@@ -158,6 +158,18 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.initialize(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    record.removes(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    assertTrue(result, observer.removed());
+  });
+}
+
 void observesDeserialization(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionDeserializationStub deserialization;
@@ -180,18 +192,7 @@ void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    TransactionObserverStub observer;
-    record.attach(&observer);
-    record.ready(
-        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-         true});
-    assertTrue(result, observer.verified());
-  });
-}
-
-void notifiesObserverOfInitializedValue(testcpplite::TestResult &result) {
+void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
     record.attach(&observer);
@@ -204,11 +205,31 @@ void notifiesObserverOfInitializedValue(testcpplite::TestResult &result) {
   });
 }
 
-void removesLoadedValue(testcpplite::TestResult &result) {
+void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.ready(
+        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+         true});
+    assertTrue(result, observer.verified());
+  });
+}
+
+void removesLoadedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.ready(
         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
          true});
+    assertTrue(result, record.removes(Transaction{789_cents, "chimpanzee",
+                                                  Date{2020, Month::June, 1}}));
+  });
+}
+
+void removesInitializedTransaction(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.initialize(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     assertTrue(result, record.removes(Transaction{789_cents, "chimpanzee",
                                                   Date{2020, Month::June, 1}}));
   });
@@ -222,18 +243,6 @@ void doesNotRemoveUnequalValue(testcpplite::TestResult &result) {
     assertFalse(result,
                 record.removes(Transaction{789_cents, "chimpanzee",
                                            Date{2021, Month::June, 1}}));
-  });
-}
-
-void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    TransactionObserverStub observer;
-    record.attach(&observer);
-    record.initialize(
-        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    record.removes(
-        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    assertTrue(result, observer.removed());
   });
 }
 } // namespace sbash64::budget::transaction

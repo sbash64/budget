@@ -122,9 +122,9 @@ static auto runAllTests() -> int {
         "loadPassesSelfToDeserialization"},
        {transaction::notifiesObserverOfLoadedTransaction,
         "notifiesThatIsAfterReady"},
-       {transaction::notifiesObserverOfInitializedValue,
+       {transaction::notifiesObserverOfInitializedTransaction,
         "notifiesThatIsAfterInitialize"},
-       {transaction::removesLoadedValue, "removesLoadedValue"},
+       {transaction::removesLoadedTransaction, "removesLoadedValue"},
        {transaction::notifiesObserverOfRemovalByQuery,
         "notifiesObserverOfRemovalByQuery"},
        {transaction::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"},
@@ -139,7 +139,9 @@ static auto runAllTests() -> int {
        {transaction::notifiesObserverOfLoadedVerification,
         "transaction notifiesObserverOfLoadedVerification"},
        {transaction::savesInitializedTransaction,
-        "transaction savesInitializedTransaction"}},
+        "transaction savesInitializedTransaction"},
+       {transaction::removesInitializedTransaction,
+        "transaction removesInitializedTransaction"}},
       std::cout);
 }
 } // namespace sbash64::budget

@@ -16,9 +16,10 @@ void savesInitializedTransaction(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &);
-void notifiesObserverOfInitializedValue(testcpplite::TestResult &);
+void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
-void removesLoadedValue(testcpplite::TestResult &);
+void removesLoadedTransaction(testcpplite::TestResult &);
+void removesInitializedTransaction(testcpplite::TestResult &);
 void doesNotRemoveUnequalValue(testcpplite::TestResult &);
 } // namespace sbash64::budget::transaction
 
