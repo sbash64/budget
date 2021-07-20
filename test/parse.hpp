@@ -3,16 +3,16 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::parse {
-void zeroAsUsd(testcpplite::TestResult &);
-void oneAsUsd(testcpplite::TestResult &);
-void numberHavingTwoDecimalPlacesAsUsd(testcpplite::TestResult &);
-void numberHavingOneDecimalPlaceAsUsd(testcpplite::TestResult &);
-void oneOneHundredthAsUsd(testcpplite::TestResult &);
-void oneTenthAsUsd(testcpplite::TestResult &);
-void numberWithoutLeadingZeroAsUsd(testcpplite::TestResult &);
-void numberHavingThreeDecimalPlacesAsUsd(testcpplite::TestResult &);
-void twelveOneThousandthsAsUsd(testcpplite::TestResult &);
-} // namespace sbash64::budget::parse
+namespace sbash64::budget::parses {
+void zeroDollars(testcpplite::TestResult &);
+void oneDollar(testcpplite::TestResult &);
+void oneDollarTwentyThreeCents(testcpplite::TestResult &);
+void oneDollarTwentyCentsWithoutTrailingZero(testcpplite::TestResult &);
+void oneCent(testcpplite::TestResult &);
+void tenCents(testcpplite::TestResult &);
+void twelveCentsWithoutLeadingZero(testcpplite::TestResult &);
+void twelveCentsIgnoringThirdDecimalPlace(testcpplite::TestResult &);
+void oneCentIgnoringThirdDecimalPlace(testcpplite::TestResult &);
+} // namespace sbash64::budget::parses
 
 #endif

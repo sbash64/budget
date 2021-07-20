@@ -1,9 +1,10 @@
 #ifndef SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 #define SBASH64_BUDGET_TEST_PERSISTENT_MEMORY_STUB_HPP_
 
+#include <sbash64/budget/domain.hpp>
+
 #include <functional>
 #include <map>
-#include <sbash64/budget/budget.hpp>
 #include <string_view>
 #include <utility>
 
@@ -11,15 +12,17 @@ namespace sbash64::budget {
 class PersistentMemoryStub : public BudgetDeserialization,
                              public BudgetSerialization {
 public:
-  auto primaryAccount() -> const Account * { return primaryAccount_; }
+  auto primaryAccount() -> const SerializableAccount * {
+    return primaryAccount_;
+  }
 
-  void save(Account &primary,
-            const std::vector<Account *> &secondaries) override {
+  void save(SerializableAccount &primary,
+            const std::vector<SerializableAccount *> &secondaries) override {
     primaryAccount_ = &primary;
     secondaryAccounts_ = secondaries;
   }
 
-  auto secondaryAccounts() -> std::vector<Account *> {
+  auto secondaryAccounts() -> std::vector<SerializableAccount *> {
     return secondaryAccounts_;
   }
 
@@ -39,8 +42,8 @@ public:
   auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
-  std::vector<Account *> secondaryAccounts_;
-  const Account *primaryAccount_{};
+  std::vector<SerializableAccount *> secondaryAccounts_;
+  const SerializableAccount *primaryAccount_{};
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>
       *secondaryAccountsToLoadInto_{};
@@ -54,22 +57,22 @@ public:
   auto accountName() -> std::string { return accountName_; }
 
   void save(std::string_view name,
-            const std::vector<TransactionRecord *> &credits,
-            const std::vector<TransactionRecord *> &debits) override {
+            const std::vector<SerializableTransaction *> &credits,
+            const std::vector<SerializableTransaction *> &debits) override {
     accountName_ = name;
     credits_ = credits;
     debits_ = debits;
   }
 
-  auto credits() -> std::vector<TransactionRecord *> { return credits_; }
+  auto credits() -> std::vector<SerializableTransaction *> { return credits_; }
 
-  auto debits() -> std::vector<TransactionRecord *> { return debits_; }
+  auto debits() -> std::vector<SerializableTransaction *> { return debits_; }
 
-  void setCreditsToLoad(VerifiableTransactions t) {
+  void setCreditsToLoad(std::vector<VerifiableTransaction> t) {
     creditsToLoad = std::move(t);
   }
 
-  void setDebitsToLoad(VerifiableTransactions t) {
+  void setDebitsToLoad(std::vector<VerifiableTransaction> t) {
     debitsToLoad = std::move(t);
   }
 
@@ -78,11 +81,11 @@ public:
   auto observer() -> const Observer * { return observer_; }
 
 private:
-  VerifiableTransactions creditsToLoad;
-  VerifiableTransactions debitsToLoad;
+  std::vector<VerifiableTransaction> creditsToLoad;
+  std::vector<VerifiableTransaction> debitsToLoad;
   std::string accountName_;
-  std::vector<TransactionRecord *> credits_;
-  std::vector<TransactionRecord *> debits_;
+  std::vector<SerializableTransaction *> credits_;
+  std::vector<SerializableTransaction *> debits_;
   const Observer *observer_{};
 };
 } // namespace sbash64::budget

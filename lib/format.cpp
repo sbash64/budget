@@ -1,4 +1,5 @@
 #include "format.hpp"
+
 #include <iomanip>
 
 namespace sbash64::budget {

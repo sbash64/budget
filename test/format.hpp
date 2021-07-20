@@ -1,17 +1,17 @@
-#ifndef SBASH64_BUDGET_TEST_PRINT_HPP_
-#define SBASH64_BUDGET_TEST_PRINT_HPP_
+#ifndef SBASH64_BUDGET_TEST_FORMAT_HPP_
+#define SBASH64_BUDGET_TEST_FORMAT_HPP_
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
-namespace format {
+namespace formats {
 void zeroDollars(testcpplite::TestResult &);
 void oneDollar(testcpplite::TestResult &);
 void oneCent(testcpplite::TestResult &);
 void tenCents(testcpplite::TestResult &);
 void negativeOneDollarThirtyFourCents(testcpplite::TestResult &);
 void negativeFifteenCents(testcpplite::TestResult &);
-} // namespace format
+} // namespace formats
 namespace print {
 void accounts(testcpplite::TestResult &);
 void account(testcpplite::TestResult &);

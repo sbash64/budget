@@ -11,11 +11,6 @@ FetchContent_MakeAvailable(GSL)
 
 add_subdirectory(lib)
 
-option(SBASH64_BUDGET_ENABLE_GTK "Enable GTK implementation" OFF)
-if(${SBASH64_BUDGET_ENABLE_GTK})
-  add_subdirectory(gtk)
-endif()
-
 option(SBASH64_BUDGET_ENABLE_WEB "Enable web implementation" OFF)
 if(${SBASH64_BUDGET_ENABLE_WEB})
   FetchContent_Declare(

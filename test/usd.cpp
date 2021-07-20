@@ -1,4 +1,5 @@
 #include "usd.hpp"
+
 #include <gsl/gsl>
 
 namespace sbash64::budget {
@@ -37,10 +38,11 @@ void assertEqual(testcpplite::TestResult &result,
               static_cast<int>(actual.verified));
 }
 
-void assertEqual(testcpplite::TestResult &result, const Transactions &expected,
-                 const Transactions &actual) {
+void assertEqual(testcpplite::TestResult &result,
+                 const std::vector<Transaction> &expected,
+                 const std::vector<Transaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (Transactions::size_type i{0}; i < expected.size(); ++i)
+  for (std::vector<Transaction>::size_type i{0}; i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 } // namespace sbash64::budget

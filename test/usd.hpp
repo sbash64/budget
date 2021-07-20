@@ -1,7 +1,7 @@
 #ifndef SBASH64_BUDGET_TEST_USD_HPP_
 #define SBASH64_BUDGET_TEST_USD_HPP_
 
-#include <sbash64/budget/budget.hpp>
+#include <sbash64/budget/domain.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
@@ -19,8 +19,9 @@ void assertEqual(testcpplite::TestResult &result,
                  const VerifiableTransaction &expected,
                  const VerifiableTransaction &actual);
 
-void assertEqual(testcpplite::TestResult &result, const Transactions &expected,
-                 const Transactions &actual);
+void assertEqual(testcpplite::TestResult &result,
+                 const std::vector<Transaction> &expected,
+                 const std::vector<Transaction> &actual);
 } // namespace sbash64::budget
 
 #endif

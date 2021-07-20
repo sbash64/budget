@@ -102,13 +102,16 @@ public:
   using Parent::index;
 };
 
-class WebSocketTransactionRecordObserver : public TransactionRecord::Observer {
+enum class TransactionType { credit, debit };
+
+class WebSocketTransactionRecordObserver
+    : public ObservableTransaction::Observer {
 public:
   WebSocketTransactionRecordObserver(websocketpp::server<debug_custom> &server,
                                      websocketpp::connection_hdl connection,
-                                     TransactionRecord &record,
+                                     ObservableTransaction &record,
                                      ParentAndChild &parent,
-                                     Transaction::Type type)
+                                     TransactionType type)
       : connection{std::move(connection)}, server{server}, parent{parent},
         type{type} {
     record.attach(this);
@@ -128,10 +131,9 @@ public:
     json["description"] = t.description;
     std::stringstream amountStream;
     amountStream << t.amount;
-    json[type == Transaction::Type::credit ? "creditAmount" : "debitAmount"] =
+    json[type == TransactionType::credit ? "creditAmount" : "debitAmount"] =
         amountStream.str();
-    json[type == Transaction::Type::credit ? "debitAmount" : "creditAmount"] =
-        "";
+    json[type == TransactionType::credit ? "debitAmount" : "creditAmount"] = "";
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
@@ -156,7 +158,7 @@ private:
   websocketpp::connection_hdl connection;
   websocketpp::server<debug_custom> &server;
   ParentAndChild &parent;
-  Transaction::Type type;
+  TransactionType type;
 };
 
 class WebSocketAccountObserver : public Account::Observer,
@@ -197,9 +199,9 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatCreditHasBeenAdded(TransactionRecord &t) override {
+  void notifyThatCreditHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this, Transaction::Type::credit));
+        server, connection, t, *this, TransactionType::credit));
     nlohmann::json json;
     json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
@@ -207,9 +209,9 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
-  void notifyThatDebitHasBeenAdded(TransactionRecord &t) override {
+  void notifyThatDebitHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
-        server, connection, t, *this, Transaction::Type::debit));
+        server, connection, t, *this, TransactionType::debit));
     nlohmann::json json;
     json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
@@ -295,22 +297,21 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
 }
 
 struct App {
-  TransactionRecordInMemory::Factory transactionFactory;
+  ObservableTransactionInMemory::Factory transactionFactory;
   InMemoryAccount::Factory accountFactory;
   BudgetInMemory bank{accountFactory, transactionFactory};
   FileStreamFactory streamFactory;
-  WritesTransactionRecordToStream::Factory
-      transactionRecordSerializationFactory;
+  WritesTransactionToStream::Factory transactionRecordSerializationFactory;
   WritesAccountToStream::Factory accountSerializationFactory{
       transactionRecordSerializationFactory};
-  WritesSessionToStream sessionSerialization{streamFactory,
-                                             accountSerializationFactory};
-  ReadsTransactionRecordFromStream::Factory
+  WritesBudgetToStream sessionSerialization{streamFactory,
+                                            accountSerializationFactory};
+  ReadsObservableTransactionFromStream::Factory
       transactionRecordDeserializationFactory;
   ReadsAccountFromStream::Factory accountDeserializationFactory{
       transactionRecordDeserializationFactory};
-  ReadsSessionFromStream accountDeserialization{streamFactory,
-                                                accountDeserializationFactory};
+  ReadsBudgetFromStream accountDeserialization{streamFactory,
+                                               accountDeserializationFactory};
   WebSocketModelObserver webSocketNotifier;
   std::filesystem::path backupDirectory;
   std::string budgetFilePath;

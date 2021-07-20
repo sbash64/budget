@@ -1,7 +1,9 @@
-#include "print.hpp"
+#include "format.hpp"
 #include "usd.hpp"
-#include <functional>
+
 #include <sbash64/budget/format.hpp>
+
+#include <functional>
 #include <sstream>
 
 namespace sbash64::budget {
@@ -12,7 +14,7 @@ static void assertFormatYields(testcpplite::TestResult &result, USD usd,
   assertEqual(result, std::string{expected}, stream.str());
 }
 
-namespace format {
+namespace formats {
 void zeroDollars(testcpplite::TestResult &result) {
   assertFormatYields(result, 0_cents, "$0.00");
 }
@@ -36,5 +38,5 @@ void negativeOneDollarThirtyFourCents(testcpplite::TestResult &result) {
 void negativeFifteenCents(testcpplite::TestResult &result) {
   assertFormatYields(result, -15_cents, "$-0.15");
 }
-} // namespace format
+} // namespace formats
 } // namespace sbash64::budget
