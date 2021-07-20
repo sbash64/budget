@@ -122,6 +122,33 @@ void savesVerificationByQuery(testcpplite::TestResult &result) {
   });
 }
 
+void savesLoadedTransaction(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.ready(
+        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+         false});
+    TransactionSerializationStub serialization;
+    record.save(serialization);
+    assertEqual(
+        result,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+        serialization.verifiableTransaction().transaction);
+  });
+}
+
+void savesInitializedTransaction(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.initialize(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    TransactionSerializationStub serialization;
+    record.save(serialization);
+    assertEqual(
+        result,
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+        serialization.verifiableTransaction().transaction);
+  });
+}
+
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
@@ -174,21 +201,6 @@ void notifiesObserverOfInitializedValue(testcpplite::TestResult &result) {
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
         observer.transaction());
-  });
-}
-
-void savesLoadedValue(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    record.ready(
-        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-         true});
-    TransactionSerializationStub serialization;
-    record.save(serialization);
-    assertEqual(
-        result,
-        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-         true},
-        serialization.verifiableTransaction());
   });
 }
 
