@@ -58,7 +58,7 @@ static void testObservableTransactionInMemory(
   f(record);
 }
 
-void verifies(testcpplite::TestResult &result) {
+void verifiesMatchingInitializedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.initialize(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
@@ -68,7 +68,7 @@ void verifies(testcpplite::TestResult &result) {
   });
 }
 
-void doesNotVerifyTwice(testcpplite::TestResult &result) {
+void doesNotVerifyByQueryTwice(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.initialize(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
@@ -104,6 +104,18 @@ void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &result) {
 void savesVerification(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.verify();
+    TransactionSerializationStub serialization;
+    record.save(serialization);
+    assertTrue(result, serialization.verifiableTransaction().verified);
+  });
+}
+
+void savesVerificationByQuery(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.initialize(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    record.verifies(
+        Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     TransactionSerializationStub serialization;
     record.save(serialization);
     assertTrue(result, serialization.verifiableTransaction().verified);

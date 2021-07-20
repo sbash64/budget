@@ -4,11 +4,12 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::transaction {
-void verifies(testcpplite::TestResult &);
-void doesNotVerifyTwice(testcpplite::TestResult &);
+void verifiesMatchingInitializedTransaction(testcpplite::TestResult &);
+void doesNotVerifyByQueryTwice(testcpplite::TestResult &);
 void notifiesObserverOfVerification(testcpplite::TestResult &);
 void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &);
 void savesVerification(testcpplite::TestResult &);
+void savesVerificationByQuery(testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void savesLoadedValue(testcpplite::TestResult &);
 void loadPassesSelfToDeserialization(testcpplite::TestResult &);

@@ -127,10 +127,14 @@ static auto runAllTests() -> int {
        {transaction::notifiesObserverOfRemovalByQuery,
         "notifiesObserverOfRemovalByQuery"},
        {transaction::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"},
-       {transaction::verifies, "transaction verifies"},
-       {transaction::doesNotVerifyTwice, "transaction doesNotVerifyTwice"},
+       {transaction::verifiesMatchingInitializedTransaction,
+        "transaction verifies"},
+       {transaction::doesNotVerifyByQueryTwice,
+        "transaction doesNotVerifyTwice"},
        {transaction::notifiesObserverOfVerificationByQuery,
-        "transaction notifiesObserverOfVerificationByQuery"}},
+        "transaction notifiesObserverOfVerificationByQuery"},
+       {transaction::savesVerificationByQuery,
+        "transaction savesVerificationByQuery"}},
       std::cout);
 }
 } // namespace sbash64::budget
