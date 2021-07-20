@@ -22,7 +22,7 @@ jobs:
       - name: build app
         run: cmake --build build --config Release --target sbash64-budget-web
       - name: zip files
-        run: zip sbash64-budget-web-${{ steps.get_version.outputs.VERSION }}-linux-x86_64 build/web/sbash64-budget-web web/index.html web/main.js
+        run: zip sbash64-budget-web-${{ steps.get_version.outputs.VERSION }}-linux-x86_64.zip build/web/sbash64-budget-web web/index.html web/main.js
       - name: create GitHub release
         run: |
           gh release create ${{ steps.get_version.outputs.VERSION }} -n "" -t ${{ steps.get_version.outputs.VERSION }} sbash64-budget-web-${{ steps.get_version.outputs.VERSION }}-linux-x86_64.zip
