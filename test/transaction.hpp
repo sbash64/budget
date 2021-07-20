@@ -5,7 +5,9 @@
 
 namespace sbash64::budget::transaction {
 void verifiesMatchingInitializedTransaction(testcpplite::TestResult &);
-void doesNotVerifyByQueryTwice(testcpplite::TestResult &);
+void doesNotVerifyUnequalInitializedTransaction(testcpplite::TestResult &);
+void doesNotVerifyMatchingInitializedTransactionTwice(
+    testcpplite::TestResult &);
 void notifiesObserverOfVerification(testcpplite::TestResult &);
 void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &);
 void savesVerification(testcpplite::TestResult &);
@@ -20,7 +22,7 @@ void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
 void removesLoadedTransaction(testcpplite::TestResult &);
 void removesInitializedTransaction(testcpplite::TestResult &);
-void doesNotRemoveUnequalValue(testcpplite::TestResult &);
+void doesNotRemoveUnequalTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::transaction
 
 #endif
