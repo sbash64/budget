@@ -22,6 +22,6 @@ jobs:
       - name: create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: sbash64-budget-web-${SBASH64_BUDGET_VERSION}-linux-x86_64.zip
+          files: ./*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
