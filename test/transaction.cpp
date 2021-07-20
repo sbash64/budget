@@ -59,6 +59,16 @@ void verifies(testcpplite::TestResult &result) {
                                                  Date{2020, Month::June, 1}}));
 }
 
+void doesNotVerifyTwice(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  record.initialize(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  record.verifies(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertFalse(result, record.verifies(Transaction{789_cents, "chimpanzee",
+                                                  Date{2020, Month::June, 1}}));
+}
+
 void notifiesObserverOfVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;
