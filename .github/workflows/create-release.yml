@@ -1,0 +1,27 @@
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  build-release:
+    name: build and release for ubuntu 20.04
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: generate buildsystem
+        env:
+          CXX: g++-10
+        run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_WEB=1 -DCMAKE_BUILD_TYPE=Release
+      - name: build app
+        run: cmake --build build --config Release --target sbash64-budget-web
+      - name: determine version
+        run: echo "SBASH64_BUDGET_VERSION=$(echo ${{ github.ref }} | cut -c 12-)" >> $GITHUB_ENV
+      - name: zip files
+        run: zip sbash64-budget-web-${SBASH64_BUDGET_VERSION}-linux-x86_64 build/web/sbash64-budget-web web/index.html web/main.js
+      - name: create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: sbash64-budget-web-${SBASH64_BUDGET_VERSION}-linux-x86_64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
