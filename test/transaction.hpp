@@ -4,6 +4,7 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::transaction {
+void verifies(testcpplite::TestResult &);
 void notifiesObserverOfVerification(testcpplite::TestResult &);
 void savesVerification(testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);

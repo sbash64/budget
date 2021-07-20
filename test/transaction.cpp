@@ -51,6 +51,14 @@ private:
 };
 } // namespace
 
+void verifies(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  record.initialize(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertTrue(result, record.verifies(Transaction{789_cents, "chimpanzee",
+                                                 Date{2020, Month::June, 1}}));
+}
+
 void notifiesObserverOfVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   TransactionObserverStub observer;

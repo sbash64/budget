@@ -126,7 +126,8 @@ static auto runAllTests() -> int {
        {transaction::removesLoadedValue, "removesLoadedValue"},
        {transaction::notifiesObserverOfRemovalByQuery,
         "notifiesObserverOfRemovalByQuery"},
-       {transaction::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"}},
+       {transaction::doesNotRemoveUnequalValue, "doesNotRemoveUnequalValue"},
+       {transaction::verifies, "transaction verifies"}},
       std::cout);
 }
 } // namespace sbash64::budget
