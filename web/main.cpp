@@ -1,7 +1,5 @@
 #include <sbash64/budget/account.hpp>
-#include <sbash64/budget/bank.hpp>
 #include <sbash64/budget/budget.hpp>
-#include <sbash64/budget/control.hpp>
 #include <sbash64/budget/format.hpp>
 #include <sbash64/budget/parse.hpp>
 #include <sbash64/budget/serialization.hpp>
@@ -286,6 +284,7 @@ private:
   websocketpp::server<debug_custom> &server;
   std::vector<std::shared_ptr<WebSocketAccountObserver>> children;
 };
+} // namespace
 
 static auto backupDirectory(std::chrono::system_clock::time_point time)
     -> std::filesystem::path {
@@ -296,18 +295,18 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
          backupDirectory.str();
 }
 
+namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
-  InMemoryAccount::Factory accountFactory;
-  BudgetInMemory bank{accountFactory, transactionFactory};
+  InMemoryAccount::Factory accountFactory{transactionFactory};
+  BudgetInMemory bank{accountFactory};
   FileStreamFactory streamFactory;
   WritesTransactionToStream::Factory transactionRecordSerializationFactory;
   WritesAccountToStream::Factory accountSerializationFactory{
       transactionRecordSerializationFactory};
   WritesBudgetToStream sessionSerialization{streamFactory,
                                             accountSerializationFactory};
-  ReadsObservableTransactionFromStream::Factory
-      transactionRecordDeserializationFactory;
+  ReadsTransactionFromStream::Factory transactionRecordDeserializationFactory;
   ReadsAccountFromStream::Factory accountDeserializationFactory{
       transactionRecordDeserializationFactory};
   ReadsBudgetFromStream accountDeserialization{streamFactory,
@@ -318,7 +317,7 @@ struct App {
   std::uintmax_t backupCount = 0;
 
   App(websocketpp::server<debug_custom> &server,
-      websocketpp::connection_hdl connection, std::string budgetFilePath)
+      websocketpp::connection_hdl connection, const std::string &budgetFilePath)
       : streamFactory{budgetFilePath}, webSocketNotifier{server,
                                                          std::move(connection),
                                                          bank},
@@ -449,7 +448,7 @@ int main(int argc, char *argv[]) {
     server.set_reuse_addr(true);
 
     server.set_open_handler([&server, &applications, &budgetFilePath](
-                                websocketpp::connection_hdl connection) {
+                                const websocketpp::connection_hdl &connection) {
       applications[connection.lock().get()] =
           std::make_unique<sbash64::budget::App>(server, connection,
                                                  budgetFilePath);
@@ -464,14 +463,14 @@ int main(int argc, char *argv[]) {
     });
 
     server.set_close_handler(
-        [&applications](websocketpp::connection_hdl connection) {
+        [&applications](const websocketpp::connection_hdl &connection) {
           applications.at(connection.lock().get()).reset();
         });
 
     server.set_message_handler(
         [&applications](
-            websocketpp::connection_hdl connection,
-            websocketpp::server<debug_custom>::message_ptr message) {
+            const websocketpp::connection_hdl &connection,
+            const websocketpp::server<debug_custom>::message_ptr &message) {
           sbash64::budget::handleMessage(
               applications.at(connection.lock().get()), message);
         });
