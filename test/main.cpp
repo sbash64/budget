@@ -118,9 +118,10 @@ static auto runAllTests() -> int {
        {transaction::savesVerification, "saveAfterVerify"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
        {transaction::savesLoadedValue, "savesWhatWasLoaded"},
-       {transaction::loadPassesSelfToDeserialization,
+       {transaction::observesDeserialization,
         "loadPassesSelfToDeserialization"},
-       {transaction::notifiesObserverOfLoadedValue, "notifiesThatIsAfterReady"},
+       {transaction::notifiesObserverOfLoadedTransaction,
+        "notifiesThatIsAfterReady"},
        {transaction::notifiesObserverOfInitializedValue,
         "notifiesThatIsAfterInitialize"},
        {transaction::removesLoadedValue, "removesLoadedValue"},
@@ -134,7 +135,9 @@ static auto runAllTests() -> int {
        {transaction::notifiesObserverOfVerificationByQuery,
         "transaction notifiesObserverOfVerificationByQuery"},
        {transaction::savesVerificationByQuery,
-        "transaction savesVerificationByQuery"}},
+        "transaction savesVerificationByQuery"},
+       {transaction::notifiesObserverOfLoadedVerification,
+        "transaction notifiesObserverOfLoadedVerification"}},
       std::cout);
 }
 } // namespace sbash64::budget

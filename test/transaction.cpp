@@ -131,7 +131,7 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   });
 }
 
-void loadPassesSelfToDeserialization(testcpplite::TestResult &result) {
+void observesDeserialization(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionDeserializationStub deserialization;
     record.load(deserialization);
@@ -139,7 +139,7 @@ void loadPassesSelfToDeserialization(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesObserverOfLoadedValue(testcpplite::TestResult &result) {
+void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
     record.attach(&observer);
@@ -150,6 +150,16 @@ void notifiesObserverOfLoadedValue(testcpplite::TestResult &result) {
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
         observer.transaction());
+  });
+}
+
+void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.ready(
+        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
+         true});
     assertTrue(result, observer.verified());
   });
 }
