@@ -478,7 +478,6 @@ int main(int argc, char *argv[]) {
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
-
       if (con->get_resource() == "/") {
         std::ifstream response{"index.html"};
         std::ostringstream stream;
@@ -490,6 +489,7 @@ int main(int argc, char *argv[]) {
         std::ostringstream stream;
         stream << response.rdbuf();
         con->set_body(stream.str());
+        con->append_header("Content-Type", "text/javascript");
       }
       con->set_status(websocketpp::http::status_code::ok);
     });
