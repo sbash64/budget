@@ -77,6 +77,17 @@ void notifiesObserverOfVerification(testcpplite::TestResult &result) {
   assertTrue(result, observer.verified());
 }
 
+void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &result) {
+  ObservableTransactionInMemory record;
+  TransactionObserverStub observer;
+  record.attach(&observer);
+  record.initialize(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  record.verifies(
+      Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+  assertTrue(result, observer.verified());
+}
+
 void savesVerification(testcpplite::TestResult &result) {
   ObservableTransactionInMemory record;
   record.verify();
