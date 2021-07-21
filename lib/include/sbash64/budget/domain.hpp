@@ -182,6 +182,7 @@ public:
   virtual void reduce(const Date &) = 0;
   virtual void createAccount(std::string_view name) = 0;
   virtual void closeAccount(std::string_view name, const Date &) = 0;
+  virtual void allocate(std::string_view accountName, USD, const Date &) = 0;
 };
 } // namespace sbash64::budget
 

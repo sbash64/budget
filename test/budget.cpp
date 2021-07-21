@@ -674,4 +674,30 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
                     masterAccount->debitToVerify());
       });
 }
+
+void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](
+                         AccountFactoryStub &factory,
+                         const std::shared_ptr<AccountStub> &masterAccount,
+                         Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    giraffe->setBalance(-123_cents);
+    budget.createAccount("giraffe");
+    budget.allocate("giraffe", 456_cents, Date{2021, Month::April, 3});
+    assertEqual(
+        result,
+        {579_cents, "transfer from master", Date{2021, Month::April, 3}},
+        giraffe->creditedTransaction());
+    assertEqual(
+        result,
+        {579_cents, "transfer from master", Date{2021, Month::April, 3}},
+        giraffe->creditToVerify());
+    assertEqual(result,
+                {579_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
+                masterAccount->debitedTransaction());
+    assertEqual(result,
+                {579_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
+                masterAccount->debitToVerify());
+  });
+}
 } // namespace sbash64::budget

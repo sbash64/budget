@@ -33,6 +33,7 @@ void createsAccount(testcpplite::TestResult &);
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
+void transfersAmountNeededToReachAllocation(testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

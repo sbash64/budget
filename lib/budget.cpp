@@ -277,4 +277,20 @@ void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
     remove(secondaryAccounts, name);
   }
 }
+
+void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
+                              const Date &date) {
+  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
+                           observer);
+  const auto amount{amountNeeded -
+                    at(secondaryAccounts, accountName)->balance()};
+  budget::debit(primaryAccount,
+                transferToTransaction(amount, accountName, date));
+  budget::verifyDebit(primaryAccount,
+                      transferToTransaction(amount, accountName, date));
+  budget::credit(at(secondaryAccounts, accountName),
+                 transaction(amount, transferFromMasterString, date));
+  budget::verifyCredit(at(secondaryAccounts, accountName),
+                       transaction(amount, transferFromMasterString, date));
+}
 } // namespace sbash64::budget
