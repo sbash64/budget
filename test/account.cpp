@@ -613,6 +613,26 @@ void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
   });
 }
 
+void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    addObservableTransactionInMemory(factory);
+    debit(account,
+          Transaction{3_cents, "gorilla", Date{2020, Month::January, 20}});
+    addObservableTransactionInMemory(factory);
+    credit(account,
+           Transaction{2_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    addObservableTransactionInMemory(factory);
+    credit(account,
+           Transaction{1_cents, "orangutan", Date{2020, Month::February, 2}});
+    account.reduce(Date{2021, Month::March, 13});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {});
+    assertCreditsSaved(result, persistence, {});
+  });
+}
+
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {

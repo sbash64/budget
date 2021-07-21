@@ -218,7 +218,7 @@ void InMemoryAccount::reduce(const Date &date) {
   if (balance.cents < 0)
     addReduction(factory, observer, &Observer::notifyThatDebitHasBeenAdded,
                  -balance, date, debitRecords);
-  else
+  else if (balance.cents > 0)
     addReduction(factory, observer, &Observer::notifyThatCreditHasBeenAdded,
                  balance, date, creditRecords);
 }

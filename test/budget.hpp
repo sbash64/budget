@@ -11,6 +11,7 @@ void debitsExistingAccount(testcpplite::TestResult &);
 void transfersFromMasterAccountToOther(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
+void clearsOldAccounts(testcpplite::TestResult &);
 void removesDebit(testcpplite::TestResult &);
 void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &);
 void removesCredit(testcpplite::TestResult &);
@@ -29,6 +30,7 @@ void notifiesThatTotalBalanceHasChangedOnDebit(testcpplite::TestResult &);
 void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
     testcpplite::TestResult &);
 void createsAccount(testcpplite::TestResult &);
+void doesNotOverwriteExistingAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
 } // namespace sbash64::budget

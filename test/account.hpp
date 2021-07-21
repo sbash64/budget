@@ -32,6 +32,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &);
+void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

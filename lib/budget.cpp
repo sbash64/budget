@@ -196,7 +196,19 @@ void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
   persistentMemory.save(*primaryAccount, collect(secondaryAccounts));
 }
 
+static void
+remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+       std::string_view name) {
+  at(accounts, name)->remove();
+  accounts.erase(std::string{name});
+}
+
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
+  primaryAccount->remove();
+  for (auto [name, account] : secondaryAccounts)
+    account->remove();
+  primaryAccount.reset();
+  secondaryAccounts.clear();
   persistentMemory.load(*this);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
@@ -212,13 +224,6 @@ void BudgetInMemory::verifyDebit(std::string_view accountName,
 
 void BudgetInMemory::verifyCredit(const Transaction &transaction) {
   budget::verifyCredit(primaryAccount, transaction);
-}
-
-static void
-remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
-       std::string_view name) {
-  at(accounts, name)->remove();
-  accounts.erase(std::string{name});
 }
 
 void BudgetInMemory::removeAccount(std::string_view name) {
