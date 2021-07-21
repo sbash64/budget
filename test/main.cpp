@@ -74,6 +74,7 @@ static auto runAllTests() -> int {
        {closesAccountHavingNegativeBalance,
         "closes account having negative balance"},
        {clearsOldAccounts, "clearsOldAccounts"},
+       {doesNotOverwriteExistingAccount, "doesNotOverwriteExistingAccount"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,

@@ -204,7 +204,6 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
-
   primaryAccount->remove();
   for (auto [name, account] : secondaryAccounts)
     account->remove();

@@ -621,6 +621,20 @@ void createsAccount(testcpplite::TestResult &result) {
   });
 }
 
+void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               const std::shared_ptr<AccountStub> &,
+                               Budget &budget) {
+    const auto giraffe1{createAccountStub(budget, factory, "giraffe")};
+    createAccount(budget, "giraffe");
+    const auto giraffe2{createAccountStub(budget, factory, "giraffe")};
+    createAccount(budget, "giraffe");
+    PersistentMemoryStub persistence;
+    budget.save(persistence);
+    assertEqual(result, {giraffe1.get()}, persistence.secondaryAccounts());
+  });
+}
+
 void closesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory,
