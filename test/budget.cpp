@@ -371,6 +371,10 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
 
     budget.load(persistence);
 
+    assertTrue(result, giraffe->removed());
+    assertTrue(result, penguin->removed());
+    assertTrue(result, leopard->removed());
+
     assertDeserializes(
         result, budget,
         &BudgetDeserialization::Observer::notifyThatPrimaryAccountIsReady,
