@@ -11,6 +11,7 @@ void debitsExistingAccount(testcpplite::TestResult &);
 void transfersFromMasterAccountToOther(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
+void clearsOldAccounts(testcpplite::TestResult &);
 void removesDebit(testcpplite::TestResult &);
 void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &);
 void removesCredit(testcpplite::TestResult &);

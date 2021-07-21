@@ -349,6 +349,48 @@ void loadsAccounts(testcpplite::TestResult &result) {
   });
 }
 
+void clearsOldAccounts(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               const std::shared_ptr<AccountStub> &,
+                               Budget &budget) {
+    const auto giraffe{addAccountStub(factory, "giraffe")};
+    const auto penguin{addAccountStub(factory, "penguin")};
+    const auto leopard{addAccountStub(factory, "leopard")};
+
+    PersistentMemoryStub persistence;
+    budget.load(persistence);
+
+    AccountDeserializationStub deserialization;
+    budget.notifyThatPrimaryAccountIsReady(deserialization, "giraffe");
+    budget.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
+    budget.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
+
+    const auto elephant{addAccountStub(factory, "elephant")};
+    const auto turtle{addAccountStub(factory, "turtle")};
+    const auto tiger{addAccountStub(factory, "tiger")};
+
+    budget.load(persistence);
+
+    assertDeserializes(
+        result, budget,
+        &BudgetDeserialization::Observer::notifyThatPrimaryAccountIsReady,
+        deserialization, "elephant", elephant);
+    assertDeserializes(
+        result, budget,
+        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        deserialization, "turtle", turtle);
+    assertDeserializes(
+        result, budget,
+        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        deserialization, "tiger", tiger);
+
+    budget.save(persistence);
+    assertEqual(result, elephant.get(), persistence.primaryAccount());
+    assertEqual(result, {tiger.get(), turtle.get()},
+                persistence.secondaryAccounts());
+  });
+}
+
 void removesDebit(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                const std::shared_ptr<AccountStub> &,

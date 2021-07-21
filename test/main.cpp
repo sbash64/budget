@@ -73,6 +73,7 @@ static auto runAllTests() -> int {
        {closesAccount, "closes account"},
        {closesAccountHavingNegativeBalance,
         "closes account having negative balance"},
+       {clearsOldAccounts, "clearsOldAccounts"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,

@@ -197,6 +197,7 @@ void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
+  secondaryAccounts.clear();
   persistentMemory.load(*this);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
 }
