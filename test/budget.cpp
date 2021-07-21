@@ -27,11 +27,21 @@ public:
 
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
-  void credit(const Transaction &t) override { creditedTransaction_ = t; }
+  void credit(const Transaction &t) override {
+    credits_.push_back(t);
+    creditedTransaction_ = t;
+  }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
-  void debit(const Transaction &t) override { debitedTransaction_ = t; }
+  void debit(const Transaction &t) override {
+    debits_.push_back(t);
+    debitedTransaction_ = t;
+  }
+
+  auto debits() -> std::vector<Transaction> { return debits_; }
+
+  auto credits() -> std::vector<Transaction> { return credits_; }
 
   auto removedDebit() -> Transaction { return removedDebit_; }
 
@@ -58,11 +68,23 @@ public:
 
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
-  void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
+  void verifyDebit(const Transaction &t) override {
+    verifiedDebits_.push_back(t);
+    debitToVerify_ = t;
+  }
 
   auto creditToVerify() -> Transaction { return creditToVerify_; }
 
-  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
+  void verifyCredit(const Transaction &t) override {
+    verifiedCredits_.push_back(t);
+    creditToVerify_ = t;
+  }
+
+  auto verifiedDebits() -> std::vector<Transaction> { return verifiedDebits_; }
+
+  auto verifiedCredits() -> std::vector<Transaction> {
+    return verifiedCredits_;
+  }
 
   void notifyThatCreditIsReady(TransactionDeserialization &) override {}
 
@@ -87,8 +109,10 @@ private:
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
-  std::vector<Transaction> foundUnverifiedDebits;
-  std::vector<Transaction> foundUnverifiedCredits;
+  std::vector<Transaction> debits_;
+  std::vector<Transaction> credits_;
+  std::vector<Transaction> verifiedDebits_;
+  std::vector<Transaction> verifiedCredits_;
   Date reducedDate_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
@@ -698,6 +722,46 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
     assertEqual(result,
                 {579_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
                 masterAccount->debitToVerify());
+  });
+}
+
+void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](
+                         AccountFactoryStub &factory,
+                         const std::shared_ptr<AccountStub> &masterAccount,
+                         Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    const auto penguin{createAccountStub(budget, factory, "penguin")};
+    const auto leopard{createAccountStub(budget, factory, "leopard")};
+    giraffe->setBalance(-12_cents);
+    penguin->setBalance(34_cents);
+    leopard->setBalance(-56_cents);
+    budget.createAccount("giraffe");
+    budget.createAccount("penguin");
+    budget.createAccount("leopard");
+    budget.restore(Date{2021, Month::April, 3});
+    assertEqual(result,
+                {12_cents, "transfer from master", Date{2021, Month::April, 3}},
+                giraffe->creditedTransaction());
+    assertEqual(result,
+                {12_cents, "transfer from master", Date{2021, Month::April, 3}},
+                giraffe->creditToVerify());
+    assertEqual(result,
+                {56_cents, "transfer from master", Date{2021, Month::April, 3}},
+                leopard->creditedTransaction());
+    assertEqual(result,
+                {56_cents, "transfer from master", Date{2021, Month::April, 3}},
+                leopard->creditToVerify());
+    assertEqual(
+        result,
+        {{12_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
+         {56_cents, "transfer to leopard", Date{2021, Month::April, 3}}},
+        masterAccount->debits());
+    assertEqual(
+        result,
+        {{12_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
+         {56_cents, "transfer to leopard", Date{2021, Month::April, 3}}},
+        masterAccount->verifiedDebits());
   });
 }
 } // namespace sbash64::budget

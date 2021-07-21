@@ -293,4 +293,19 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
   budget::verifyCredit(at(secondaryAccounts, accountName),
                        transaction(amount, transferFromMasterString, date));
 }
+
+void BudgetInMemory::restore(const Date &date) {
+  for (auto [name, account] : secondaryAccounts) {
+    if (account->balance().cents < 0) {
+      const auto amount{-account->balance()};
+      budget::debit(primaryAccount, transferToTransaction(amount, name, date));
+      budget::verifyDebit(primaryAccount,
+                          transferToTransaction(amount, name, date));
+      budget::credit(at(secondaryAccounts, name),
+                     transaction(amount, transferFromMasterString, date));
+      budget::verifyCredit(at(secondaryAccounts, name),
+                           transaction(amount, transferFromMasterString, date));
+    }
+  }
+}
 } // namespace sbash64::budget

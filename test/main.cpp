@@ -77,6 +77,8 @@ static auto runAllTests() -> int {
        {doesNotOverwriteExistingAccount, "doesNotOverwriteExistingAccount"},
        {transfersAmountNeededToReachAllocation,
         "transfersAmountNeededToReachAllocation"},
+       {restoresAccountsHavingNegativeBalances,
+        "restoresAccountsHavingNegativeBalances"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,
