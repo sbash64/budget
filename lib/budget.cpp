@@ -170,10 +170,10 @@ static auto transferToTransaction(USD amount, std::string_view accountName,
   return {amount, transferToString(accountName), date};
 }
 
-void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
-                                Date date) {
-  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
-                           observer);
+static void transferTo(const std::shared_ptr<Account> &primaryAccount,
+                       const std::map<std::string, std::shared_ptr<Account>,
+                                      std::less<>> &secondaryAccounts,
+                       std::string_view accountName, USD amount, Date date) {
   budget::debit(primaryAccount,
                 transferToTransaction(amount, accountName, date));
   budget::verifyDebit(primaryAccount,
@@ -182,6 +182,14 @@ void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
                  transaction(amount, transferFromMasterString, date));
   budget::verifyCredit(at(secondaryAccounts, accountName),
                        transaction(amount, transferFromMasterString, date));
+}
+
+void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
+                                Date date) {
+  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
+                           observer);
+  budget::transferTo(primaryAccount, secondaryAccounts, accountName, amount,
+                     date);
 }
 
 void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
@@ -282,30 +290,15 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
                               const Date &date) {
   createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
                            observer);
-  const auto amount{amountNeeded -
-                    at(secondaryAccounts, accountName)->balance()};
-  budget::debit(primaryAccount,
-                transferToTransaction(amount, accountName, date));
-  budget::verifyDebit(primaryAccount,
-                      transferToTransaction(amount, accountName, date));
-  budget::credit(at(secondaryAccounts, accountName),
-                 transaction(amount, transferFromMasterString, date));
-  budget::verifyCredit(at(secondaryAccounts, accountName),
-                       transaction(amount, transferFromMasterString, date));
+  budget::transferTo(
+      primaryAccount, secondaryAccounts, accountName,
+      amountNeeded - at(secondaryAccounts, accountName)->balance(), date);
 }
 
 void BudgetInMemory::restore(const Date &date) {
-  for (auto [name, account] : secondaryAccounts) {
-    if (account->balance().cents < 0) {
-      const auto amount{-account->balance()};
-      budget::debit(primaryAccount, transferToTransaction(amount, name, date));
-      budget::verifyDebit(primaryAccount,
-                          transferToTransaction(amount, name, date));
-      budget::credit(at(secondaryAccounts, name),
-                     transaction(amount, transferFromMasterString, date));
-      budget::verifyCredit(at(secondaryAccounts, name),
-                           transaction(amount, transferFromMasterString, date));
-    }
-  }
+  for (auto [name, account] : secondaryAccounts)
+    if (account->balance().cents < 0)
+      budget::transferTo(primaryAccount, secondaryAccounts, name,
+                         -account->balance(), date);
 }
 } // namespace sbash64::budget
