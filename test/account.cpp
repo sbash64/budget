@@ -3,6 +3,7 @@
 #include "usd.hpp"
 
 #include <sbash64/budget/account.hpp>
+#include <sbash64/budget/transaction.hpp>
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 #include <functional>
