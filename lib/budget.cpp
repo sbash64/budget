@@ -150,34 +150,33 @@ static auto makeAndLoad(Account::Factory &factory,
 
 BudgetInMemory::BudgetInMemory(Account &primaryAccount,
                                Account::Factory &accountFactory)
-    : accountFactory{accountFactory}, primaryAccount{primaryAccount} {}
+    : accountFactory{accountFactory}, incomeAccount{primaryAccount} {}
 
 void BudgetInMemory::attach(Observer *a) { observer = a; }
 
 void BudgetInMemory::credit(const Transaction &transaction) {
-  budget::credit(primaryAccount, transaction);
-  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
+  budget::credit(incomeAccount, transaction);
+  notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::removeCredit(const Transaction &transaction) {
-  budget::removeCredit(primaryAccount, transaction);
-  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
+  budget::removeCredit(incomeAccount, transaction);
+  notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::debit(std::string_view accountName,
                            const Transaction &transaction) {
-  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
+  createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::debit(at(secondaryAccounts, accountName), transaction);
-  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
+  budget::debit(at(expenseAccounts, accountName), transaction);
+  notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::removeDebit(std::string_view accountName,
                                  const Transaction &transaction) {
-  if (contains(secondaryAccounts, accountName)) {
-    budget::removeDebit(at(secondaryAccounts, accountName), transaction);
-    notifyThatTotalBalanceHasChanged(observer, primaryAccount,
-                                     secondaryAccounts);
+  if (contains(expenseAccounts, accountName)) {
+    budget::removeDebit(at(expenseAccounts, accountName), transaction);
+    notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
   }
 }
 
@@ -208,22 +207,21 @@ static void transferTo(Account &primaryAccount,
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
                                 Date date) {
-  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
+  createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::transferTo(primaryAccount, secondaryAccounts, accountName, amount,
-                     date);
+  budget::transferTo(incomeAccount, expenseAccounts, accountName, amount, date);
 }
 
 void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
                                     Date date) {
-  budget::removeDebit(primaryAccount,
+  budget::removeDebit(incomeAccount,
                       {amount, transferToString(accountName), date});
-  budget::removeCredit(at(secondaryAccounts, accountName),
+  budget::removeCredit(at(expenseAccounts, accountName),
                        {amount, transferFromMasterString.data(), date});
 }
 
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
-  persistentMemory.save(primaryAccount, collect(secondaryAccounts));
+  persistentMemory.save(incomeAccount, collect(expenseAccounts));
 }
 
 static void
@@ -234,54 +232,53 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
-  for (auto [name, account] : secondaryAccounts)
+  for (auto [name, account] : expenseAccounts)
     account->remove();
-  primaryAccount.clear();
-  secondaryAccounts.clear();
+  incomeAccount.clear();
+  expenseAccounts.clear();
   persistentMemory.load(*this);
-  notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
+  notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
-  at(secondaryAccounts, from)->rename(to);
+  at(expenseAccounts, from)->rename(to);
 }
 
 void BudgetInMemory::verifyDebit(std::string_view accountName,
                                  const Transaction &transaction) {
-  budget::verifyDebit(at(secondaryAccounts, accountName), transaction);
+  budget::verifyDebit(at(expenseAccounts, accountName), transaction);
 }
 
 void BudgetInMemory::verifyCredit(const Transaction &transaction) {
-  budget::verifyCredit(primaryAccount, transaction);
+  budget::verifyCredit(incomeAccount, transaction);
 }
 
 void BudgetInMemory::removeAccount(std::string_view name) {
-  if (contains(secondaryAccounts, name)) {
-    remove(secondaryAccounts, name);
-    notifyThatTotalBalanceHasChanged(observer, primaryAccount,
-                                     secondaryAccounts);
+  if (contains(expenseAccounts, name)) {
+    remove(expenseAccounts, name);
+    notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
   }
 }
 
 void BudgetInMemory::notifyThatPrimaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view) {
-  primaryAccount.load(deserialization);
+  incomeAccount.load(deserialization);
 }
 
 void BudgetInMemory::notifyThatSecondaryAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
-  secondaryAccounts[std::string{name}] =
+  expenseAccounts[std::string{name}] =
       makeAndLoad(accountFactory, deserialization, name, observer);
 }
 
 void BudgetInMemory::reduce(const Date &date) {
-  primaryAccount.reduce(date);
-  for (const auto &[name, account] : secondaryAccounts)
+  incomeAccount.reduce(date);
+  for (const auto &[name, account] : expenseAccounts)
     account->reduce(date);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
-  createNewAccountIfNeeded(secondaryAccounts, accountFactory, name, observer);
+  createNewAccountIfNeeded(expenseAccounts, accountFactory, name, observer);
 }
 
 static auto transaction(USD amount, const std::stringstream &description,
@@ -290,36 +287,36 @@ static auto transaction(USD amount, const std::stringstream &description,
 }
 
 void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
-  if (contains(secondaryAccounts, name)) {
+  if (contains(expenseAccounts, name)) {
     std::stringstream description;
     description << "close " << name;
-    const auto balance{at(secondaryAccounts, name)->balance()};
+    const auto balance{at(expenseAccounts, name)->balance()};
     if (balance.cents > 0) {
-      budget::credit(primaryAccount, transaction(balance, description, date));
-      budget::verifyCredit(primaryAccount,
+      budget::credit(incomeAccount, transaction(balance, description, date));
+      budget::verifyCredit(incomeAccount,
                            transaction(balance, description, date));
     } else if (balance.cents < 0) {
-      budget::debit(primaryAccount, transaction(-balance, description, date));
-      budget::verifyDebit(primaryAccount,
+      budget::debit(incomeAccount, transaction(-balance, description, date));
+      budget::verifyDebit(incomeAccount,
                           transaction(-balance, description, date));
     }
-    remove(secondaryAccounts, name);
+    remove(expenseAccounts, name);
   }
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
                               const Date &date) {
-  createNewAccountIfNeeded(secondaryAccounts, accountFactory, accountName,
+  createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::transferTo(
-      primaryAccount, secondaryAccounts, accountName,
-      amountNeeded - at(secondaryAccounts, accountName)->balance(), date);
+  budget::transferTo(incomeAccount, expenseAccounts, accountName,
+                     amountNeeded - at(expenseAccounts, accountName)->balance(),
+                     date);
 }
 
 void BudgetInMemory::restore(const Date &date) {
-  for (auto [name, account] : secondaryAccounts)
+  for (auto [name, account] : expenseAccounts)
     if (account->balance().cents < 0)
-      budget::transferTo(primaryAccount, secondaryAccounts, name,
+      budget::transferTo(incomeAccount, expenseAccounts, name,
                          -account->balance(), date);
 }
 } // namespace sbash64::budget

@@ -42,9 +42,8 @@ public:
 private:
   Account::Factory &accountFactory;
   Observer *observer{};
-  Account &primaryAccount;
-  std::map<std::string, std::shared_ptr<Account>, std::less<>>
-      secondaryAccounts;
+  Account &incomeAccount;
+  std::map<std::string, std::shared_ptr<Account>, std::less<>> expenseAccounts;
 };
 } // namespace sbash64::budget
 
