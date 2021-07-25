@@ -186,6 +186,7 @@ public:
   virtual void reduce(const Date &) = 0;
   virtual auto balance() -> USD = 0;
   virtual void remove() = 0;
+  virtual void clear() = 0;
 
   class Factory {
   public:

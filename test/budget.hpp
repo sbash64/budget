@@ -4,7 +4,6 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
-void createsMasterAccount(testcpplite::TestResult &);
 void creditsMasterAccount(testcpplite::TestResult &);
 void debitsNonexistentAccount(testcpplite::TestResult &);
 void debitsExistingAccount(testcpplite::TestResult &);

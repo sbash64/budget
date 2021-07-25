@@ -213,8 +213,8 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
 
 void InMemoryAccount::reduce(const Date &date) {
   const auto balance{budget::balance(creditRecords, debitRecords)};
-  clear(debitRecords);
-  clear(creditRecords);
+  budget::clear(debitRecords);
+  budget::clear(creditRecords);
   if (balance.cents < 0)
     addReduction(factory, observer, &Observer::notifyThatDebitHasBeenAdded,
                  -balance, date, debitRecords);
@@ -231,6 +231,11 @@ void InMemoryAccount::remove() {
   callIfObserverExists(observer, [&](Account::Observer *observer_) {
     observer_->notifyThatWillBeRemoved();
   });
+}
+
+void InMemoryAccount::clear() {
+  budget::clear(debitRecords);
+  budget::clear(creditRecords);
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_)

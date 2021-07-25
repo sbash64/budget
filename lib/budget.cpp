@@ -20,9 +20,17 @@ static auto transferToString(std::string_view accountName) -> std::string {
          std::string{accountName};
 }
 
+static void credit(Account &account, const Transaction &transaction) {
+  account.credit(transaction);
+}
+
 static void credit(const std::shared_ptr<Account> &account,
                    const Transaction &transaction) {
   account->credit(transaction);
+}
+
+static void debit(Account &account, const Transaction &transaction) {
+  account.debit(transaction);
 }
 
 static void debit(const std::shared_ptr<Account> &account,
@@ -30,9 +38,17 @@ static void debit(const std::shared_ptr<Account> &account,
   account->debit(transaction);
 }
 
+static void verifyCredit(Account &account, const Transaction &transaction) {
+  account.verifyCredit(transaction);
+}
+
 static void verifyCredit(const std::shared_ptr<Account> &account,
                          const Transaction &transaction) {
   account->verifyCredit(transaction);
+}
+
+static void verifyDebit(Account &account, const Transaction &transaction) {
+  account.verifyDebit(transaction);
 }
 
 static void verifyDebit(const std::shared_ptr<Account> &account,
@@ -40,9 +56,17 @@ static void verifyDebit(const std::shared_ptr<Account> &account,
   account->verifyDebit(transaction);
 }
 
+static void removeCredit(Account &account, const Transaction &transaction) {
+  account.removeCredit(transaction);
+}
+
 static void removeCredit(const std::shared_ptr<Account> &account,
                          const Transaction &transaction) {
   account->removeCredit(transaction);
+}
+
+static void removeDebit(Account &account, const Transaction &transaction) {
+  account.removeDebit(transaction);
 }
 
 static void removeDebit(const std::shared_ptr<Account> &account,
@@ -58,14 +82,13 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
 }
 
 static void notifyThatTotalBalanceHasChanged(
-    BudgetInMemory::Observer *observer,
-    const std::shared_ptr<Account> &primaryAccount,
+    BudgetInMemory::Observer *observer, Account &primaryAccount,
     const std::map<std::string, std::shared_ptr<Account>, std::less<>>
         &secondaryAccounts) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatTotalBalanceHasChanged(accumulate(
         secondaryAccounts.begin(), secondaryAccounts.end(),
-        primaryAccount->balance(),
+        primaryAccount.balance(),
         [](USD total, const std::pair<std::string_view,
                                       std::shared_ptr<Account>> &secondary) {
           const auto &[name, account] = secondary;
@@ -125,10 +148,9 @@ static auto makeAndLoad(Account::Factory &factory,
   return account;
 }
 
-BudgetInMemory::BudgetInMemory(Account::Factory &accountFactory)
-    : accountFactory{accountFactory},
-      primaryAccount{make(accountFactory, masterAccountName.data(), observer)} {
-}
+BudgetInMemory::BudgetInMemory(Account &primaryAccount,
+                               Account::Factory &accountFactory)
+    : accountFactory{accountFactory}, primaryAccount{primaryAccount} {}
 
 void BudgetInMemory::attach(Observer *a) { observer = a; }
 
@@ -170,7 +192,7 @@ static auto transferToTransaction(USD amount, std::string_view accountName,
   return {amount, transferToString(accountName), date};
 }
 
-static void transferTo(const std::shared_ptr<Account> &primaryAccount,
+static void transferTo(Account &primaryAccount,
                        const std::map<std::string, std::shared_ptr<Account>,
                                       std::less<>> &secondaryAccounts,
                        std::string_view accountName, USD amount, Date date) {
@@ -201,7 +223,7 @@ void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
 }
 
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
-  persistentMemory.save(*primaryAccount, collect(secondaryAccounts));
+  persistentMemory.save(primaryAccount, collect(secondaryAccounts));
 }
 
 static void
@@ -212,10 +234,9 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
-  primaryAccount->remove();
   for (auto [name, account] : secondaryAccounts)
     account->remove();
-  primaryAccount.reset();
+  primaryAccount.clear();
   secondaryAccounts.clear();
   persistentMemory.load(*this);
   notifyThatTotalBalanceHasChanged(observer, primaryAccount, secondaryAccounts);
@@ -243,8 +264,8 @@ void BudgetInMemory::removeAccount(std::string_view name) {
 }
 
 void BudgetInMemory::notifyThatPrimaryAccountIsReady(
-    AccountDeserialization &deserialization, std::string_view name) {
-  primaryAccount = makeAndLoad(accountFactory, deserialization, name, observer);
+    AccountDeserialization &deserialization, std::string_view) {
+  primaryAccount.load(deserialization);
 }
 
 void BudgetInMemory::notifyThatSecondaryAccountIsReady(
@@ -254,7 +275,7 @@ void BudgetInMemory::notifyThatSecondaryAccountIsReady(
 }
 
 void BudgetInMemory::reduce(const Date &date) {
-  primaryAccount->reduce(date);
+  primaryAccount.reduce(date);
   for (const auto &[name, account] : secondaryAccounts)
     account->reduce(date);
 }

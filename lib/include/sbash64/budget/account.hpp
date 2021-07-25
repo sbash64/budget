@@ -26,6 +26,7 @@ public:
   void reduce(const Date &) override;
   auto balance() -> USD override;
   void remove() override;
+  void clear() override;
 
   class Factory : public Account::Factory {
   public:
