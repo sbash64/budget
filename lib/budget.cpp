@@ -271,19 +271,13 @@ static auto transaction(USD amount, const std::stringstream &description,
   return {amount, description.str(), date};
 }
 
-void BudgetInMemory::closeAccount(std::string_view name, const Date &date) {
+void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
-    std::stringstream description;
-    description << "close " << name;
     const auto balance{at(expenseAccounts, name)->balance()};
     if (balance.cents > 0) {
-      budget::credit(incomeAccount, transaction(balance, description, date));
-      budget::verifyCredit(incomeAccount,
-                           transaction(balance, description, date));
+      incomeAccount.deposit(balance);
     } else if (balance.cents < 0) {
-      budget::debit(incomeAccount, transaction(-balance, description, date));
-      budget::verifyDebit(incomeAccount,
-                          transaction(-balance, description, date));
+      incomeAccount.withdraw(-balance);
     }
     remove(expenseAccounts, name);
   }

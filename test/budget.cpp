@@ -648,17 +648,12 @@ void closesAccount(testcpplite::TestResult &result) {
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
         giraffe->setBalance(123_cents);
-        budget.closeAccount("giraffe", Date{2021, Month::April, 3});
+        budget.closeAccount("giraffe");
         PersistentMemoryStub persistence;
         budget.save(persistence);
         assertEqual(result, {leopard.get(), penguin.get()},
                     persistence.secondaryAccounts());
-        assertEqual(result,
-                    {123_cents, "close giraffe", Date{2021, Month::April, 3}},
-                    masterAccount->creditedTransaction());
-        assertEqual(result,
-                    {123_cents, "close giraffe", Date{2021, Month::April, 3}},
-                    masterAccount->creditToVerify());
+        assertEqual(result, 123_cents, masterAccount->deposited());
       });
 }
 
@@ -669,13 +664,8 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
                 Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         giraffe->setBalance(-123_cents);
-        budget.closeAccount("giraffe", Date{2021, Month::April, 3});
-        assertEqual(result,
-                    {123_cents, "close giraffe", Date{2021, Month::April, 3}},
-                    masterAccount->debitedTransaction());
-        assertEqual(result,
-                    {123_cents, "close giraffe", Date{2021, Month::April, 3}},
-                    masterAccount->debitToVerify());
+        budget.closeAccount("giraffe");
+        assertEqual(result, 123_cents, masterAccount->withdrawn());
       });
 }
 
