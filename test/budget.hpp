@@ -21,7 +21,6 @@ void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);
 void verifiesDebitForExistingAccount(testcpplite::TestResult &);
 void verifiesCreditForMasterAccount(testcpplite::TestResult &);
-void verifiesTransferTransactions(testcpplite::TestResult &);
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &);
 void reducesEachAccount(testcpplite::TestResult &);
 void notifiesThatTotalBalanceHasChangedOnCredit(testcpplite::TestResult &);

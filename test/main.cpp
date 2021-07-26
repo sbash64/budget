@@ -51,8 +51,6 @@ static auto runAllTests() -> int {
        {removesCredit, "removes from master account when removing credit"},
        {transfersFromMasterAccountToOther,
         "transfer debits master and credits other"},
-       {verifiesTransferTransactions,
-        "transfer verifies transactions by default"},
        {removesTransfer,
         "remove transfer removes debit from master and credit from "
         "other"},

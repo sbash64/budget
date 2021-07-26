@@ -194,22 +194,15 @@ static auto transferToTransaction(USD amount, std::string_view accountName,
 static void transferTo(Account &primaryAccount,
                        const std::map<std::string, std::shared_ptr<Account>,
                                       std::less<>> &secondaryAccounts,
-                       std::string_view accountName, USD amount, Date date) {
-  budget::debit(primaryAccount,
-                transferToTransaction(amount, accountName, date));
-  budget::verifyDebit(primaryAccount,
-                      transferToTransaction(amount, accountName, date));
-  budget::credit(at(secondaryAccounts, accountName),
-                 transaction(amount, transferFromMasterString, date));
-  budget::verifyCredit(at(secondaryAccounts, accountName),
-                       transaction(amount, transferFromMasterString, date));
+                       std::string_view accountName, USD amount) {
+  primaryAccount.withdraw(amount);
+  at(secondaryAccounts, accountName)->deposit(amount);
 }
 
-void BudgetInMemory::transferTo(std::string_view accountName, USD amount,
-                                Date date) {
+void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::transferTo(incomeAccount, expenseAccounts, accountName, amount, date);
+  budget::transferTo(incomeAccount, expenseAccounts, accountName, amount);
 }
 
 void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
@@ -309,14 +302,14 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
   budget::transferTo(incomeAccount, expenseAccounts, accountName,
-                     amountNeeded - at(expenseAccounts, accountName)->balance(),
-                     date);
+                     amountNeeded -
+                         at(expenseAccounts, accountName)->balance());
 }
 
-void BudgetInMemory::restore(const Date &date) {
+void BudgetInMemory::restore(const Date &) {
   for (auto [name, account] : expenseAccounts)
     if (account->balance().cents < 0)
       budget::transferTo(incomeAccount, expenseAccounts, name,
-                         -account->balance(), date);
+                         -account->balance());
 }
 } // namespace sbash64::budget

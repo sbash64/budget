@@ -106,6 +106,19 @@ public:
 
   [[nodiscard]] auto cleared() const -> bool { return cleared_; }
 
+  auto withdrawn() -> USD { return withdrawn_; }
+
+  void withdraw(USD usd) {
+    withdrawals_.push_back(usd);
+    withdrawn_ = usd;
+  }
+
+  auto deposited() -> USD { return deposited_; }
+
+  void deposit(USD usd) { deposited_ = usd; }
+
+  auto withdrawals() -> std::vector<USD> { return withdrawals_; }
+
 private:
   Transaction creditToVerify_;
   Transaction debitToVerify_;
@@ -117,10 +130,13 @@ private:
   std::vector<Transaction> credits_;
   std::vector<Transaction> verifiedDebits_;
   std::vector<Transaction> verifiedCredits_;
+  std::vector<USD> withdrawals_;
   Date reducedDate_{};
   std::string newName_;
   const AccountDeserialization *deserialization_{};
   USD balance_{};
+  USD withdrawn_{};
+  USD deposited_{};
   bool removed_{};
   bool debitRemoved_{};
   bool cleared_{};
@@ -230,6 +246,14 @@ static void assertEqual(testcpplite::TestResult &result,
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
+static void assertEqual(testcpplite::TestResult &result,
+                        const std::vector<USD> &expected,
+                        const std::vector<USD> &actual) {
+  assertEqual(result, expected.size(), actual.size());
+  for (gsl::index i{0}; i < expected.size(); ++i)
+    assertEqual(result, expected.at(i), actual.at(i));
+}
+
 static void assertDebited(testcpplite::TestResult &result,
                           const std::shared_ptr<AccountStub> &account,
                           const Transaction &t) {
@@ -302,13 +326,9 @@ void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
                 const std::shared_ptr<AccountStub> &masterAccount,
                 Budget &budget) {
         const auto account{addAccountStub(factory, "giraffe")};
-        budget.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
-        assertCredited(result, account,
-                       Transaction{456_cents, "transfer from master",
-                                   Date{1776, Month::July, 4}});
-        assertDebited(result, masterAccount,
-                      Transaction{456_cents, "transfer to giraffe",
-                                  Date{1776, Month::July, 4}});
+        budget.transferTo("giraffe", 456_cents);
+        assertEqual(result, 456_cents, masterAccount->withdrawn());
+        assertEqual(result, 456_cents, account->deposited());
       });
 }
 
@@ -496,22 +516,6 @@ void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
       });
 }
 
-void verifiesTransferTransactions(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](
-                         AccountFactoryStub &factory,
-                         const std::shared_ptr<AccountStub> &masterAccount,
-                         Budget &budget) {
-    const auto account{addAccountStub(factory, "giraffe")};
-    budget.transferTo("giraffe", 456_cents, Date{1776, Month::July, 4});
-    assertEqual(result,
-                {456_cents, "transfer from master", Date{1776, Month::July, 4}},
-                account->creditToVerify());
-    assertEqual(result,
-                {456_cents, "transfer to giraffe", Date{1776, Month::July, 4}},
-                masterAccount->debitToVerify());
-  });
-}
-
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                const std::shared_ptr<AccountStub> &,
@@ -692,68 +696,37 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
 }
 
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](
-                         AccountFactoryStub &factory,
-                         const std::shared_ptr<AccountStub> &masterAccount,
-                         Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    giraffe->setBalance(-123_cents);
-    budget.createAccount("giraffe");
-    budget.allocate("giraffe", 456_cents, Date{2021, Month::April, 3});
-    assertEqual(
-        result,
-        {579_cents, "transfer from master", Date{2021, Month::April, 3}},
-        giraffe->creditedTransaction());
-    assertEqual(
-        result,
-        {579_cents, "transfer from master", Date{2021, Month::April, 3}},
-        giraffe->creditToVerify());
-    assertEqual(result,
-                {579_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
-                masterAccount->debitedTransaction());
-    assertEqual(result,
-                {579_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
-                masterAccount->debitToVerify());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory,
+                const std::shared_ptr<AccountStub> &masterAccount,
+                Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        giraffe->setBalance(-123_cents);
+        budget.createAccount("giraffe");
+        budget.allocate("giraffe", 456_cents, Date{2021, Month::April, 3});
+        assertEqual(result, 579_cents, giraffe->deposited());
+        assertEqual(result, 579_cents, masterAccount->withdrawn());
+      });
 }
 
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](
-                         AccountFactoryStub &factory,
-                         const std::shared_ptr<AccountStub> &masterAccount,
-                         Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    const auto penguin{createAccountStub(budget, factory, "penguin")};
-    const auto leopard{createAccountStub(budget, factory, "leopard")};
-    giraffe->setBalance(-12_cents);
-    penguin->setBalance(34_cents);
-    leopard->setBalance(-56_cents);
-    budget.createAccount("giraffe");
-    budget.createAccount("penguin");
-    budget.createAccount("leopard");
-    budget.restore(Date{2021, Month::April, 3});
-    assertEqual(result,
-                {12_cents, "transfer from master", Date{2021, Month::April, 3}},
-                giraffe->creditedTransaction());
-    assertEqual(result,
-                {12_cents, "transfer from master", Date{2021, Month::April, 3}},
-                giraffe->creditToVerify());
-    assertEqual(result,
-                {56_cents, "transfer from master", Date{2021, Month::April, 3}},
-                leopard->creditedTransaction());
-    assertEqual(result,
-                {56_cents, "transfer from master", Date{2021, Month::April, 3}},
-                leopard->creditToVerify());
-    assertEqual(
-        result,
-        {{12_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
-         {56_cents, "transfer to leopard", Date{2021, Month::April, 3}}},
-        masterAccount->debits());
-    assertEqual(
-        result,
-        {{12_cents, "transfer to giraffe", Date{2021, Month::April, 3}},
-         {56_cents, "transfer to leopard", Date{2021, Month::April, 3}}},
-        masterAccount->verifiedDebits());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory,
+                const std::shared_ptr<AccountStub> &masterAccount,
+                Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto penguin{createAccountStub(budget, factory, "penguin")};
+        const auto leopard{createAccountStub(budget, factory, "leopard")};
+        giraffe->setBalance(-12_cents);
+        penguin->setBalance(34_cents);
+        leopard->setBalance(-56_cents);
+        budget.createAccount("giraffe");
+        budget.createAccount("penguin");
+        budget.createAccount("leopard");
+        budget.restore(Date{2021, Month::April, 3});
+        assertEqual(result, 12_cents, giraffe->deposited());
+        assertEqual(result, 56_cents, leopard->deposited());
+        assertEqual(result, {12_cents, 56_cents}, masterAccount->withdrawals());
+      });
 }
 } // namespace sbash64::budget
