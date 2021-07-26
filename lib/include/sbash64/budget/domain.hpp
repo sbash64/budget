@@ -183,7 +183,7 @@ public:
   virtual void rename(std::string_view) = 0;
   virtual void verifyDebit(const Transaction &) = 0;
   virtual void verifyCredit(const Transaction &) = 0;
-  virtual void reduce(const Date &) = 0;
+  virtual void reduce() = 0;
   virtual auto balance() -> USD = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;

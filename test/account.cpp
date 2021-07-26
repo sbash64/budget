@@ -561,12 +561,8 @@ void reducesToOneTransaction(testcpplite::TestResult &result) {
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     const auto reduction{addObservableTransactionStub(factory)};
-    account.reduce(Date{2021, Month::March, 13});
-    assertEqual(result,
-                Transaction{2300_cents - 789_cents - 456_cents, "reduction",
-                            Date{2021, Month::March, 13}},
-                reduction->initializedTransaction());
-    assertTrue(result, reduction->verified());
+    account.reduce();
+    assertEqual(result, 2300_cents - 789_cents - 456_cents, account.balance());
   });
 }
 
@@ -583,12 +579,8 @@ void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
     credit(account,
            Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
     const auto reduction{addObservableTransactionStub(factory)};
-    account.reduce(Date{2021, Month::March, 13});
-    assertEqual(result,
-                Transaction{789_cents + 456_cents - 300_cents, "reduction",
-                            Date{2021, Month::March, 13}},
-                reduction->initializedTransaction());
-    assertTrue(result, reduction->verified());
+    account.reduce();
+    assertEqual(result, -789_cents - 456_cents + 300_cents, account.balance());
   });
 }
 
@@ -605,12 +597,8 @@ void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
     credit(account,
            Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
     const auto reduction{addObservableTransactionStub(factory)};
-    account.reduce(Date{2021, Month::March, 13});
-    assertEqual(result,
-                Transaction{789_cents + 300_cents - 456_cents, "reduction",
-                            Date{2021, Month::March, 13}},
-                reduction->initializedTransaction());
-    assertTrue(result, reduction->verified());
+    account.reduce();
+    assertEqual(result, 789_cents + 300_cents - 456_cents, account.balance());
   });
 }
 
@@ -626,7 +614,7 @@ void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{1_cents, "orangutan", Date{2020, Month::February, 2}});
-    account.reduce(Date{2021, Month::March, 13});
+    account.reduce();
     PersistentAccountStub persistence;
     account.save(persistence);
     assertDebitsSaved(result, persistence, {});
@@ -647,7 +635,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     addObservableTransactionStub(factory);
-    account.reduce(Date{2021, Month::March, 13});
+    account.reduce();
     assertTrue(result, gorilla->removed());
     assertTrue(result, chimpanzee->removed());
     assertTrue(result, orangutan->removed());

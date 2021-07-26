@@ -94,7 +94,9 @@ public:
 
   auto reducedDate() -> Date { return reducedDate_; }
 
-  void reduce(const Date &date) override { reducedDate_ = date; }
+  void reduce() override { reduced_ = true; }
+
+  auto reduced() -> bool { return reduced_; }
 
   auto balance() -> USD override { return balance_; }
 
@@ -140,6 +142,7 @@ private:
   bool removed_{};
   bool debitRemoved_{};
   bool cleared_{};
+  bool reduced_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -514,9 +517,9 @@ void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
   });
 }
 
-static void assertReduced(testcpplite::TestResult &result, const Date &date,
+static void assertReduced(testcpplite::TestResult &result,
                           const std::shared_ptr<AccountStub> &account) {
-  assertEqual(result, date, account->reducedDate());
+  assertTrue(result, account->reduced());
 }
 
 void reducesEachAccount(testcpplite::TestResult &result) {
@@ -528,10 +531,10 @@ void reducesEachAccount(testcpplite::TestResult &result) {
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
         budget.reduce(Date{2021, Month::March, 13});
-        assertReduced(result, Date{2021, Month::March, 13}, masterAccount);
-        assertReduced(result, Date{2021, Month::March, 13}, giraffe);
-        assertReduced(result, Date{2021, Month::March, 13}, penguin);
-        assertReduced(result, Date{2021, Month::March, 13}, leopard);
+        assertReduced(result, masterAccount);
+        assertReduced(result, giraffe);
+        assertReduced(result, penguin);
+        assertReduced(result, leopard);
       });
 }
 

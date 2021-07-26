@@ -23,7 +23,7 @@ public:
   void verifyCredit(const Transaction &) override;
   void notifyThatCreditIsReady(TransactionDeserialization &) override;
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
-  void reduce(const Date &) override;
+  void reduce() override;
   auto balance() -> USD override;
   void remove() override;
   void clear() override;
@@ -43,6 +43,7 @@ private:
   std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
   std::string name;
   Observer *observer{};
+  USD funds_{};
   ObservableTransaction::Factory &factory;
 };
 } // namespace sbash64::budget

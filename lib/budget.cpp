@@ -257,9 +257,9 @@ void BudgetInMemory::notifyThatSecondaryAccountIsReady(
 }
 
 void BudgetInMemory::reduce(const Date &date) {
-  incomeAccount.reduce(date);
+  incomeAccount.reduce();
   for (const auto &[name, account] : expenseAccounts)
-    account->reduce(date);
+    account->reduce();
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
