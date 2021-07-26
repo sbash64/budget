@@ -283,8 +283,7 @@ void BudgetInMemory::closeAccount(std::string_view name) {
   }
 }
 
-void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded,
-                              const Date &date) {
+void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
   budget::transferTo(incomeAccount, expenseAccounts, accountName,

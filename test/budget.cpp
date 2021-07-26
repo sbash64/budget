@@ -677,7 +677,7 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         giraffe->setBalance(-123_cents);
         budget.createAccount("giraffe");
-        budget.allocate("giraffe", 456_cents, Date{2021, Month::April, 3});
+        budget.allocate("giraffe", 456_cents);
         assertEqual(result, 579_cents, giraffe->deposited());
         assertEqual(result, 579_cents, masterAccount->withdrawn());
       });
