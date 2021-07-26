@@ -683,6 +683,21 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
       });
 }
 
+void transfersAmountFromAccountAllocatedSufficiently(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory,
+                const std::shared_ptr<AccountStub> &masterAccount,
+                Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        giraffe->setBalance(123_cents);
+        budget.createAccount("giraffe");
+        budget.allocate("giraffe", 101_cents);
+        assertEqual(result, 22_cents, giraffe->withdrawn());
+        assertEqual(result, 22_cents, masterAccount->deposited());
+      });
+}
+
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory,

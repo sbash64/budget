@@ -286,9 +286,15 @@ void BudgetInMemory::closeAccount(std::string_view name) {
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::transferTo(incomeAccount, expenseAccounts, accountName,
-                     amountNeeded -
-                         at(expenseAccounts, accountName)->balance());
+  const auto amount{amountNeeded - at(expenseAccounts, accountName)->balance()};
+
+  if (amount.cents > 0) {
+    incomeAccount.withdraw(amount);
+    at(expenseAccounts, accountName)->deposit(amount);
+  } else if (amount.cents < 0) {
+    at(expenseAccounts, accountName)->withdraw(-amount);
+    incomeAccount.deposit(-amount);
+  }
 }
 
 void BudgetInMemory::restore(const Date &) {
