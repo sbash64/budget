@@ -468,22 +468,6 @@ void removesCredit(testcpplite::TestResult &result) {
       });
 }
 
-void removesTransfer(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory,
-                const std::shared_ptr<AccountStub> &masterAccount,
-                Budget &budget) {
-        const auto account{createAccountStub(budget, factory, "giraffe")};
-        budget.removeTransfer("giraffe", 456_cents, Date{1776, Month::July, 4});
-        assertCreditRemoved(result, account,
-                            Transaction{456_cents, "transfer from master",
-                                        Date{1776, Month::July, 4}});
-        assertDebitRemoved(result, masterAccount,
-                           Transaction{456_cents, "transfer to giraffe",
-                                       Date{1776, Month::July, 4}});
-      });
-}
-
 void renamesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                const std::shared_ptr<AccountStub> &,

@@ -14,7 +14,6 @@ void clearsOldAccounts(testcpplite::TestResult &);
 void removesDebit(testcpplite::TestResult &);
 void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &);
 void removesCredit(testcpplite::TestResult &);
-void removesTransfer(testcpplite::TestResult &);
 void renamesAccount(testcpplite::TestResult &);
 void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);

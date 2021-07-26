@@ -235,7 +235,6 @@ public:
   virtual void removeCredit(const Transaction &) = 0;
   virtual void credit(const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD) = 0;
-  virtual void removeTransfer(std::string_view accountName, USD, Date) = 0;
   virtual void removeAccount(std::string_view) = 0;
   virtual void save(BudgetSerialization &) = 0;
   virtual void load(BudgetDeserialization &) = 0;

@@ -22,7 +22,6 @@ public:
   void credit(const Transaction &) override;
   void removeCredit(const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount) override;
-  void removeTransfer(std::string_view accountName, USD amount, Date) override;
   void removeAccount(std::string_view) override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;

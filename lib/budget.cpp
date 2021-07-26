@@ -205,14 +205,6 @@ void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   budget::transferTo(incomeAccount, expenseAccounts, accountName, amount);
 }
 
-void BudgetInMemory::removeTransfer(std::string_view accountName, USD amount,
-                                    Date date) {
-  budget::removeDebit(incomeAccount,
-                      {amount, transferToString(accountName), date});
-  budget::removeCredit(at(expenseAccounts, accountName),
-                       {amount, transferFromMasterString.data(), date});
-}
-
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
   persistentMemory.save(incomeAccount, collect(expenseAccounts));
 }
