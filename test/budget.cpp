@@ -712,7 +712,7 @@ void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
         budget.createAccount("giraffe");
         budget.createAccount("penguin");
         budget.createAccount("leopard");
-        budget.restore(Date{2021, Month::April, 3});
+        budget.restore();
         assertEqual(result, 12_cents, giraffe->deposited());
         assertEqual(result, 56_cents, leopard->deposited());
         assertEqual(result, {12_cents, 56_cents}, masterAccount->withdrawals());

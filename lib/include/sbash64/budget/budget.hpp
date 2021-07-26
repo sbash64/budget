@@ -36,7 +36,7 @@ public:
   void createAccount(std::string_view name) override;
   void closeAccount(std::string_view name) override;
   void allocate(std::string_view accountName, USD) override;
-  void restore(const Date &) override;
+  void restore() override;
 
 private:
   Account::Factory &accountFactory;

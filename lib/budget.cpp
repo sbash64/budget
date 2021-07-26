@@ -297,7 +297,7 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   }
 }
 
-void BudgetInMemory::restore(const Date &) {
+void BudgetInMemory::restore() {
   for (auto [name, account] : expenseAccounts)
     if (account->balance().cents < 0)
       budget::transferTo(incomeAccount, expenseAccounts, name,
