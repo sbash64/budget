@@ -27,6 +27,7 @@ public:
   auto balance() -> USD override;
   void remove() override;
   void clear() override;
+  void withdraw(USD) override;
 
   class Factory : public Account::Factory {
   public:

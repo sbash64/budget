@@ -211,6 +211,11 @@ auto InMemoryAccount::balance() -> USD {
   return budget::balance(funds_, creditRecords, debitRecords);
 }
 
+void InMemoryAccount::withdraw(USD usd) {
+  funds_ = funds_ - usd;
+  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+}
+
 void InMemoryAccount::remove() {
   callIfObserverExists(observer, [&](Account::Observer *observer_) {
     observer_->notifyThatWillBeRemoved();

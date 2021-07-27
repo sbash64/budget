@@ -660,4 +660,14 @@ void returnsBalance(testcpplite::TestResult &result) {
                 account.balance());
   });
 }
+
+void withdrawsFromFunds(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.balance());
+      });
+}
 } // namespace sbash64::budget::account
