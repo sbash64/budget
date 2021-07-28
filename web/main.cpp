@@ -445,15 +445,16 @@ handleMessage(const std::unique_ptr<App> &application,
   else if (methodIs(json, "remove account"))
     call(application,
          [&json](Budget &budget) { budget.removeAccount(accountName(json)); });
+  else if (methodIs(json, "close account"))
+    call(application,
+         [&json](Budget &budget) { budget.closeAccount(accountName(json)); });
   else if (methodIs(json, "save")) {
     std::stringstream backupFileName;
     backupFileName << ++application->backupCount << ".txt";
     std::filesystem::copy(application->budgetFilePath,
                           application->backupDirectory / backupFileName.str());
     application->bank.save(application->sessionSerialization);
-  } else if (methodIs(json, "close account"))
-    call(application,
-         [&json](Budget &budget) { budget.closeAccount(accountName(json)); });
+  }
 }
 } // namespace sbash64::budget
 

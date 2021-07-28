@@ -110,6 +110,20 @@ function main() {
   const transferButton = createChild(transferControls, "button");
   transferButton.textContent = "transfer";
 
+  const allocateControls = createChild(accountControls, "section");
+  createChild(allocateControls, "h4").textContent = "Allocate Account";
+  allocateControls.style.display = "flex";
+  allocateControls.style.flexDirection = "column";
+  allocateControls.style.alignItems = "flex-start";
+  const allocateAmountLabel = createChild(allocateControls, "label");
+  allocateAmountLabel.textContent = "amount";
+  const allocateAmountInput = createChild(allocateAmountLabel, "input");
+  allocateAmountInput.type = "number";
+  allocateAmountInput.min = 0;
+  allocateAmountInput.step = "any";
+  const allocateButton = createChild(allocateControls, "button");
+  allocateButton.textContent = "allocate";
+
   const accountDetailViewAndTransactionControls = createChild(
     accountSummariesWithDetailView,
     "div"
@@ -332,6 +346,13 @@ function main() {
       method: "transfer",
       name: selectedAccountSummaryRow.cells[1].textContent,
       amount: transferAmountInput.value,
+    });
+  });
+  allocateButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "allocate",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+      amount: allocateAmountInput.value,
     });
   });
   verifyButton.addEventListener("click", () => {
