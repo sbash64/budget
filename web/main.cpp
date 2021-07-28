@@ -198,6 +198,17 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
+  void notifyThatFundsHaveChanged(USD usd) override {
+    nlohmann::json json;
+    json["method"] = "update account funds";
+    json["accountIndex"] = parent.index(this);
+    std::stringstream amountStream;
+    amountStream << usd;
+    json["amount"] = amountStream.str();
+    server.send(connection, json.dump(),
+                websocketpp::frame::opcode::value::text);
+  }
+
   void notifyThatCreditHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this, TransactionType::credit));
