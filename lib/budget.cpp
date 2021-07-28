@@ -11,26 +11,8 @@
 #include <utility>
 
 namespace sbash64::budget {
-constexpr const std::array<char, 9> transferString{"transfer"};
-constexpr auto transferFromMasterString{concatenate(
-    transferString, std::array<char, 7>{" from "}, masterAccountName)};
-
-static auto transferToString(std::string_view accountName) -> std::string {
-  return concatenate(transferString, std::array<char, 5>{" to "}).data() +
-         std::string{accountName};
-}
-
 static void credit(Account &account, const Transaction &transaction) {
   account.credit(transaction);
-}
-
-static void credit(const std::shared_ptr<Account> &account,
-                   const Transaction &transaction) {
-  account->credit(transaction);
-}
-
-static void debit(Account &account, const Transaction &transaction) {
-  account.debit(transaction);
 }
 
 static void debit(const std::shared_ptr<Account> &account,
@@ -42,15 +24,6 @@ static void verifyCredit(Account &account, const Transaction &transaction) {
   account.verifyCredit(transaction);
 }
 
-static void verifyCredit(const std::shared_ptr<Account> &account,
-                         const Transaction &transaction) {
-  account->verifyCredit(transaction);
-}
-
-static void verifyDebit(Account &account, const Transaction &transaction) {
-  account.verifyDebit(transaction);
-}
-
 static void verifyDebit(const std::shared_ptr<Account> &account,
                         const Transaction &transaction) {
   account->verifyDebit(transaction);
@@ -58,15 +31,6 @@ static void verifyDebit(const std::shared_ptr<Account> &account,
 
 static void removeCredit(Account &account, const Transaction &transaction) {
   account.removeCredit(transaction);
-}
-
-static void removeCredit(const std::shared_ptr<Account> &account,
-                         const Transaction &transaction) {
-  account->removeCredit(transaction);
-}
-
-static void removeDebit(Account &account, const Transaction &transaction) {
-  account.removeDebit(transaction);
 }
 
 static void removeDebit(const std::shared_ptr<Account> &account,
@@ -186,11 +150,6 @@ auto transaction(USD amount, std::array<char, N> description, Date date)
   return {amount, description.data(), date};
 }
 
-static auto transferToTransaction(USD amount, std::string_view accountName,
-                                  Date date) -> Transaction {
-  return {amount, transferToString(accountName), date};
-}
-
 static void transferTo(Account &primaryAccount,
                        const std::map<std::string, std::shared_ptr<Account>,
                                       std::less<>> &secondaryAccounts,
@@ -256,7 +215,7 @@ void BudgetInMemory::notifyThatSecondaryAccountIsReady(
       makeAndLoad(accountFactory, deserialization, name, observer);
 }
 
-void BudgetInMemory::reduce(const Date &date) {
+void BudgetInMemory::reduce(const Date &) {
   incomeAccount.reduce();
   for (const auto &[name, account] : expenseAccounts)
     account->reduce();
@@ -264,11 +223,6 @@ void BudgetInMemory::reduce(const Date &date) {
 
 void BudgetInMemory::createAccount(std::string_view name) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, name, observer);
-}
-
-static auto transaction(USD amount, const std::stringstream &description,
-                        const Date &date) -> Transaction {
-  return {amount, description.str(), date};
 }
 
 void BudgetInMemory::closeAccount(std::string_view name) {
