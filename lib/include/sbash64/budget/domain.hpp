@@ -67,16 +67,6 @@ struct Transaction {
   auto operator==(const Transaction &) const -> bool = default;
 };
 
-static auto operator<(const Transaction &a, const Transaction &b) -> bool {
-  if (a.date != b.date)
-    return a.date < b.date;
-  if (a.description != b.description)
-    return a.description < b.description;
-  if (a.amount != b.amount)
-    return a.amount.cents < b.amount.cents;
-  return false;
-}
-
 struct VerifiableTransaction {
   Transaction transaction;
   bool verified{};
