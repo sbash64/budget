@@ -310,7 +310,7 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
 namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
-  InMemoryAccount masterAccount{"master", transactionFactory};
+  InMemoryAccount masterAccount{masterAccountName.data(), transactionFactory};
   InMemoryAccount::Factory accountFactory{transactionFactory};
   BudgetInMemory bank{masterAccount, accountFactory};
   FileStreamFactory streamFactory;
@@ -337,6 +337,8 @@ struct App {
         backupDirectory{
             budget::backupDirectory(std::chrono::system_clock::now())},
         budgetFilePath{budgetFilePath} {
+    webSocketNotifier.notifyThatNewAccountHasBeenCreated(
+        masterAccount, masterAccountName.data());
     bank.load(accountDeserialization);
     std::filesystem::create_directory(backupDirectory);
   }
