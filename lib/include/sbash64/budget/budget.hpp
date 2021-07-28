@@ -32,7 +32,7 @@ public:
                                        std::string_view name) override;
   void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                          std::string_view name) override;
-  void reduce(const Date &) override;
+  void reduce() override;
   void createAccount(std::string_view name) override;
   void closeAccount(std::string_view name) override;
   void allocate(std::string_view accountName, USD) override;

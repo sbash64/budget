@@ -530,7 +530,7 @@ void reducesEachAccount(testcpplite::TestResult &result) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
-        budget.reduce(Date{2021, Month::March, 13});
+        budget.reduce();
         assertReduced(result, masterAccount);
         assertReduced(result, giraffe);
         assertReduced(result, penguin);

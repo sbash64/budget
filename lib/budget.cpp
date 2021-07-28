@@ -215,7 +215,7 @@ void BudgetInMemory::notifyThatSecondaryAccountIsReady(
       makeAndLoad(accountFactory, deserialization, name, observer);
 }
 
-void BudgetInMemory::reduce(const Date &) {
+void BudgetInMemory::reduce() {
   incomeAccount.reduce();
   for (const auto &[name, account] : expenseAccounts)
     account->reduce();
