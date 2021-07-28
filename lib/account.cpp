@@ -229,8 +229,13 @@ void InMemoryAccount::remove() {
 }
 
 void InMemoryAccount::clear() {
-  budget::clear(debitRecords);
+  funds_ = {};
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatFundsHaveChanged(funds_);
+  });
   budget::clear(creditRecords);
+  budget::clear(debitRecords);
+  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
