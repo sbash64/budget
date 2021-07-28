@@ -180,6 +180,10 @@ function main() {
   const totalBalance = createChild(document.body, "div");
   const saveButton = createChild(document.body, "button");
   saveButton.textContent = "save";
+  const reduceButton = createChild(document.body, "button");
+  reduceButton.textContent = "reduce";
+  const restoreButton = createChild(document.body, "button");
+  restoreButton.textContent = "restore";
 
   let selectedAccountTableBody = null;
   let selectedTransactionRow = null;
@@ -281,6 +285,16 @@ function main() {
   saveButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "save",
+    });
+  });
+  reduceButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "reduce",
+    });
+  });
+  restoreButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "restore",
     });
   });
   removeAccountButton.addEventListener("click", () => {

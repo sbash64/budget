@@ -423,6 +423,20 @@ handleMessage(const std::unique_ptr<App> &application,
       budget.transferTo(accountName(json),
                         usd(json["amount"].get<std::string>()));
     });
+  else if (methodIs(json, "reduce"))
+    call(application, [](Budget &budget) { budget.reduce(); });
+  else if (methodIs(json, "restore"))
+    call(application, [](Budget &budget) { budget.restore(); });
+  else if (methodIs(json, "allocate"))
+    call(application, [&json](Budget &budget) {
+      budget.allocate(accountName(json),
+                      usd(json["amount"].get<std::string>()));
+    });
+  else if (methodIs(json, "rename account"))
+    call(application, [&json](Budget &budget) {
+      budget.renameAccount(accountName(json),
+                           json["newName"].get<std::string>());
+    });
   else if (methodIs(json, "create account"))
     call(application,
          [&json](Budget &budget) { budget.createAccount(accountName(json)); });
