@@ -297,9 +297,11 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
         debit(account);
         const auto andy{addObservableTransactionStub(factory)};
         credit(account);
+        account.deposit(1_cents);
         PersistentAccountStub persistence;
         account.save(persistence);
         assertAccountName(result, persistence, "joe");
+        assertEqual(result, 1_cents, persistence.funds());
         assertCreditsSaved(result, persistence, {john.get(), andy.get()});
         assertDebitsSaved(result, persistence, {mike.get()});
       },
