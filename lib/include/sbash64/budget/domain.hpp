@@ -177,8 +177,8 @@ public:
   virtual auto balance() -> USD = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;
-  virtual void withdraw(USD) {}
-  virtual void deposit(USD) {}
+  virtual void withdraw(USD) = 0;
+  virtual void deposit(USD) = 0;
 
   class Factory {
   public:
