@@ -211,6 +211,9 @@ void InMemoryAccount::withdraw(USD usd) {
 
 void InMemoryAccount::deposit(USD usd) {
   funds_ = funds_ + usd;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatFundsHaveChanged(funds_);
+  });
   notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
 }
 

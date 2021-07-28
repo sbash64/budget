@@ -33,6 +33,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void withdrawsFromFunds(testcpplite::TestResult &);
 void depositsToFunds(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &);
 void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &);
 void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &);
 void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &);

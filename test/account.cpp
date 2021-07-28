@@ -100,6 +100,10 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
+  void notifyThatFundsHaveChanged(USD usd) { funds_ = usd; }
+
+  auto funds() -> USD { return funds_; }
+
   auto balance() -> USD { return balance_; }
 
   void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
@@ -123,6 +127,7 @@ public:
 private:
   ObservableTransaction *newTransactionRecord_{};
   USD balance_{};
+  USD funds_{};
   bool willBeRemoved_{};
 };
 
@@ -681,6 +686,16 @@ void depositsToFunds(testcpplite::TestResult &result) {
         account.attach(&observer);
         account.deposit(12_cents);
         assertEqual(result, 12_cents, observer.balance());
+      });
+}
+
+void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.funds());
       });
 }
 } // namespace sbash64::budget::account

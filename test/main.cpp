@@ -119,6 +119,8 @@ static auto runAllTests() -> int {
         "attemptsToRemoveEachCreditUntilFound"},
        {account::withdrawsFromFunds, "account withdrawsFromFunds"},
        {account::depositsToFunds, "account depositsToFunds"},
+       {account::notifiesObserverOfUpdatedFundsOnDeposit,
+        "account notifiesObserverOfUpdatedFundsOnDeposit"},
        {account::notifiesObserverOfRemoval,
         "account notifiesObserverOfRemoval"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
