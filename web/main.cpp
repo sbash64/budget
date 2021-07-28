@@ -3,6 +3,7 @@
 #include <sbash64/budget/format.hpp>
 #include <sbash64/budget/parse.hpp>
 #include <sbash64/budget/serialization.hpp>
+#include <sbash64/budget/transaction.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -298,8 +299,9 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
 namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
+  InMemoryAccount masterAccount{"master", transactionFactory};
   InMemoryAccount::Factory accountFactory{transactionFactory};
-  BudgetInMemory bank{accountFactory};
+  BudgetInMemory bank{masterAccount, accountFactory};
   FileStreamFactory streamFactory;
   WritesTransactionToStream::Factory transactionRecordSerializationFactory;
   WritesAccountToStream::Factory accountSerializationFactory{
@@ -408,8 +410,7 @@ handleMessage(const std::unique_ptr<App> &application,
   else if (methodIs(json, "transfer"))
     call(application, [&json](Budget &budget) {
       budget.transferTo(accountName(json),
-                        usd(json["amount"].get<std::string>()),
-                        date(json["date"].get<std::string>()));
+                        usd(json["amount"].get<std::string>()));
     });
   else if (methodIs(json, "create account"))
     call(application,
@@ -424,10 +425,8 @@ handleMessage(const std::unique_ptr<App> &application,
                           application->backupDirectory / backupFileName.str());
     application->bank.save(application->sessionSerialization);
   } else if (methodIs(json, "close account"))
-    call(application, [&json](Budget &budget) {
-      budget.closeAccount(accountName(json),
-                          date(json["date"].get<std::string>()));
-    });
+    call(application,
+         [&json](Budget &budget) { budget.closeAccount(accountName(json)); });
 }
 } // namespace sbash64::budget
 
