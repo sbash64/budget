@@ -4,6 +4,7 @@
 
 #include <sbash64/budget/account.hpp>
 #include <sbash64/budget/transaction.hpp>
+
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 #include <functional>
@@ -59,7 +60,6 @@ private:
   Transaction initializedTransaction_;
   const Transaction *removesTransaction_{};
   USD amount_;
-  bool verified_{};
   bool removed_{};
   bool removes_{};
   bool removesed_{};
@@ -85,9 +85,7 @@ class TransactionObserverStub : public ObservableTransaction::Observer {
 public:
   void notifyThatIsVerified() override { verified_ = true; }
 
-  void notifyThatIs(const Transaction &t) override { transaction_ = t; }
-
-  auto transaction() -> Transaction { return transaction_; }
+  void notifyThatIs(const Transaction &) override {}
 
   [[nodiscard]] auto verified() const -> bool { return verified_; }
 
@@ -96,7 +94,6 @@ public:
   void notifyThatWillBeRemoved() override { removed_ = true; }
 
 private:
-  Transaction transaction_;
   bool verified_{};
   bool removed_{};
 };
@@ -231,6 +228,16 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
         gorilla->initializedTransaction());
   });
+}
+
+void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.remove();
+        assertTrue(result, observer.willBeRemoved());
+      });
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {

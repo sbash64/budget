@@ -13,6 +13,7 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void initializesAddedTransactions(testcpplite::TestResult &);
+void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void savesLoadedTransactions(testcpplite::TestResult &);
