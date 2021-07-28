@@ -12,6 +12,7 @@ void fromAccount(testcpplite::TestResult &);
 void fromBudget(testcpplite::TestResult &);
 void nonfinalToAccount(testcpplite::TestResult &);
 void finalToAccount(testcpplite::TestResult &);
+void toAccountWithFunds(testcpplite::TestResult &);
 void toBudget(testcpplite::TestResult &);
 } // namespace sbash64::budget::streams
 

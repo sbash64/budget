@@ -133,9 +133,14 @@ public:
 
   auto debits() -> std::vector<VerifiableTransaction> { return debits_; }
 
+  auto funds() -> USD { return funds_; }
+
+  void notifyThatFundsAreReady(USD usd) { funds_ = usd; }
+
 private:
   std::vector<VerifiableTransaction> credits_;
   std::vector<VerifiableTransaction> debits_;
+  USD funds_{};
   std::istream &stream;
 };
 
@@ -291,6 +296,24 @@ debits
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               observer.debits());
+}
+
+void toAccountWithFunds(testcpplite::TestResult &result) {
+  std::stringstream input{
+      R"(funds 12.32
+credits
+50 transfer from master 1/10/2021
+25 transfer from master 4/12/2021
+13.80 transfer from master 2/8/2021
+debits
+^27.34 hyvee 1/12/2021
+9.87 walmart 6/15/2021
+3.24 hyvee 2/8/2020)"};
+  TransactionFromStreamFactoryStub factory;
+  ReadsAccountFromStream accountDeserialization{input, factory};
+  AccountDeserializationObserverStub observer{input};
+  accountDeserialization.load(observer);
+  assertEqual(result, 1232_cents, observer.funds());
 }
 
 void fromBudget(testcpplite::TestResult &result) {

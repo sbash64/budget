@@ -64,10 +64,32 @@ auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
   return std::make_shared<ReadsAccountFromStream>(stream_, factory);
 }
 
+static auto usd(std::string_view s) -> USD {
+  USD usd{};
+  std::istringstream stream{std::string{s}};
+  stream >> usd.cents;
+  usd.cents *= 100;
+  if (stream.get() == '.') {
+    int cents = 0;
+    stream >> cents;
+    usd.cents += cents;
+  }
+  return usd;
+}
+
 void ReadsAccountFromStream::load(Observer &observer) {
   const auto transactionRecordDeserialization{factory.make(stream)};
   std::string line;
   getline(stream, line);
+  std::string firstWord;
+  std::stringstream lineStream{line};
+  lineStream >> firstWord;
+  if (firstWord == "funds") {
+    std::string amount;
+    lineStream >> amount;
+    observer.notifyThatFundsAreReady(usd(amount));
+    getline(stream, line);
+  }
   while (stream.peek() != 'd') {
     observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
   }
@@ -131,19 +153,6 @@ static auto date(std::string_view s) -> Date {
   int year = 0;
   stream >> year;
   return Date{year, Month{month}, day};
-}
-
-static auto usd(std::string_view s) -> USD {
-  USD usd{};
-  std::istringstream stream{std::string{s}};
-  stream >> usd.cents;
-  usd.cents *= 100;
-  if (stream.get() == '.') {
-    int cents = 0;
-    stream >> cents;
-    usd.cents += cents;
-  }
-  return usd;
 }
 
 static void
