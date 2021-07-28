@@ -15,10 +15,6 @@ namespace sbash64::budget::account {
 namespace {
 class ObservableTransactionStub : public ObservableTransaction {
 public:
-  void verify() override { verified_ = true; }
-
-  [[nodiscard]] auto verified() const -> bool { return verified_; }
-
   void ready(const VerifiableTransaction &) override {}
 
   void attach(Observer *) override {}

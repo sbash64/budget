@@ -26,10 +26,6 @@ static void verify(VerifiableTransaction &verifiableTransaction,
                        });
 }
 
-void ObservableTransactionInMemory::verify() {
-  budget::verify(verifiableTransaction, observer);
-}
-
 auto ObservableTransactionInMemory::verifies(const Transaction &transaction)
     -> bool {
   if (!verifiableTransaction.verified &&

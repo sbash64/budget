@@ -8,9 +8,7 @@ void verifiesMatchingInitializedTransaction(testcpplite::TestResult &);
 void doesNotVerifyUnequalInitializedTransaction(testcpplite::TestResult &);
 void doesNotVerifyMatchingInitializedTransactionTwice(
     testcpplite::TestResult &);
-void notifiesObserverOfVerification(testcpplite::TestResult &);
 void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &);
-void savesVerification(testcpplite::TestResult &);
 void savesVerificationByQuery(testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void savesLoadedTransaction(testcpplite::TestResult &);

@@ -91,15 +91,6 @@ void doesNotVerifyMatchingInitializedTransactionTwice(
   });
 }
 
-void savesVerification(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    record.verify();
-    TransactionSerializationStub serialization;
-    record.save(serialization);
-    assertTrue(result, serialization.verifiableTransaction().verified);
-  });
-}
-
 void savesVerificationByQuery(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.initialize(
@@ -136,15 +127,6 @@ void savesInitializedTransaction(testcpplite::TestResult &result) {
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
         serialization.verifiableTransaction().transaction);
-  });
-}
-
-void notifiesObserverOfVerification(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    TransactionObserverStub observer;
-    record.attach(&observer);
-    record.verify();
-    assertTrue(result, observer.verified());
   });
 }
 

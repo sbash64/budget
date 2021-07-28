@@ -112,7 +112,6 @@ public:
 
   virtual void attach(Observer *) = 0;
   virtual void initialize(const Transaction &) = 0;
-  virtual void verify() = 0;
   virtual auto verifies(const Transaction &) -> bool = 0;
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;

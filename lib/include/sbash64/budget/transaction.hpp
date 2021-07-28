@@ -8,7 +8,6 @@ class ObservableTransactionInMemory : public ObservableTransaction {
 public:
   void attach(Observer *) override;
   void initialize(const Transaction &) override;
-  void verify() override;
   auto verifies(const Transaction &) -> bool override;
   auto removes(const Transaction &) -> bool override;
   void save(TransactionSerialization &) override;
