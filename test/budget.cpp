@@ -29,21 +29,11 @@ public:
 
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
-  void credit(const Transaction &t) override {
-    credits_.push_back(t);
-    creditedTransaction_ = t;
-  }
+  void credit(const Transaction &t) override { creditedTransaction_ = t; }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
-  void debit(const Transaction &t) override {
-    debits_.push_back(t);
-    debitedTransaction_ = t;
-  }
-
-  auto debits() -> std::vector<Transaction> { return debits_; }
-
-  auto credits() -> std::vector<Transaction> { return credits_; }
+  void debit(const Transaction &t) override { debitedTransaction_ = t; }
 
   auto removedDebit() -> Transaction { return removedDebit_; }
 
@@ -70,29 +60,15 @@ public:
 
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
-  void verifyDebit(const Transaction &t) override {
-    verifiedDebits_.push_back(t);
-    debitToVerify_ = t;
-  }
+  void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
 
   auto creditToVerify() -> Transaction { return creditToVerify_; }
 
-  void verifyCredit(const Transaction &t) override {
-    verifiedCredits_.push_back(t);
-    creditToVerify_ = t;
-  }
-
-  auto verifiedDebits() -> std::vector<Transaction> { return verifiedDebits_; }
-
-  auto verifiedCredits() -> std::vector<Transaction> {
-    return verifiedCredits_;
-  }
+  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
   void notifyThatCreditIsReady(TransactionDeserialization &) override {}
 
   void notifyThatDebitIsReady(TransactionDeserialization &) override {}
-
-  auto reducedDate() -> Date { return reducedDate_; }
 
   void reduce() override { reduced_ = true; }
 
@@ -128,12 +104,7 @@ private:
   Transaction debitedTransaction_;
   Transaction removedDebit_;
   Transaction removedCredit_;
-  std::vector<Transaction> debits_;
-  std::vector<Transaction> credits_;
-  std::vector<Transaction> verifiedDebits_;
-  std::vector<Transaction> verifiedCredits_;
   std::vector<USD> withdrawals_;
-  Date reducedDate_{};
   std::string newName_;
   const AccountDeserialization *deserialization_{};
   USD balance_{};
