@@ -195,9 +195,12 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
 
 void InMemoryAccount::reduce() {
   const auto balance{budget::balance(funds_, creditRecords, debitRecords)};
+  funds_ = balance;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatFundsHaveChanged(funds_);
+  });
   budget::clear(debitRecords);
   budget::clear(creditRecords);
-  funds_ = funds_ + balance;
 }
 
 auto InMemoryAccount::balance() -> USD {

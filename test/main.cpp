@@ -125,6 +125,8 @@ static auto runAllTests() -> int {
         "account notifiesObserverOfUpdatedFundsOnWithdraw"},
        {account::notifiesObserverOfRemoval,
         "account notifiesObserverOfRemoval"},
+       {account::notifiesObserverOfUpdatedFundsOnReduce,
+        "account notifiesObserverOfUpdatedFundsOnReduce"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
        {transaction::savesLoadedTransaction, "savesWhatWasLoaded"},
        {transaction::observesDeserialization,

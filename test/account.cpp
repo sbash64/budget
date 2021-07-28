@@ -72,6 +72,8 @@ public:
   }
 
   auto make() -> std::shared_ptr<ObservableTransaction> override {
+    if (transactions.empty())
+      return std::make_shared<ObservableTransactionStub>();
     auto next{transactions.front()};
     transactions.erase(transactions.begin());
     return next;
@@ -100,7 +102,7 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
-  void notifyThatFundsHaveChanged(USD usd) { funds_ = usd; }
+  void notifyThatFundsHaveChanged(USD usd) override { funds_ = usd; }
 
   auto funds() -> USD { return funds_; }
 
@@ -707,5 +709,23 @@ void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
         account.withdraw(12_cents);
         assertEqual(result, -12_cents, observer.funds());
       });
+}
+
+void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    addObservableTransactionInMemory(factory);
+    credit(account, Transaction{1_cents, "a", Date{}});
+    addObservableTransactionInMemory(factory);
+    debit(account, Transaction{2_cents, "a", Date{}});
+    addObservableTransactionInMemory(factory);
+    credit(account, Transaction{3_cents, "a", Date{}});
+    account.deposit(4_cents);
+    account.reduce();
+    assertEqual(result, 1_cents - 2_cents + 3_cents + 4_cents,
+                observer.funds());
+  });
 }
 } // namespace sbash64::budget::account
