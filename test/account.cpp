@@ -698,4 +698,14 @@ void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
         assertEqual(result, 12_cents, observer.funds());
       });
 }
+
+void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.funds());
+      });
+}
 } // namespace sbash64::budget::account
