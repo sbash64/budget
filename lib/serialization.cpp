@@ -59,9 +59,9 @@ ReadsAccountFromStream::ReadsAccountFromStream(
 ReadsAccountFromStream::Factory::Factory(TransactionFromStreamFactory &factory)
     : factory{factory} {}
 
-auto ReadsAccountFromStream::Factory::make(std::istream &stream)
+auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
     -> std::shared_ptr<AccountDeserialization> {
-  return std::make_shared<ReadsAccountFromStream>(stream, factory);
+  return std::make_shared<ReadsAccountFromStream>(stream_, factory);
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {
@@ -87,9 +87,9 @@ WritesAccountToStream::WritesAccountToStream(
 WritesAccountToStream::Factory::Factory(TransactionToStreamFactory &factory)
     : factory{factory} {}
 
-auto WritesAccountToStream::Factory::make(std::ostream &stream)
+auto WritesAccountToStream::Factory::make(std::ostream &stream_)
     -> std::shared_ptr<AccountSerialization> {
-  return std::make_shared<WritesAccountToStream>(stream, factory);
+  return std::make_shared<WritesAccountToStream>(stream_, factory);
 }
 
 static void save(std::ostream &stream, std::string_view name,
@@ -115,9 +115,9 @@ void WritesAccountToStream::save(
 ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)
     : stream{stream} {}
 
-auto ReadsTransactionFromStream::Factory::make(std::istream &stream)
+auto ReadsTransactionFromStream::Factory::make(std::istream &stream_)
     -> std::shared_ptr<TransactionDeserialization> {
-  return std::make_shared<ReadsTransactionFromStream>(stream);
+  return std::make_shared<ReadsTransactionFromStream>(stream_);
 }
 
 static auto date(std::string_view s) -> Date {
@@ -186,9 +186,9 @@ void ReadsTransactionFromStream::load(Observer &observer) {
 WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)
     : stream{stream} {}
 
-auto WritesTransactionToStream::Factory::make(std::ostream &stream)
+auto WritesTransactionToStream::Factory::make(std::ostream &stream_)
     -> std::shared_ptr<TransactionSerialization> {
-  return std::make_shared<WritesTransactionToStream>(stream);
+  return std::make_shared<WritesTransactionToStream>(stream_);
 }
 
 static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {

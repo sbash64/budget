@@ -96,7 +96,7 @@ public:
 
   void reduce() override { reduced_ = true; }
 
-  auto reduced() -> bool { return reduced_; }
+  [[nodiscard]] auto reduced() const -> bool { return reduced_; }
 
   auto balance() -> USD override { return balance_; }
 
@@ -110,14 +110,14 @@ public:
 
   auto withdrawn() -> USD { return withdrawn_; }
 
-  void withdraw(USD usd) {
+  void withdraw(USD usd) override {
     withdrawals_.push_back(usd);
     withdrawn_ = usd;
   }
 
   auto deposited() -> USD { return deposited_; }
 
-  void deposit(USD usd) { deposited_ = usd; }
+  void deposit(USD usd) override { deposited_ = usd; }
 
   auto withdrawals() -> std::vector<USD> { return withdrawals_; }
 
