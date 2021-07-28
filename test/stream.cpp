@@ -49,7 +49,7 @@ private:
 
 class AccountSerializationStub : public AccountSerialization {
 public:
-  void save(std::string_view name,
+  void save(std::string_view name, USD funds,
             const std::vector<SerializableTransaction *> &credits,
             const std::vector<SerializableTransaction *> &debits) override {}
 };
@@ -135,7 +135,7 @@ public:
 
   auto funds() -> USD { return funds_; }
 
-  void notifyThatFundsAreReady(USD usd) { funds_ = usd; }
+  void notifyThatFundsAreReady(USD usd) override { funds_ = usd; }
 
 private:
   std::vector<VerifiableTransaction> credits_;
@@ -231,8 +231,10 @@ void fromAccount(testcpplite::TestResult &result) {
   SavesNameTransaction sue{stream, "sue"};
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
-  accountSerialization.save("jeff", {&steve, &sue}, {&allen, &john});
+  accountSerialization.save("jeff", 1234_cents, {&steve, &sue},
+                            {&allen, &john});
   assertEqual(result, R"(jeff
+funds 12.34
 credits
 steve
 sue

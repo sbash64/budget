@@ -56,10 +56,11 @@ class PersistentAccountStub : public AccountDeserialization,
 public:
   auto accountName() -> std::string { return accountName_; }
 
-  void save(std::string_view name,
+  void save(std::string_view name, USD funds,
             const std::vector<SerializableTransaction *> &credits,
             const std::vector<SerializableTransaction *> &debits) override {
     accountName_ = name;
+    funds_ = funds;
     credits_ = credits;
     debits_ = debits;
   }
@@ -67,6 +68,8 @@ public:
   auto credits() -> std::vector<SerializableTransaction *> { return credits_; }
 
   auto debits() -> std::vector<SerializableTransaction *> { return debits_; }
+
+  auto funds() -> USD { return funds_; }
 
   void setCreditsToLoad(std::vector<VerifiableTransaction> t) {
     creditsToLoad = std::move(t);
@@ -86,6 +89,7 @@ private:
   std::string accountName_;
   std::vector<SerializableTransaction *> credits_;
   std::vector<SerializableTransaction *> debits_;
+  USD funds_{};
   const Observer *observer_{};
 };
 } // namespace sbash64::budget

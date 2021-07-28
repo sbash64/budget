@@ -124,11 +124,24 @@ static void save(std::ostream &stream, std::string_view name,
   }
 }
 
+static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
+  stream << amount.cents / 100;
+  const auto leftoverCents{amount.cents % 100};
+  if (leftoverCents != 0) {
+    stream << '.';
+    if (leftoverCents < 10)
+      stream << '0';
+    stream << leftoverCents;
+  }
+  return stream;
+}
+
 void WritesAccountToStream::save(
-    std::string_view name,
+    std::string_view name, USD funds,
     const std::vector<SerializableTransaction *> &credits,
     const std::vector<SerializableTransaction *> &debits) {
   putNewLine(stream << name);
+  putNewLine(stream << "funds " << funds);
   budget::save(stream, "credits", credits, factory);
   putNewLine(stream);
   budget::save(stream, "debits", debits, factory);
@@ -198,18 +211,6 @@ WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)
 auto WritesTransactionToStream::Factory::make(std::ostream &stream_)
     -> std::shared_ptr<TransactionSerialization> {
   return std::make_shared<WritesTransactionToStream>(stream_);
-}
-
-static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
-  stream << amount.cents / 100;
-  const auto leftoverCents{amount.cents % 100};
-  if (leftoverCents != 0) {
-    stream << '.';
-    if (leftoverCents < 10)
-      stream << '0';
-    stream << leftoverCents;
-  }
-  return stream;
 }
 
 constexpr auto to_integral(Month e) ->

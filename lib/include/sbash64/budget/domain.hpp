@@ -127,7 +127,7 @@ public:
 class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
-  virtual void save(std::string_view name,
+  virtual void save(std::string_view name, USD funds,
                     const std::vector<SerializableTransaction *> &credits,
                     const std::vector<SerializableTransaction *> &debits) = 0;
 };
