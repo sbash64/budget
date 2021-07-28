@@ -118,6 +118,7 @@ static auto runAllTests() -> int {
        {account::attemptsToRemoveEachCreditUntilFound,
         "attemptsToRemoveEachCreditUntilFound"},
        {account::withdrawsFromFunds, "account withdrawsFromFunds"},
+       {account::depositsToFunds, "account depositsToFunds"},
        {transaction::notifiesObserverOfVerification,
         "notifiesObserverWhenVerified"},
        {transaction::savesVerification, "saveAfterVerify"},

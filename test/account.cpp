@@ -670,4 +670,14 @@ void withdrawsFromFunds(testcpplite::TestResult &result) {
         assertEqual(result, -12_cents, observer.balance());
       });
 }
+
+void depositsToFunds(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.balance());
+      });
+}
 } // namespace sbash64::budget::account

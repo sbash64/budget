@@ -11,13 +11,6 @@ callIfObserverExists(Account::Observer *observer,
     f(observer);
 }
 
-static void callIfObserverExists(
-    ObservableTransaction::Observer *observer,
-    const std::function<void(ObservableTransaction::Observer *)> &f) {
-  if (observer != nullptr)
-    f(observer);
-}
-
 static auto
 balance(const std::vector<std::shared_ptr<ObservableTransaction>> &transactions)
     -> USD {
@@ -213,6 +206,11 @@ auto InMemoryAccount::balance() -> USD {
 
 void InMemoryAccount::withdraw(USD usd) {
   funds_ = funds_ - usd;
+  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+}
+
+void InMemoryAccount::deposit(USD usd) {
+  funds_ = funds_ + usd;
   notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
 }
 

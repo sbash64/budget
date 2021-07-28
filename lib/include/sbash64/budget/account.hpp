@@ -28,6 +28,7 @@ public:
   void remove() override;
   void clear() override;
   void withdraw(USD) override;
+  void deposit(USD) override;
 
   class Factory : public Account::Factory {
   public:
