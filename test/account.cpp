@@ -746,7 +746,7 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
   });
 }
 
-void notifiesObserverOfUpdatedFundsOnSerialization(
+void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
@@ -754,6 +754,7 @@ void notifiesObserverOfUpdatedFundsOnSerialization(
         account.attach(&observer);
         account.notifyThatFundsAreReady(1_cents);
         assertEqual(result, 1_cents, observer.funds());
+        assertEqual(result, 1_cents, observer.balance());
       });
 }
 } // namespace sbash64::budget::account

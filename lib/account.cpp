@@ -192,6 +192,7 @@ void InMemoryAccount::notifyThatFundsAreReady(USD usd) {
   callIfObserverExists(observer, [&](Observer *observer_) {
     observer_->notifyThatFundsHaveChanged(funds_);
   });
+  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
 }
 
 static void
