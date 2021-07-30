@@ -45,10 +45,42 @@ function main() {
   tableViews.style.gridRow = 2;
   tableViews.style.display = "grid";
 
-  const accountSummaryTableWrapper = createChild(tableViews, "div");
-  accountSummaryTableWrapper.style.gridColumn = 1;
+  const leftHandTableView = createChild(tableViews, "div");
+  leftHandTableView.style.gridColumn = 1;
+  leftHandTableView.style.display = "grid";
+
+  const rightHandTableView = createChild(tableViews, "div");
+  rightHandTableView.style.gridColumn = 2;
+  rightHandTableView.style.display = "grid";
+
+  const leftHandTableViewButtons = createChild(leftHandTableView, "div");
+  leftHandTableView.style.gridRow = 1;
+
+  const rightHandTableViewButtons = createChild(rightHandTableView, "div");
+  rightHandTableViewButtons.style.gridRow = 1;
+
+  const accountSummaryTableWrapper = createChild(leftHandTableView, "div");
+  accountSummaryTableWrapper.style.gridRow = 2;
   accountSummaryTableWrapper.style.height = "20em";
   accountSummaryTableWrapper.style.overflowY = "scroll";
+
+  const transactionTableWrapper = createChild(rightHandTableView, "div");
+  transactionTableWrapper.style.gridRow = 2;
+  transactionTableWrapper.style.height = "20em";
+  transactionTableWrapper.style.overflowY = "scroll";
+
+  const removeAccountButton = createChild(leftHandTableViewButtons, "button");
+  removeAccountButton.textContent = "remove";
+  const closeAccountButton = createChild(leftHandTableViewButtons, "button");
+  closeAccountButton.textContent = "close";
+
+  const removeTransactionButton = createChild(
+    rightHandTableViewButtons,
+    "button"
+  );
+  removeTransactionButton.textContent = "remove";
+  const verifyButton = createChild(rightHandTableViewButtons, "button");
+  verifyButton.textContent = "verify";
 
   const accountSummaryTable = createChild(accountSummaryTableWrapper, "table");
   accountSummaryTable.style.border = "2px solid";
@@ -57,16 +89,7 @@ function main() {
   accountSummaryTable.style.borderCollapse = "collapse";
 
   const accountFormControls = createChild(budgetViewAndControls, "div");
-  accountFormControls.style.gridColumn = 1;
   accountFormControls.style.gridRow = 3;
-
-  const accountSimpleControls = createChild(budgetViewAndControls, "div");
-  accountSimpleControls.style.gridColumn = 1;
-  accountSimpleControls.style.gridRow = 1;
-  const removeAccountButton = createChild(accountSimpleControls, "button");
-  removeAccountButton.textContent = "remove";
-  const closeAccountButton = createChild(accountSimpleControls, "button");
-  closeAccountButton.textContent = "close";
 
   const createAccountControls = createChild(accountFormControls, "section");
   createChild(createAccountControls, "h4").textContent = "Create Account";
@@ -140,28 +163,11 @@ function main() {
   const allocateButton = createChild(allocateControls, "button");
   allocateButton.textContent = "allocate";
 
-  const transactionTableWrapper = createChild(tableViews, "div");
-  transactionTableWrapper.style.gridColumn = 2;
-  transactionTableWrapper.style.height = "20em";
-  transactionTableWrapper.style.overflowY = "scroll";
-
   const transactionTable = createChild(transactionTableWrapper, "table");
   transactionTable.style.border = "2px solid";
   transactionTable.style.margin = "5px";
   transactionTable.style.tableLayout = "fixed";
   transactionTable.style.borderCollapse = "collapse";
-
-  const transactionSimpleControls = createChild(budgetViewAndControls, "div");
-  transactionSimpleControls.style.gridColumn = 2;
-  transactionSimpleControls.style.gridRow = 1;
-
-  const removeTransactionButton = createChild(
-    transactionSimpleControls,
-    "button"
-  );
-  removeTransactionButton.textContent = "remove";
-  const verifyButton = createChild(transactionSimpleControls, "button");
-  verifyButton.textContent = "verify";
 
   const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
   const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
