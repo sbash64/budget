@@ -26,22 +26,22 @@ function transactionMessage(
 function main() {
   const page = createChild(document.body, "div");
   page.style.display = "grid";
-  const tbdItems = createChild(page, "div");
-  tbdItems.style.gridRow = 1;
+  const topPage = createChild(page, "div");
+  topPage.style.gridRow = 1;
 
-  const totalBalance = createChild(tbdItems, "div");
-  const saveButton = createChild(tbdItems, "button");
+  const totalBalance = createChild(topPage, "div");
+  const saveButton = createChild(topPage, "button");
   saveButton.textContent = "save";
-  const reduceButton = createChild(tbdItems, "button");
+  const reduceButton = createChild(topPage, "button");
   reduceButton.textContent = "reduce";
-  const restoreButton = createChild(tbdItems, "button");
+  const restoreButton = createChild(topPage, "button");
   restoreButton.textContent = "restore";
 
-  const budgetViewAndControls = createChild(page, "div");
-  budgetViewAndControls.style.display = "grid";
-  budgetViewAndControls.style.gridRow = 2;
+  const pageBody = createChild(page, "div");
+  pageBody.style.display = "grid";
+  pageBody.style.gridRow = 2;
 
-  const tableViews = createChild(budgetViewAndControls, "div");
+  const tableViews = createChild(pageBody, "div");
   tableViews.style.gridRow = 2;
   tableViews.style.display = "grid";
 
@@ -79,8 +79,11 @@ function main() {
     "button"
   );
   removeTransactionButton.textContent = "remove";
-  const verifyButton = createChild(rightHandTableViewButtons, "button");
-  verifyButton.textContent = "verify";
+  const verifyTransactionButton = createChild(
+    rightHandTableViewButtons,
+    "button"
+  );
+  verifyTransactionButton.textContent = "verify";
 
   const accountSummaryTable = createChild(accountSummaryTableWrapper, "table");
   accountSummaryTable.style.border = "2px solid";
@@ -88,10 +91,74 @@ function main() {
   accountSummaryTable.style.tableLayout = "fixed";
   accountSummaryTable.style.borderCollapse = "collapse";
 
-  const accountFormControls = createChild(budgetViewAndControls, "div");
-  accountFormControls.style.gridRow = 3;
+  const transactionTable = createChild(transactionTableWrapper, "table");
+  transactionTable.style.border = "2px solid";
+  transactionTable.style.margin = "5px";
+  transactionTable.style.tableLayout = "fixed";
+  transactionTable.style.borderCollapse = "collapse";
 
-  const createAccountControls = createChild(accountFormControls, "section");
+  const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
+  const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
+  createChild(accountSummaryTableHeadRow, "th");
+  const accountSummaryNameHeaderElement = createChild(
+    accountSummaryTableHeadRow,
+    "th"
+  );
+  accountSummaryNameHeaderElement.textContent = "Name";
+  accountSummaryNameHeaderElement.style.width = "20ch";
+  const accountSummaryFundsHeaderElement = createChild(
+    accountSummaryTableHeadRow,
+    "th"
+  );
+  accountSummaryFundsHeaderElement.textContent = "Funds";
+  accountSummaryFundsHeaderElement.style.width = "9ch";
+  const accountSummaryBalanceHeaderElement = createChild(
+    accountSummaryTableHeadRow,
+    "th"
+  );
+  accountSummaryBalanceHeaderElement.textContent = "Balance";
+  accountSummaryBalanceHeaderElement.style.width = "9ch";
+  const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
+
+  const transactionTableHead = createChild(transactionTable, "thead");
+  const transactionTableHeader = createChild(transactionTableHead, "tr");
+  createChild(transactionTableHeader, "th");
+  const transactionDescriptionHeaderElement = createChild(
+    transactionTableHeader,
+    "th"
+  );
+  transactionDescriptionHeaderElement.textContent = "Description";
+  transactionDescriptionHeaderElement.style.width = "30ch";
+  const transactionDebitHeaderElement = createChild(
+    transactionTableHeader,
+    "th"
+  );
+  transactionDebitHeaderElement.textContent = "Debits";
+  transactionDebitHeaderElement.style.width = "9ch";
+  const transactionCreditHeaderElement = createChild(
+    transactionTableHeader,
+    "th"
+  );
+  transactionCreditHeaderElement.textContent = "Credits";
+  transactionCreditHeaderElement.style.width = "9ch";
+  const transactionDateHeaderElement = createChild(
+    transactionTableHeader,
+    "th"
+  );
+  transactionDateHeaderElement.textContent = "Date";
+  transactionDateHeaderElement.style.width = "12ch";
+  createChild(transactionTableHeader, "th").textContent = "Verified";
+
+  const formControls = createChild(pageBody, "div");
+  formControls.style.gridRow = 3;
+  formControls.style.display = "grid";
+
+  const leftHandFormControls = createChild(formControls, "div");
+  leftHandFormControls.style.gridColumn = 1;
+  const rightHandFormControls = createChild(formControls, "div");
+  rightHandFormControls.style.gridColumn = 2;
+
+  const createAccountControls = createChild(leftHandFormControls, "section");
   createChild(createAccountControls, "h4").textContent = "Create Account";
   const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
@@ -100,7 +167,7 @@ function main() {
   const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
 
-  const addTransactionControls = createChild(accountFormControls, "section");
+  const addTransactionControls = createChild(rightHandFormControls, "section");
   createChild(addTransactionControls, "h4").textContent =
     "Add Transaction to Account";
   addTransactionControls.style.display = "flex";
@@ -135,7 +202,7 @@ function main() {
   const addTransactionButton = createChild(addTransactionControls, "button");
   addTransactionButton.textContent = "add";
 
-  const transferControls = createChild(accountFormControls, "section");
+  const transferControls = createChild(leftHandFormControls, "section");
   createChild(transferControls, "h4").textContent = "Transfer to Account";
   transferControls.style.display = "flex";
   transferControls.style.flexDirection = "column";
@@ -149,7 +216,7 @@ function main() {
   const transferButton = createChild(transferControls, "button");
   transferButton.textContent = "transfer";
 
-  const allocateControls = createChild(accountFormControls, "section");
+  const allocateControls = createChild(leftHandFormControls, "section");
   createChild(allocateControls, "h4").textContent = "Allocate Account";
   allocateControls.style.display = "flex";
   allocateControls.style.flexDirection = "column";
@@ -163,53 +230,7 @@ function main() {
   const allocateButton = createChild(allocateControls, "button");
   allocateButton.textContent = "allocate";
 
-  const transactionTable = createChild(transactionTableWrapper, "table");
-  transactionTable.style.border = "2px solid";
-  transactionTable.style.margin = "5px";
-  transactionTable.style.tableLayout = "fixed";
-  transactionTable.style.borderCollapse = "collapse";
-
-  const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
-  const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
-  createChild(accountSummaryTableHeadRow, "th");
-  const accountSummaryNameHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
-  accountSummaryNameHeaderElement.textContent = "Name";
-  accountSummaryNameHeaderElement.style.width = "20ch";
-  const accountSummaryFundsHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
-  accountSummaryFundsHeaderElement.textContent = "Funds";
-  accountSummaryFundsHeaderElement.style.width = "9ch";
-  const accountSummaryBalanceHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
-  accountSummaryBalanceHeaderElement.textContent = "Balance";
-  accountSummaryBalanceHeaderElement.style.width = "9ch";
-  const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
-
-  const accountTableHead = createChild(transactionTable, "thead");
-  const accountTableHeader = createChild(accountTableHead, "tr");
-  createChild(accountTableHeader, "th");
-  const descriptionHeaderElement = createChild(accountTableHeader, "th");
-  descriptionHeaderElement.textContent = "Description";
-  descriptionHeaderElement.style.width = "30ch";
-  const debitHeaderElement = createChild(accountTableHeader, "th");
-  debitHeaderElement.textContent = "Debits";
-  debitHeaderElement.style.width = "9ch";
-  const creditHeaderElement = createChild(accountTableHeader, "th");
-  creditHeaderElement.textContent = "Credits";
-  creditHeaderElement.style.width = "9ch";
-  const dateHeaderElement = createChild(accountTableHeader, "th");
-  dateHeaderElement.textContent = "Date";
-  dateHeaderElement.style.width = "12ch";
-  createChild(accountTableHeader, "th").textContent = "Verified";
-
-  let selectedAccountTableBody = null;
+  let selectedAccountTransactionTableBody = null;
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
   const accountTableBodies = [];
@@ -218,6 +239,10 @@ function main() {
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
+      case "update total balance": {
+        totalBalance.textContent = message.amount;
+        break;
+      }
       case "add account": {
         const accountSummaryRow = createChild(accountSummaryTableBody, "tr");
         const selection = createChild(
@@ -232,15 +257,15 @@ function main() {
         createChild(accountSummaryRow, "td").style.textAlign = "right";
         accountSummaryRows.push(accountSummaryRow);
 
-        const accountTableBody = createChild(transactionTable, "tbody");
-        accountTableBodies.push(accountTableBody);
+        const transactionTableBody = createChild(transactionTable, "tbody");
+        accountTableBodies.push(transactionTableBody);
 
-        accountTableBody.style.display = "none";
+        transactionTableBody.style.display = "none";
         selection.addEventListener("change", () => {
-          if (selectedAccountTableBody)
-            selectedAccountTableBody.style.display = "none";
-          accountTableBody.style.display = "";
-          selectedAccountTableBody = accountTableBody;
+          if (selectedAccountTransactionTableBody)
+            selectedAccountTransactionTableBody.style.display = "none";
+          transactionTableBody.style.display = "";
+          selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountSummaryRow = accountSummaryRow;
         });
         break;
@@ -250,10 +275,6 @@ function main() {
         body.parentNode.removeChild(body);
         const [row] = accountSummaryRows.splice(message.accountIndex, 1);
         row.parentNode.removeChild(row);
-        break;
-      }
-      case "update total balance": {
-        totalBalance.textContent = message.amount;
         break;
       }
       case "add transaction": {
@@ -271,6 +292,12 @@ function main() {
         });
         break;
       }
+      case "remove transaction": {
+        accountTableBodies[message.accountIndex].deleteRow(
+          message.transactionIndex
+        );
+        break;
+      }
       case "update account balance": {
         accountSummaryRows[message.accountIndex].lastElementChild.textContent =
           message.amount;
@@ -279,12 +306,6 @@ function main() {
       case "update account funds": {
         accountSummaryRows[message.accountIndex].cells[2].textContent =
           message.amount;
-        break;
-      }
-      case "remove transaction": {
-        accountTableBodies[message.accountIndex].deleteRow(
-          message.transactionIndex
-        );
         break;
       }
       case "update transaction": {
@@ -327,12 +348,6 @@ function main() {
       method: "restore",
     });
   });
-  removeAccountButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "remove account",
-      name: selectedAccountSummaryRow.cells[1].textContent,
-    });
-  });
   createAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "create account",
@@ -341,19 +356,16 @@ function main() {
       date: addTransactionDateInput.value,
     });
   });
+  removeAccountButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "remove account",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+    });
+  });
   closeAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "close account",
       name: selectedAccountSummaryRow.cells[1].textContent,
-    });
-  });
-  addTransactionButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "add transaction",
-      name: selectedAccountSummaryRow.cells[1].textContent,
-      description: addTransactionDescriptionInput.value,
-      amount: addTransactionAmountInput.value,
-      date: addTransactionDateInput.value,
     });
   });
   transferButton.addEventListener("click", () => {
@@ -370,15 +382,14 @@ function main() {
       amount: allocateAmountInput.value,
     });
   });
-  verifyButton.addEventListener("click", () => {
-    sendMessage(
-      websocket,
-      transactionMessage(
-        selectedAccountSummaryRow,
-        selectedTransactionRow,
-        "verify transaction"
-      )
-    );
+  addTransactionButton.addEventListener("click", () => {
+    sendMessage(websocket, {
+      method: "add transaction",
+      name: selectedAccountSummaryRow.cells[1].textContent,
+      description: addTransactionDescriptionInput.value,
+      amount: addTransactionAmountInput.value,
+      date: addTransactionDateInput.value,
+    });
   });
   removeTransactionButton.addEventListener("click", () => {
     sendMessage(
@@ -387,6 +398,16 @@ function main() {
         selectedAccountSummaryRow,
         selectedTransactionRow,
         "remove transaction"
+      )
+    );
+  });
+  verifyTransactionButton.addEventListener("click", () => {
+    sendMessage(
+      websocket,
+      transactionMessage(
+        selectedAccountSummaryRow,
+        selectedTransactionRow,
+        "verify transaction"
       )
     );
   });
