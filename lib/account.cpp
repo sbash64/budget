@@ -187,6 +187,13 @@ void InMemoryAccount::verifyDebit(const Transaction &transaction) {
   verify(transaction, debitRecords);
 }
 
+void InMemoryAccount::notifyThatFundsAreReady(USD usd) {
+  funds_ = usd;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatFundsHaveChanged(funds_);
+  });
+}
+
 static void
 clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   for (const auto &record : records)

@@ -130,6 +130,8 @@ static auto runAllTests() -> int {
         "account notifiesObserverOfUpdatedFundsOnReduce"},
        {account::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
         "account notifiesObserverOfUpdatedFundsAndBalanceOnClear"},
+       {account::notifiesObserverOfUpdatedFundsOnSerialization,
+        "account notifiesObserverOfUpdatedFundsOnSerialization"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
        {transaction::savesLoadedTransaction, "savesWhatWasLoaded"},
        {transaction::observesDeserialization,

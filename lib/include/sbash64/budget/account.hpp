@@ -23,6 +23,7 @@ public:
   void verifyCredit(const Transaction &) override;
   void notifyThatCreditIsReady(TransactionDeserialization &) override;
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
+  void notifyThatFundsAreReady(USD) override;
   void reduce() override;
   auto balance() -> USD override;
   void remove() override;
