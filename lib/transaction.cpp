@@ -1,5 +1,7 @@
 #include "transaction.hpp"
 
+#include <functional>
+
 namespace sbash64::budget {
 static void callIfObserverExists(
     ObservableTransaction::Observer *observer,
