@@ -398,7 +398,8 @@ static auto accountIsMaster(const nlohmann::json &json) -> bool {
 static void
 handleMessage(const std::unique_ptr<App> &application,
               const websocketpp::server<debug_custom>::message_ptr &message) {
-  const auto json{nlohmann::json::parse(message->get_payload())};
+  // brace-initialization seems to fail here
+  const auto json = nlohmann::json::parse(message->get_payload());
   if (methodIs(json, "add transaction"))
     call(application, [&json](Budget &budget) {
       if (accountIsMaster(json))
