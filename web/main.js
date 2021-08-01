@@ -235,7 +235,7 @@ function main() {
   let selectedAccountSummaryRow = null;
   const accountTableBodies = [];
   const accountSummaryRows = [];
-  const websocket = new WebSocket("ws://localhost:9012");
+  const websocket = new WebSocket(`ws://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
