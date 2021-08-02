@@ -13,26 +13,26 @@ class BudgetInMemory : public Budget {
 public:
   explicit BudgetInMemory(Account &, Account::Factory &);
   void attach(Observer *) override;
-  void debit(std::string_view accountName, const Transaction &) override;
-  void removeDebit(std::string_view accountName, const Transaction &) override;
   void credit(const Transaction &) override;
+  void debit(std::string_view accountName, const Transaction &) override;
   void removeCredit(const Transaction &) override;
+  void removeDebit(std::string_view accountName, const Transaction &) override;
+  void verifyCredit(const Transaction &) override;
+  void verifyDebit(std::string_view accountName, const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount) override;
-  void removeAccount(std::string_view) override;
+  void allocate(std::string_view accountName, USD) override;
+  void createAccount(std::string_view name) override;
+  void closeAccount(std::string_view name) override;
+  void removeAccount(std::string_view name) override;
+  void renameAccount(std::string_view from, std::string_view to) override;
+  void reduce() override;
+  void restore() override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;
-  void renameAccount(std::string_view from, std::string_view to) override;
-  void verifyDebit(std::string_view accountName, const Transaction &) override;
-  void verifyCredit(const Transaction &) override;
   void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override;
   void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
                                          std::string_view name) override;
-  void reduce() override;
-  void createAccount(std::string_view name) override;
-  void closeAccount(std::string_view name) override;
-  void allocate(std::string_view accountName, USD) override;
-  void restore() override;
 
 private:
   Account::Factory &accountFactory;
