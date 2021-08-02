@@ -22,9 +22,19 @@ struct USD {
   auto operator==(const USD &) const -> bool = default;
 };
 
-constexpr auto operator+(USD a, USD b) -> USD { return USD{a.cents + b.cents}; }
+constexpr auto operator+=(USD &self, USD other) -> USD & {
+  self.cents += other.cents;
+  return self;
+}
 
-constexpr auto operator-(USD a, USD b) -> USD { return USD{a.cents - b.cents}; }
+constexpr auto operator-=(USD &self, USD other) -> USD & {
+  self.cents -= other.cents;
+  return self;
+}
+
+constexpr auto operator+(USD a, USD b) -> USD { return a += b; }
+
+constexpr auto operator-(USD a, USD b) -> USD { return a -= b; }
 
 constexpr auto operator-(USD a) -> USD { return USD{-a.cents}; }
 
