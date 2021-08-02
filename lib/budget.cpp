@@ -199,11 +199,10 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
     const auto balance{at(expenseAccounts, name)->balance()};
-    if (balance.cents > 0) {
+    if (balance.cents > 0)
       incomeAccount.deposit(balance);
-    } else if (balance.cents < 0) {
+    else if (balance.cents < 0)
       incomeAccount.withdraw(-balance);
-    }
     remove(expenseAccounts, name);
   }
 }
