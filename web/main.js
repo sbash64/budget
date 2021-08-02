@@ -43,15 +43,18 @@ function main() {
 
   const tableViews = createChild(pageBody, "div");
   tableViews.style.gridRow = 2;
-  tableViews.style.display = "grid";
+  tableViews.style.display = "flex";
+  tableViews.style.flexDirection = "row";
 
   const leftHandTableView = createChild(tableViews, "div");
-  leftHandTableView.style.gridColumn = 1;
+  // leftHandTableView.style.gridColumn = 1;
   leftHandTableView.style.display = "grid";
+  leftHandTableView.style.justifyItems = "end";
 
   const rightHandTableView = createChild(tableViews, "div");
-  rightHandTableView.style.gridColumn = 2;
+  // rightHandTableView.style.gridColumn = 2;
   rightHandTableView.style.display = "grid";
+  rightHandTableView.style.justifyItems = "end";
 
   const leftHandTableViewButtons = createChild(leftHandTableView, "div");
   leftHandTableView.style.gridRow = 1;
