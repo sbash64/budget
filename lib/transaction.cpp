@@ -19,35 +19,37 @@ void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
   });
 }
 
-static void verify(VerifiableTransaction &verifiableTransaction,
-                   ObservableTransaction::Observer *observer) {
-  verifiableTransaction.verified = true;
-  callIfObserverExists(observer,
-                       [](ObservableTransaction::Observer *observer_) {
-                         observer_->notifyThatIsVerified();
-                       });
-}
-
 auto ObservableTransactionInMemory::verifies(const Transaction &transaction)
     -> bool {
   if (!verifiableTransaction.verified &&
       verifiableTransaction.transaction == transaction) {
-    budget::verify(verifiableTransaction, observer);
+    verifiableTransaction.verified = true;
+    callIfObserverExists(observer,
+                         [](ObservableTransaction::Observer *observer_) {
+                           observer_->notifyThatIsVerified();
+                         });
     return true;
   }
   return false;
+}
+
+static void remove(ObservableTransaction::Observer *observer) {
+  callIfObserverExists(observer,
+                       [](ObservableTransaction::Observer *observer_) {
+                         observer_->notifyThatWillBeRemoved();
+                       });
 }
 
 auto ObservableTransactionInMemory::removes(const Transaction &transaction)
     -> bool {
   if (verifiableTransaction.transaction == transaction) {
-    callIfObserverExists(observer, [](Observer *observer_) {
-      observer_->notifyThatWillBeRemoved();
-    });
+    budget::remove(observer);
     return true;
   }
   return false;
 }
+
+void ObservableTransactionInMemory::remove() { budget::remove(observer); }
 
 void ObservableTransactionInMemory::save(
     TransactionSerialization &serialization) {
@@ -72,12 +74,6 @@ void ObservableTransactionInMemory::ready(
         if (loadedVerifiableTransaction.verified)
           observer_->notifyThatIsVerified();
       });
-}
-
-void ObservableTransactionInMemory::remove() {
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatWillBeRemoved();
-  });
 }
 
 auto ObservableTransactionInMemory::Factory::make()
