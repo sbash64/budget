@@ -141,7 +141,7 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatCreditIsReady(TransactionDeserialization &) = 0;
     virtual void notifyThatDebitIsReady(TransactionDeserialization &) = 0;
-    virtual void notifyThatFundsAreReady(USD) {}
+    virtual void notifyThatFundsAreReady(USD) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);

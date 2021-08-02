@@ -70,6 +70,8 @@ public:
 
   void notifyThatDebitIsReady(TransactionDeserialization &) override {}
 
+  void notifyThatFundsAreReady(USD) override {}
+
   void reduce() override { reduced_ = true; }
 
   [[nodiscard]] auto reduced() const -> bool { return reduced_; }
