@@ -3,16 +3,12 @@
 
 #include "domain.hpp"
 
-#include <array>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
-#include <string_view>
 
 namespace sbash64::budget {
-constexpr const std::array<char, 7> masterAccountName{"master"};
-
 class BudgetInMemory : public Budget {
 public:
   explicit BudgetInMemory(Account &, Account::Factory &);

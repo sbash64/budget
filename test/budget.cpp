@@ -193,7 +193,7 @@ static void testBudgetInMemory(
                              const std::shared_ptr<AccountStub> &masterAccount,
                              Budget &budget)> &f) {
   AccountFactoryStub factory;
-  const auto masterAccount{addAccountStub(factory, masterAccountName.data())};
+  const auto masterAccount{addAccountStub(factory, "")};
   BudgetInMemory budget{*masterAccount, factory};
   f(factory, masterAccount, budget);
 }

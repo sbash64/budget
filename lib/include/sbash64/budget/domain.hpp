@@ -222,24 +222,24 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
+  virtual void credit(const Transaction &) = 0;
   virtual void debit(std::string_view accountName, const Transaction &) = 0;
+  virtual void removeCredit(const Transaction &) = 0;
   virtual void removeDebit(std::string_view accountName,
                            const Transaction &) = 0;
-  virtual void removeCredit(const Transaction &) = 0;
-  virtual void credit(const Transaction &) = 0;
-  virtual void transferTo(std::string_view accountName, USD) = 0;
-  virtual void removeAccount(std::string_view) = 0;
-  virtual void save(BudgetSerialization &) = 0;
-  virtual void load(BudgetDeserialization &) = 0;
-  virtual void renameAccount(std::string_view from, std::string_view to) = 0;
+  virtual void verifyCredit(const Transaction &) = 0;
   virtual void verifyDebit(std::string_view accountName,
                            const Transaction &) = 0;
-  virtual void verifyCredit(const Transaction &) = 0;
-  virtual void reduce() = 0;
-  virtual void createAccount(std::string_view name) = 0;
-  virtual void closeAccount(std::string_view name) = 0;
+  virtual void transferTo(std::string_view accountName, USD) = 0;
   virtual void allocate(std::string_view accountName, USD) = 0;
+  virtual void createAccount(std::string_view name) = 0;
+  virtual void removeAccount(std::string_view name) = 0;
+  virtual void renameAccount(std::string_view from, std::string_view to) = 0;
+  virtual void closeAccount(std::string_view name) = 0;
   virtual void restore() = 0;
+  virtual void reduce() = 0;
+  virtual void save(BudgetSerialization &) = 0;
+  virtual void load(BudgetDeserialization &) = 0;
 };
 } // namespace sbash64::budget
 
