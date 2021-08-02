@@ -10,35 +10,34 @@
 namespace sbash64::budget {
 class InMemoryAccount : public Account {
 public:
-  explicit InMemoryAccount(std::string name, ObservableTransaction::Factory &);
+  InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(const Transaction &) override;
-  void save(AccountSerialization &) override;
-  void load(AccountDeserialization &) override;
   void removeCredit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
-  void rename(std::string_view) override;
-  void verifyDebit(const Transaction &) override;
   void verifyCredit(const Transaction &) override;
+  void verifyDebit(const Transaction &) override;
+  void rename(std::string_view) override;
+  auto balance() -> USD override;
+  void withdraw(USD) override;
+  void deposit(USD) override;
+  void reduce() override;
+  void remove() override;
+  void clear() override;
+  void save(AccountSerialization &) override;
+  void load(AccountDeserialization &) override;
   void notifyThatCreditIsReady(TransactionDeserialization &) override;
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;
-  void reduce() override;
-  auto balance() -> USD override;
-  void remove() override;
-  void clear() override;
-  void withdraw(USD) override;
-  void deposit(USD) override;
 
   class Factory : public Account::Factory {
   public:
-    explicit Factory(
-        ObservableTransaction::Factory &observableTransactionFactory);
+    explicit Factory(ObservableTransaction::Factory &);
     auto make(std::string_view name) -> std::shared_ptr<Account> override;
 
   private:
-    ObservableTransaction::Factory &observableTransactionFactory;
+    ObservableTransaction::Factory &transactionFactory;
   };
 
 private:
@@ -46,7 +45,7 @@ private:
   std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
   std::string name;
   Observer *observer{};
-  USD funds_{};
+  USD funds{};
   ObservableTransaction::Factory &factory;
 };
 } // namespace sbash64::budget

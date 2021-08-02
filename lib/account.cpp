@@ -100,57 +100,6 @@ static void addTransaction(
   notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
-InMemoryAccount::InMemoryAccount(std::string name,
-                                 ObservableTransaction::Factory &factory)
-    : name{std::move(name)}, factory{factory} {}
-
-void InMemoryAccount::attach(Observer *a) { observer = a; }
-
-void InMemoryAccount::credit(const Transaction &transaction) {
-  addTransaction(creditRecords, factory, observer,
-                 &Observer::notifyThatCreditHasBeenAdded, transaction, funds_,
-                 creditRecords, debitRecords);
-}
-
-void InMemoryAccount::debit(const Transaction &transaction) {
-  addTransaction(debitRecords, factory, observer,
-                 &Observer::notifyThatDebitHasBeenAdded, transaction, funds_,
-                 creditRecords, debitRecords);
-}
-
-void InMemoryAccount::notifyThatCreditIsReady(
-    TransactionDeserialization &deserialization) {
-  addTransaction(creditRecords, factory, observer,
-                 &Observer::notifyThatCreditHasBeenAdded, deserialization,
-                 funds_, creditRecords, debitRecords);
-}
-
-void InMemoryAccount::notifyThatDebitIsReady(
-    TransactionDeserialization &deserialization) {
-  addTransaction(debitRecords, factory, observer,
-                 &Observer::notifyThatDebitHasBeenAdded, deserialization,
-                 funds_, creditRecords, debitRecords);
-}
-
-static auto
-collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
-    -> std::vector<SerializableTransaction *> {
-  std::vector<SerializableTransaction *> collected;
-  collected.reserve(accounts.size());
-  for (const auto &account : accounts)
-    collected.push_back(account.get());
-  return collected;
-}
-
-void InMemoryAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, funds_, collect(creditRecords),
-                     collect(debitRecords));
-}
-
-void InMemoryAccount::load(AccountDeserialization &deserialization) {
-  deserialization.load(*this);
-}
-
 static void removeTransaction(
     std::vector<std::shared_ptr<ObservableTransaction>> &records,
     Account::Observer *observer, const Transaction &transaction, USD funds,
@@ -167,17 +116,33 @@ static void removeTransaction(
   }
 }
 
-void InMemoryAccount::removeDebit(const Transaction &transaction) {
-  removeTransaction(debitRecords, observer, transaction, funds_, creditRecords,
-                    debitRecords);
+InMemoryAccount::InMemoryAccount(std::string name,
+                                 ObservableTransaction::Factory &factory)
+    : name{std::move(name)}, factory{factory} {}
+
+void InMemoryAccount::attach(Observer *a) { observer = a; }
+
+void InMemoryAccount::credit(const Transaction &transaction) {
+  addTransaction(creditRecords, factory, observer,
+                 &Observer::notifyThatCreditHasBeenAdded, transaction, funds,
+                 creditRecords, debitRecords);
+}
+
+void InMemoryAccount::debit(const Transaction &transaction) {
+  addTransaction(debitRecords, factory, observer,
+                 &Observer::notifyThatDebitHasBeenAdded, transaction, funds,
+                 creditRecords, debitRecords);
 }
 
 void InMemoryAccount::removeCredit(const Transaction &transaction) {
-  removeTransaction(creditRecords, observer, transaction, funds_, creditRecords,
+  removeTransaction(creditRecords, observer, transaction, funds, creditRecords,
                     debitRecords);
 }
 
-void InMemoryAccount::rename(std::string_view to) { name = to; }
+void InMemoryAccount::removeDebit(const Transaction &transaction) {
+  removeTransaction(debitRecords, observer, transaction, funds, creditRecords,
+                    debitRecords);
+}
 
 void InMemoryAccount::verifyCredit(const Transaction &transaction) {
   verify(transaction, creditRecords);
@@ -187,12 +152,51 @@ void InMemoryAccount::verifyDebit(const Transaction &transaction) {
   verify(transaction, debitRecords);
 }
 
-void InMemoryAccount::notifyThatFundsAreReady(USD usd) {
-  funds_ = usd;
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds_);
+static auto
+collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
+    -> std::vector<SerializableTransaction *> {
+  std::vector<SerializableTransaction *> collected;
+  collected.reserve(accounts.size());
+  for (const auto &account : accounts)
+    collected.push_back(account.get());
+  return collected;
+}
+
+void InMemoryAccount::rename(std::string_view to) { name = to; }
+
+void InMemoryAccount::save(AccountSerialization &serialization) {
+  serialization.save(name, funds, collect(creditRecords),
+                     collect(debitRecords));
+}
+
+void InMemoryAccount::load(AccountDeserialization &deserialization) {
+  deserialization.load(*this);
+}
+
+void InMemoryAccount::notifyThatCreditIsReady(
+    TransactionDeserialization &deserialization) {
+  addTransaction(creditRecords, factory, observer,
+                 &Observer::notifyThatCreditHasBeenAdded, deserialization,
+                 funds, creditRecords, debitRecords);
+}
+
+void InMemoryAccount::notifyThatDebitIsReady(
+    TransactionDeserialization &deserialization) {
+  addTransaction(debitRecords, factory, observer,
+                 &Observer::notifyThatDebitHasBeenAdded, deserialization, funds,
+                 creditRecords, debitRecords);
+}
+
+static void notifyUpdatedFunds(Account::Observer *observer, USD funds) {
+  callIfObserverExists(observer, [&](Account::Observer *observer_) {
+    observer_->notifyThatFundsHaveChanged(funds);
   });
-  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+}
+
+void InMemoryAccount::notifyThatFundsAreReady(USD usd) {
+  funds = usd;
+  notifyUpdatedFunds(observer, funds);
+  notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
 static void
@@ -203,32 +207,26 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
 }
 
 void InMemoryAccount::reduce() {
-  funds_ = budget::balance(funds_, creditRecords, debitRecords);
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds_);
-  });
+  funds = budget::balance(funds, creditRecords, debitRecords);
+  notifyUpdatedFunds(observer, funds);
   budget::clear(debitRecords);
   budget::clear(creditRecords);
 }
 
 auto InMemoryAccount::balance() -> USD {
-  return budget::balance(funds_, creditRecords, debitRecords);
+  return budget::balance(funds, creditRecords, debitRecords);
 }
 
 void InMemoryAccount::withdraw(USD usd) {
-  funds_ -= usd;
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds_);
-  });
-  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+  funds -= usd;
+  notifyUpdatedFunds(observer, funds);
+  notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
 void InMemoryAccount::deposit(USD usd) {
-  funds_ += usd;
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds_);
-  });
-  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+  funds += usd;
+  notifyUpdatedFunds(observer, funds);
+  notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
 void InMemoryAccount::remove() {
@@ -238,22 +236,20 @@ void InMemoryAccount::remove() {
 }
 
 void InMemoryAccount::clear() {
-  funds_ = {};
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds_);
-  });
+  funds = {};
+  notifyUpdatedFunds(observer, funds);
   budget::clear(creditRecords);
   budget::clear(debitRecords);
-  notifyUpdatedBalance(observer, funds_, creditRecords, debitRecords);
+  notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<Account> {
   return std::make_shared<InMemoryAccount>(std::string{name_},
-                                           observableTransactionFactory);
+                                           transactionFactory);
 }
 
 InMemoryAccount::Factory::Factory(
-    ObservableTransaction::Factory &observableTransactionFactory)
-    : observableTransactionFactory{observableTransactionFactory} {}
+    ObservableTransaction::Factory &transactionFactory)
+    : transactionFactory{transactionFactory} {}
 } // namespace sbash64::budget
