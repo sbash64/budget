@@ -1,22 +1,25 @@
 #include "parse.hpp"
 
+#include <cstdint>
 #include <sstream>
 #include <string>
 
 namespace sbash64::budget {
 auto usd(std::string_view s) -> USD {
   USD usd{};
-  std::istringstream stream{std::string{s}};
+  std::stringstream stream;
+  stream << s;
   if (stream.peek() != '.') {
-    stream >> usd.cents;
-    usd.cents *= 100;
+    std::int_least64_t dollars = 0;
+    stream >> dollars;
+    usd.cents = dollars * 100;
   }
   if (stream.get() == '.') {
     std::string afterDecimal;
     stream >> afterDecimal;
     afterDecimal.resize(2, '0');
     std::istringstream streamAfterDecimal{afterDecimal};
-    int cents = 0;
+    std::int_least64_t cents = 0;
     streamAfterDecimal >> cents;
     usd.cents += cents;
   }
