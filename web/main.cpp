@@ -310,7 +310,7 @@ static auto backupDirectory(std::chrono::system_clock::time_point time)
 namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
-  InMemoryAccount masterAccount{masterAccountName.data(), transactionFactory};
+  InMemoryAccount masterAccount{"master", transactionFactory};
   InMemoryAccount::Factory accountFactory{transactionFactory};
   BudgetInMemory bank{masterAccount, accountFactory};
   FileStreamFactory streamFactory;
@@ -337,8 +337,8 @@ struct App {
         backupDirectory{
             budget::backupDirectory(std::chrono::system_clock::now())},
         budgetFilePath{budgetFilePath} {
-    webSocketNotifier.notifyThatNewAccountHasBeenCreated(
-        masterAccount, masterAccountName.data());
+    webSocketNotifier.notifyThatNewAccountHasBeenCreated(masterAccount,
+                                                         "master");
     bank.load(accountDeserialization);
     std::filesystem::create_directory(backupDirectory);
   }
@@ -392,7 +392,7 @@ static auto accountName(const nlohmann::json &json) -> std::string {
 }
 
 static auto accountIsMaster(const nlohmann::json &json) -> bool {
-  return accountName(json) == masterAccountName.data();
+  return accountName(json) == "master";
 }
 
 static void
