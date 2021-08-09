@@ -8,6 +8,10 @@ function sendMessage(websocket, message) {
   websocket.send(JSON.stringify(message));
 }
 
+function accountName(selectedAccountSummaryRow) {
+  return selectedAccountSummaryRow.cells[1].textContent;
+}
+
 function transactionMessage(
   selectedAccountSummaryRow,
   selectedTransactionRow,
@@ -15,7 +19,7 @@ function transactionMessage(
 ) {
   return {
     method,
-    name: selectedAccountSummaryRow.cells[1].textContent,
+    name: accountName(selectedAccountSummaryRow),
     description: selectedTransactionRow.cells[1].textContent,
     debitAmount: selectedTransactionRow.cells[2].textContent,
     creditAmount: selectedTransactionRow.cells[3].textContent,
@@ -47,12 +51,10 @@ function main() {
   tableViews.style.flexDirection = "row";
 
   const leftHandTableView = createChild(tableViews, "div");
-  // leftHandTableView.style.gridColumn = 1;
   leftHandTableView.style.display = "grid";
   leftHandTableView.style.justifyItems = "end";
 
   const rightHandTableView = createChild(tableViews, "div");
-  // rightHandTableView.style.gridColumn = 2;
   rightHandTableView.style.display = "grid";
   rightHandTableView.style.justifyItems = "end";
 
@@ -367,19 +369,19 @@ function main() {
   removeAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "remove account",
-      name: selectedAccountSummaryRow.cells[1].textContent,
+      name: accountName(selectedAccountSummaryRow),
     });
   });
   closeAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "close account",
-      name: selectedAccountSummaryRow.cells[1].textContent,
+      name: accountName(selectedAccountSummaryRow),
     });
   });
   transferButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "transfer",
-      name: selectedAccountSummaryRow.cells[1].textContent,
+      name: accountName(selectedAccountSummaryRow),
       amount: transferAmountInput.value,
     });
     transferAmountInput.value = "";
@@ -387,7 +389,7 @@ function main() {
   allocateButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "allocate",
-      name: selectedAccountSummaryRow.cells[1].textContent,
+      name: accountName(selectedAccountSummaryRow),
       amount: allocateAmountInput.value,
     });
     allocateAmountInput.value = "";
@@ -395,7 +397,7 @@ function main() {
   addTransactionButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "add transaction",
-      name: selectedAccountSummaryRow.cells[1].textContent,
+      name: accountName(selectedAccountSummaryRow),
       description: addTransactionDescriptionInput.value,
       amount: addTransactionAmountInput.value,
       date: addTransactionDateInput.value,
