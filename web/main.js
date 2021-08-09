@@ -34,10 +34,18 @@ function updateTransaction(row, message) {
   row.cells[4].textContent = message.date;
 }
 
+function accountTableBody(accountTableBodies, message) {
+  return accountTableBodies[message.accountIndex];
+}
+
 function transactionRow(accountTableBodies, message) {
-  return accountTableBodies[message.accountIndex].rows[
+  return accountTableBody(accountTableBodies, message).rows[
     message.transactionIndex
   ];
+}
+
+function accountSummaryRow(accountSummaryRows, message) {
+  return accountSummaryRows[message.accountIndex];
 }
 
 function main() {
@@ -268,18 +276,15 @@ function main() {
         break;
       }
       case "add account": {
-        const accountSummaryRow = createChild(accountSummaryTableBody, "tr");
-        const selection = createChild(
-          createChild(accountSummaryRow, "td"),
-          "input"
-        );
+        const row = createChild(accountSummaryTableBody, "tr");
+        const selection = createChild(createChild(row, "td"), "input");
         selection.name = "account selection";
         selection.type = "radio";
-        const name = createChild(accountSummaryRow, "td");
+        const name = createChild(row, "td");
         name.textContent = message.name;
-        createChild(accountSummaryRow, "td").style.textAlign = "right";
-        createChild(accountSummaryRow, "td").style.textAlign = "right";
-        accountSummaryRows.push(accountSummaryRow);
+        createChild(row, "td").style.textAlign = "right";
+        createChild(row, "td").style.textAlign = "right";
+        accountSummaryRows.push(row);
 
         const transactionTableBody = createChild(transactionTable, "tbody");
         accountTableBodies.push(transactionTableBody);
@@ -290,7 +295,7 @@ function main() {
             selectedAccountTransactionTableBody.style.display = "none";
           transactionTableBody.style.display = "";
           selectedAccountTransactionTableBody = transactionTableBody;
-          selectedAccountSummaryRow = accountSummaryRow;
+          selectedAccountSummaryRow = row;
         });
         break;
       }
@@ -302,7 +307,10 @@ function main() {
         break;
       }
       case "add transaction": {
-        const row = createChild(accountTableBodies[message.accountIndex], "tr");
+        const row = createChild(
+          accountTableBody(accountTableBodies, message),
+          "tr"
+        );
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
         selection.type = "radio";
@@ -316,19 +324,19 @@ function main() {
         });
         break;
       }
-      case "remove transaction": {
-        accountTableBodies[message.accountIndex].deleteRow(
+      case "remove transaction":
+        accountTableBody(accountTableBodies, message).deleteRow(
           message.transactionIndex
         );
         break;
-      }
-      case "update account balance": {
-        accountSummaryRows[message.accountIndex].lastElementChild.textContent =
-          message.amount;
+      case "update account balance":
+        accountSummaryRow(
+          accountSummaryRows,
+          message
+        ).lastElementChild.textContent = message.amount;
         break;
-      }
       case "update account funds":
-        accountSummaryRows[message.accountIndex].cells[2].textContent =
+        accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
           message.amount;
         break;
       case "update transaction":
