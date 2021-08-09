@@ -167,6 +167,7 @@ function main() {
   newAccountNameLabel.textContent = "name";
   const newAccountNameInput = createChild(newAccountNameLabel, "input");
   newAccountNameInput.type = "text";
+  newAccountNameInput.style.margin = "1ch";
   const createAccountButton = createChild(createAccountControls, "button");
   createAccountButton.textContent = "create";
 
@@ -186,6 +187,7 @@ function main() {
     "input"
   );
   addTransactionDescriptionInput.type = "text";
+  addTransactionDescriptionInput.style.margin = "1ch";
   const addTransactionAmountLabel = createChild(
     addTransactionControls,
     "label"
@@ -198,10 +200,12 @@ function main() {
   addTransactionAmountInput.type = "number";
   addTransactionAmountInput.min = 0;
   addTransactionAmountInput.step = "any";
+  addTransactionAmountInput.style.margin = "1ch";
   const addTransactionDateLabel = createChild(addTransactionControls, "label");
   addTransactionDateLabel.textContent = "date";
   const addTransactionDateInput = createChild(addTransactionDateLabel, "input");
   addTransactionDateInput.type = "date";
+  addTransactionDateInput.style.margin = "1ch";
   const addTransactionButton = createChild(addTransactionControls, "button");
   addTransactionButton.textContent = "add";
 
@@ -216,6 +220,7 @@ function main() {
   transferAmountInput.type = "number";
   transferAmountInput.min = 0;
   transferAmountInput.step = "any";
+  transferAmountInput.style.margin = "1ch";
   const transferButton = createChild(transferControls, "button");
   transferButton.textContent = "transfer";
 
@@ -230,6 +235,7 @@ function main() {
   allocateAmountInput.type = "number";
   allocateAmountInput.min = 0;
   allocateAmountInput.step = "any";
+  allocateAmountInput.style.margin = "1ch";
   const allocateButton = createChild(allocateControls, "button");
   allocateButton.textContent = "allocate";
 
