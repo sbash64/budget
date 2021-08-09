@@ -355,9 +355,8 @@ function main() {
     sendMessage(websocket, {
       method: "create account",
       name: newAccountNameInput.value,
-      amount: addTransactionAmountInput.value,
-      date: addTransactionDateInput.value,
     });
+    newAccountNameInput.value = "";
   });
   removeAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
@@ -377,6 +376,7 @@ function main() {
       name: selectedAccountSummaryRow.cells[1].textContent,
       amount: transferAmountInput.value,
     });
+    transferAmountInput.value = "";
   });
   allocateButton.addEventListener("click", () => {
     sendMessage(websocket, {
@@ -384,6 +384,7 @@ function main() {
       name: selectedAccountSummaryRow.cells[1].textContent,
       amount: allocateAmountInput.value,
     });
+    allocateAmountInput.value = "";
   });
   addTransactionButton.addEventListener("click", () => {
     sendMessage(websocket, {
@@ -393,6 +394,9 @@ function main() {
       amount: addTransactionAmountInput.value,
       date: addTransactionDateInput.value,
     });
+    addTransactionDescriptionInput.value = "";
+    addTransactionAmountInput.value = "";
+    addTransactionDateInput.value = "";
   });
   removeTransactionButton.addEventListener("click", () => {
     sendMessage(
