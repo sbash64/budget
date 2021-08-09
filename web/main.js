@@ -27,6 +27,19 @@ function transactionMessage(
   };
 }
 
+function updateTransaction(row, message) {
+  row.cells[1].textContent = message.description;
+  row.cells[2].textContent = message.debitAmount;
+  row.cells[3].textContent = message.creditAmount;
+  row.cells[4].textContent = message.date;
+}
+
+function transactionRow(accountTableBodies, message) {
+  return accountTableBodies[message.accountIndex].rows[
+    message.transactionIndex
+  ];
+}
+
 function main() {
   const page = createChild(document.body, "div");
   page.style.display = "grid";
@@ -314,32 +327,16 @@ function main() {
           message.amount;
         break;
       }
-      case "update account funds": {
+      case "update account funds":
         accountSummaryRows[message.accountIndex].cells[2].textContent =
           message.amount;
         break;
-      }
-      case "update transaction": {
-        accountTableBodies[message.accountIndex].rows[
-          message.transactionIndex
-        ].cells[1].textContent = message.description;
-        accountTableBodies[message.accountIndex].rows[
-          message.transactionIndex
-        ].cells[2].textContent = message.debitAmount;
-        accountTableBodies[message.accountIndex].rows[
-          message.transactionIndex
-        ].cells[3].textContent = message.creditAmount;
-        accountTableBodies[message.accountIndex].rows[
-          message.transactionIndex
-        ].cells[4].textContent = message.date;
+      case "update transaction":
+        updateTransaction(transactionRow(accountTableBodies, message), message);
         break;
-      }
-      case "verify transaction": {
-        accountTableBodies[message.accountIndex].rows[
-          message.transactionIndex
-        ].cells[5].textContent = "✅";
+      case "verify transaction":
+        transactionRow(accountTableBodies, message).cells[5].textContent = "✅";
         break;
-      }
       default:
         break;
     }
