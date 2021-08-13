@@ -71,11 +71,18 @@ function main() {
   tableViews.style.display = "flex";
   tableViews.style.flexDirection = "row";
 
-  const leftHandTableView = createChild(tableViews, "div");
+  const leftHandContent = createChild(tableViews, "div");
+  const leftHandContentHeader = createChild(leftHandContent, "h3");
+  leftHandContentHeader.textContent = "Account Summaries";
+
+  const rightHandContent = createChild(tableViews, "div");
+  const rightHandContentHeader = createChild(rightHandContent, "h3");
+
+  const leftHandTableView = createChild(leftHandContent, "div");
   leftHandTableView.style.display = "grid";
   leftHandTableView.style.justifyItems = "end";
 
-  const rightHandTableView = createChild(tableViews, "div");
+  const rightHandTableView = createChild(rightHandContent, "div");
   rightHandTableView.style.display = "grid";
   rightHandTableView.style.justifyItems = "end";
 
@@ -289,11 +296,17 @@ function main() {
         const transactionTableBody = createChild(transactionTable, "tbody");
         accountTableBodies.push(transactionTableBody);
 
-        transactionTableBody.style.display = "none";
+        if (selectedAccountTransactionTableBody)
+          selectedAccountTransactionTableBody.style.display = "none";
+        rightHandContentHeader.textContent = message.name;
+        selectedAccountTransactionTableBody = transactionTableBody;
+        selectedAccountSummaryRow = row;
+
         selection.addEventListener("change", () => {
           if (selectedAccountTransactionTableBody)
             selectedAccountTransactionTableBody.style.display = "none";
           transactionTableBody.style.display = "";
+          rightHandContentHeader.textContent = accountName(row);
           selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountSummaryRow = row;
         });
