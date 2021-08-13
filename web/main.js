@@ -311,6 +311,7 @@ function main() {
         rightHandContentHeader.textContent = message.name;
         selectedAccountTransactionTableBody = transactionTableBody;
         selectedAccountSummaryRow = row;
+        selection.checked = true;
 
         selection.addEventListener("change", () => {
           if (selectedAccountTransactionTableBody)
@@ -320,6 +321,7 @@ function main() {
           selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountSummaryRow = row;
         });
+
         break;
       }
       case "remove account": {
