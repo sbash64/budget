@@ -53,13 +53,23 @@ function main() {
   page.style.display = "grid";
   const topPage = createChild(page, "div");
   topPage.style.gridRow = 1;
+  topPage.style.display = "grid";
 
-  const totalBalance = createChild(topPage, "div");
-  const saveButton = createChild(topPage, "button");
+  const totalBalanceLabel = createChild(topPage, "label");
+  totalBalanceLabel.textContent = "Total Balance";
+  totalBalanceLabel.gridRow = 1;
+
+  const totalBalance = createChild(totalBalanceLabel, "strong");
+  totalBalance.style.margin = "1ch";
+
+  const topPageButtons = createChild(topPage, "div");
+  topPageButtons.gridRow = 2;
+
+  const saveButton = createChild(topPageButtons, "button");
   saveButton.textContent = "save";
-  const reduceButton = createChild(topPage, "button");
+  const reduceButton = createChild(topPageButtons, "button");
   reduceButton.textContent = "reduce";
-  const restoreButton = createChild(topPage, "button");
+  const restoreButton = createChild(topPageButtons, "button");
   restoreButton.textContent = "restore";
 
   const pageBody = createChild(page, "div");
