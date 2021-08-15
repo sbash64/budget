@@ -775,7 +775,7 @@ void reducesToOneTransaction(testcpplite::TestResult &result) {
 }
 
 namespace expense {
-void reducesToOneTransaction(testcpplite::TestResult &result) {
+void reducesToTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
@@ -790,42 +790,6 @@ void reducesToOneTransaction(testcpplite::TestResult &result) {
   });
 }
 } // namespace expense
-
-void reducesToOneDebitForNegativeBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
-    const auto reduction{addObservableTransactionStub(factory)};
-    account.reduce();
-    assertEqual(result, -789_cents - 456_cents + 300_cents, account.balance());
-  });
-}
-
-void reducesToOneCreditForPositiveBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{300_cents, "orangutan", Date{2020, Month::February, 2}});
-    const auto reduction{addObservableTransactionStub(factory)};
-    account.reduce();
-    assertEqual(result, 789_cents + 300_cents - 456_cents, account.balance());
-  });
-}
 
 void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
