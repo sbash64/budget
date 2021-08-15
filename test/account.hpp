@@ -24,7 +24,7 @@ void savesDuplicateTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
-void reducesToOneTransaction(testcpplite::TestResult &);
+void reducesTransactionsToFunds(testcpplite::TestResult &);
 void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void withdrawsFromFunds(testcpplite::TestResult &);
@@ -35,7 +35,7 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
-void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &);
+void clearsReducedTransactions(testcpplite::TestResult &);
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
@@ -54,7 +54,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
-void reducesToTransactionsToFunds(testcpplite::TestResult &);
+void reducesTransactionsToFunds(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

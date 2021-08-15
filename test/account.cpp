@@ -756,7 +756,7 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   });
 }
 
-void reducesToOneTransaction(testcpplite::TestResult &result) {
+void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
@@ -775,7 +775,7 @@ void reducesToOneTransaction(testcpplite::TestResult &result) {
 }
 
 namespace expense {
-void reducesToTransactionsToFunds(testcpplite::TestResult &result) {
+void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
@@ -791,7 +791,7 @@ void reducesToTransactionsToFunds(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
-void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &result) {
+void clearsReducedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
