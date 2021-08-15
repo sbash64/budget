@@ -11,7 +11,6 @@ void withdrawsFromFunds(testcpplite::TestResult &);
 void depositsToFunds(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &);
-void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
 namespace expense {
@@ -62,6 +61,7 @@ void clearsReducedTransactions(testcpplite::TestResult &);
 void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 } // namespace income
 } // namespace sbash64::budget::account
 

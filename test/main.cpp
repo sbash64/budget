@@ -167,7 +167,7 @@ static auto runAllTests() -> int {
         "account notifiesObserverOfRemoval"},
        {account::income::notifiesObserverOfUpdatedFundsOnReduce,
         "account notifiesObserverOfUpdatedFundsOnReduce"},
-       {account::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
+       {account::income::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
         "account notifiesObserverOfUpdatedFundsAndBalanceOnClear"},
        {account::notifiesObserverOfUpdatedFundsAndBalanceOnSerialization,
         "account notifiesObserverOfUpdatedFundsOnSerialization"},
