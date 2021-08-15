@@ -418,24 +418,21 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
 }
 } // namespace income
 
+namespace income {
 void savesLoadedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
     account.notifyThatCreditIsReady(deserialization);
-    const auto andy{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
     const auto joe{addObservableTransactionStub(factory)};
     account.notifyThatCreditIsReady(deserialization);
-    const auto bob{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
     PersistentAccountStub persistence;
     account.save(persistence);
-    assertDebitsSaved(result, persistence, {andy.get(), bob.get()});
     assertCreditsSaved(result, persistence, {mike.get(), joe.get()});
   });
 }
+} // namespace income
 
 namespace expense {
 void savesLoadedTransactions(testcpplite::TestResult &result) {
