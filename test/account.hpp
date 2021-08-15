@@ -23,7 +23,6 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 void savesDuplicateTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
-void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
 void reducesToOneTransaction(testcpplite::TestResult &);
@@ -56,6 +55,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
+void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

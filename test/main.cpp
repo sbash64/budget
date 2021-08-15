@@ -123,7 +123,8 @@ static auto runAllTests() -> int {
         "account::expense::"
         "notifiesObserverThatDuplicateTransactionsAreVerified"},
        {account::notifiesObserverOfVerifiedCredit, "notifiesCreditIsVerified"},
-       {account::notifiesObserverOfVerifiedDebit, "notifiesDebitIsVerified"},
+       {account::expense::notifiesObserverOfVerifiedDebit,
+        "notifiesDebitIsVerified"},
        {account::notifiesObserverOfRemovedDebit,
         "notifiesObserverOfRemovedDebit"},
        {account::notifiesObserverOfRemovedCredit,

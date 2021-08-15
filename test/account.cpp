@@ -715,8 +715,9 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
@@ -727,6 +728,7 @@ void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
     assertTrue(result, observer.verified());
   });
 }
+} // namespace expense
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
