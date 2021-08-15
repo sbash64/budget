@@ -754,22 +754,21 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    credit(account,
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     account.reduce();
-    assertEqual(result, 2300_cents - 789_cents - 456_cents, account.balance());
+    assertEqual(result, 2300_cents + 789_cents, account.balance());
   });
 }
+} // namespace income
 
 namespace expense {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {

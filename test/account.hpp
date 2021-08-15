@@ -7,7 +7,6 @@ namespace sbash64::budget::account {
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
-void reducesTransactionsToFunds(testcpplite::TestResult &);
 void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void withdrawsFromFunds(testcpplite::TestResult &);
@@ -62,6 +61,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
+void reducesTransactionsToFunds(testcpplite::TestResult &);
 } // namespace income
 } // namespace sbash64::budget::account
 
