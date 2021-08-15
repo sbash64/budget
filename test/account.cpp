@@ -315,6 +315,20 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
   });
 }
 
+namespace expense {
+void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    addObservableTransactionStub(factory)->setAmount(5_cents);
+    debit(account);
+    assertBalanceEquals(result, -5_cents, observer);
+  });
+}
+} // namespace expense
+
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account,

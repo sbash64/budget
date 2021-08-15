@@ -99,6 +99,10 @@ static auto runAllTests() -> int {
        {account::notifiesObserverOfNewCredit, "notifiesObserverOfNewCredit"},
        {account::expense::notifiesObserverOfNewDebit,
         "notifiesObserverOfNewDebit"},
+       {account::expense::
+            notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
+        "account::expense::"
+        "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfVerifiedCredit, "notifiesCreditIsVerified"},
        {account::notifiesObserverOfVerifiedDebit, "notifiesDebitIsVerified"},
        {account::notifiesObserverOfRemovedDebit,

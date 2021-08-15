@@ -44,6 +44,8 @@ void reducesToNoTransactionsForZeroBalance(testcpplite::TestResult &);
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
+    testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 
