@@ -17,7 +17,8 @@ static void debit(const std::shared_ptr<Account> &account,
   account->debit(transaction);
 }
 
-static void verifyCredit(Account &account, const Transaction &transaction) {
+static void verifyCredit(IncomeAccount &account,
+                         const Transaction &transaction) {
   account.verifyCredit(transaction);
 }
 
