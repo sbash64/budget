@@ -698,6 +698,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 }
 } // namespace expense
 
+namespace income {
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -710,6 +711,7 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
     assertTrue(result, observer.verified());
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
