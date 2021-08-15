@@ -128,7 +128,7 @@ void InMemoryAccount::credit(const Transaction &transaction) {
                  creditRecords, debitRecords);
 }
 
-void InMemoryAccount::debit(const Transaction &transaction) {
+void InMemoryExpenseAccount::debit(const Transaction &transaction) {
   addTransaction(debitRecords, factory, observer,
                  &Observer::notifyThatDebitHasBeenAdded, transaction, funds,
                  creditRecords, debitRecords);
@@ -139,7 +139,7 @@ void InMemoryAccount::removeCredit(const Transaction &transaction) {
                     debitRecords);
 }
 
-void InMemoryAccount::removeDebit(const Transaction &transaction) {
+void InMemoryExpenseAccount::removeDebit(const Transaction &transaction) {
   removeTransaction(debitRecords, observer, transaction, funds, creditRecords,
                     debitRecords);
 }
@@ -148,7 +148,7 @@ void InMemoryAccount::verifyCredit(const Transaction &transaction) {
   verify(transaction, creditRecords);
 }
 
-void InMemoryAccount::verifyDebit(const Transaction &transaction) {
+void InMemoryExpenseAccount::verifyDebit(const Transaction &transaction) {
   verify(transaction, debitRecords);
 }
 
@@ -245,8 +245,8 @@ void InMemoryAccount::clear() {
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<ExpenseAccount> {
-  return std::make_shared<InMemoryAccount>(std::string{name_},
-                                           transactionFactory);
+  return std::make_shared<InMemoryExpenseAccount>(std::string{name_},
+                                                  transactionFactory);
 }
 
 InMemoryAccount::Factory::Factory(

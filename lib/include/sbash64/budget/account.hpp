@@ -8,18 +8,13 @@
 #include <vector>
 
 namespace sbash64::budget {
-class InMemoryAccount : public virtual Account,
-                        public IncomeAccount,
-                        public ExpenseAccount {
+class InMemoryAccount : public virtual Account, public IncomeAccount {
 public:
   InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
-  void debit(const Transaction &) override;
   void removeCredit(const Transaction &) override;
-  void removeDebit(const Transaction &) override;
   void verifyCredit(const Transaction &) override;
-  void verifyDebit(const Transaction &) override;
   void rename(std::string_view) override;
   auto balance() -> USD override;
   void withdraw(USD) override;
@@ -43,7 +38,7 @@ public:
     ObservableTransaction::Factory &transactionFactory;
   };
 
-private:
+protected:
   std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
   std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
   std::string name;
@@ -52,9 +47,12 @@ private:
   ObservableTransaction::Factory &factory;
 };
 
-class InMemoryExpenseAccount : public InMemoryAccount {
+class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using InMemoryAccount::InMemoryAccount;
+  void debit(const Transaction &) override;
+  void removeDebit(const Transaction &) override;
+  void verifyDebit(const Transaction &) override;
 };
 } // namespace sbash64::budget
 

@@ -239,20 +239,13 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
     assertEqual(result,
                 Transaction{123_cents, "ape", Date{2020, Month::June, 2}},
                 ape->initializedTransaction());
-    const auto gorilla{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        gorilla->initializedTransaction());
   });
 }
 } // namespace income
 
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionStub(factory)};
     debit(account,
