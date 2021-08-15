@@ -394,6 +394,7 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -415,6 +416,7 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
     assertFalse(result, bob->removesed());
   });
 }
+} // namespace income
 
 void savesLoadedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
