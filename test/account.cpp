@@ -768,7 +768,6 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
-    const auto reduction{addObservableTransactionStub(factory)};
     account.reduce();
     assertEqual(result, 2300_cents - 789_cents - 456_cents, account.balance());
   });
@@ -784,7 +783,6 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    const auto reduction{addObservableTransactionStub(factory)};
     account.reduce();
     assertEqual(result, -789_cents - 456_cents, account.balance());
   });
@@ -838,13 +836,29 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
-    addObservableTransactionStub(factory);
     account.reduce();
     assertTrue(result, gorilla->removed());
     assertTrue(result, chimpanzee->removed());
     assertTrue(result, orangutan->removed());
   });
 }
+
+namespace expense {
+void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto chimpanzee{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.reduce();
+    assertTrue(result, gorilla->removed());
+    assertTrue(result, chimpanzee->removed());
+  });
+}
+} // namespace expense
 
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
