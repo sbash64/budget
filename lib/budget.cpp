@@ -108,7 +108,7 @@ static auto makeAndLoad(Account::Factory &factory,
   return account;
 }
 
-BudgetInMemory::BudgetInMemory(Account &incomeAccount,
+BudgetInMemory::BudgetInMemory(IncomeAccount &incomeAccount,
                                Account::Factory &accountFactory)
     : accountFactory{accountFactory}, incomeAccount{incomeAccount} {}
 

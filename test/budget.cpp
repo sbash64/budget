@@ -19,7 +19,7 @@ public:
   void load(Observer &) override {}
 };
 
-class AccountStub : public Account {
+class AccountStub : public virtual Account, public IncomeAccount {
 public:
   void clear() override { cleared_ = true; }
 
