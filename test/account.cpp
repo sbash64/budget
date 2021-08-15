@@ -457,7 +457,9 @@ void observesDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account) {
     PersistentAccountStub persistence;
     account.load(persistence);
-    assertEqual(result, &account, persistence.observer());
+    assertEqual(result,
+                static_cast<AccountDeserialization::Observer *>(&account),
+                persistence.observer());
   });
 }
 
