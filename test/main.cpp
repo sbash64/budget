@@ -93,7 +93,7 @@ static auto runAllTests() -> int {
        {account::income::savesLoadedTransactions,
         "savesTransactionRecordsLoaded"},
        {account::savesNewName, "rename"},
-       {account::savesDuplicateTransactions,
+       {account::income::savesDuplicateTransactions,
         "savesDuplicateTransactionRecords"},
        {account::income::savesRemainingTransactionAfterRemovingVerified,
         "savesRemainingTransactionRecordsAfterRemovingVerified"},
