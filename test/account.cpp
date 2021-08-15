@@ -819,24 +819,18 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    const auto gorilla{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto chimpanzee{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     account.reduce();
-    assertTrue(result, gorilla->removed());
-    assertTrue(result, chimpanzee->removed());
     assertTrue(result, orangutan->removed());
   });
 }
+} // namespace income
 
 namespace expense {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
