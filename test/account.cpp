@@ -230,6 +230,7 @@ addObservableTransactionInMemory(ObservableTransactionFactoryStub &factory)
   return transaction;
 }
 
+namespace income {
 void initializesAddedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -247,6 +248,7 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
         gorilla->initializedTransaction());
   });
 }
+} // namespace income
 
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &result) {

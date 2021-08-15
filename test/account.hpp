@@ -11,7 +11,6 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
-void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
@@ -61,6 +60,9 @@ void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 } // namespace expense
+namespace income {
+void initializesAddedTransactions(testcpplite::TestResult &);
+}
 } // namespace sbash64::budget::account
 
 #endif
