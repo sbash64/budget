@@ -510,6 +510,28 @@ void savesRemainingTransactionAfterRemovingVerified(
   });
 }
 
+namespace expense {
+void savesRemainingTransactionAfterRemovingVerified(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{addObservableTransactionInMemory(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto chimpanzee{addObservableTransactionInMemory(factory)};
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.verifyDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {chimpanzee.get()});
+  });
+}
+} // namespace expense
+
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
