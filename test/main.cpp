@@ -89,7 +89,7 @@ static auto runAllTests() -> int {
        {account::income::initializesAddedTransactions,
         "initializesTransactionRecords"},
        {account::observesDeserialization, "passesSelfToDeserializationOnLoad"},
-       {account::hasTransactionsObserveDeserialization,
+       {account::income::hasTransactionsObserveDeserialization,
         "passesNewTransactionRecordsToDeserialization"},
        {account::income::savesLoadedTransactions,
         "savesTransactionRecordsLoaded"},
