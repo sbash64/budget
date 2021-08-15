@@ -631,6 +631,18 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto joe{addObservableTransactionStub(factory)};
+    TransactionDeserializationStub abel;
+    account.notifyThatDebitIsReady(abel);
+    assertEqual(result, joe.get(), abel.observer());
+  });
+}
+} // namespace expense
+
 void savesNewName(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account) {
