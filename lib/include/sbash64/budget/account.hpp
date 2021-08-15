@@ -36,7 +36,8 @@ public:
   class Factory : public ExpenseAccount::Factory {
   public:
     explicit Factory(ObservableTransaction::Factory &);
-    auto make(std::string_view name) -> std::shared_ptr<Account> override;
+    auto make(std::string_view name)
+        -> std::shared_ptr<ExpenseAccount> override;
 
   private:
     ObservableTransaction::Factory &transactionFactory;

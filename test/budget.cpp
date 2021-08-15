@@ -19,7 +19,9 @@ public:
   void load(Observer &) override {}
 };
 
-class AccountStub : public virtual Account, public IncomeAccount {
+class AccountStub : public virtual Account,
+                    public IncomeAccount,
+                    public ExpenseAccount {
 public:
   void clear() override { cleared_ = true; }
 
@@ -120,19 +122,19 @@ private:
 
 class AccountFactoryStub : public ExpenseAccount::Factory {
 public:
-  void add(std::shared_ptr<Account> account, std::string_view name) {
+  void add(std::shared_ptr<ExpenseAccount> account, std::string_view name) {
     accounts[std::string{name}] = std::move(account);
   }
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s) -> std::shared_ptr<Account> override {
+  auto make(std::string_view s) -> std::shared_ptr<ExpenseAccount> override {
     name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
   }
 
 private:
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>> accounts;
   std::string name_;
 };
 
@@ -164,7 +166,8 @@ private:
 };
 } // namespace
 
-static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
+static void add(AccountFactoryStub &factory,
+                std::shared_ptr<ExpenseAccount> account,
                 std::string_view accountName) {
   factory.add(std::move(account), accountName);
 }

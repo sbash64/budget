@@ -244,7 +244,7 @@ void InMemoryAccount::clear() {
 }
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
-    -> std::shared_ptr<Account> {
+    -> std::shared_ptr<ExpenseAccount> {
   return std::make_shared<InMemoryAccount>(std::string{name_},
                                            transactionFactory);
 }
