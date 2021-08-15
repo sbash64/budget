@@ -332,14 +332,13 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
 }
 } // namespace expense
 
+namespace income {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account,
                 ObservableTransactionFactoryStub &factory) {
         const auto john{addObservableTransactionStub(factory)};
         credit(account);
-        const auto mike{addObservableTransactionStub(factory)};
-        debit(account);
         const auto andy{addObservableTransactionStub(factory)};
         credit(account);
         account.deposit(1_cents);
@@ -348,10 +347,10 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
         assertAccountName(result, persistence, "joe");
         assertEqual(result, 1_cents, persistence.funds());
         assertCreditsSaved(result, persistence, {john.get(), andy.get()});
-        assertDebitsSaved(result, persistence, {mike.get()});
       },
       "joe");
 }
+} // namespace income
 
 namespace expense {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
