@@ -284,8 +284,9 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -294,6 +295,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
     assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
+} // namespace expense
 
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
