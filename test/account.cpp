@@ -952,6 +952,21 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    addObservableTransactionInMemory(factory);
+    debit(account, Transaction{2_cents, "a", Date{}});
+    account.deposit(4_cents);
+    account.reduce();
+    assertEqual(result, -2_cents + 4_cents, observer.funds());
+  });
+}
+} // namespace expense
+
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
