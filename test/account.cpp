@@ -564,29 +564,24 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    for (auto i{0}; i < 4; ++i)
-      factory.add(std::make_shared<ObservableTransactionInMemory>());
+    factory.add(std::make_shared<ObservableTransactionInMemory>());
+    factory.add(std::make_shared<ObservableTransactionInMemory>());
     AccountObserverStub observer;
     account.attach(&observer);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     credit(account,
            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.removeDebit(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertBalanceEquals(result, 123_cents + 111_cents - 789_cents, observer);
     account.removeCredit(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    assertBalanceEquals(result, 123_cents - 789_cents, observer);
+    assertBalanceEquals(result, 123_cents, observer);
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(

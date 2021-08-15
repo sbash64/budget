@@ -4,8 +4,6 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
-void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
-    testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
@@ -62,6 +60,8 @@ void savesLoadedTransactions(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
 void savesDuplicateTransactions(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
+    testcpplite::TestResult &);
 } // namespace income
 } // namespace sbash64::budget::account
 
