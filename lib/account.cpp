@@ -122,7 +122,7 @@ InMemoryAccount::InMemoryAccount(std::string name,
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
-void InMemoryAccount::credit(const Transaction &transaction) {
+void InMemoryIncomeAccount::credit(const Transaction &transaction) {
   addTransaction(creditRecords, factory, observer,
                  &Observer::notifyThatCreditHasBeenAdded, transaction, funds,
                  creditRecords, debitRecords);
@@ -134,7 +134,7 @@ void InMemoryExpenseAccount::debit(const Transaction &transaction) {
                  creditRecords, debitRecords);
 }
 
-void InMemoryAccount::removeCredit(const Transaction &transaction) {
+void InMemoryIncomeAccount::removeCredit(const Transaction &transaction) {
   removeTransaction(creditRecords, observer, transaction, funds, creditRecords,
                     debitRecords);
 }
@@ -144,7 +144,7 @@ void InMemoryExpenseAccount::removeDebit(const Transaction &transaction) {
                     debitRecords);
 }
 
-void InMemoryAccount::verifyCredit(const Transaction &transaction) {
+void InMemoryIncomeAccount::verifyCredit(const Transaction &transaction) {
   verify(transaction, creditRecords);
 }
 
