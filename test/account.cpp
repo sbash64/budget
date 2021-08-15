@@ -677,6 +677,31 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
   });
 }
 
+namespace expense {
+void notifiesObserverThatDuplicateTransactionsAreVerified(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla1{addObservableTransactionInMemory(factory)};
+    TransactionObserverStub gorilla1Observer;
+    gorilla1->attach(&gorilla1Observer);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto gorilla2{addObservableTransactionInMemory(factory)};
+    TransactionObserverStub gorilla2Observer;
+    gorilla2->attach(&gorilla2Observer);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.verifyDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.verifyDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertTrue(result, gorilla1Observer.verified());
+    assertTrue(result, gorilla2Observer.verified());
+  });
+}
+} // namespace expense
+
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {

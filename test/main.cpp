@@ -119,6 +119,9 @@ static auto runAllTests() -> int {
         "notifiesObserverOfUpdatedBalanceAfterRemovingTransactions"},
        {account::expense::hasTransactionsObserveDeserialization,
         "account::expense::hasTransactionsObserveDeserialization"},
+       {account::expense::notifiesObserverThatDuplicateTransactionsAreVerified,
+        "account::expense::"
+        "notifiesObserverThatDuplicateTransactionsAreVerified"},
        {account::notifiesObserverOfVerifiedCredit, "notifiesCreditIsVerified"},
        {account::notifiesObserverOfVerifiedDebit, "notifiesDebitIsVerified"},
        {account::notifiesObserverOfRemovedDebit,

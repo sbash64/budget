@@ -54,6 +54,8 @@ void savesDuplicateTransactions(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
+void notifiesObserverThatDuplicateTransactionsAreVerified(
+    testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 
