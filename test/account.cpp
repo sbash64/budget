@@ -711,6 +711,19 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
     assertTrue(result, observer.verified());
   });
 }
+
+void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto record{addObservableTransactionInMemory(factory)};
+    TransactionObserverStub observer;
+    record->attach(&observer);
+    account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.removeCredit(
+        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    assertTrue(result, observer.removed());
+  });
+}
 } // namespace income
 
 namespace expense {
@@ -740,19 +753,6 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
   });
 }
 } // namespace expense
-
-void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto record{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub observer;
-    record->attach(&observer);
-    account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.removeCredit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertTrue(result, observer.removed());
-  });
-}
 
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
