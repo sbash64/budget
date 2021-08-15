@@ -8,7 +8,9 @@
 #include <vector>
 
 namespace sbash64::budget {
-class InMemoryAccount : public virtual Account, public IncomeAccount {
+class InMemoryAccount : public virtual Account,
+                        public IncomeAccount,
+                        public ExpenseAccount {
 public:
   InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
