@@ -811,6 +811,21 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void clearsReducedTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    addObservableTransactionInMemory(factory);
+    debit(account,
+          Transaction{3_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.reduce();
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {});
+  });
+}
+} // namespace expense
+
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {

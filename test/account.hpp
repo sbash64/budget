@@ -55,6 +55,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &);
 void reducesTransactionsToFunds(testcpplite::TestResult &);
+void clearsReducedTransactions(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 
