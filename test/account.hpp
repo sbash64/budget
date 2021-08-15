@@ -46,6 +46,7 @@ void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
+void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

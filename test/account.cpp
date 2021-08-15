@@ -350,6 +350,24 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
       "joe");
 }
 
+namespace expense {
+void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryExpenseAccount &account,
+                ObservableTransactionFactoryStub &factory) {
+        const auto mike{addObservableTransactionStub(factory)};
+        debit(account);
+        account.deposit(1_cents);
+        PersistentAccountStub persistence;
+        account.save(persistence);
+        assertAccountName(result, persistence, "joe");
+        assertEqual(result, 1_cents, persistence.funds());
+        assertDebitsSaved(result, persistence, {mike.get()});
+      },
+      "joe");
+}
+} // namespace expense
+
 void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
