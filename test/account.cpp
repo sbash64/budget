@@ -301,6 +301,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -310,14 +311,12 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     addObservableTransactionStub(factory)->setAmount(3_cents);
     credit(account);
     assertBalanceEquals(result, 3_cents, observer);
-    addObservableTransactionStub(factory)->setAmount(5_cents);
-    debit(account);
-    assertBalanceEquals(result, 3_cents - 5_cents, observer);
     addObservableTransactionStub(factory)->setAmount(11_cents);
     credit(account);
-    assertBalanceEquals(result, 3_cents - 5_cents + 11_cents, observer);
+    assertBalanceEquals(result, 3_cents + 11_cents, observer);
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
