@@ -879,6 +879,21 @@ void returnsBalance(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void returnsBalance(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    addObservableTransactionInMemory(factory);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    addObservableTransactionInMemory(factory);
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    assertEqual(result, -789_cents - 456_cents, account.balance());
+  });
+}
+} // namespace expense
+
 void withdrawsFromFunds(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
