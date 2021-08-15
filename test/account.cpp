@@ -588,6 +588,26 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
   });
 }
 
+namespace expense {
+void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    factory.add(std::make_shared<ObservableTransactionInMemory>());
+    factory.add(std::make_shared<ObservableTransactionInMemory>());
+    AccountObserverStub observer;
+    account.attach(&observer);
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    debit(account,
+          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.removeDebit(
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertBalanceEquals(result, -789_cents, observer);
+  });
+}
+} // namespace expense
+
 void observesDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account) {
     PersistentAccountStub persistence;
