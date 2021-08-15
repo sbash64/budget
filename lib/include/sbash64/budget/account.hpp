@@ -54,6 +54,11 @@ public:
     ObservableTransaction::Factory &transactionFactory;
   };
 };
+
+class InMemoryIncomeAccount : public InMemoryAccount {
+public:
+  using InMemoryAccount::InMemoryAccount;
+};
 } // namespace sbash64::budget
 
 #endif
