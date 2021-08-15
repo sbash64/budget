@@ -472,6 +472,24 @@ void savesRemainingTransactionsAfterRemovingSome(
   });
 }
 
+namespace expense {
+void savesRemainingTransactionsAfterRemovingSome(
+    testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{addObservableTransactionStub(factory)};
+    debit(account);
+    const auto chimpanzee{addObservableTransactionStub(factory)};
+    debit(account);
+    gorilla->setRemoves();
+    account.removeDebit({});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {chimpanzee.get()});
+  });
+}
+} // namespace expense
+
 void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
