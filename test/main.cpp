@@ -95,7 +95,7 @@ static auto runAllTests() -> int {
        {account::savesNewName, "rename"},
        {account::savesDuplicateTransactions,
         "savesDuplicateTransactionRecords"},
-       {account::savesRemainingTransactionAfterRemovingVerified,
+       {account::income::savesRemainingTransactionAfterRemovingVerified,
         "savesRemainingTransactionRecordsAfterRemovingVerified"},
        {account::notifiesObserverThatDuplicateTransactionsAreVerified,
         "notifiesDuplicateTransactionsAreVerified"},

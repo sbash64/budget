@@ -486,25 +486,27 @@ void savesRemainingTransactionsAfterRemovingSome(
 }
 } // namespace expense
 
+namespace income {
 void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     const auto chimpanzee{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.verifyDebit(
+    credit(account,
+           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
+    account.verifyCredit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.removeDebit(
+    account.removeCredit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     PersistentAccountStub persistence;
     account.save(persistence);
-    assertDebitsSaved(result, persistence, {chimpanzee.get()});
+    assertCreditsSaved(result, persistence, {chimpanzee.get()});
   });
 }
+} // namespace income
 
 namespace expense {
 void savesRemainingTransactionAfterRemovingVerified(

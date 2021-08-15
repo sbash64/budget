@@ -10,7 +10,6 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
-void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
 void savesDuplicateTransactions(testcpplite::TestResult &);
@@ -62,6 +61,7 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &);
 void savesLoadedTransactions(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
+void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
 } // namespace income
 } // namespace sbash64::budget::account
 
