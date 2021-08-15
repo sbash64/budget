@@ -648,6 +648,7 @@ void savesNewName(testcpplite::TestResult &result) {
       "joe");
 }
 
+namespace income {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -655,21 +656,22 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla1Observer;
     gorilla1->attach(&gorilla1Observer);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     const auto gorilla2{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla2Observer;
     gorilla2->attach(&gorilla2Observer);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyDebit(
+    credit(account,
+           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    account.verifyCredit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyDebit(
+    account.verifyCredit(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertTrue(result, gorilla1Observer.verified());
     assertTrue(result, gorilla2Observer.verified());
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
