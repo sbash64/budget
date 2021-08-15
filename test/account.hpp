@@ -59,6 +59,7 @@ void clearsReducedTransactions(testcpplite::TestResult &);
 void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

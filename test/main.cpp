@@ -131,6 +131,8 @@ static auto runAllTests() -> int {
        {account::expense::returnsBalance, "account::expense::returnsBalance"},
        {account::expense::notifiesObserverOfUpdatedFundsOnReduce,
         "account::expense::notifiesObserverOfUpdatedFundsOnReduce"},
+       {account::expense::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
+        "account::expense::notifiesObserverOfUpdatedFundsAndBalanceOnClear"},
        {account::notifiesObserverOfVerifiedCredit, "notifiesCreditIsVerified"},
        {account::expense::notifiesObserverOfVerifiedDebit,
         "notifiesDebitIsVerified"},
