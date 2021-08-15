@@ -786,12 +786,10 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{3_cents, "gorilla", Date{2020, Month::January, 20}});
     addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{2_cents, "chimpanzee", Date{2020, Month::June, 1}});
@@ -801,10 +799,10 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
     account.reduce();
     PersistentAccountStub persistence;
     account.save(persistence);
-    assertDebitsSaved(result, persistence, {});
     assertCreditsSaved(result, persistence, {});
   });
 }
+} // namespace income
 
 namespace expense {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
