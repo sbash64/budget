@@ -547,6 +547,23 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void savesDuplicateTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla1{addObservableTransactionInMemory(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    const auto gorilla2{addObservableTransactionInMemory(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {gorilla1.get(), gorilla2.get()});
+  });
+}
+} // namespace expense
+
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,

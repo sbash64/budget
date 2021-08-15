@@ -50,6 +50,7 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &);
 void savesLoadedTransactions(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
+void savesDuplicateTransactions(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

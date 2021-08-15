@@ -111,6 +111,8 @@ static auto runAllTests() -> int {
         "account::expense::savesRemainingTransactionsAfterRemovingSome"},
        {account::expense::savesRemainingTransactionAfterRemovingVerified,
         "account::expense::savesRemainingTransactionAfterRemovingVerified"},
+       {account::expense::savesDuplicateTransactions,
+        "account::expense::savesDuplicateTransactions"},
        {account::notifiesObserverOfVerifiedCredit, "notifiesCreditIsVerified"},
        {account::notifiesObserverOfVerifiedDebit, "notifiesDebitIsVerified"},
        {account::notifiesObserverOfRemovedDebit,
