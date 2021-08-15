@@ -169,7 +169,6 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
-  virtual void debit(const Transaction &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void rename(std::string_view) = 0;
   virtual void verifyDebit(const Transaction &) = 0;
@@ -190,6 +189,8 @@ public:
 
 class ExpenseAccount : public virtual Account {
 public:
+  virtual void debit(const Transaction &) = 0;
+
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);

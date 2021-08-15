@@ -171,7 +171,7 @@ static void credit(IncomeAccount &account, const Transaction &t = {}) {
   account.credit(t);
 }
 
-static void debit(Account &account, const Transaction &t = {}) {
+static void debit(ExpenseAccount &account, const Transaction &t = {}) {
   account.debit(t);
 }
 
