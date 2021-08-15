@@ -450,28 +450,23 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto ape{addObservableTransactionStub(factory)};
     credit(account);
-    const auto gorilla{addObservableTransactionStub(factory)};
-    debit(account);
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account);
-    const auto chimpanzee{addObservableTransactionStub(factory)};
-    debit(account);
-    gorilla->setRemoves();
-    account.removeDebit({});
     orangutan->setRemoves();
     account.removeCredit({});
     PersistentAccountStub persistence;
     account.save(persistence);
     assertCreditsSaved(result, persistence, {ape.get()});
-    assertDebitsSaved(result, persistence, {chimpanzee.get()});
   });
 }
+} // namespace income
 
 namespace expense {
 void savesRemainingTransactionsAfterRemovingSome(

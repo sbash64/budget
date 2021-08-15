@@ -83,7 +83,7 @@ static auto runAllTests() -> int {
         "notifiesObserverOfUpdatedBalanceAfterRemovingTransactions"},
        {account::income::savesAllTransactionsAndAccountName,
         "savesAllTransactionRecordsAndAccountName"},
-       {account::savesRemainingTransactionsAfterRemovingSome,
+       {account::income::savesRemainingTransactionsAfterRemovingSome,
         "savesRemainingTransactionRecordsAfterRemovingSome"},
        {account::income::initializesAddedTransactions,
         "initializesTransactionRecords"},
