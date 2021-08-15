@@ -167,7 +167,7 @@ assertCreditsSaved(testcpplite::TestResult &result,
   assertEqual(result, persistence.credits(), transactions);
 }
 
-static void credit(Account &account, const Transaction &t = {}) {
+static void credit(IncomeAccount &account, const Transaction &t = {}) {
   account.credit(t);
 }
 

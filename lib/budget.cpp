@@ -8,7 +8,7 @@
 #include <string_view>
 
 namespace sbash64::budget {
-static void credit(Account &account, const Transaction &transaction) {
+static void credit(IncomeAccount &account, const Transaction &transaction) {
   account.credit(transaction);
 }
 

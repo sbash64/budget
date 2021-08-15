@@ -169,7 +169,6 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
-  virtual void credit(const Transaction &) = 0;
   virtual void debit(const Transaction &) = 0;
   virtual void removeDebit(const Transaction &) = 0;
   virtual void removeCredit(const Transaction &) = 0;
@@ -190,7 +189,10 @@ public:
   };
 };
 
-class IncomeAccount : public virtual Account {};
+class IncomeAccount : public virtual Account {
+public:
+  virtual void credit(const Transaction &) = 0;
+};
 
 class BudgetSerialization {
 public:
