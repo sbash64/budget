@@ -243,13 +243,13 @@ void InMemoryAccount::clear() {
   notifyUpdatedBalance(observer, funds, creditRecords, debitRecords);
 }
 
-auto InMemoryAccount::Factory::make(std::string_view name_)
+auto InMemoryExpenseAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<ExpenseAccount> {
   return std::make_shared<InMemoryExpenseAccount>(std::string{name_},
                                                   transactionFactory);
 }
 
-InMemoryAccount::Factory::Factory(
+InMemoryExpenseAccount::Factory::Factory(
     ObservableTransaction::Factory &transactionFactory)
     : transactionFactory{transactionFactory} {}
 } // namespace sbash64::budget

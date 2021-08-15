@@ -28,16 +28,6 @@ public:
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;
 
-  class Factory : public ExpenseAccount::Factory {
-  public:
-    explicit Factory(ObservableTransaction::Factory &);
-    auto make(std::string_view name)
-        -> std::shared_ptr<ExpenseAccount> override;
-
-  private:
-    ObservableTransaction::Factory &transactionFactory;
-  };
-
 protected:
   std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
   std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
@@ -53,6 +43,16 @@ public:
   void debit(const Transaction &) override;
   void removeDebit(const Transaction &) override;
   void verifyDebit(const Transaction &) override;
+
+  class Factory : public ExpenseAccount::Factory {
+  public:
+    explicit Factory(ObservableTransaction::Factory &);
+    auto make(std::string_view name)
+        -> std::shared_ptr<ExpenseAccount> override;
+
+  private:
+    ObservableTransaction::Factory &transactionFactory;
+  };
 };
 } // namespace sbash64::budget
 
