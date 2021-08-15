@@ -32,7 +32,7 @@ static void removeCredit(IncomeAccount &account,
   account.removeCredit(transaction);
 }
 
-static void removeDebit(const std::shared_ptr<Account> &account,
+static void removeDebit(const std::shared_ptr<ExpenseAccount> &account,
                         const Transaction &transaction) {
   account->removeDebit(transaction);
 }
