@@ -51,6 +51,11 @@ private:
   USD funds{};
   ObservableTransaction::Factory &factory;
 };
+
+class InMemoryExpenseAccount : public InMemoryAccount {
+public:
+  using InMemoryAccount::InMemoryAccount;
+};
 } // namespace sbash64::budget
 
 #endif

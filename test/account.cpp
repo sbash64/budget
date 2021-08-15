@@ -190,6 +190,17 @@ static void testInMemoryAccount(
   test(account, factory);
 }
 
+namespace expense {
+static void testInMemoryAccount(
+    const std::function<void(InMemoryExpenseAccount &,
+                             ObservableTransactionFactoryStub &)> &test,
+    std::string name = {}) {
+  ObservableTransactionFactoryStub factory;
+  InMemoryExpenseAccount account{std::move(name), factory};
+  test(account, factory);
+}
+} // namespace expense
+
 static void
 testInMemoryAccount(const std::function<void(InMemoryAccount &)> &test,
                     std::string name = {}) {
@@ -236,6 +247,21 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
         gorilla->initializedTransaction());
   });
 }
+
+namespace expense {
+void initializesAddedTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto gorilla{addObservableTransactionStub(factory)};
+    debit(account,
+          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    assertEqual(
+        result,
+        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
+        gorilla->initializedTransaction());
+  });
+}
+} // namespace expense
 
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testInMemoryAccount(
