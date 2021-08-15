@@ -121,7 +121,7 @@ static auto runAllTests() -> int {
         "reduceReducesToOneDebitForNegativeBalance"},
        {account::reducesToNoTransactionsForZeroBalance,
         "account reducesToNoTransactionsForZeroBalance"},
-       {account::attemptsToRemoveEachDebitUntilFound,
+       {account::expense::attemptsToRemoveEachDebitUntilFound,
         "attemptsToRemoveEachDebitUntilFound"},
        {account::attemptsToRemoveEachCreditUntilFound,
         "attemptsToRemoveEachCreditUntilFound"},

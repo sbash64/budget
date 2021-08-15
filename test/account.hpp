@@ -8,7 +8,6 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
-void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &);
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
@@ -47,6 +46,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
+void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &);
 } // namespace expense
 } // namespace sbash64::budget::account
 

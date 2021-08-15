@@ -368,8 +368,9 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace expense {
 void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
@@ -389,6 +390,7 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
     assertFalse(result, bob->removesed());
   });
 }
+} // namespace expense
 
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
