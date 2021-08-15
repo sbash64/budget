@@ -150,7 +150,7 @@ static auto runAllTests() -> int {
         "reduceReducesToOneTransaction"},
        {account::income::removesTransactionsWhenReducing,
         "notifiesObserverOfTransactionsWhenReducing"},
-       {account::returnsBalance, "returnsBalance"},
+       {account::income::returnsBalance, "returnsBalance"},
        {account::income::clearsReducedTransactions,
         "account reducesToNoTransactionsForZeroBalance"},
        {account::expense::attemptsToRemoveEachDebitUntilFound,

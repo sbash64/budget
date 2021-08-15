@@ -849,24 +849,19 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
 }
 } // namespace expense
 
+namespace income {
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    assertEqual(result, 123_cents + 111_cents - 789_cents - 456_cents,
-                account.balance());
+    assertEqual(result, 123_cents + 111_cents, account.balance());
   });
 }
+} // namespace income
 
 namespace expense {
 void returnsBalance(testcpplite::TestResult &result) {
