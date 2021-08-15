@@ -165,7 +165,7 @@ static auto runAllTests() -> int {
         "account notifiesObserverOfUpdatedFundsOnWithdraw"},
        {account::notifiesObserverOfRemoval,
         "account notifiesObserverOfRemoval"},
-       {account::notifiesObserverOfUpdatedFundsOnReduce,
+       {account::income::notifiesObserverOfUpdatedFundsOnReduce,
         "account notifiesObserverOfUpdatedFundsOnReduce"},
        {account::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
         "account notifiesObserverOfUpdatedFundsAndBalanceOnClear"},

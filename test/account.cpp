@@ -918,6 +918,7 @@ void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
       });
 }
 
+namespace income {
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -926,15 +927,13 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{1_cents, "a", Date{}});
     addObservableTransactionInMemory(factory);
-    debit(account, Transaction{2_cents, "a", Date{}});
-    addObservableTransactionInMemory(factory);
     credit(account, Transaction{3_cents, "a", Date{}});
     account.deposit(4_cents);
     account.reduce();
-    assertEqual(result, 1_cents - 2_cents + 3_cents + 4_cents,
-                observer.funds());
+    assertEqual(result, 1_cents + 3_cents + 4_cents, observer.funds());
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
