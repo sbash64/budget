@@ -275,6 +275,7 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
       });
 }
 
+namespace income {
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -285,6 +286,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
     assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
+} // namespace income
 
 namespace expense {
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {

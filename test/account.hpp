@@ -20,7 +20,6 @@ void savesRemainingTransactionAfterRemovingVerified(testcpplite::TestResult &);
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
 void savesDuplicateTransactions(testcpplite::TestResult &);
-void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
 void reducesTransactionsToFunds(testcpplite::TestResult &);
@@ -62,7 +61,8 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
 } // namespace expense
 namespace income {
 void initializesAddedTransactions(testcpplite::TestResult &);
-}
+void notifiesObserverOfNewCredit(testcpplite::TestResult &);
+} // namespace income
 } // namespace sbash64::budget::account
 
 #endif
