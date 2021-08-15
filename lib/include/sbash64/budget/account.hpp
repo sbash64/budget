@@ -33,7 +33,7 @@ public:
   void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;
 
-  class Factory : public Account::Factory {
+  class Factory : public ExpenseAccount::Factory {
   public:
     explicit Factory(ObservableTransaction::Factory &);
     auto make(std::string_view name) -> std::shared_ptr<Account> override;

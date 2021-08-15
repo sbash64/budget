@@ -59,7 +59,7 @@ static void notifyThatTotalBalanceHasChanged(
   });
 }
 
-static auto make(Account::Factory &accountFactory, std::string_view name,
+static auto make(ExpenseAccount::Factory &accountFactory, std::string_view name,
                  Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{accountFactory.make(name)};
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
@@ -76,7 +76,7 @@ contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 
 static void createNewAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
-    Account::Factory &accountFactory, std::string_view accountName,
+    ExpenseAccount::Factory &accountFactory, std::string_view accountName,
     Budget::Observer *observer) {
   if (!contains(accounts, accountName))
     accounts[std::string{accountName}] =
@@ -101,7 +101,7 @@ at(const std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
   return accounts.at(std::string{name});
 }
 
-static auto makeAndLoad(Account::Factory &factory,
+static auto makeAndLoad(ExpenseAccount::Factory &factory,
                         AccountDeserialization &deserialization,
                         std::string_view name, Budget::Observer *observer)
     -> std::shared_ptr<Account> {
@@ -111,7 +111,7 @@ static auto makeAndLoad(Account::Factory &factory,
 }
 
 BudgetInMemory::BudgetInMemory(IncomeAccount &incomeAccount,
-                               Account::Factory &accountFactory)
+                               ExpenseAccount::Factory &accountFactory)
     : accountFactory{accountFactory}, incomeAccount{incomeAccount} {}
 
 void BudgetInMemory::attach(Observer *a) { observer = a; }

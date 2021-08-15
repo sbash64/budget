@@ -118,7 +118,7 @@ private:
   bool reduced_{};
 };
 
-class AccountFactoryStub : public Account::Factory {
+class AccountFactoryStub : public ExpenseAccount::Factory {
 public:
   void add(std::shared_ptr<Account> account, std::string_view name) {
     accounts[std::string{name}] = std::move(account);

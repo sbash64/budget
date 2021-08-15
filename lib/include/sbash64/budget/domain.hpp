@@ -179,12 +179,6 @@ public:
   virtual void clear() = 0;
   virtual void withdraw(USD) = 0;
   virtual void deposit(USD) = 0;
-
-  class Factory {
-  public:
-    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
-    virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
-  };
 };
 
 class IncomeAccount : public virtual Account {
@@ -194,7 +188,14 @@ public:
   virtual void removeCredit(const Transaction &) = 0;
 };
 
-class ExpenseAccount : public virtual Account {};
+class ExpenseAccount : public virtual Account {
+public:
+  class Factory {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
+    virtual auto make(std::string_view name) -> std::shared_ptr<Account> = 0;
+  };
+};
 
 class BudgetSerialization {
 public:
