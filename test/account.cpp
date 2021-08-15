@@ -433,6 +433,22 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
   });
 }
 
+namespace expense {
+void savesLoadedTransactions(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    TransactionDeserializationStub deserialization;
+    const auto andy{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    const auto bob{addObservableTransactionStub(factory)};
+    account.notifyThatDebitIsReady(deserialization);
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {andy.get(), bob.get()});
+  });
+}
+} // namespace expense
+
 void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
