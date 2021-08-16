@@ -16,13 +16,10 @@ public:
   void withdraw(USD) override;
   void deposit(USD) override;
   void remove() override;
-  void save(AccountSerialization &) override;
   void load(AccountDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;
 
 protected:
-  std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
-  std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
   std::string name;
   Observer *observer{};
   USD funds{};
@@ -40,6 +37,7 @@ public:
   void remove(const Transaction &) override;
   auto balance() -> USD override;
   void notifyThatIsReady(TransactionDeserialization &) override;
+  void save(AccountSerialization &) override;
 
   class Factory : public ExpenseAccount::Factory {
   public:
@@ -50,6 +48,9 @@ public:
   private:
     ObservableTransaction::Factory &transactionFactory;
   };
+
+private:
+  std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
 };
 
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
@@ -63,6 +64,10 @@ public:
   void remove(const Transaction &) override;
   auto balance() -> USD override;
   void notifyThatIsReady(TransactionDeserialization &) override;
+  void save(AccountSerialization &) override;
+
+private:
+  std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
 };
 } // namespace sbash64::budget
 
