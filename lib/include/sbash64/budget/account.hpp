@@ -50,7 +50,7 @@ public:
   };
 
 private:
-  std::vector<std::shared_ptr<ObservableTransaction>> debitRecords;
+  std::vector<std::shared_ptr<ObservableTransaction>> transactions;
 };
 
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
@@ -67,7 +67,7 @@ public:
   void save(AccountSerialization &) override;
 
 private:
-  std::vector<std::shared_ptr<ObservableTransaction>> creditRecords;
+  std::vector<std::shared_ptr<ObservableTransaction>> transactions;
 };
 } // namespace sbash64::budget
 

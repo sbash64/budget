@@ -114,16 +114,6 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
   return std::make_shared<WritesAccountToStream>(stream_, factory);
 }
 
-static void save(std::ostream &stream, std::string_view name,
-                 const std::vector<SerializableTransaction *> &transactions,
-                 TransactionToStreamFactory &factory) {
-  stream << name;
-  for (const auto &transaction : transactions) {
-    putNewLine(stream);
-    transaction->save(*factory.make(stream));
-  }
-}
-
 static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
   stream << amount.cents / 100;
   const auto leftoverCents{amount.cents % 100};
