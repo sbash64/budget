@@ -110,16 +110,12 @@ public:
 
   void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
 
-  void notifyThatCreditHasBeenAdded(ObservableTransaction &tr) override {
+  void notifyThatHasBeenAdded(ObservableTransaction &tr) override {
     newTransactionRecord_ = &tr;
   }
 
   auto newTransactionRecord() -> const ObservableTransaction * {
     return newTransactionRecord_;
-  }
-
-  void notifyThatDebitHasBeenAdded(ObservableTransaction &tr) override {
-    newTransactionRecord_ = &tr;
   }
 
   void notifyThatWillBeRemoved() override { willBeRemoved_ = true; }

@@ -21,14 +21,6 @@ balance(const std::vector<std::shared_ptr<ObservableTransaction>> &transactions)
       });
 }
 
-static auto
-balance(USD funds,
-        const std::vector<std::shared_ptr<ObservableTransaction>> &credits,
-        const std::vector<std::shared_ptr<ObservableTransaction>> &debits)
-    -> USD {
-  return funds + balance(credits) - balance(debits);
-}
-
 static void verify(
     const Transaction &t,
     std::vector<std::shared_ptr<ObservableTransaction>> &transactionRecords) {
@@ -38,32 +30,28 @@ static void verify(
 }
 
 static auto make(ObservableTransaction::Factory &factory,
-                 Account::Observer *observer,
-                 void (Account::Observer::*notify)(ObservableTransaction &))
+                 Account::Observer *observer)
     -> std::shared_ptr<ObservableTransaction> {
   auto transactionRecord{factory.make()};
   callIfObserverExists(observer, [&](Account::Observer *observer_) {
-    (observer_->*notify)(*transactionRecord);
+    observer_->notifyThatHasBeenAdded(*transactionRecord);
   });
   return transactionRecord;
 }
 
 static auto make(ObservableTransaction::Factory &factory,
-                 Account::Observer *observer,
-                 void (Account::Observer::*notify)(ObservableTransaction &),
-                 const Transaction &t)
+                 Account::Observer *observer, const Transaction &t)
     -> std::shared_ptr<ObservableTransaction> {
-  auto transactionRecord{make(factory, observer, notify)};
+  auto transactionRecord{make(factory, observer)};
   transactionRecord->initialize(t);
   return transactionRecord;
 }
 
 static auto make(ObservableTransaction::Factory &factory,
                  Account::Observer *observer,
-                 void (Account::Observer::*notify)(ObservableTransaction &),
                  TransactionDeserialization &deserialization)
     -> std::shared_ptr<ObservableTransaction> {
-  auto transactionRecord{make(factory, observer, notify)};
+  auto transactionRecord{make(factory, observer)};
   deserialization.load(*transactionRecord);
   return transactionRecord;
 }
@@ -78,10 +66,8 @@ static void notifyUpdatedBalance(Account &account,
 static void
 addTransaction(std::vector<std::shared_ptr<ObservableTransaction>> &records,
                ObservableTransaction::Factory &factory, Account &account,
-               Account::Observer *observer,
-               void (Account::Observer::*notify)(ObservableTransaction &),
-               const Transaction &transaction) {
-  records.push_back(make(factory, observer, notify, transaction));
+               Account::Observer *observer, const Transaction &transaction) {
+  records.push_back(make(factory, observer, transaction));
   notifyUpdatedBalance(account, observer);
 }
 
@@ -89,9 +75,8 @@ static void
 addTransaction(std::vector<std::shared_ptr<ObservableTransaction>> &records,
                ObservableTransaction::Factory &factory, Account &account,
                Account::Observer *observer,
-               void (Account::Observer::*notify)(ObservableTransaction &),
                TransactionDeserialization &deserialization) {
-  records.push_back(make(factory, observer, notify, deserialization));
+  records.push_back(make(factory, observer, deserialization));
   notifyUpdatedBalance(account, observer);
 }
 
@@ -117,13 +102,11 @@ InMemoryAccount::InMemoryAccount(std::string name,
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
 void InMemoryIncomeAccount::add(const Transaction &transaction) {
-  addTransaction(creditRecords, factory, *this, observer,
-                 &Observer::notifyThatCreditHasBeenAdded, transaction);
+  addTransaction(creditRecords, factory, *this, observer, transaction);
 }
 
 void InMemoryExpenseAccount::add(const Transaction &transaction) {
-  addTransaction(debitRecords, factory, *this, observer,
-                 &Observer::notifyThatDebitHasBeenAdded, transaction);
+  addTransaction(debitRecords, factory, *this, observer, transaction);
 }
 
 void InMemoryIncomeAccount::remove(const Transaction &transaction) {
@@ -165,14 +148,12 @@ void InMemoryAccount::load(AccountDeserialization &deserialization) {
 
 void InMemoryAccount::notifyThatCreditIsReady(
     TransactionDeserialization &deserialization) {
-  addTransaction(creditRecords, factory, *this, observer,
-                 &Observer::notifyThatCreditHasBeenAdded, deserialization);
+  addTransaction(creditRecords, factory, *this, observer, deserialization);
 }
 
 void InMemoryAccount::notifyThatDebitIsReady(
     TransactionDeserialization &deserialization) {
-  addTransaction(debitRecords, factory, *this, observer,
-                 &Observer::notifyThatDebitHasBeenAdded, deserialization);
+  addTransaction(debitRecords, factory, *this, observer, deserialization);
 }
 
 static void notifyUpdatedFunds(Account::Observer *observer, USD funds) {

@@ -163,8 +163,7 @@ public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
     virtual void notifyThatFundsHaveChanged(USD) = 0;
-    virtual void notifyThatCreditHasBeenAdded(ObservableTransaction &) = 0;
-    virtual void notifyThatDebitHasBeenAdded(ObservableTransaction &) = 0;
+    virtual void notifyThatHasBeenAdded(ObservableTransaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };
 
