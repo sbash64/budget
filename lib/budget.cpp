@@ -8,30 +8,30 @@
 #include <string_view>
 
 namespace sbash64::budget {
-static void credit(Account &account, const Transaction &transaction) {
+static void add(Account &account, const Transaction &transaction) {
   account.add(transaction);
 }
 
-static void debit(const std::shared_ptr<Account> &account,
-                  const Transaction &transaction) {
+static void add(const std::shared_ptr<Account> &account,
+                const Transaction &transaction) {
   account->add(transaction);
 }
 
-static void verifyCredit(Account &account, const Transaction &transaction) {
+static void verify(Account &account, const Transaction &transaction) {
   account.verify(transaction);
 }
 
-static void verifyDebit(const std::shared_ptr<Account> &account,
-                        const Transaction &transaction) {
+static void verify(const std::shared_ptr<Account> &account,
+                   const Transaction &transaction) {
   account->verify(transaction);
 }
 
-static void removeCredit(Account &account, const Transaction &transaction) {
+static void remove(Account &account, const Transaction &transaction) {
   account.remove(transaction);
 }
 
-static void removeDebit(const std::shared_ptr<Account> &account,
-                        const Transaction &transaction) {
+static void remove(const std::shared_ptr<Account> &account,
+                   const Transaction &transaction) {
   account->remove(transaction);
 }
 
@@ -115,7 +115,7 @@ BudgetInMemory::BudgetInMemory(Account &incomeAccount,
 void BudgetInMemory::attach(Observer *a) { observer = a; }
 
 void BudgetInMemory::credit(const Transaction &transaction) {
-  budget::credit(incomeAccount, transaction);
+  budget::add(incomeAccount, transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
@@ -123,30 +123,30 @@ void BudgetInMemory::debit(std::string_view accountName,
                            const Transaction &transaction) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
-  budget::debit(at(expenseAccounts, accountName), transaction);
+  budget::add(at(expenseAccounts, accountName), transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::removeCredit(const Transaction &transaction) {
-  budget::removeCredit(incomeAccount, transaction);
+  budget::remove(incomeAccount, transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
 void BudgetInMemory::removeDebit(std::string_view accountName,
                                  const Transaction &transaction) {
   if (contains(expenseAccounts, accountName)) {
-    budget::removeDebit(at(expenseAccounts, accountName), transaction);
+    budget::remove(at(expenseAccounts, accountName), transaction);
     notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
   }
 }
 
 void BudgetInMemory::verifyCredit(const Transaction &transaction) {
-  budget::verifyCredit(incomeAccount, transaction);
+  budget::verify(incomeAccount, transaction);
 }
 
 void BudgetInMemory::verifyDebit(std::string_view accountName,
                                  const Transaction &transaction) {
-  budget::verifyDebit(at(expenseAccounts, accountName), transaction);
+  budget::verify(at(expenseAccounts, accountName), transaction);
 }
 
 template <std::size_t N>
