@@ -176,6 +176,9 @@ public:
   virtual void clear() = 0;
   virtual void withdraw(USD) = 0;
   virtual void deposit(USD) = 0;
+
+protected:
+  virtual auto positive() -> bool = 0;
 };
 
 class IncomeAccount : public virtual Account {};

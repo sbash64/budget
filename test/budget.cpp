@@ -94,6 +94,8 @@ public:
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
 
+  auto positive() -> bool override { return true; }
+
 private:
   Transaction creditedTransaction_;
   Transaction removedCredit_;
@@ -120,6 +122,8 @@ public:
   auto removedDebit() -> Transaction { return removedDebit_; }
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
+
+  auto positive() -> bool override { return false; }
 
 private:
   Transaction debitToVerify_;

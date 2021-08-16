@@ -161,12 +161,9 @@ void InMemoryAccount::reduce() {
   budget::clear(transactions);
 }
 
-auto InMemoryExpenseAccount::balance() -> USD {
-  return funds - budget::balance(transactions);
-}
-
-auto InMemoryIncomeAccount::balance() -> USD {
-  return funds + budget::balance(transactions);
+auto InMemoryAccount::balance() -> USD {
+  return funds + (positive() ? budget::balance(transactions)
+                             : -budget::balance(transactions));
 }
 
 void InMemoryAccount::withdraw(USD usd) {

@@ -25,6 +25,7 @@ public:
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
+  auto balance() -> USD override;
 
 protected:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
@@ -38,7 +39,7 @@ class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
-  auto balance() -> USD override;
+  auto positive() -> bool override { return false; }
 
   class Factory : public ExpenseAccount::Factory {
   public:
@@ -57,7 +58,7 @@ class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
-  auto balance() -> USD override;
+  auto positive() -> bool override { return true; }
 };
 } // namespace sbash64::budget
 
