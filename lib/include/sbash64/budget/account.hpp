@@ -37,7 +37,6 @@ private:
 
 class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
-  using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   auto positive() -> bool override { return false; }
 
@@ -56,7 +55,6 @@ private:
 
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
-  using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   auto positive() -> bool override { return true; }
 };
