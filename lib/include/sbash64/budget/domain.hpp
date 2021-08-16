@@ -169,6 +169,9 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
+  virtual void add(const Transaction &) {}
+  virtual void verify(const Transaction &) {}
+  virtual void remove(const Transaction &) {}
   virtual void rename(std::string_view) = 0;
   virtual void reduce() = 0;
   virtual auto balance() -> USD = 0;
@@ -178,21 +181,10 @@ public:
   virtual void deposit(USD) = 0;
 };
 
-class IncomeAccount : public virtual Account {
-public:
-  virtual void add(const Transaction &) = 0;
-  virtual void verify(const Transaction &) = 0;
-  virtual void remove(const Transaction &) = 0;
-  using Account::remove;
-};
+class IncomeAccount : public virtual Account {};
 
 class ExpenseAccount : public virtual Account {
 public:
-  virtual void add(const Transaction &) = 0;
-  virtual void verify(const Transaction &) = 0;
-  virtual void remove(const Transaction &) = 0;
-  using Account::remove;
-
   class Factory {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Factory);
