@@ -138,13 +138,15 @@ static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
 
 void WritesAccountToStream::save(
     std::string_view name, USD funds,
-    const std::vector<SerializableTransaction *> &credits,
-    const std::vector<SerializableTransaction *> &debits) {
+    const std::vector<SerializableTransaction *> &transactions) {
   putNewLine(stream << name);
   putNewLine(stream << "funds " << funds);
-  budget::save(stream, "credits", credits, factory);
-  putNewLine(stream);
-  budget::save(stream, "debits", debits, factory);
+  putNewLine(stream << "credits");
+  stream << "debits";
+  for (const auto &transaction : transactions) {
+    putNewLine(stream);
+    transaction->save(*factory.make(stream));
+  }
 }
 
 ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)

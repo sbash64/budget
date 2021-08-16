@@ -50,8 +50,7 @@ private:
 class AccountSerializationStub : public AccountSerialization {
 public:
   void save(std::string_view name, USD funds,
-            const std::vector<SerializableTransaction *> &credits,
-            const std::vector<SerializableTransaction *> &debits) override {}
+            const std::vector<SerializableTransaction *> &) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -222,14 +221,13 @@ void fromAccount(testcpplite::TestResult &result) {
   SavesNameTransaction sue{stream, "sue"};
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
-  accountSerialization.save("jeff", 1234_cents, {&steve, &sue},
-                            {&allen, &john});
+  accountSerialization.save("jeff", 1234_cents, {&steve, &sue, &allen, &john});
   assertEqual(result, R"(jeff
 funds 12.34
 credits
+debits
 steve
 sue
-debits
 allen
 john)",
               stream.str());

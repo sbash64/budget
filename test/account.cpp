@@ -153,14 +153,14 @@ static void
 assertDebitsSaved(testcpplite::TestResult &result,
                   PersistentAccountStub &persistence,
                   const std::vector<SerializableTransaction *> &transactions) {
-  assertEqual(result, persistence.debits(), transactions);
+  assertEqual(result, persistence.transactions(), transactions);
 }
 
 static void
 assertCreditsSaved(testcpplite::TestResult &result,
                    PersistentAccountStub &persistence,
                    const std::vector<SerializableTransaction *> &transactions) {
-  assertEqual(result, persistence.credits(), transactions);
+  assertEqual(result, persistence.transactions(), transactions);
 }
 
 static void credit(IncomeAccount &account, const Transaction &t = {}) {

@@ -58,18 +58,17 @@ class PersistentAccountStub : public AccountDeserialization,
 public:
   auto accountName() -> std::string { return accountName_; }
 
-  void save(std::string_view name, USD funds,
-            const std::vector<SerializableTransaction *> &credits,
-            const std::vector<SerializableTransaction *> &debits) override {
+  void
+  save(std::string_view name, USD funds,
+       const std::vector<SerializableTransaction *> &transactions) override {
     accountName_ = name;
     funds_ = funds;
-    credits_ = credits;
-    debits_ = debits;
+    transactions_ = transactions;
   }
 
-  auto credits() -> std::vector<SerializableTransaction *> { return credits_; }
-
-  auto debits() -> std::vector<SerializableTransaction *> { return debits_; }
+  auto transactions() -> std::vector<SerializableTransaction *> {
+    return transactions_;
+  }
 
   auto funds() -> USD { return funds_; }
 
@@ -89,8 +88,7 @@ private:
   std::vector<VerifiableTransaction> creditsToLoad;
   std::vector<VerifiableTransaction> debitsToLoad;
   std::string accountName_;
-  std::vector<SerializableTransaction *> credits_;
-  std::vector<SerializableTransaction *> debits_;
+  std::vector<SerializableTransaction *> transactions_;
   USD funds_{};
   const Observer *observer_{};
 };

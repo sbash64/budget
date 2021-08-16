@@ -138,11 +138,11 @@ collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
 void InMemoryAccount::rename(std::string_view to) { name = to; }
 
 void InMemoryExpenseAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, funds, {}, collect(debitRecords));
+  serialization.save(name, funds, collect(debitRecords));
 }
 
 void InMemoryIncomeAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, funds, collect(creditRecords), {});
+  serialization.save(name, funds, collect(creditRecords));
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
