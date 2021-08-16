@@ -71,7 +71,7 @@ static auto make(ObservableTransaction::Factory &factory,
 static void notifyUpdatedBalance(Account &account, Account::Observer *observer,
                                  USD funds) {
   callIfObserverExists(observer, [&](InMemoryAccount::Observer *observer_) {
-    observer_->notifyThatBalanceHasChanged(funds + account.balance());
+    observer_->notifyThatBalanceHasChanged(account.balance());
   });
 }
 

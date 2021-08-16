@@ -7,12 +7,8 @@ namespace sbash64::budget::account {
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
-void withdrawsFromFunds(testcpplite::TestResult &);
-void depositsToFunds(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &);
-void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
-    testcpplite::TestResult &);
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
@@ -37,6 +33,10 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
+    testcpplite::TestResult &);
+void withdrawsFromFunds(testcpplite::TestResult &);
+void depositsToFunds(testcpplite::TestResult &);
 } // namespace expense
 namespace income {
 void initializesAddedTransactions(testcpplite::TestResult &);
@@ -62,6 +62,10 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
+    testcpplite::TestResult &);
+void withdrawsFromFunds(testcpplite::TestResult &);
+void depositsToFunds(testcpplite::TestResult &);
 } // namespace income
 } // namespace sbash64::budget::account
 
