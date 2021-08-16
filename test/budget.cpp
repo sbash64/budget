@@ -102,7 +102,7 @@ private:
   bool reduced_{};
 };
 
-class IncomeAccountStub : public AccountStub, public IncomeAccount {};
+class IncomeAccountStub : public AccountStub {};
 
 class ExpenseAccountStub : public AccountStub {};
 

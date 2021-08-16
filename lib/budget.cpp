@@ -8,7 +8,7 @@
 #include <string_view>
 
 namespace sbash64::budget {
-static void credit(IncomeAccount &account, const Transaction &transaction) {
+static void credit(Account &account, const Transaction &transaction) {
   account.add(transaction);
 }
 
@@ -17,8 +17,7 @@ static void debit(const std::shared_ptr<Account> &account,
   account->add(transaction);
 }
 
-static void verifyCredit(IncomeAccount &account,
-                         const Transaction &transaction) {
+static void verifyCredit(Account &account, const Transaction &transaction) {
   account.verify(transaction);
 }
 
@@ -27,8 +26,7 @@ static void verifyDebit(const std::shared_ptr<Account> &account,
   account->verify(transaction);
 }
 
-static void removeCredit(IncomeAccount &account,
-                         const Transaction &transaction) {
+static void removeCredit(Account &account, const Transaction &transaction) {
   account.remove(transaction);
 }
 
@@ -110,7 +108,7 @@ static auto makeAndLoad(Account::Factory &factory,
   return account;
 }
 
-BudgetInMemory::BudgetInMemory(IncomeAccount &incomeAccount,
+BudgetInMemory::BudgetInMemory(Account &incomeAccount,
                                Account::Factory &accountFactory)
     : accountFactory{accountFactory}, incomeAccount{incomeAccount} {}
 
