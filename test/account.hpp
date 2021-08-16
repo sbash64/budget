@@ -4,12 +4,12 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::account {
+namespace expense {
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &);
-namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewDebit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
@@ -39,6 +39,11 @@ void withdrawsFromFunds(testcpplite::TestResult &);
 void depositsToFunds(testcpplite::TestResult &);
 } // namespace expense
 namespace income {
+void notifiesObserverOfRemoval(testcpplite::TestResult &);
+void observesDeserialization(testcpplite::TestResult &);
+void savesNewName(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &);
 void initializesAddedTransactions(testcpplite::TestResult &);
 void notifiesObserverOfNewCredit(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(

@@ -267,19 +267,29 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
         gorilla->initializedTransaction());
   });
 }
-} // namespace expense
 
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.remove();
-        assertTrue(result, observer.willBeRemoved());
-      });
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.remove();
+    assertTrue(result, observer.willBeRemoved());
+  });
 }
+} // namespace expense
 
 namespace income {
+void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.remove();
+    assertTrue(result, observer.willBeRemoved());
+  });
+}
+
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryIncomeAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -606,10 +616,23 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     assertBalanceEquals(result, -789_cents, observer);
   });
 }
-} // namespace expense
 
 void observesDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    PersistentAccountStub persistence;
+    account.load(persistence);
+    assertEqual(result,
+                static_cast<AccountDeserialization::Observer *>(&account),
+                persistence.observer());
+  });
+}
+} // namespace expense
+
+namespace income {
+void observesDeserialization(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+                                ObservableTransactionFactoryStub &) {
     PersistentAccountStub persistence;
     account.load(persistence);
     assertEqual(result,
@@ -618,7 +641,6 @@ void observesDeserialization(testcpplite::TestResult &result) {
   });
 }
 
-namespace income {
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryIncomeAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -640,11 +662,25 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
     assertEqual(result, joe.get(), abel.observer());
   });
 }
-} // namespace expense
 
 void savesNewName(testcpplite::TestResult &result) {
   testInMemoryAccount(
-      [&result](InMemoryAccount &account) {
+      [&result](InMemoryExpenseAccount &account,
+                ObservableTransactionFactoryStub &) {
+        account.rename("mike");
+        PersistentAccountStub persistence;
+        account.save(persistence);
+        assertAccountName(result, persistence, "mike");
+      },
+      "joe");
+}
+} // namespace expense
+
+namespace income {
+void savesNewName(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](InMemoryIncomeAccount &account,
+                ObservableTransactionFactoryStub &) {
         account.rename("mike");
         PersistentAccountStub persistence;
         account.save(persistence);
@@ -653,7 +689,6 @@ void savesNewName(testcpplite::TestResult &result) {
       "joe");
 }
 
-namespace income {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryIncomeAccount &account,
@@ -921,27 +956,49 @@ void depositsToFunds(testcpplite::TestResult &result) {
     assertEqual(result, 12_cents, observer.balance());
   });
 }
-} // namespace income
 
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.deposit(12_cents);
-        assertEqual(result, 12_cents, observer.funds());
-      });
+  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.deposit(12_cents);
+    assertEqual(result, 12_cents, observer.funds());
+  });
 }
 
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.withdraw(12_cents);
-        assertEqual(result, -12_cents, observer.funds());
-      });
+  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.withdraw(12_cents);
+    assertEqual(result, -12_cents, observer.funds());
+  });
 }
+} // namespace income
+
+namespace expense {
+void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.deposit(12_cents);
+    assertEqual(result, 12_cents, observer.funds());
+  });
+}
+
+void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+                                ObservableTransactionFactoryStub &) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    account.withdraw(12_cents);
+    assertEqual(result, -12_cents, observer.funds());
+  });
+}
+} // namespace expense
 
 namespace income {
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {

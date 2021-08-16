@@ -35,6 +35,7 @@ protected:
 
 class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
+  using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
@@ -54,6 +55,7 @@ public:
 
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
+  using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
