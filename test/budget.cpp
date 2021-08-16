@@ -102,10 +102,6 @@ private:
   bool reduced_{};
 };
 
-class IncomeAccountStub : public AccountStub {};
-
-class ExpenseAccountStub : public AccountStub {};
-
 class AccountFactoryStub : public Account::Factory {
 public:
   void add(std::shared_ptr<Account> account, std::string_view name) {
@@ -178,10 +174,9 @@ static auto createAccountStub(Budget &budget, AccountFactoryStub &factory,
 
 static void testBudgetInMemory(
     const std::function<void(AccountFactoryStub &factory,
-                             IncomeAccountStub &masterAccount, Budget &budget)>
-        &f) {
+                             AccountStub &masterAccount, Budget &budget)> &f) {
   AccountFactoryStub factory;
-  IncomeAccountStub masterAccount;
+  AccountStub masterAccount;
   BudgetInMemory budget{masterAccount, factory};
   f(factory, masterAccount, budget);
 }
@@ -225,13 +220,12 @@ static void assertDebited(testcpplite::TestResult &result,
 }
 
 static void assertCredited(testcpplite::TestResult &result,
-                           IncomeAccountStub &account, const Transaction &t) {
+                           AccountStub &account, const Transaction &t) {
   assertEqual(result, t, account.addedTransaction());
 }
 
 static void assertCreditRemoved(testcpplite::TestResult &result,
-                                IncomeAccountStub &account,
-                                const Transaction &t) {
+                                AccountStub &account, const Transaction &t) {
   assertEqual(result, t, account.removedTransaction());
 }
 
@@ -242,8 +236,7 @@ static void assertDebitRemoved(testcpplite::TestResult &result,
 }
 
 void creditsMasterAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &,
-                               IncomeAccountStub &masterAccount,
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
     credit(budget,
            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
@@ -254,36 +247,35 @@ void creditsMasterAccount(testcpplite::TestResult &result) {
 }
 
 void debitsNonexistentAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto account{addAccountStub(factory, "giraffe")};
-    debit(budget, "giraffe",
-          Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-    assertDebited(
-        result, account,
-        Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto account{addAccountStub(factory, "giraffe")};
+        debit(budget, "giraffe",
+              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+        assertDebited(
+            result, account,
+            Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+      });
 }
 
 void debitsExistingAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto account{addAccountStub(factory, "giraffe")};
-    debit(budget, "giraffe",
-          Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-    add(factory, nullptr, "giraffe");
-    debit(budget, "giraffe",
-          Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertDebited(
-        result, account,
-        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto account{addAccountStub(factory, "giraffe")};
+        debit(budget, "giraffe",
+              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+        add(factory, nullptr, "giraffe");
+        debit(budget, "giraffe",
+              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+        assertDebited(
+            result, account,
+            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+      });
 }
 
 void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto account{addAccountStub(factory, "giraffe")};
     budget.transferTo("giraffe", 456_cents);
     assertEqual(result, 456_cents, masterAccount.withdrawn());
@@ -293,8 +285,7 @@ void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
 
 void savesAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
@@ -318,8 +309,7 @@ static void assertDeserializes(
 
 void loadsAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto penguin{addAccountStub(factory, "penguin")};
     const auto leopard{addAccountStub(factory, "leopard")};
 
@@ -348,8 +338,7 @@ void loadsAccounts(testcpplite::TestResult &result) {
 
 void clearsOldAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto penguin{addAccountStub(factory, "penguin")};
     const auto leopard{addAccountStub(factory, "leopard")};
 
@@ -388,30 +377,29 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
 }
 
 void removesDebit(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto account{createAccountStub(budget, factory, "giraffe")};
-    budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                              Date{2013, Month::April, 3}});
-    assertDebitRemoved(
-        result, account,
-        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto account{createAccountStub(budget, factory, "giraffe")};
+        budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                                  Date{2013, Month::April, 3}});
+        assertDebitRemoved(
+            result, account,
+            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+      });
 }
 
 void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto account{addAccountStub(factory, "giraffe")};
-    budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                              Date{2013, Month::April, 3}});
-    assertFalse(result, account->transactionRemoved());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto account{addAccountStub(factory, "giraffe")};
+        budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
+                                                  Date{2013, Month::April, 3}});
+        assertFalse(result, account->transactionRemoved());
+      });
 }
 
 void removesCredit(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &,
-                               IncomeAccountStub &masterAccount,
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
     budget.removeCredit(
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
@@ -422,16 +410,16 @@ void removesCredit(testcpplite::TestResult &result) {
 }
 
 void renamesAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.renameAccount("giraffe", "zebra");
-    assertEqual(result, "zebra", giraffe->newName());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.renameAccount("giraffe", "zebra");
+        assertEqual(result, "zebra", giraffe->newName());
+      });
 }
 
 void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     budget.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
@@ -441,8 +429,7 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
 }
 
 void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &,
-                               IncomeAccountStub &masterAccount,
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
     budget.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
@@ -451,16 +438,16 @@ void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto account{addAccountStub(factory, "giraffe")};
-    AccountDeserializationStub deserialization;
-    budget.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
-    assertEqual(result, "giraffe", observer.newAccountName());
-    assertEqual(result, account.get(), observer.newAccount());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto account{addAccountStub(factory, "giraffe")};
+        AccountDeserializationStub deserialization;
+        budget.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
+        assertEqual(result, "giraffe", observer.newAccountName());
+        assertEqual(result, account.get(), observer.newAccount());
+      });
 }
 
 static void assertReduced(testcpplite::TestResult &result,
@@ -470,8 +457,7 @@ static void assertReduced(testcpplite::TestResult &result,
 
 void reducesEachAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
@@ -486,8 +472,7 @@ void reducesEachAccount(testcpplite::TestResult &result) {
 void notifiesThatTotalBalanceHasChangedOnCredit(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
@@ -506,8 +491,7 @@ void notifiesThatTotalBalanceHasChangedOnCredit(
 void notifiesThatTotalBalanceHasChangedOnDebit(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
@@ -526,8 +510,7 @@ void notifiesThatTotalBalanceHasChangedOnDebit(
 void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
@@ -545,8 +528,7 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
 
 void removesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
@@ -561,30 +543,29 @@ void removesAccount(testcpplite::TestResult &result) {
 }
 
 void createsAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    createAccount(budget, "panda");
-    assertEqual(result, "panda", factory.name());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        createAccount(budget, "panda");
+        assertEqual(result, "panda", factory.name());
+      });
 }
 
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, IncomeAccountStub &,
-                               Budget &budget) {
-    const auto giraffe1{createAccountStub(budget, factory, "giraffe")};
-    createAccount(budget, "giraffe");
-    const auto giraffe2{createAccountStub(budget, factory, "giraffe")};
-    createAccount(budget, "giraffe");
-    PersistentMemoryStub persistence;
-    budget.save(persistence);
-    assertEqual(result, {giraffe1.get()}, persistence.secondaryAccounts());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe1{createAccountStub(budget, factory, "giraffe")};
+        createAccount(budget, "giraffe");
+        const auto giraffe2{createAccountStub(budget, factory, "giraffe")};
+        createAccount(budget, "giraffe");
+        PersistentMemoryStub persistence;
+        budget.save(persistence);
+        assertEqual(result, {giraffe1.get()}, persistence.secondaryAccounts());
+      });
 }
 
 void closesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
@@ -600,8 +581,7 @@ void closesAccount(testcpplite::TestResult &result) {
 
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     giraffe->setBalance(-123_cents);
     budget.closeAccount("giraffe");
@@ -611,8 +591,7 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
 
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     giraffe->setBalance(-123_cents);
     budget.createAccount("giraffe");
@@ -625,8 +604,7 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
 void transfersAmountFromAccountAllocatedSufficiently(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     giraffe->setBalance(123_cents);
     budget.createAccount("giraffe");
@@ -638,8 +616,7 @@ void transfersAmountFromAccountAllocatedSufficiently(
 
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               IncomeAccountStub &masterAccount,
-                               Budget &budget) {
+                               AccountStub &masterAccount, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
