@@ -135,11 +135,7 @@ collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
 
 void InMemoryAccount::rename(std::string_view to) { name = to; }
 
-void InMemoryExpenseAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, funds, collect(transactions));
-}
-
-void InMemoryIncomeAccount::save(AccountSerialization &serialization) {
+void InMemoryAccount::save(AccountSerialization &serialization) {
   serialization.save(name, funds, collect(transactions));
 }
 
@@ -147,12 +143,7 @@ void InMemoryAccount::load(AccountDeserialization &deserialization) {
   deserialization.load(*this);
 }
 
-void InMemoryIncomeAccount::notifyThatIsReady(
-    TransactionDeserialization &deserialization) {
-  addTransaction(transactions, factory, *this, observer, deserialization);
-}
-
-void InMemoryExpenseAccount::notifyThatIsReady(
+void InMemoryAccount::notifyThatIsReady(
     TransactionDeserialization &deserialization) {
   addTransaction(transactions, factory, *this, observer, deserialization);
 }
@@ -176,13 +167,7 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryExpenseAccount::reduce() {
-  funds = balance();
-  notifyUpdatedFunds(observer, funds);
-  budget::clear(transactions);
-}
-
-void InMemoryIncomeAccount::reduce() {
+void InMemoryAccount::reduce() {
   funds = balance();
   notifyUpdatedFunds(observer, funds);
   budget::clear(transactions);
@@ -214,14 +199,7 @@ void InMemoryAccount::remove() {
   });
 }
 
-void InMemoryExpenseAccount::clear() {
-  funds = {};
-  notifyUpdatedFunds(observer, funds);
-  budget::clear(transactions);
-  notifyUpdatedBalance(*this, observer);
-}
-
-void InMemoryIncomeAccount::clear() {
+void InMemoryAccount::clear() {
   funds = {};
   notifyUpdatedFunds(observer, funds);
   budget::clear(transactions);
