@@ -39,9 +39,7 @@ public:
     return secondaryAccountsToLoadInto_;
   }
 
-  auto accountFactory() -> const ExpenseAccount::Factory * {
-    return accountFactory_;
-  }
+  auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
   std::vector<SerializableAccount *> secondaryAccounts_;
@@ -49,7 +47,7 @@ private:
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>
       *secondaryAccountsToLoadInto_{};
-  const ExpenseAccount::Factory *accountFactory_{};
+  const Account::Factory *accountFactory_{};
   const Observer *observer_{};
 };
 

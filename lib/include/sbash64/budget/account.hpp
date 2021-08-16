@@ -45,18 +45,6 @@ private:
   ObservableTransaction::Factory &factory;
   bool positive;
 };
-
-class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
-public:
-  using InMemoryAccount::InMemoryAccount;
-
-private:
-};
-
-class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
-public:
-  using InMemoryAccount::InMemoryAccount;
-};
 } // namespace sbash64::budget
 
 #endif

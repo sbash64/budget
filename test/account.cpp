@@ -163,11 +163,11 @@ assertCreditsSaved(testcpplite::TestResult &result,
   assertEqual(result, persistence.transactions(), transactions);
 }
 
-static void credit(IncomeAccount &account, const Transaction &t = {}) {
+static void credit(Account &account, const Transaction &t = {}) {
   account.add(t);
 }
 
-static void debit(ExpenseAccount &account, const Transaction &t = {}) {
+static void debit(Account &account, const Transaction &t = {}) {
   account.add(t);
 }
 
@@ -179,22 +179,22 @@ static void assertAccountName(testcpplite::TestResult &result,
 
 namespace income {
 static void testInMemoryAccount(
-    const std::function<void(InMemoryIncomeAccount &,
+    const std::function<void(InMemoryAccount &,
                              ObservableTransactionFactoryStub &)> &test,
     std::string name = {}) {
   ObservableTransactionFactoryStub factory;
-  InMemoryIncomeAccount account{std::move(name), factory, true};
+  InMemoryAccount account{std::move(name), factory, true};
   test(account, factory);
 }
 } // namespace income
 
 namespace expense {
 static void testInMemoryAccount(
-    const std::function<void(InMemoryExpenseAccount &,
+    const std::function<void(InMemoryAccount &,
                              ObservableTransactionFactoryStub &)> &test,
     std::string name = {}) {
   ObservableTransactionFactoryStub factory;
-  InMemoryExpenseAccount account{std::move(name), factory, false};
+  InMemoryAccount account{std::move(name), factory, false};
   test(account, factory);
 }
 } // namespace expense
@@ -222,7 +222,7 @@ addObservableTransactionInMemory(ObservableTransactionFactoryStub &factory)
 
 namespace income {
 void initializesAddedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto ape{addObservableTransactionStub(factory)};
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
@@ -235,7 +235,7 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
 
 namespace expense {
 void initializesAddedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionStub(factory)};
     debit(account,
@@ -248,29 +248,29 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.remove();
-    assertTrue(result, observer.willBeRemoved());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.remove();
+        assertTrue(result, observer.willBeRemoved());
+      });
 }
 } // namespace expense
 
 namespace income {
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.remove();
-    assertTrue(result, observer.willBeRemoved());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.remove();
+        assertTrue(result, observer.willBeRemoved());
+      });
 }
 
 void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -283,7 +283,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
 
 namespace expense {
 void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -297,7 +297,7 @@ void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
 namespace income {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -315,7 +315,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
 namespace expense {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -329,7 +329,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
 namespace income {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
   testInMemoryAccount(
-      [&result](InMemoryIncomeAccount &account,
+      [&result](InMemoryAccount &account,
                 ObservableTransactionFactoryStub &factory) {
         const auto john{addObservableTransactionStub(factory)};
         credit(account);
@@ -349,7 +349,7 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
 namespace expense {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
   testInMemoryAccount(
-      [&result](InMemoryExpenseAccount &account,
+      [&result](InMemoryAccount &account,
                 ObservableTransactionFactoryStub &factory) {
         const auto mike{addObservableTransactionStub(factory)};
         debit(account);
@@ -366,7 +366,7 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
 
 namespace expense {
 void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
@@ -390,7 +390,7 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
 
 namespace income {
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
@@ -414,7 +414,7 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
 
 namespace income {
 void savesLoadedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
@@ -430,7 +430,7 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
 
 namespace expense {
 void savesLoadedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto andy{addObservableTransactionStub(factory)};
@@ -447,7 +447,7 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
 namespace income {
 void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto ape{addObservableTransactionStub(factory)};
     credit(account);
@@ -465,7 +465,7 @@ void savesRemainingTransactionsAfterRemovingSome(
 namespace expense {
 void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionStub(factory)};
     debit(account);
@@ -483,7 +483,7 @@ void savesRemainingTransactionsAfterRemovingSome(
 namespace income {
 void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionInMemory(factory)};
     credit(account,
@@ -505,7 +505,7 @@ void savesRemainingTransactionAfterRemovingVerified(
 namespace expense {
 void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionInMemory(factory)};
     debit(account,
@@ -526,7 +526,7 @@ void savesRemainingTransactionAfterRemovingVerified(
 
 namespace income {
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     credit(account,
@@ -543,7 +543,7 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
 
 namespace expense {
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     debit(account,
@@ -561,7 +561,7 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
 namespace income {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     factory.add(std::make_shared<ObservableTransactionInMemory>());
     factory.add(std::make_shared<ObservableTransactionInMemory>());
@@ -580,7 +580,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 namespace expense {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     factory.add(std::make_shared<ObservableTransactionInMemory>());
     factory.add(std::make_shared<ObservableTransactionInMemory>());
@@ -597,31 +597,31 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 }
 
 void observesDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    PersistentAccountStub persistence;
-    account.load(persistence);
-    assertEqual(result,
-                static_cast<AccountDeserialization::Observer *>(&account),
-                persistence.observer());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        PersistentAccountStub persistence;
+        account.load(persistence);
+        assertEqual(result,
+                    static_cast<AccountDeserialization::Observer *>(&account),
+                    persistence.observer());
+      });
 }
 } // namespace expense
 
 namespace income {
 void observesDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    PersistentAccountStub persistence;
-    account.load(persistence);
-    assertEqual(result,
-                static_cast<AccountDeserialization::Observer *>(&account),
-                persistence.observer());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        PersistentAccountStub persistence;
+        account.load(persistence);
+        assertEqual(result,
+                    static_cast<AccountDeserialization::Observer *>(&account),
+                    persistence.observer());
+      });
 }
 
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{addObservableTransactionStub(factory)};
     TransactionDeserializationStub abel;
@@ -633,7 +633,7 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
 
 namespace expense {
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto joe{addObservableTransactionStub(factory)};
     TransactionDeserializationStub abel;
@@ -644,8 +644,7 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
 
 void savesNewName(testcpplite::TestResult &result) {
   testInMemoryAccount(
-      [&result](InMemoryExpenseAccount &account,
-                ObservableTransactionFactoryStub &) {
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
         account.rename("mike");
         PersistentAccountStub persistence;
         account.save(persistence);
@@ -658,8 +657,7 @@ void savesNewName(testcpplite::TestResult &result) {
 namespace income {
 void savesNewName(testcpplite::TestResult &result) {
   testInMemoryAccount(
-      [&result](InMemoryIncomeAccount &account,
-                ObservableTransactionFactoryStub &) {
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
         account.rename("mike");
         PersistentAccountStub persistence;
         account.save(persistence);
@@ -670,7 +668,7 @@ void savesNewName(testcpplite::TestResult &result) {
 
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla1Observer;
@@ -695,7 +693,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 namespace expense {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla1Observer;
@@ -719,7 +717,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
 
 namespace income {
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
@@ -731,7 +729,7 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
@@ -745,7 +743,7 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 
 namespace expense {
 void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
@@ -757,7 +755,7 @@ void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
@@ -771,7 +769,7 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
 
 namespace income {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
     credit(account,
@@ -787,7 +785,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
 
 namespace expense {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
     debit(account,
@@ -803,7 +801,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
 
 namespace income {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
     credit(account,
@@ -821,7 +819,7 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
 
 namespace expense {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     addObservableTransactionInMemory(factory);
     debit(account,
@@ -836,7 +834,7 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
 
 namespace income {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account, Transaction{2300_cents, "orangutan",
@@ -849,7 +847,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
 
 namespace expense {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionStub(factory)};
     debit(account,
@@ -866,7 +864,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
 
 namespace income {
 void returnsBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     account.deposit(4_cents);
     addObservableTransactionInMemory(factory);
@@ -881,7 +879,7 @@ void returnsBalance(testcpplite::TestResult &result) {
 
 namespace expense {
 void returnsBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     account.deposit(4_cents);
     addObservableTransactionInMemory(factory);
@@ -895,93 +893,93 @@ void returnsBalance(testcpplite::TestResult &result) {
 }
 
 void withdrawsFromFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.withdraw(12_cents);
-    assertEqual(result, -12_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.balance());
+      });
 }
 
 void depositsToFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.deposit(12_cents);
-    assertEqual(result, 12_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.balance());
+      });
 }
 } // namespace expense
 
 namespace income {
 void withdrawsFromFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.withdraw(12_cents);
-    assertEqual(result, -12_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.balance());
+      });
 }
 
 void depositsToFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.deposit(12_cents);
-    assertEqual(result, 12_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.balance());
+      });
 }
 
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.deposit(12_cents);
-    assertEqual(result, 12_cents, observer.funds());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.funds());
+      });
 }
 
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.withdraw(12_cents);
-    assertEqual(result, -12_cents, observer.funds());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.funds());
+      });
 }
 } // namespace income
 
 namespace expense {
 void notifiesObserverOfUpdatedFundsOnDeposit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.deposit(12_cents);
-    assertEqual(result, 12_cents, observer.funds());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.deposit(12_cents);
+        assertEqual(result, 12_cents, observer.funds());
+      });
 }
 
 void notifiesObserverOfUpdatedFundsOnWithdraw(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.withdraw(12_cents);
-    assertEqual(result, -12_cents, observer.funds());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.withdraw(12_cents);
+        assertEqual(result, -12_cents, observer.funds());
+      });
 }
 } // namespace expense
 
 namespace income {
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -998,7 +996,7 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
 
 namespace expense {
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -1014,7 +1012,7 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &result) {
 namespace income {
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -1031,7 +1029,7 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
 namespace expense {
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
+  testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
@@ -1048,28 +1046,28 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
 namespace income {
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryIncomeAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.notifyThatFundsAreReady(1_cents);
-    assertEqual(result, 1_cents, observer.funds());
-    assertEqual(result, 1_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.notifyThatFundsAreReady(1_cents);
+        assertEqual(result, 1_cents, observer.funds());
+        assertEqual(result, 1_cents, observer.balance());
+      });
 }
 } // namespace income
 
 namespace expense {
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryExpenseAccount &account,
-                                ObservableTransactionFactoryStub &) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    account.notifyThatFundsAreReady(1_cents);
-    assertEqual(result, 1_cents, observer.funds());
-    assertEqual(result, 1_cents, observer.balance());
-  });
+  testInMemoryAccount(
+      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.notifyThatFundsAreReady(1_cents);
+        assertEqual(result, 1_cents, observer.funds());
+        assertEqual(result, 1_cents, observer.balance());
+      });
 }
 } // namespace expense
 } // namespace sbash64::budget::account

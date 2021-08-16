@@ -184,10 +184,6 @@ public:
   };
 };
 
-class IncomeAccount : public virtual Account {};
-
-class ExpenseAccount : public virtual Account {};
-
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
