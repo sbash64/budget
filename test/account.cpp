@@ -181,15 +181,6 @@ static void assertAccountName(testcpplite::TestResult &result,
   assertEqual(result, std::string{expected}, persistent.accountName());
 }
 
-static void testInMemoryAccount(
-    const std::function<void(InMemoryAccount &,
-                             ObservableTransactionFactoryStub &)> &test,
-    std::string name = {}) {
-  ObservableTransactionFactoryStub factory;
-  InMemoryAccount account{std::move(name), factory};
-  test(account, factory);
-}
-
 namespace income {
 static void testInMemoryAccount(
     const std::function<void(InMemoryIncomeAccount &,
@@ -211,14 +202,6 @@ static void testInMemoryAccount(
   test(account, factory);
 }
 } // namespace expense
-
-static void
-testInMemoryAccount(const std::function<void(InMemoryAccount &)> &test,
-                    std::string name = {}) {
-  ObservableTransactionFactoryStub factory;
-  InMemoryAccount account{std::move(name), factory};
-  test(account);
-}
 
 static void assertBalanceEquals(testcpplite::TestResult &result, USD actual,
                                 AccountObserverStub &observer) {

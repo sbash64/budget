@@ -169,12 +169,12 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
-  virtual void add(const Transaction &) {}
-  virtual void verify(const Transaction &) {}
-  virtual void remove(const Transaction &) {}
+  virtual void add(const Transaction &) = 0;
+  virtual void verify(const Transaction &) = 0;
+  virtual void remove(const Transaction &) = 0;
   virtual void rename(std::string_view) = 0;
   virtual void reduce() = 0;
-  virtual auto balance() -> USD { return {}; }
+  virtual auto balance() -> USD = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;
   virtual void withdraw(USD) = 0;

@@ -227,11 +227,17 @@ void InMemoryAccount::remove() {
   });
 }
 
-void InMemoryAccount::clear() {
+void InMemoryExpenseAccount::clear() {
+  funds = {};
+  notifyUpdatedFunds(observer, funds);
+  budget::clear(debitRecords);
+  notifyUpdatedBalance(*this, observer);
+}
+
+void InMemoryIncomeAccount::clear() {
   funds = {};
   notifyUpdatedFunds(observer, funds);
   budget::clear(creditRecords);
-  budget::clear(debitRecords);
   notifyUpdatedBalance(*this, observer);
 }
 

@@ -17,7 +17,6 @@ public:
   void deposit(USD) override;
   void reduce() override;
   void remove() override;
-  void clear() override;
   void save(AccountSerialization &) override;
   void load(AccountDeserialization &) override;
   void notifyThatCreditIsReady(TransactionDeserialization &) override;
@@ -37,6 +36,7 @@ class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
+  void clear() override;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
@@ -57,6 +57,7 @@ class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
+  void clear() override;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
