@@ -174,7 +174,7 @@ public:
   virtual void remove(const Transaction &) {}
   virtual void rename(std::string_view) = 0;
   virtual void reduce() = 0;
-  virtual auto balance() -> USD = 0;
+  virtual auto balance() -> USD { return {}; }
   virtual void remove() = 0;
   virtual void clear() = 0;
   virtual void withdraw(USD) = 0;

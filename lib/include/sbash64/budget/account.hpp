@@ -13,7 +13,6 @@ public:
   InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void rename(std::string_view) override;
-  auto balance() -> USD override;
   void withdraw(USD) override;
   void deposit(USD) override;
   void reduce() override;
@@ -40,6 +39,7 @@ public:
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
+  auto balance() -> USD override;
 
   class Factory : public ExpenseAccount::Factory {
   public:
@@ -58,6 +58,7 @@ public:
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
+  auto balance() -> USD override;
 };
 } // namespace sbash64::budget
 
