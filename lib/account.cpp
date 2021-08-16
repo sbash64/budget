@@ -99,27 +99,15 @@ InMemoryAccount::InMemoryAccount(std::string name,
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
-void InMemoryIncomeAccount::add(const Transaction &transaction) {
+void InMemoryAccount::add(const Transaction &transaction) {
   budget::add(transactions, factory, *this, observer, transaction);
 }
 
-void InMemoryExpenseAccount::add(const Transaction &transaction) {
-  budget::add(transactions, factory, *this, observer, transaction);
-}
-
-void InMemoryIncomeAccount::remove(const Transaction &transaction) {
+void InMemoryAccount::remove(const Transaction &transaction) {
   budget::remove(transactions, *this, observer, transaction);
 }
 
-void InMemoryExpenseAccount::remove(const Transaction &transaction) {
-  budget::remove(transactions, *this, observer, transaction);
-}
-
-void InMemoryIncomeAccount::verify(const Transaction &transaction) {
-  budget::verify(transaction, transactions);
-}
-
-void InMemoryExpenseAccount::verify(const Transaction &transaction) {
+void InMemoryAccount::verify(const Transaction &transaction) {
   budget::verify(transaction, transactions);
 }
 

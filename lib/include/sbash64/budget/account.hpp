@@ -22,6 +22,9 @@ public:
   void reduce() override;
   void notifyThatIsReady(TransactionDeserialization &) override;
   void save(AccountSerialization &) override;
+  void add(const Transaction &) override;
+  void verify(const Transaction &) override;
+  void remove(const Transaction &) override;
 
 protected:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
@@ -35,9 +38,6 @@ class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
-  void add(const Transaction &) override;
-  void verify(const Transaction &) override;
-  void remove(const Transaction &) override;
   auto balance() -> USD override;
 
   class Factory : public ExpenseAccount::Factory {
@@ -57,9 +57,6 @@ class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
-  void add(const Transaction &) override;
-  void verify(const Transaction &) override;
-  void remove(const Transaction &) override;
   auto balance() -> USD override;
 };
 } // namespace sbash64::budget
