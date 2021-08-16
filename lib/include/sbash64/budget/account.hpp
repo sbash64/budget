@@ -27,7 +27,7 @@ public:
   void remove(const Transaction &) override;
   auto balance() -> USD override;
 
-protected:
+private:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
   std::string name;
   Observer *observer{};
