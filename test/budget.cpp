@@ -23,15 +23,15 @@ class AccountStub : public virtual Account,
                     public IncomeAccount,
                     public ExpenseAccount {
 public:
+  void credit(const Transaction &) override {}
+
+  void removeCredit(const Transaction &t) override {}
+
   void clear() override { cleared_ = true; }
 
   void setBalance(USD b) { balance_ = b; }
 
   void attach(Observer *) override {}
-
-  auto creditedTransaction() -> Transaction { return creditedTransaction_; }
-
-  void credit(const Transaction &t) override { creditedTransaction_ = t; }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
@@ -43,10 +43,6 @@ public:
     debitRemoved_ = true;
     removedDebit_ = t;
   }
-
-  auto removedCredit() -> Transaction { return removedCredit_; }
-
-  void removeCredit(const Transaction &t) override { removedCredit_ = t; }
 
   void save(AccountSerialization &) override {}
 
@@ -104,10 +100,8 @@ public:
 private:
   Transaction creditToVerify_;
   Transaction debitToVerify_;
-  Transaction creditedTransaction_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
-  Transaction removedCredit_;
   std::vector<USD> withdrawals_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
@@ -120,7 +114,20 @@ private:
   bool reduced_{};
 };
 
-class IncomeAccountStub : public AccountStub {};
+class IncomeAccountStub : public AccountStub {
+public:
+  void credit(const Transaction &t) override { creditedTransaction_ = t; }
+
+  auto creditedTransaction() -> Transaction { return creditedTransaction_; }
+
+  auto removedCredit() -> Transaction { return removedCredit_; }
+
+  void removeCredit(const Transaction &t) override { removedCredit_ = t; }
+
+private:
+  Transaction creditedTransaction_;
+  Transaction removedCredit_;
+};
 
 class AccountFactoryStub : public ExpenseAccount::Factory {
 public:
@@ -242,12 +249,13 @@ static void assertDebited(testcpplite::TestResult &result,
 }
 
 static void assertCredited(testcpplite::TestResult &result,
-                           AccountStub &account, const Transaction &t) {
+                           IncomeAccountStub &account, const Transaction &t) {
   assertEqual(result, t, account.creditedTransaction());
 }
 
 static void assertCreditRemoved(testcpplite::TestResult &result,
-                                AccountStub &account, const Transaction &t) {
+                                IncomeAccountStub &account,
+                                const Transaction &t) {
   assertEqual(result, t, account.removedCredit());
 }
 
