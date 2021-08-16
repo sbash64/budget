@@ -10,7 +10,8 @@
 namespace sbash64::budget {
 class InMemoryAccount : public virtual Account {
 public:
-  InMemoryAccount(std::string name, ObservableTransaction::Factory &);
+  InMemoryAccount(std::string name, ObservableTransaction::Factory &,
+                  bool positive);
   void attach(Observer *) override;
   void rename(std::string_view) override;
   void withdraw(USD) override;
@@ -27,28 +28,27 @@ public:
   void remove(const Transaction &) override;
   auto balance() -> USD override;
 
+  class Factory : public Account::Factory {
+  public:
+    explicit Factory(ObservableTransaction::Factory &);
+    auto make(std::string_view name) -> std::shared_ptr<Account> override;
+
+  private:
+    ObservableTransaction::Factory &transactionFactory;
+  };
+
 private:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
   std::string name;
   Observer *observer{};
   USD funds{};
   ObservableTransaction::Factory &factory;
+  bool positive;
 };
 
 class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using InMemoryAccount::InMemoryAccount;
-  auto positive() -> bool override { return false; }
-
-  class Factory : public ExpenseAccount::Factory {
-  public:
-    explicit Factory(ObservableTransaction::Factory &);
-    auto make(std::string_view name)
-        -> std::shared_ptr<ExpenseAccount> override;
-
-  private:
-    ObservableTransaction::Factory &transactionFactory;
-  };
 
 private:
 };
@@ -56,7 +56,6 @@ private:
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
   using InMemoryAccount::InMemoryAccount;
-  auto positive() -> bool override { return true; }
 };
 } // namespace sbash64::budget
 

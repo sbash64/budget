@@ -94,8 +94,6 @@ public:
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
 
-  auto positive() -> bool override { return true; }
-
 private:
   Transaction creditedTransaction_;
   Transaction removedCredit_;
@@ -123,8 +121,6 @@ public:
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
 
-  auto positive() -> bool override { return false; }
-
 private:
   Transaction debitToVerify_;
   Transaction debitedTransaction_;
@@ -140,13 +136,13 @@ public:
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s) -> std::shared_ptr<ExpenseAccount> override {
+  auto make(std::string_view s) -> std::shared_ptr<Account> override {
     name_ = s;
     return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
   }
 
 private:
-  std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>> accounts;
+  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
   std::string name_;
 };
 

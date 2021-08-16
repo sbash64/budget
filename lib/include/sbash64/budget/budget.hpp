@@ -11,7 +11,7 @@
 namespace sbash64::budget {
 class BudgetInMemory : public Budget {
 public:
-  explicit BudgetInMemory(IncomeAccount &, ExpenseAccount::Factory &);
+  explicit BudgetInMemory(IncomeAccount &, Account::Factory &);
   void attach(Observer *) override;
   void credit(const Transaction &) override;
   void debit(std::string_view accountName, const Transaction &) override;
@@ -35,11 +35,10 @@ public:
                                          std::string_view name) override;
 
 private:
-  ExpenseAccount::Factory &accountFactory;
+  Account::Factory &accountFactory;
   Observer *observer{};
   IncomeAccount &incomeAccount;
-  std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>>
-      expenseAccounts;
+  std::map<std::string, std::shared_ptr<Account>, std::less<>> expenseAccounts;
 };
 } // namespace sbash64::budget
 

@@ -12,7 +12,7 @@ static void credit(IncomeAccount &account, const Transaction &transaction) {
   account.add(transaction);
 }
 
-static void debit(const std::shared_ptr<ExpenseAccount> &account,
+static void debit(const std::shared_ptr<Account> &account,
                   const Transaction &transaction) {
   account->add(transaction);
 }
@@ -22,7 +22,7 @@ static void verifyCredit(IncomeAccount &account,
   account.verify(transaction);
 }
 
-static void verifyDebit(const std::shared_ptr<ExpenseAccount> &account,
+static void verifyDebit(const std::shared_ptr<Account> &account,
                         const Transaction &transaction) {
   account->verify(transaction);
 }
@@ -32,7 +32,7 @@ static void removeCredit(IncomeAccount &account,
   account.remove(transaction);
 }
 
-static void removeDebit(const std::shared_ptr<ExpenseAccount> &account,
+static void removeDebit(const std::shared_ptr<Account> &account,
                         const Transaction &transaction) {
   account->remove(transaction);
 }
@@ -46,7 +46,7 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
 
 static void notifyThatTotalBalanceHasChanged(
     BudgetInMemory::Observer *observer, Account &incomeAccount,
-    const std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>>
+    const std::map<std::string, std::shared_ptr<Account>, std::less<>>
         &expenseAccounts) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatTotalBalanceHasChanged(accumulate(
@@ -59,9 +59,8 @@ static void notifyThatTotalBalanceHasChanged(
   });
 }
 
-static auto make(ExpenseAccount::Factory &accountFactory, std::string_view name,
-                 Budget::Observer *observer)
-    -> std::shared_ptr<ExpenseAccount> {
+static auto make(Account::Factory &accountFactory, std::string_view name,
+                 Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{accountFactory.make(name)};
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatNewAccountHasBeenCreated(*account, name);
@@ -69,51 +68,50 @@ static auto make(ExpenseAccount::Factory &accountFactory, std::string_view name,
   return account;
 }
 
-static auto contains(std::map<std::string, std::shared_ptr<ExpenseAccount>,
-                              std::less<>> &accounts,
-                     std::string_view accountName) -> bool {
+static auto
+contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+         std::string_view accountName) -> bool {
   return accounts.count(accountName) != 0;
 }
 
 static void createNewAccountIfNeeded(
-    std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>>
-        &accounts,
-    ExpenseAccount::Factory &accountFactory, std::string_view accountName,
+    std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+    Account::Factory &accountFactory, std::string_view accountName,
     Budget::Observer *observer) {
   if (!contains(accounts, accountName))
     accounts[std::string{accountName}] =
         make(accountFactory, accountName, observer);
 }
 
-static auto collect(const std::map<std::string, std::shared_ptr<ExpenseAccount>,
+static auto collect(const std::map<std::string, std::shared_ptr<Account>,
                                    std::less<>> &accounts)
     -> std::vector<SerializableAccount *> {
   std::vector<SerializableAccount *> collected;
   transform(
       accounts.begin(), accounts.end(), back_inserter(collected),
-      [](const std::pair<const std::string, std::shared_ptr<ExpenseAccount>>
-             &pair) { return pair.second.get(); });
+      [](const std::pair<const std::string, std::shared_ptr<Account>> &pair) {
+        return pair.second.get();
+      });
   return collected;
 }
 
 static auto
-at(const std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>>
-       &accounts,
-   std::string_view name) -> const std::shared_ptr<ExpenseAccount> & {
+at(const std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+   std::string_view name) -> const std::shared_ptr<Account> & {
   return accounts.at(std::string{name});
 }
 
-static auto makeAndLoad(ExpenseAccount::Factory &factory,
+static auto makeAndLoad(Account::Factory &factory,
                         AccountDeserialization &deserialization,
                         std::string_view name, Budget::Observer *observer)
-    -> std::shared_ptr<ExpenseAccount> {
+    -> std::shared_ptr<Account> {
   auto account{make(factory, name, observer)};
   account->load(deserialization);
   return account;
 }
 
 BudgetInMemory::BudgetInMemory(IncomeAccount &incomeAccount,
-                               ExpenseAccount::Factory &accountFactory)
+                               Account::Factory &accountFactory)
     : accountFactory{accountFactory}, incomeAccount{incomeAccount} {}
 
 void BudgetInMemory::attach(Observer *a) { observer = a; }
@@ -159,11 +157,10 @@ auto transaction(USD amount, std::array<char, N> description, Date date)
   return {amount, description.data(), date};
 }
 
-static void transferTo(
-    Account &incomeAccount,
-    const std::map<std::string, std::shared_ptr<ExpenseAccount>, std::less<>>
-        &expenseAccounts,
-    std::string_view accountName, USD amount) {
+static void transferTo(Account &incomeAccount,
+                       const std::map<std::string, std::shared_ptr<Account>,
+                                      std::less<>> &expenseAccounts,
+                       std::string_view accountName, USD amount) {
   incomeAccount.withdraw(amount);
   at(expenseAccounts, accountName)->deposit(amount);
 }
@@ -193,9 +190,9 @@ void BudgetInMemory::createAccount(std::string_view name) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, name, observer);
 }
 
-static void remove(std::map<std::string, std::shared_ptr<ExpenseAccount>,
-                            std::less<>> &accounts,
-                   std::string_view name) {
+static void
+remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
+       std::string_view name) {
   at(accounts, name)->remove();
   accounts.erase(std::string{name});
 }

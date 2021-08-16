@@ -94,8 +94,9 @@ static void remove(std::vector<std::shared_ptr<ObservableTransaction>> &records,
 }
 
 InMemoryAccount::InMemoryAccount(std::string name,
-                                 ObservableTransaction::Factory &factory)
-    : name{std::move(name)}, factory{factory} {}
+                                 ObservableTransaction::Factory &factory,
+                                 bool positive)
+    : name{std::move(name)}, factory{factory}, positive{positive} {}
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
@@ -162,8 +163,8 @@ void InMemoryAccount::reduce() {
 }
 
 auto InMemoryAccount::balance() -> USD {
-  return funds + (positive() ? budget::balance(transactions)
-                             : -budget::balance(transactions));
+  return funds + (positive ? budget::balance(transactions)
+                           : -budget::balance(transactions));
 }
 
 void InMemoryAccount::withdraw(USD usd) {
@@ -191,13 +192,13 @@ void InMemoryAccount::clear() {
   notifyUpdatedBalance(*this, observer);
 }
 
-auto InMemoryExpenseAccount::Factory::make(std::string_view name_)
-    -> std::shared_ptr<ExpenseAccount> {
-  return std::make_shared<InMemoryExpenseAccount>(std::string{name_},
-                                                  transactionFactory);
+auto InMemoryAccount::Factory::make(std::string_view name_)
+    -> std::shared_ptr<Account> {
+  return std::make_shared<InMemoryAccount>(std::string{name_},
+                                           transactionFactory, false);
 }
 
-InMemoryExpenseAccount::Factory::Factory(
+InMemoryAccount::Factory::Factory(
     ObservableTransaction::Factory &transactionFactory)
     : transactionFactory{transactionFactory} {}
 } // namespace sbash64::budget

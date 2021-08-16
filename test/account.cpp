@@ -183,7 +183,7 @@ static void testInMemoryAccount(
                              ObservableTransactionFactoryStub &)> &test,
     std::string name = {}) {
   ObservableTransactionFactoryStub factory;
-  InMemoryIncomeAccount account{std::move(name), factory};
+  InMemoryIncomeAccount account{std::move(name), factory, true};
   test(account, factory);
 }
 } // namespace income
@@ -194,7 +194,7 @@ static void testInMemoryAccount(
                              ObservableTransactionFactoryStub &)> &test,
     std::string name = {}) {
   ObservableTransactionFactoryStub factory;
-  InMemoryExpenseAccount account{std::move(name), factory};
+  InMemoryExpenseAccount account{std::move(name), factory, false};
   test(account, factory);
 }
 } // namespace expense
