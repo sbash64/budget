@@ -66,7 +66,31 @@ public:
 
   auto withdrawals() -> std::vector<USD> { return withdrawals_; }
 
+  void notifyThatIsReady(TransactionDeserialization &) override {}
+  void add(const Transaction &t) override { addedTransaction_ = t; }
+
+  void remove(const Transaction &t) override {
+    transactionRemoved_ = true;
+    removedTransaction_ = t;
+  }
+
+  [[nodiscard]] auto transactionRemoved() const -> bool {
+    return transactionRemoved_;
+  }
+
+  auto verifiedTransaction() -> Transaction { return verifiedTransaction_; }
+
+  void verify(const Transaction &t) override { verifiedTransaction_ = t; }
+
+  auto addedTransaction() -> Transaction { return addedTransaction_; }
+
+  auto removedTransaction() -> Transaction { return removedTransaction_; }
+
 private:
+  Transaction verifiedTransaction_;
+  Transaction addedTransaction_;
+  Transaction removedTransaction_;
+  bool transactionRemoved_{};
   std::vector<USD> withdrawals_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
@@ -78,59 +102,13 @@ private:
   bool reduced_{};
 };
 
-class IncomeAccountStub : public AccountStub, public IncomeAccount {
+class IncomeAccountStub : public AccountStub, public IncomeAccount {};
+
+class ExpenseAccountStub : public AccountStub {};
+
+class AccountFactoryStub : public Account::Factory {
 public:
-  void add(const Transaction &t) override { creditedTransaction_ = t; }
-
-  auto creditedTransaction() -> Transaction { return creditedTransaction_; }
-
-  auto removedCredit() -> Transaction { return removedCredit_; }
-
-  void remove(const Transaction &t) override { removedCredit_ = t; }
-
-  auto creditToVerify() -> Transaction { return creditToVerify_; }
-
-  void verify(const Transaction &t) override { creditToVerify_ = t; }
-
-  void notifyThatIsReady(TransactionDeserialization &) override {}
-
-private:
-  Transaction creditedTransaction_;
-  Transaction removedCredit_;
-  Transaction creditToVerify_;
-};
-
-class ExpenseAccountStub : public AccountStub, public ExpenseAccount {
-public:
-  void add(const Transaction &t) override { debitedTransaction_ = t; }
-
-  void remove(const Transaction &t) override {
-    debitRemoved_ = true;
-    removedDebit_ = t;
-  }
-
-  [[nodiscard]] auto debitRemoved() const -> bool { return debitRemoved_; }
-
-  auto debitToVerify() -> Transaction { return debitToVerify_; }
-
-  void verify(const Transaction &t) override { debitToVerify_ = t; }
-
-  auto debitedTransaction() -> Transaction { return debitedTransaction_; }
-
-  auto removedDebit() -> Transaction { return removedDebit_; }
-
-  void notifyThatIsReady(TransactionDeserialization &) override {}
-
-private:
-  Transaction debitToVerify_;
-  Transaction debitedTransaction_;
-  Transaction removedDebit_;
-  bool debitRemoved_{};
-};
-
-class AccountFactoryStub : public ExpenseAccount::Factory {
-public:
-  void add(std::shared_ptr<ExpenseAccount> account, std::string_view name) {
+  void add(std::shared_ptr<Account> account, std::string_view name) {
     accounts[std::string{name}] = std::move(account);
   }
 
@@ -174,15 +152,14 @@ private:
 };
 } // namespace
 
-static void add(AccountFactoryStub &factory,
-                std::shared_ptr<ExpenseAccount> account,
+static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
                 std::string_view accountName) {
   factory.add(std::move(account), accountName);
 }
 
 static auto addAccountStub(AccountFactoryStub &factory, std::string_view name)
-    -> std::shared_ptr<ExpenseAccountStub> {
-  auto account{std::make_shared<ExpenseAccountStub>()};
+    -> std::shared_ptr<AccountStub> {
+  auto account{std::make_shared<AccountStub>()};
   add(factory, account, name);
   return account;
 }
@@ -193,7 +170,7 @@ static void createAccount(Budget &budget, std::string_view name) {
 
 static auto createAccountStub(Budget &budget, AccountFactoryStub &factory,
                               std::string_view name)
-    -> std::shared_ptr<ExpenseAccountStub> {
+    -> std::shared_ptr<AccountStub> {
   auto account{addAccountStub(factory, name)};
   createAccount(budget, name);
   return account;
@@ -242,27 +219,26 @@ static void assertEqual(testcpplite::TestResult &result,
 }
 
 static void assertDebited(testcpplite::TestResult &result,
-                          const std::shared_ptr<ExpenseAccountStub> &account,
+                          const std::shared_ptr<AccountStub> &account,
                           const Transaction &t) {
-  assertEqual(result, t, account->debitedTransaction());
+  assertEqual(result, t, account->addedTransaction());
 }
 
 static void assertCredited(testcpplite::TestResult &result,
                            IncomeAccountStub &account, const Transaction &t) {
-  assertEqual(result, t, account.creditedTransaction());
+  assertEqual(result, t, account.addedTransaction());
 }
 
 static void assertCreditRemoved(testcpplite::TestResult &result,
                                 IncomeAccountStub &account,
                                 const Transaction &t) {
-  assertEqual(result, t, account.removedCredit());
+  assertEqual(result, t, account.removedTransaction());
 }
 
-static void
-assertDebitRemoved(testcpplite::TestResult &result,
-                   const std::shared_ptr<ExpenseAccountStub> &account,
-                   const Transaction &t) {
-  assertEqual(result, t, account->removedDebit());
+static void assertDebitRemoved(testcpplite::TestResult &result,
+                               const std::shared_ptr<AccountStub> &account,
+                               const Transaction &t) {
+  assertEqual(result, t, account->removedTransaction());
 }
 
 void creditsMasterAccount(testcpplite::TestResult &result) {
@@ -429,7 +405,7 @@ void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
     const auto account{addAccountStub(factory, "giraffe")};
     budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
                                               Date{2013, Month::April, 3}});
-    assertFalse(result, account->debitRemoved());
+    assertFalse(result, account->transactionRemoved());
   });
 }
 
@@ -460,7 +436,7 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     budget.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
-                giraffe->debitToVerify());
+                giraffe->verifiedTransaction());
   });
 }
 
@@ -470,7 +446,7 @@ void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
                                Budget &budget) {
     budget.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
-                masterAccount.creditToVerify());
+                masterAccount.verifiedTransaction());
   });
 }
 
