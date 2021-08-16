@@ -122,34 +122,34 @@ InMemoryAccount::InMemoryAccount(std::string name,
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
-void InMemoryIncomeAccount::credit(const Transaction &transaction) {
+void InMemoryIncomeAccount::add(const Transaction &transaction) {
   addTransaction(creditRecords, factory, observer,
                  &Observer::notifyThatCreditHasBeenAdded, transaction, funds,
                  creditRecords, debitRecords);
 }
 
-void InMemoryExpenseAccount::debit(const Transaction &transaction) {
+void InMemoryExpenseAccount::add(const Transaction &transaction) {
   addTransaction(debitRecords, factory, observer,
                  &Observer::notifyThatDebitHasBeenAdded, transaction, funds,
                  creditRecords, debitRecords);
 }
 
-void InMemoryIncomeAccount::removeCredit(const Transaction &transaction) {
+void InMemoryIncomeAccount::remove(const Transaction &transaction) {
   removeTransaction(creditRecords, observer, transaction, funds, creditRecords,
                     debitRecords);
 }
 
-void InMemoryExpenseAccount::removeDebit(const Transaction &transaction) {
+void InMemoryExpenseAccount::remove(const Transaction &transaction) {
   removeTransaction(debitRecords, observer, transaction, funds, creditRecords,
                     debitRecords);
 }
 
-void InMemoryIncomeAccount::verifyCredit(const Transaction &transaction) {
-  verify(transaction, creditRecords);
+void InMemoryIncomeAccount::verify(const Transaction &transaction) {
+  budget::verify(transaction, creditRecords);
 }
 
-void InMemoryExpenseAccount::verifyDebit(const Transaction &transaction) {
-  verify(transaction, debitRecords);
+void InMemoryExpenseAccount::verify(const Transaction &transaction) {
+  budget::verify(transaction, debitRecords);
 }
 
 static auto

@@ -84,17 +84,17 @@ private:
 
 class IncomeAccountStub : public AccountStub, public IncomeAccount {
 public:
-  void credit(const Transaction &t) override { creditedTransaction_ = t; }
+  void add(const Transaction &t) override { creditedTransaction_ = t; }
 
   auto creditedTransaction() -> Transaction { return creditedTransaction_; }
 
   auto removedCredit() -> Transaction { return removedCredit_; }
 
-  void removeCredit(const Transaction &t) override { removedCredit_ = t; }
+  void remove(const Transaction &t) override { removedCredit_ = t; }
 
   auto creditToVerify() -> Transaction { return creditToVerify_; }
 
-  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
+  void verify(const Transaction &t) override { creditToVerify_ = t; }
 
 private:
   Transaction creditedTransaction_;
@@ -104,9 +104,9 @@ private:
 
 class ExpenseAccountStub : public AccountStub, public ExpenseAccount {
 public:
-  void debit(const Transaction &t) override { debitedTransaction_ = t; }
+  void add(const Transaction &t) override { debitedTransaction_ = t; }
 
-  void removeDebit(const Transaction &t) override {
+  void remove(const Transaction &t) override {
     debitRemoved_ = true;
     removedDebit_ = t;
   }
@@ -115,7 +115,7 @@ public:
 
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
-  void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
+  void verify(const Transaction &t) override { debitToVerify_ = t; }
 
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 

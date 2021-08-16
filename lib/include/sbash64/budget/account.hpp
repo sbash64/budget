@@ -37,9 +37,9 @@ protected:
 class InMemoryExpenseAccount : public InMemoryAccount, public ExpenseAccount {
 public:
   using InMemoryAccount::InMemoryAccount;
-  void debit(const Transaction &) override;
-  void removeDebit(const Transaction &) override;
-  void verifyDebit(const Transaction &) override;
+  void add(const Transaction &) override;
+  void verify(const Transaction &) override;
+  void remove(const Transaction &) override;
 
   class Factory : public ExpenseAccount::Factory {
   public:
@@ -55,9 +55,9 @@ public:
 class InMemoryIncomeAccount : public InMemoryAccount, public IncomeAccount {
 public:
   using InMemoryAccount::InMemoryAccount;
-  void credit(const Transaction &) override;
-  void removeCredit(const Transaction &) override;
-  void verifyCredit(const Transaction &) override;
+  void add(const Transaction &) override;
+  void verify(const Transaction &) override;
+  void remove(const Transaction &) override;
 };
 } // namespace sbash64::budget
 

@@ -180,16 +180,18 @@ public:
 
 class IncomeAccount : public virtual Account {
 public:
-  virtual void credit(const Transaction &) = 0;
-  virtual void verifyCredit(const Transaction &) = 0;
-  virtual void removeCredit(const Transaction &) = 0;
+  virtual void add(const Transaction &) = 0;
+  virtual void verify(const Transaction &) = 0;
+  virtual void remove(const Transaction &) = 0;
+  using Account::remove;
 };
 
 class ExpenseAccount : public virtual Account {
 public:
-  virtual void debit(const Transaction &) = 0;
-  virtual void verifyDebit(const Transaction &) = 0;
-  virtual void removeDebit(const Transaction &) = 0;
+  virtual void add(const Transaction &) = 0;
+  virtual void verify(const Transaction &) = 0;
+  virtual void remove(const Transaction &) = 0;
+  using Account::remove;
 
   class Factory {
   public:

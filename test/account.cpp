@@ -168,11 +168,11 @@ assertCreditsSaved(testcpplite::TestResult &result,
 }
 
 static void credit(IncomeAccount &account, const Transaction &t = {}) {
-  account.credit(t);
+  account.add(t);
 }
 
 static void debit(ExpenseAccount &account, const Transaction &t = {}) {
-  account.debit(t);
+  account.add(t);
 }
 
 static void assertAccountName(testcpplite::TestResult &result,
@@ -389,7 +389,7 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
     account.notifyThatDebitIsReady(deserialization);
     joe->setRemoves();
     Transaction transaction;
-    account.removeDebit(transaction);
+    account.remove(transaction);
     assertEqual(result, &transaction, mike->removesTransaction());
     assertEqual(result, &transaction, andy->removesTransaction());
     assertEqual(result, &transaction, joe->removesTransaction());
@@ -413,7 +413,7 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
     account.notifyThatCreditIsReady(deserialization);
     andy->setRemoves();
     Transaction transaction;
-    account.removeCredit(transaction);
+    account.remove(transaction);
     assertEqual(result, &transaction, mike->removesTransaction());
     assertEqual(result, &transaction, andy->removesTransaction());
     assertFalse(result, joe->removesed());
@@ -464,7 +464,7 @@ void savesRemainingTransactionsAfterRemovingSome(
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account);
     orangutan->setRemoves();
-    account.removeCredit({});
+    account.remove({});
     PersistentAccountStub persistence;
     account.save(persistence);
     assertCreditsSaved(result, persistence, {ape.get()});
@@ -482,7 +482,7 @@ void savesRemainingTransactionsAfterRemovingSome(
     const auto chimpanzee{addObservableTransactionStub(factory)};
     debit(account);
     gorilla->setRemoves();
-    account.removeDebit({});
+    account.remove({});
     PersistentAccountStub persistence;
     account.save(persistence);
     assertDebitsSaved(result, persistence, {chimpanzee.get()});
@@ -501,9 +501,9 @@ void savesRemainingTransactionAfterRemovingVerified(
     const auto chimpanzee{addObservableTransactionInMemory(factory)};
     credit(account,
            Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.verifyCredit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.removeCredit(
+    account.remove(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     PersistentAccountStub persistence;
     account.save(persistence);
@@ -523,9 +523,9 @@ void savesRemainingTransactionAfterRemovingVerified(
     const auto chimpanzee{addObservableTransactionInMemory(factory)};
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.verifyDebit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.removeDebit(
+    account.remove(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     PersistentAccountStub persistence;
     account.save(persistence);
@@ -580,7 +580,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     credit(account,
            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    account.removeCredit(
+    account.remove(
         Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
     assertBalanceEquals(result, 123_cents, observer);
   });
@@ -600,7 +600,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     debit(account,
           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.removeDebit(
+    account.remove(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertBalanceEquals(result, -789_cents, observer);
   });
@@ -667,9 +667,9 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     gorilla2->attach(&gorilla2Observer);
     credit(account,
            Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyCredit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyCredit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertTrue(result, gorilla1Observer.verified());
     assertTrue(result, gorilla2Observer.verified());
@@ -692,9 +692,9 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     gorilla2->attach(&gorilla2Observer);
     debit(account,
           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyDebit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verifyDebit(
+    account.verify(
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertTrue(result, gorilla1Observer.verified());
     assertTrue(result, gorilla2Observer.verified());
@@ -710,8 +710,7 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
     TransactionObserverStub observer;
     record->attach(&observer);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.verifyCredit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.verify(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.verified());
   });
 }
@@ -722,9 +721,8 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
-    account.credit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.removeCredit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.add(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.remove(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.removed());
   });
 }
@@ -738,8 +736,7 @@ void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
     TransactionObserverStub observer;
     record->attach(&observer);
     debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.verifyDebit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.verify(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.verified());
   });
 }
@@ -750,9 +747,8 @@ void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
-    account.debit(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.removeDebit(
-        Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.add(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    account.remove(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.removed());
   });
 }

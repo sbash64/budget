@@ -9,32 +9,32 @@
 
 namespace sbash64::budget {
 static void credit(IncomeAccount &account, const Transaction &transaction) {
-  account.credit(transaction);
+  account.add(transaction);
 }
 
 static void debit(const std::shared_ptr<ExpenseAccount> &account,
                   const Transaction &transaction) {
-  account->debit(transaction);
+  account->add(transaction);
 }
 
 static void verifyCredit(IncomeAccount &account,
                          const Transaction &transaction) {
-  account.verifyCredit(transaction);
+  account.verify(transaction);
 }
 
 static void verifyDebit(const std::shared_ptr<ExpenseAccount> &account,
                         const Transaction &transaction) {
-  account->verifyDebit(transaction);
+  account->verify(transaction);
 }
 
 static void removeCredit(IncomeAccount &account,
                          const Transaction &transaction) {
-  account.removeCredit(transaction);
+  account.remove(transaction);
 }
 
 static void removeDebit(const std::shared_ptr<ExpenseAccount> &account,
                         const Transaction &transaction) {
-  account->removeDebit(transaction);
+  account->remove(transaction);
 }
 
 static void
