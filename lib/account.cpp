@@ -146,12 +146,12 @@ void InMemoryAccount::load(AccountDeserialization &deserialization) {
   deserialization.load(*this);
 }
 
-void InMemoryAccount::notifyThatCreditIsReady(
+void InMemoryIncomeAccount::notifyThatIsReady(
     TransactionDeserialization &deserialization) {
   addTransaction(creditRecords, factory, *this, observer, deserialization);
 }
 
-void InMemoryAccount::notifyThatDebitIsReady(
+void InMemoryExpenseAccount::notifyThatIsReady(
     TransactionDeserialization &deserialization) {
   addTransaction(debitRecords, factory, *this, observer, deserialization);
 }

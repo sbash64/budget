@@ -370,13 +370,13 @@ void attemptsToRemoveEachDebitUntilFound(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto andy{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto joe{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto bob{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     joe->setRemoves();
     Transaction transaction;
     account.remove(transaction);
@@ -394,13 +394,13 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto andy{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto joe{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto bob{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     andy->setRemoves();
     Transaction transaction;
     account.remove(transaction);
@@ -418,9 +418,9 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto mike{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto joe{addObservableTransactionStub(factory)};
-    account.notifyThatCreditIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     PersistentAccountStub persistence;
     account.save(persistence);
     assertCreditsSaved(result, persistence, {mike.get(), joe.get()});
@@ -434,9 +434,9 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     TransactionDeserializationStub deserialization;
     const auto andy{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     const auto bob{addObservableTransactionStub(factory)};
-    account.notifyThatDebitIsReady(deserialization);
+    account.notifyThatIsReady(deserialization);
     PersistentAccountStub persistence;
     account.save(persistence);
     assertDebitsSaved(result, persistence, {andy.get(), bob.get()});
@@ -625,7 +625,7 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{addObservableTransactionStub(factory)};
     TransactionDeserializationStub abel;
-    account.notifyThatCreditIsReady(abel);
+    account.notifyThatIsReady(abel);
     assertEqual(result, mike.get(), abel.observer());
   });
 }
@@ -637,7 +637,7 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     const auto joe{addObservableTransactionStub(factory)};
     TransactionDeserializationStub abel;
-    account.notifyThatDebitIsReady(abel);
+    account.notifyThatIsReady(abel);
     assertEqual(result, joe.get(), abel.observer());
   });
 }

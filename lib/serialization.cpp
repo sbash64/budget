@@ -91,13 +91,13 @@ void ReadsAccountFromStream::load(Observer &observer) {
     getline(stream, line);
   }
   while (stream.peek() != 'd') {
-    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
+    observer.notifyThatIsReady(*transactionRecordDeserialization);
   }
   getline(stream, line);
   auto next{stream.get()};
   while (stream && next != '\n') {
     stream.unget();
-    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
+    observer.notifyThatIsReady(*transactionRecordDeserialization);
     next = stream.get();
   }
 }

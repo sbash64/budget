@@ -113,33 +113,24 @@ public:
   explicit AccountDeserializationObserverStub(std::istream &stream)
       : stream{stream} {}
 
-  void notifyThatCreditIsReady(TransactionDeserialization &) override {
+  void notifyThatIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
     TransactionDeserializationObserverStub observer;
     observer.setOnReady(
-        [&](const VerifiableTransaction &t) { credits_.push_back(t); });
+        [&](const VerifiableTransaction &t) { transactions_.push_back(t); });
     reads.load(observer);
   }
 
-  void notifyThatDebitIsReady(TransactionDeserialization &) override {
-    ReadsTransactionFromStream reads{stream};
-    TransactionDeserializationObserverStub observer;
-    observer.setOnReady(
-        [&](const VerifiableTransaction &t) { debits_.push_back(t); });
-    reads.load(observer);
+  auto transactions() -> std::vector<VerifiableTransaction> {
+    return transactions_;
   }
-
-  auto credits() -> std::vector<VerifiableTransaction> { return credits_; }
-
-  auto debits() -> std::vector<VerifiableTransaction> { return debits_; }
 
   auto funds() -> USD { return funds_; }
 
   void notifyThatFundsAreReady(USD usd) override { funds_ = usd; }
 
 private:
-  std::vector<VerifiableTransaction> credits_;
-  std::vector<VerifiableTransaction> debits_;
+  std::vector<VerifiableTransaction> transactions_;
   USD funds_{};
   std::istream &stream;
 };
@@ -247,9 +238,6 @@ john)",
 void nonfinalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
       R"(credits
-50 transfer from master 1/10/2021
-25 transfer from master 4/12/2021
-13.80 transfer from master 2/8/2021
 debits
 ^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
@@ -260,17 +248,11 @@ bobby)"};
   ReadsAccountFromStream readsAccount{input, factory};
   AccountDeserializationObserverStub observer{input};
   readsAccount.load(observer);
-  assertEqual(
-      result,
-      {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
-       {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
-       {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      observer.credits());
   assertEqual(result,
               {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
-              observer.debits());
+              observer.transactions());
 }
 
 void finalToAccount(testcpplite::TestResult &result) {
@@ -279,10 +261,7 @@ void finalToAccount(testcpplite::TestResult &result) {
 50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021
-debits
-^27.34 hyvee 1/12/2021
-9.87 walmart 6/15/2021
-3.24 hyvee 2/8/2020)"};
+debits)"};
   TransactionFromStreamFactoryStub factory;
   ReadsAccountFromStream accountDeserialization{input, factory};
   AccountDeserializationObserverStub observer{input};
@@ -292,12 +271,7 @@ debits
       {{{5000_cents, "transfer from master", Date{2021, Month::January, 10}}},
        {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
        {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
-      observer.credits());
-  assertEqual(result,
-              {{{2734_cents, "hyvee", Date{2021, Month::January, 12}}, true},
-               {{987_cents, "walmart", Date{2021, Month::June, 15}}},
-               {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
-              observer.debits());
+      observer.transactions());
 }
 
 void toAccountWithFunds(testcpplite::TestResult &result) {

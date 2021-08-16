@@ -18,8 +18,6 @@ public:
   void remove() override;
   void save(AccountSerialization &) override;
   void load(AccountDeserialization &) override;
-  void notifyThatCreditIsReady(TransactionDeserialization &) override;
-  void notifyThatDebitIsReady(TransactionDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;
 
 protected:
@@ -41,6 +39,7 @@ public:
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
   auto balance() -> USD override;
+  void notifyThatIsReady(TransactionDeserialization &) override;
 
   class Factory : public ExpenseAccount::Factory {
   public:
@@ -63,6 +62,7 @@ public:
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
   auto balance() -> USD override;
+  void notifyThatIsReady(TransactionDeserialization &) override;
 };
 } // namespace sbash64::budget
 

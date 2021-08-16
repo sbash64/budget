@@ -39,10 +39,6 @@ public:
 
   void rename(std::string_view s) override { newName_ = s; }
 
-  void notifyThatCreditIsReady(TransactionDeserialization &) override {}
-
-  void notifyThatDebitIsReady(TransactionDeserialization &) override {}
-
   void notifyThatFundsAreReady(USD) override {}
 
   void reduce() override { reduced_ = true; }
@@ -96,6 +92,8 @@ public:
 
   void verify(const Transaction &t) override { creditToVerify_ = t; }
 
+  void notifyThatIsReady(TransactionDeserialization &) override {}
+
 private:
   Transaction creditedTransaction_;
   Transaction removedCredit_;
@@ -120,6 +118,8 @@ public:
   auto debitedTransaction() -> Transaction { return debitedTransaction_; }
 
   auto removedDebit() -> Transaction { return removedDebit_; }
+
+  void notifyThatIsReady(TransactionDeserialization &) override {}
 
 private:
   Transaction debitToVerify_;
