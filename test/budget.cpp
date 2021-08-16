@@ -19,16 +19,8 @@ public:
   void load(Observer &) override {}
 };
 
-class AccountStub : public virtual Account,
-                    public IncomeAccount,
-                    public ExpenseAccount {
+class AccountStub : public virtual Account, public ExpenseAccount {
 public:
-  void credit(const Transaction &) override {}
-
-  void removeCredit(const Transaction &t) override {}
-
-  void verifyCredit(const Transaction &t) override {}
-
   void clear() override { cleared_ = true; }
 
   void setBalance(USD b) { balance_ = b; }
@@ -111,7 +103,7 @@ private:
   bool reduced_{};
 };
 
-class IncomeAccountStub : public AccountStub {
+class IncomeAccountStub : public AccountStub, public IncomeAccount {
 public:
   void credit(const Transaction &t) override { creditedTransaction_ = t; }
 
