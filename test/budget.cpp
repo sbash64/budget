@@ -27,6 +27,8 @@ public:
 
   void removeCredit(const Transaction &t) override {}
 
+  void verifyCredit(const Transaction &t) override {}
+
   void clear() override { cleared_ = true; }
 
   void setBalance(USD b) { balance_ = b; }
@@ -59,10 +61,6 @@ public:
   auto debitToVerify() -> Transaction { return debitToVerify_; }
 
   void verifyDebit(const Transaction &t) override { debitToVerify_ = t; }
-
-  auto creditToVerify() -> Transaction { return creditToVerify_; }
-
-  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
 
   void notifyThatCreditIsReady(TransactionDeserialization &) override {}
 
@@ -98,7 +96,6 @@ public:
   auto withdrawals() -> std::vector<USD> { return withdrawals_; }
 
 private:
-  Transaction creditToVerify_;
   Transaction debitToVerify_;
   Transaction debitedTransaction_;
   Transaction removedDebit_;
@@ -124,9 +121,14 @@ public:
 
   void removeCredit(const Transaction &t) override { removedCredit_ = t; }
 
+  auto creditToVerify() -> Transaction { return creditToVerify_; }
+
+  void verifyCredit(const Transaction &t) override { creditToVerify_ = t; }
+
 private:
   Transaction creditedTransaction_;
   Transaction removedCredit_;
+  Transaction creditToVerify_;
 };
 
 class AccountFactoryStub : public ExpenseAccount::Factory {
