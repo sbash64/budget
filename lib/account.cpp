@@ -214,11 +214,11 @@ void InMemoryAccount::reduce() {
 }
 
 auto InMemoryExpenseAccount::balance() -> USD {
-  return budget::balance(funds, creditRecords, debitRecords);
+  return funds - budget::balance(debitRecords);
 }
 
 auto InMemoryIncomeAccount::balance() -> USD {
-  return budget::balance(funds, creditRecords, debitRecords);
+  return funds + budget::balance(creditRecords);
 }
 
 void InMemoryAccount::withdraw(USD usd) {
