@@ -194,10 +194,15 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryAccount::reduce() {
+void InMemoryExpenseAccount::reduce() {
   funds = budget::balance(funds, creditRecords, debitRecords);
   notifyUpdatedFunds(observer, funds);
   budget::clear(debitRecords);
+}
+
+void InMemoryIncomeAccount::reduce() {
+  funds = budget::balance(funds, creditRecords, debitRecords);
+  notifyUpdatedFunds(observer, funds);
   budget::clear(creditRecords);
 }
 

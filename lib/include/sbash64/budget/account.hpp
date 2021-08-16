@@ -15,7 +15,6 @@ public:
   void rename(std::string_view) override;
   void withdraw(USD) override;
   void deposit(USD) override;
-  void reduce() override;
   void remove() override;
   void save(AccountSerialization &) override;
   void load(AccountDeserialization &) override;
@@ -37,6 +36,7 @@ public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   void clear() override;
+  void reduce() override;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
@@ -58,6 +58,7 @@ public:
   using Account::remove;
   using InMemoryAccount::InMemoryAccount;
   void clear() override;
+  void reduce() override;
   void add(const Transaction &) override;
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
