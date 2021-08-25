@@ -14,13 +14,13 @@ namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
-  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
-                                       std::string_view name) override {
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
+                                      std::string_view name) override {
     primaryAccountName_ = name;
   }
 
-  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
-                                         std::string_view name) override {
+  void notifyThatExpenseAccountIsReady(AccountDeserialization &,
+                                       std::string_view name) override {
     secondaryAccountNames_.emplace_back(name);
   }
 

@@ -18,9 +18,9 @@ void ReadsBudgetFromStream::load(Observer &observer) {
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, line);
   while (getline(*stream, line))
-    observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
 }
 
 WritesBudgetToStream::WritesBudgetToStream(

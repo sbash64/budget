@@ -129,8 +129,8 @@ class BudgetObserverStub : public Budget::Observer {
 public:
   auto newAccountName() -> std::string { return newAccountName_; }
 
-  void notifyThatNewAccountHasBeenCreated(Account &account,
-                                          std::string_view name) override {
+  void notifyThatExpenseAccountHasBeenCreated(Account &account,
+                                              std::string_view name) override {
     newAccountName_ = name;
     newAccount_ = &account;
   }
@@ -318,15 +318,15 @@ void loadsAccounts(testcpplite::TestResult &result) {
     assertEqual(result, &budget, persistence.observer());
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatPrimaryAccountIsReady(deserialization, "");
+    budget.notifyThatIncomeAccountIsReady(deserialization, "");
     assertEqual(result, &deserialization, masterAccount.deserialization());
     assertDeserializes(
         result, budget,
-        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,
         deserialization, "penguin", penguin);
     assertDeserializes(
         result, budget,
-        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,
         deserialization, "leopard", leopard);
 
     budget.save(persistence);
@@ -346,9 +346,9 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     budget.load(persistence);
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatPrimaryAccountIsReady(deserialization, "");
-    budget.notifyThatSecondaryAccountIsReady(deserialization, "penguin");
-    budget.notifyThatSecondaryAccountIsReady(deserialization, "leopard");
+    budget.notifyThatIncomeAccountIsReady(deserialization, "");
+    budget.notifyThatExpenseAccountIsReady(deserialization, "penguin");
+    budget.notifyThatExpenseAccountIsReady(deserialization, "leopard");
 
     const auto turtle{addAccountStub(factory, "turtle")};
     const auto tiger{addAccountStub(factory, "tiger")};
@@ -359,14 +359,14 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     assertTrue(result, penguin->removed());
     assertTrue(result, leopard->removed());
 
-    budget.notifyThatPrimaryAccountIsReady(deserialization, "");
+    budget.notifyThatIncomeAccountIsReady(deserialization, "");
     assertDeserializes(
         result, budget,
-        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,
         deserialization, "turtle", turtle);
     assertDeserializes(
         result, budget,
-        &BudgetDeserialization::Observer::notifyThatSecondaryAccountIsReady,
+        &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,
         deserialization, "tiger", tiger);
 
     budget.save(persistence);
@@ -444,7 +444,7 @@ void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
         budget.attach(&observer);
         const auto account{addAccountStub(factory, "giraffe")};
         AccountDeserializationStub deserialization;
-        budget.notifyThatSecondaryAccountIsReady(deserialization, "giraffe");
+        budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe");
         assertEqual(result, "giraffe", observer.newAccountName());
         assertEqual(result, account.get(), observer.newAccount());
       });

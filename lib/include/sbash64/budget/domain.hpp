@@ -196,10 +196,10 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+    virtual void notifyThatIncomeAccountIsReady(AccountDeserialization &,
+                                                std::string_view name) = 0;
+    virtual void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                                  std::string_view name) = 0;
-    virtual void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
-                                                   std::string_view name) = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetDeserialization);
   virtual void load(Observer &) = 0;
@@ -210,8 +210,9 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void notifyThatNewAccountHasBeenCreated(Account &,
-                                                    std::string_view name) = 0;
+    virtual void
+    notifyThatExpenseAccountHasBeenCreated(Account &,
+                                           std::string_view name) = 0;
     virtual void notifyThatTotalBalanceHasChanged(USD) = 0;
   };
 

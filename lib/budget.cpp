@@ -61,7 +61,7 @@ static auto make(Account::Factory &accountFactory, std::string_view name,
                  Budget::Observer *observer) -> std::shared_ptr<Account> {
   auto account{accountFactory.make(name)};
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
-    observer_->notifyThatNewAccountHasBeenCreated(*account, name);
+    observer_->notifyThatExpenseAccountHasBeenCreated(*account, name);
   });
   return account;
 }
@@ -230,12 +230,12 @@ void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
-void BudgetInMemory::notifyThatPrimaryAccountIsReady(
+void BudgetInMemory::notifyThatIncomeAccountIsReady(
     AccountDeserialization &deserialization, std::string_view) {
   incomeAccount.load(deserialization);
 }
 
-void BudgetInMemory::notifyThatSecondaryAccountIsReady(
+void BudgetInMemory::notifyThatExpenseAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   expenseAccounts[std::string{name}] =
       makeAndLoad(accountFactory, deserialization, name, observer);

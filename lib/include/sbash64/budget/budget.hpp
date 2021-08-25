@@ -29,10 +29,10 @@ public:
   void restore() override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;
-  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
+                                      std::string_view name) override;
+  void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override;
-  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
-                                         std::string_view name) override;
 
 private:
   Account::Factory &accountFactory;
