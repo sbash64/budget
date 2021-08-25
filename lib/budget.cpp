@@ -47,7 +47,7 @@ static void notifyThatTotalBalanceHasChanged(
     const std::map<std::string, std::shared_ptr<Account>, std::less<>>
         &expenseAccounts) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
-    observer_->notifyThatTotalBalanceHasChanged(accumulate(
+    observer_->notifyThatNetIncomeHasChanged(accumulate(
         expenseAccounts.begin(), expenseAccounts.end(), incomeAccount.balance(),
         [](USD total, const std::pair<std::string_view,
                                       std::shared_ptr<Account>> &secondary) {

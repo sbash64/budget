@@ -137,7 +137,7 @@ public:
 
   auto newAccount() -> const Account * { return newAccount_; }
 
-  void notifyThatTotalBalanceHasChanged(USD b) override { totalBalance_ = b; }
+  void notifyThatNetIncomeHasChanged(USD b) override { totalBalance_ = b; }
 
   auto totalBalance() -> USD { return totalBalance_; }
 
