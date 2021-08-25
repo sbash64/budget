@@ -101,9 +101,10 @@ at(const std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
   return accounts.at(std::string{name});
 }
 
-static auto makeAndLoad(Account::Factory &factory,
-                        AccountDeserialization &deserialization,
-                        std::string_view name, Budget::Observer *observer)
+static auto makeAndLoadExpenseAccount(Account::Factory &factory,
+                                      AccountDeserialization &deserialization,
+                                      std::string_view name,
+                                      Budget::Observer *observer)
     -> std::shared_ptr<Account> {
   auto account{makeExpenseAccount(factory, name, observer)};
   account->load(deserialization);
@@ -149,12 +150,6 @@ void BudgetInMemory::verifyIncome(const Transaction &transaction) {
 void BudgetInMemory::verifyExpense(std::string_view accountName,
                                    const Transaction &transaction) {
   budget::verify(at(expenseAccounts, accountName), transaction);
-}
-
-template <std::size_t N>
-auto transaction(USD amount, std::array<char, N> description, Date date)
-    -> Transaction {
-  return {amount, description.data(), date};
 }
 
 static void transferTo(Account &incomeAccount,
@@ -239,8 +234,8 @@ void BudgetInMemory::notifyThatIncomeAccountIsReady(
 
 void BudgetInMemory::notifyThatExpenseAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
-  expenseAccounts[std::string{name}] =
-      makeAndLoad(accountFactory, deserialization, name, observer);
+  expenseAccounts[std::string{name}] = makeAndLoadExpenseAccount(
+      accountFactory, deserialization, name, observer);
 }
 
 void BudgetInMemory::reduce() {
