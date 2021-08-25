@@ -18,16 +18,15 @@ public:
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override {
-    secondaryAccountNames_.emplace_back(name);
+    expenseAccountNames_.emplace_back(name);
   }
 
-  auto secondaryAccountNames() -> std::vector<std::string> {
-    return secondaryAccountNames_;
+  auto expenseAccountNames() -> std::vector<std::string> {
+    return expenseAccountNames_;
   }
 
 private:
-  std::string primaryAccountName_;
-  std::vector<std::string> secondaryAccountNames_;
+  std::vector<std::string> expenseAccountNames_;
 };
 
 class SavesNameAccount : public SerializableAccount {
@@ -320,8 +319,8 @@ allen)")};
                                     accountDeserializationFactory};
   BudgetDeserializationObserverStub observer;
   readsBudget.load(observer);
-  assertEqual(result, "steve", observer.secondaryAccountNames().at(0));
-  assertEqual(result, "sue", observer.secondaryAccountNames().at(1));
-  assertEqual(result, "allen", observer.secondaryAccountNames().at(2));
+  assertEqual(result, "steve", observer.expenseAccountNames().at(0));
+  assertEqual(result, "sue", observer.expenseAccountNames().at(1));
+  assertEqual(result, "allen", observer.expenseAccountNames().at(2));
 }
 } // namespace sbash64::budget::streams
