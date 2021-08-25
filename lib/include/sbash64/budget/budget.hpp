@@ -29,8 +29,7 @@ public:
   void restore() override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
-                                      std::string_view name) override;
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override;
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override;
 

@@ -231,7 +231,7 @@ void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
 }
 
 void BudgetInMemory::notifyThatIncomeAccountIsReady(
-    AccountDeserialization &deserialization, std::string_view) {
+    AccountDeserialization &deserialization) {
   incomeAccount.load(deserialization);
 }
 

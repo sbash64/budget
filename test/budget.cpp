@@ -318,7 +318,7 @@ void loadsAccounts(testcpplite::TestResult &result) {
     assertEqual(result, &budget, persistence.observer());
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatIncomeAccountIsReady(deserialization, "");
+    budget.notifyThatIncomeAccountIsReady(deserialization);
     assertEqual(result, &deserialization, masterAccount.deserialization());
     assertDeserializes(
         result, budget,
@@ -346,7 +346,7 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     budget.load(persistence);
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatIncomeAccountIsReady(deserialization, "");
+    budget.notifyThatIncomeAccountIsReady(deserialization);
     budget.notifyThatExpenseAccountIsReady(deserialization, "penguin");
     budget.notifyThatExpenseAccountIsReady(deserialization, "leopard");
 
@@ -359,7 +359,7 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     assertTrue(result, penguin->removed());
     assertTrue(result, leopard->removed());
 
-    budget.notifyThatIncomeAccountIsReady(deserialization, "");
+    budget.notifyThatIncomeAccountIsReady(deserialization);
     assertDeserializes(
         result, budget,
         &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,

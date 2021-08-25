@@ -14,17 +14,12 @@ namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
-                                      std::string_view name) override {
-    primaryAccountName_ = name;
-  }
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override {}
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override {
     secondaryAccountNames_.emplace_back(name);
   }
-
-  auto primaryAccountName() -> std::string { return primaryAccountName_; }
 
   auto secondaryAccountNames() -> std::vector<std::string> {
     return secondaryAccountNames_;
@@ -325,7 +320,6 @@ allen)")};
                                     accountDeserializationFactory};
   BudgetDeserializationObserverStub observer;
   readsBudget.load(observer);
-  assertEqual(result, "jeff", observer.primaryAccountName());
   assertEqual(result, "steve", observer.secondaryAccountNames().at(0));
   assertEqual(result, "sue", observer.secondaryAccountNames().at(1));
   assertEqual(result, "allen", observer.secondaryAccountNames().at(2));

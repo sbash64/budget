@@ -18,7 +18,7 @@ void ReadsBudgetFromStream::load(Observer &observer) {
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, line);
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization);
   while (getline(*stream, line))
     observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
 }
