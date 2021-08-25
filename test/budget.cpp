@@ -183,11 +183,11 @@ static void testBudgetInMemory(
 
 static void debit(Budget &budget, std::string_view accountName,
                   const Transaction &t) {
-  budget.debit(accountName, t);
+  budget.addExpense(accountName, t);
 }
 
 static void credit(Budget &budget, const Transaction &t = {}) {
-  budget.credit(t);
+  budget.addIncome(t);
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -377,31 +377,31 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
 }
 
 void removesDebit(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        const auto account{createAccountStub(budget, factory, "giraffe")};
-        budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                                  Date{2013, Month::April, 3}});
-        assertDebitRemoved(
-            result, account,
-            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    const auto account{createAccountStub(budget, factory, "giraffe")};
+    budget.removeExpense("giraffe", Transaction{123_cents, "raccoon",
+                                                Date{2013, Month::April, 3}});
+    assertDebitRemoved(
+        result, account,
+        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+  });
 }
 
 void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        const auto account{addAccountStub(factory, "giraffe")};
-        budget.removeDebit("giraffe", Transaction{123_cents, "raccoon",
-                                                  Date{2013, Month::April, 3}});
-        assertFalse(result, account->transactionRemoved());
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    const auto account{addAccountStub(factory, "giraffe")};
+    budget.removeExpense("giraffe", Transaction{123_cents, "raccoon",
+                                                Date{2013, Month::April, 3}});
+    assertFalse(result, account->transactionRemoved());
+  });
 }
 
 void removesCredit(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
-    budget.removeCredit(
+    budget.removeIncome(
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertCreditRemoved(
         result, masterAccount,
@@ -419,19 +419,20 @@ void renamesAccount(testcpplite::TestResult &result) {
 }
 
 void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.verifyDebit("giraffe", {1_cents, "hi", Date{2020, Month::April, 1}});
-    assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
-                giraffe->verifiedTransaction());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.verifyExpense("giraffe",
+                             {1_cents, "hi", Date{2020, Month::April, 1}});
+        assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
+                    giraffe->verifiedTransaction());
+      });
 }
 
 void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
-    budget.verifyCredit({1_cents, "hi", Date{2020, Month::April, 1}});
+    budget.verifyIncome({1_cents, "hi", Date{2020, Month::April, 1}});
     assertEqual(result, {1_cents, "hi", Date{2020, Month::April, 1}},
                 masterAccount.verifiedTransaction());
   });

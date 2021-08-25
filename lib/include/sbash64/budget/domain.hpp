@@ -216,14 +216,15 @@ public:
   };
 
   virtual void attach(Observer *) = 0;
-  virtual void credit(const Transaction &) = 0;
-  virtual void debit(std::string_view accountName, const Transaction &) = 0;
-  virtual void removeCredit(const Transaction &) = 0;
-  virtual void removeDebit(std::string_view accountName,
-                           const Transaction &) = 0;
-  virtual void verifyCredit(const Transaction &) = 0;
-  virtual void verifyDebit(std::string_view accountName,
-                           const Transaction &) = 0;
+  virtual void addIncome(const Transaction &) = 0;
+  virtual void addExpense(std::string_view accountName,
+                          const Transaction &) = 0;
+  virtual void removeIncome(const Transaction &) = 0;
+  virtual void removeExpense(std::string_view accountName,
+                             const Transaction &) = 0;
+  virtual void verifyIncome(const Transaction &) = 0;
+  virtual void verifyExpense(std::string_view accountName,
+                             const Transaction &) = 0;
   virtual void transferTo(std::string_view accountName, USD) = 0;
   virtual void allocate(std::string_view accountName, USD) = 0;
   virtual void createAccount(std::string_view name) = 0;

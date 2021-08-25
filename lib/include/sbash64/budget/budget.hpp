@@ -13,12 +13,14 @@ class BudgetInMemory : public Budget {
 public:
   explicit BudgetInMemory(Account &, Account::Factory &);
   void attach(Observer *) override;
-  void credit(const Transaction &) override;
-  void debit(std::string_view accountName, const Transaction &) override;
-  void removeCredit(const Transaction &) override;
-  void removeDebit(std::string_view accountName, const Transaction &) override;
-  void verifyCredit(const Transaction &) override;
-  void verifyDebit(std::string_view accountName, const Transaction &) override;
+  void addIncome(const Transaction &) override;
+  void addExpense(std::string_view accountName, const Transaction &) override;
+  void removeIncome(const Transaction &) override;
+  void removeExpense(std::string_view accountName,
+                     const Transaction &) override;
+  void verifyIncome(const Transaction &) override;
+  void verifyExpense(std::string_view accountName,
+                     const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount) override;
   void allocate(std::string_view accountName, USD) override;
   void createAccount(std::string_view name) override;

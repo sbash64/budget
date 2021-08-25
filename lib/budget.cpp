@@ -114,38 +114,38 @@ BudgetInMemory::BudgetInMemory(Account &incomeAccount,
 
 void BudgetInMemory::attach(Observer *a) { observer = a; }
 
-void BudgetInMemory::credit(const Transaction &transaction) {
+void BudgetInMemory::addIncome(const Transaction &transaction) {
   budget::add(incomeAccount, transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
-void BudgetInMemory::debit(std::string_view accountName,
-                           const Transaction &transaction) {
+void BudgetInMemory::addExpense(std::string_view accountName,
+                                const Transaction &transaction) {
   createNewAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                            observer);
   budget::add(at(expenseAccounts, accountName), transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
-void BudgetInMemory::removeCredit(const Transaction &transaction) {
+void BudgetInMemory::removeIncome(const Transaction &transaction) {
   budget::remove(incomeAccount, transaction);
   notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
-void BudgetInMemory::removeDebit(std::string_view accountName,
-                                 const Transaction &transaction) {
+void BudgetInMemory::removeExpense(std::string_view accountName,
+                                   const Transaction &transaction) {
   if (contains(expenseAccounts, accountName)) {
     budget::remove(at(expenseAccounts, accountName), transaction);
     notifyThatTotalBalanceHasChanged(observer, incomeAccount, expenseAccounts);
   }
 }
 
-void BudgetInMemory::verifyCredit(const Transaction &transaction) {
+void BudgetInMemory::verifyIncome(const Transaction &transaction) {
   budget::verify(incomeAccount, transaction);
 }
 
-void BudgetInMemory::verifyDebit(std::string_view accountName,
-                                 const Transaction &transaction) {
+void BudgetInMemory::verifyExpense(std::string_view accountName,
+                                   const Transaction &transaction) {
   budget::verify(at(expenseAccounts, accountName), transaction);
 }
 
