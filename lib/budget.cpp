@@ -204,9 +204,8 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
-    const auto leftover{categoryAllocations.at(std::string{name}) -
-                        at(expenseAccounts, name)->balance()};
-    unallocatedIncome += leftover;
+    unallocatedIncome += categoryAllocations.at(std::string{name}) -
+                         at(expenseAccounts, name)->balance();
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
     });
@@ -251,18 +250,18 @@ void BudgetInMemory::notifyThatExpenseAccountIsReady(
 
 void BudgetInMemory::reduce() {
   unallocatedIncome += incomeAccount.balance();
-  incomeAccount.reduce();
   callIfObserverExists(observer, [&](Observer *observer_) {
     observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
   });
+  incomeAccount.reduce();
   for (const auto &[name, account] : expenseAccounts) {
     categoryAllocations.at(std::string{name}) -= account->balance();
-    account->reduce();
     std::string copied{name};
     callIfObserverExists(observer, [&](Observer *observer_) {
       notifyThatCategoryAllocationHasChanged(observer_, copied,
                                              categoryAllocations);
     });
+    account->reduce();
   }
 }
 
