@@ -307,7 +307,9 @@ void fromBudget(testcpplite::TestResult &result) {
   SavesNameAccount steve{*stream, "steve"};
   SavesNameAccount sue{*stream, "sue"};
   SavesNameAccount allen{*stream, "allen"};
-  sessionSerialization.save(jeff, {&steve, &sue, &allen});
+  sessionSerialization.save(
+      {&jeff, 4_cents},
+      {{&steve, 1_cents}, {&sue, 2_cents}, {&allen, 3_cents}});
   assertEqual(result, R"(
 jeff
 

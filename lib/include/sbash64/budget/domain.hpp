@@ -184,11 +184,17 @@ public:
   };
 };
 
+struct SerializableAccountWithFunds {
+  SerializableAccount *account{};
+  USD funds;
+};
+
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
-  virtual void save(SerializableAccount &primary,
-                    const std::vector<SerializableAccount *> &secondaries) = 0;
+  virtual void save(SerializableAccountWithFunds incomeAccountWithFunds,
+                    const std::vector<SerializableAccountWithFunds>
+                        &expenseAccountsWithFunds) = 0;
 };
 
 class BudgetDeserialization {

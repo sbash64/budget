@@ -297,9 +297,14 @@ void savesAccounts(testcpplite::TestResult &result) {
     const auto leopard{createAccountStub(budget, factory, "leopard")};
     PersistentMemoryStub persistence;
     budget.save(persistence);
-    assertEqual(result, &incomeAccount, persistence.primaryAccount());
-    assertEqual(result, {giraffe.get(), leopard.get(), penguin.get()},
-                persistence.secondaryAccounts());
+    assertEqual(result, &incomeAccount,
+                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, giraffe.get(),
+                persistence.expenseAccountsWithFunds().at(0).account);
+    assertEqual(result, leopard.get(),
+                persistence.expenseAccountsWithFunds().at(1).account);
+    assertEqual(result, penguin.get(),
+                persistence.expenseAccountsWithFunds().at(2).account);
   });
 }
 
@@ -336,9 +341,12 @@ void loadsAccounts(testcpplite::TestResult &result) {
         deserialization, "leopard", leopard);
 
     budget.save(persistence);
-    assertEqual(result, &incomeAccount, persistence.primaryAccount());
-    assertEqual(result, {leopard.get(), penguin.get()},
-                persistence.secondaryAccounts());
+    assertEqual(result, &incomeAccount,
+                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, leopard.get(),
+                persistence.expenseAccountsWithFunds().at(0).account);
+    assertEqual(result, penguin.get(),
+                persistence.expenseAccountsWithFunds().at(1).account);
   });
 }
 
@@ -376,9 +384,12 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
         deserialization, "tiger", tiger);
 
     budget.save(persistence);
-    assertEqual(result, &incomeAccount, persistence.primaryAccount());
-    assertEqual(result, {tiger.get(), turtle.get()},
-                persistence.secondaryAccounts());
+    assertEqual(result, &incomeAccount,
+                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, tiger.get(),
+                persistence.expenseAccountsWithFunds().at(0).account);
+    assertEqual(result, turtle.get(),
+                persistence.expenseAccountsWithFunds().at(1).account);
   });
 }
 
@@ -553,9 +564,12 @@ void removesAccount(testcpplite::TestResult &result) {
     assertTrue(result, giraffe->removed());
     PersistentMemoryStub persistence;
     budget.save(persistence);
-    assertEqual(result, &incomeAccount, persistence.primaryAccount());
-    assertEqual(result, {leopard.get(), penguin.get()},
-                persistence.secondaryAccounts());
+    assertEqual(result, &incomeAccount,
+                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, leopard.get(),
+                persistence.expenseAccountsWithFunds().at(0).account);
+    assertEqual(result, penguin.get(),
+                persistence.expenseAccountsWithFunds().at(1).account);
   });
 }
 
@@ -576,7 +590,8 @@ void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
         createAccount(budget, "giraffe");
         PersistentMemoryStub persistence;
         budget.save(persistence);
-        assertEqual(result, {giraffe1.get()}, persistence.secondaryAccounts());
+        assertEqual(result, giraffe1.get(),
+                    persistence.expenseAccountsWithFunds().at(0).account);
       });
 }
 
@@ -595,8 +610,10 @@ void closesAccount(testcpplite::TestResult &result) {
         assertEqual(result, {7_cents}, observer.categoryAllocations("giraffe"));
         PersistentMemoryStub persistence;
         budget.save(persistence);
-        assertEqual(result, {leopard.get(), penguin.get()},
-                    persistence.secondaryAccounts());
+        assertEqual(result, leopard.get(),
+                    persistence.expenseAccountsWithFunds().at(0).account);
+        assertEqual(result, penguin.get(),
+                    persistence.expenseAccountsWithFunds().at(1).account);
       });
 }
 

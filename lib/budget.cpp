@@ -88,13 +88,15 @@ static void createExpenseAccountIfNeeded(
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
-                                   std::less<>> &accounts)
-    -> std::vector<SerializableAccount *> {
-  std::vector<SerializableAccount *> collected;
+                                   std::less<>> &accounts,
+                    std::map<std::string, USD> categoryAllocations)
+    -> std::vector<SerializableAccountWithFunds> {
+  std::vector<SerializableAccountWithFunds> collected;
   transform(
       accounts.begin(), accounts.end(), back_inserter(collected),
-      [](const std::pair<const std::string, std::shared_ptr<Account>> &pair) {
-        return pair.second.get();
+      [&](const std::pair<const std::string, std::shared_ptr<Account>> &pair) {
+        return SerializableAccountWithFunds{pair.second.get(),
+                                            categoryAllocations.at(pair.first)};
       });
   return collected;
 }
@@ -225,7 +227,8 @@ void BudgetInMemory::removeAccount(std::string_view name) {
 }
 
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
-  persistentMemory.save(incomeAccount, collect(expenseAccounts));
+  persistentMemory.save({&incomeAccount, unallocatedIncome},
+                        collect(expenseAccounts, categoryAllocations));
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {

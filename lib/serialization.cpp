@@ -61,15 +61,15 @@ static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
 }
 
 void WritesBudgetToStream::save(
-    SerializableAccount &primary,
-    const std::vector<SerializableAccount *> &secondaries) {
+    SerializableAccountWithFunds incomeAccountWithFunds,
+    const std::vector<SerializableAccountWithFunds> &expenseAccountsWithFunds) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
-  primary.save(*accountSerialization);
+  incomeAccountWithFunds.account->save(*accountSerialization);
   putNewLine(stream);
-  for (auto *account : secondaries) {
+  for (auto accountWithFunds : expenseAccountsWithFunds) {
     putNewLine(stream);
-    account->save(*accountSerialization);
+    accountWithFunds.account->save(*accountSerialization);
     putNewLine(stream);
   }
 }

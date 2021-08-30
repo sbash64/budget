@@ -12,18 +12,19 @@ namespace sbash64::budget {
 class PersistentMemoryStub : public BudgetDeserialization,
                              public BudgetSerialization {
 public:
-  auto primaryAccount() -> const SerializableAccount * {
-    return primaryAccount_;
+  void save(SerializableAccountWithFunds incomeAccountWithFunds,
+            const std::vector<SerializableAccountWithFunds>
+                &expenseAccountsWithFunds) override {
+    incomeAccountWithFunds_ = incomeAccountWithFunds;
+    expenseAccountsWithFunds_ = expenseAccountsWithFunds;
   }
 
-  void save(SerializableAccount &primary,
-            const std::vector<SerializableAccount *> &secondaries) override {
-    primaryAccount_ = &primary;
-    secondaryAccounts_ = secondaries;
+  auto incomeAccountWithFunds() -> SerializableAccountWithFunds {
+    return incomeAccountWithFunds_;
   }
 
-  auto secondaryAccounts() -> std::vector<SerializableAccount *> {
-    return secondaryAccounts_;
+  auto expenseAccountsWithFunds() -> std::vector<SerializableAccountWithFunds> {
+    return expenseAccountsWithFunds_;
   }
 
   auto primaryAccountToLoadInto() -> const std::shared_ptr<Account> * {
@@ -42,8 +43,8 @@ public:
   auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
-  std::vector<SerializableAccount *> secondaryAccounts_;
-  const SerializableAccount *primaryAccount_{};
+  std::vector<SerializableAccountWithFunds> expenseAccountsWithFunds_;
+  SerializableAccountWithFunds incomeAccountWithFunds_;
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>
       *secondaryAccountsToLoadInto_{};
