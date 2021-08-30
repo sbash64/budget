@@ -31,12 +31,18 @@ void ReadsBudgetFromStream::load(Observer &observer) {
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  std::stringstream lineStream{line};
   std::string word;
+  std::stringstream lineStream{line};
   lineStream >> word >> word;
   observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(word));
-  while (getline(*stream, line))
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line, {});
+  while (getline(*stream, line)) {
+    std::stringstream lineStream{line};
+    std::string name;
+    std::string amount;
+    lineStream >> name >> amount;
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, name,
+                                             usd(amount));
+  }
 }
 
 WritesBudgetToStream::WritesBudgetToStream(

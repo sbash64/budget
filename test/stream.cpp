@@ -323,9 +323,9 @@ allen
 void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
       R"(jeff 12.34
-steve
-sue
-allen)")};
+steve 22
+sue 33
+allen 4.50)")};
   IoStreamFactoryStub streamFactory{input};
   AccountFromStreamFactoryStub accountDeserializationFactory;
   ReadsBudgetFromStream readsBudget{streamFactory,
@@ -335,6 +335,9 @@ allen)")};
   assertEqual(result, "steve", observer.expenseAccountNames().at(0));
   assertEqual(result, "sue", observer.expenseAccountNames().at(1));
   assertEqual(result, "allen", observer.expenseAccountNames().at(2));
+  assertEqual(result, 2200_cents, observer.expenseAccountAllocations().at(0));
+  assertEqual(result, 3300_cents, observer.expenseAccountAllocations().at(1));
+  assertEqual(result, 450_cents, observer.expenseAccountAllocations().at(2));
   assertEqual(result, 1234_cents, observer.unallocatedIncome());
 }
 } // namespace sbash64::budget::streams
