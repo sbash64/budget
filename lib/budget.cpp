@@ -243,7 +243,7 @@ void BudgetInMemory::notifyThatIncomeAccountIsReady(
 }
 
 void BudgetInMemory::notifyThatExpenseAccountIsReady(
-    AccountDeserialization &deserialization, std::string_view name) {
+    AccountDeserialization &deserialization, std::string_view name, USD) {
   expenseAccounts[std::string{name}] = makeAndLoadExpenseAccount(
       accountFactory, deserialization, name, categoryAllocations, observer);
 }

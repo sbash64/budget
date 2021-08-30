@@ -36,7 +36,7 @@ void ReadsBudgetFromStream::load(Observer &observer) {
   lineStream >> word >> word;
   observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(word));
   while (getline(*stream, line))
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line, {});
 }
 
 WritesBudgetToStream::WritesBudgetToStream(

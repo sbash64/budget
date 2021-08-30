@@ -199,7 +199,8 @@ public:
     virtual void notifyThatIncomeAccountIsReady(AccountDeserialization &,
                                                 USD unallocated) = 0;
     virtual void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                                 std::string_view name) = 0;
+                                                 std::string_view name,
+                                                 USD allocated) = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetDeserialization);
   virtual void load(Observer &) = 0;

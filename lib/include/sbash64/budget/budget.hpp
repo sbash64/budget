@@ -33,7 +33,8 @@ public:
   void load(BudgetDeserialization &) override;
   void notifyThatIncomeAccountIsReady(AccountDeserialization &, USD) override;
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                       std::string_view name) override;
+                                       std::string_view name,
+                                       USD allocated) override;
 
 private:
   Account::Factory &accountFactory;

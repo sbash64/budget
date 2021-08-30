@@ -20,18 +20,25 @@ public:
   }
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                       std::string_view name) override {
+                                       std::string_view name,
+                                       USD usd) override {
     expenseAccountNames_.emplace_back(name);
+    expenseAccountAllocations_.push_back(usd);
   }
 
   auto expenseAccountNames() -> std::vector<std::string> {
     return expenseAccountNames_;
   }
 
+  auto expenseAccountAllocations() -> std::vector<USD> {
+    return expenseAccountAllocations_;
+  }
+
   auto unallocatedIncome() -> USD { return unallocatedIncome_; }
 
 private:
   std::vector<std::string> expenseAccountNames_;
+  std::vector<USD> expenseAccountAllocations_;
   USD unallocatedIncome_;
 };
 

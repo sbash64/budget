@@ -306,10 +306,10 @@ void savesAccounts(testcpplite::TestResult &result) {
 static void assertDeserializes(
     testcpplite::TestResult &result, BudgetDeserialization::Observer &observer,
     void (BudgetDeserialization::Observer::*notify)(AccountDeserialization &,
-                                                    std::string_view),
+                                                    std::string_view, USD),
     AccountDeserialization &deserialization, std::string_view name,
     const std::shared_ptr<AccountStub> &account) {
-  (observer.*notify)(deserialization, name);
+  (observer.*notify)(deserialization, name, 1_cents);
   assertEqual(result, &deserialization, account->deserialization());
 }
 
@@ -353,8 +353,8 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
 
     AccountDeserializationStub deserialization;
     budget.notifyThatIncomeAccountIsReady(deserialization, 1_cents);
-    budget.notifyThatExpenseAccountIsReady(deserialization, "penguin");
-    budget.notifyThatExpenseAccountIsReady(deserialization, "leopard");
+    budget.notifyThatExpenseAccountIsReady(deserialization, "penguin", 3_cents);
+    budget.notifyThatExpenseAccountIsReady(deserialization, "leopard", 5_cents);
 
     const auto turtle{addAccountStub(factory, "turtle")};
     const auto tiger{addAccountStub(factory, "tiger")};
@@ -446,16 +446,16 @@ void verifiesIncome(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        const auto account{addAccountStub(factory, "giraffe")};
-        AccountDeserializationStub deserialization;
-        budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe");
-        assertEqual(result, "giraffe", observer.newAccountName());
-        assertEqual(result, account.get(), observer.newAccount());
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto account{addAccountStub(factory, "giraffe")};
+    AccountDeserializationStub deserialization;
+    budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe", 1_cents);
+    assertEqual(result, "giraffe", observer.newAccountName());
+    assertEqual(result, account.get(), observer.newAccount());
+  });
 }
 
 static void assertReduced(testcpplite::TestResult &result,
