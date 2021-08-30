@@ -213,6 +213,8 @@ public:
     notifyThatExpenseAccountHasBeenCreated(Account &,
                                            std::string_view name) = 0;
     virtual void notifyThatNetIncomeHasChanged(USD) = 0;
+    virtual void notifyThatCategoryAllocationHasChanged(std::string_view name,
+                                                        USD amount) = 0;
   };
 
   virtual void attach(Observer *) = 0;

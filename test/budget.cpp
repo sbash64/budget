@@ -135,6 +135,9 @@ public:
     newAccount_ = &account;
   }
 
+  void notifyThatCategoryAllocationHasChanged(std::string_view name,
+                                              USD amount) override {}
+
   auto newAccount() -> const Account * { return newAccount_; }
 
   void notifyThatNetIncomeHasChanged(USD b) override { totalBalance_ = b; }
