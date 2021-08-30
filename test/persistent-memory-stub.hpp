@@ -59,10 +59,7 @@ public:
   auto accountName() -> std::string { return accountName_; }
 
   void
-  save(std::string_view name, USD funds,
-       const std::vector<SerializableTransaction *> &transactions) override {
-    accountName_ = name;
-    funds_ = funds;
+  save(const std::vector<SerializableTransaction *> &transactions) override {
     transactions_ = transactions;
   }
 

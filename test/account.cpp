@@ -328,39 +328,31 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
 
 namespace income {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account,
-                ObservableTransactionFactoryStub &factory) {
-        const auto john{addObservableTransactionStub(factory)};
-        credit(account);
-        const auto andy{addObservableTransactionStub(factory)};
-        credit(account);
-        account.deposit(1_cents);
-        PersistentAccountStub persistence;
-        account.save(persistence);
-        assertAccountName(result, persistence, "joe");
-        assertEqual(result, 1_cents, persistence.funds());
-        assertCreditsSaved(result, persistence, {john.get(), andy.get()});
-      },
-      "joe");
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto john{addObservableTransactionStub(factory)};
+    credit(account);
+    const auto andy{addObservableTransactionStub(factory)};
+    credit(account);
+    account.deposit(1_cents);
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertCreditsSaved(result, persistence, {john.get(), andy.get()});
+  });
 }
 } // namespace income
 
 namespace expense {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account,
-                ObservableTransactionFactoryStub &factory) {
-        const auto mike{addObservableTransactionStub(factory)};
-        debit(account);
-        account.deposit(1_cents);
-        PersistentAccountStub persistence;
-        account.save(persistence);
-        assertAccountName(result, persistence, "joe");
-        assertEqual(result, 1_cents, persistence.funds());
-        assertDebitsSaved(result, persistence, {mike.get()});
-      },
-      "joe");
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{addObservableTransactionStub(factory)};
+    debit(account);
+    account.deposit(1_cents);
+    PersistentAccountStub persistence;
+    account.save(persistence);
+    assertDebitsSaved(result, persistence, {mike.get()});
+  });
 }
 } // namespace expense
 
@@ -641,31 +633,9 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
     assertEqual(result, joe.get(), abel.observer());
   });
 }
-
-void savesNewName(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        account.rename("mike");
-        PersistentAccountStub persistence;
-        account.save(persistence);
-        assertAccountName(result, persistence, "mike");
-      },
-      "joe");
-}
 } // namespace expense
 
 namespace income {
-void savesNewName(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        account.rename("mike");
-        PersistentAccountStub persistence;
-        account.save(persistence);
-        assertAccountName(result, persistence, "mike");
-      },
-      "joe");
-}
-
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,

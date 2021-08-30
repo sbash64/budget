@@ -59,8 +59,7 @@ private:
 class WritesAccountToStream : public AccountSerialization {
 public:
   explicit WritesAccountToStream(std::ostream &, TransactionToStreamFactory &);
-  void save(std::string_view name, USD funds,
-            const std::vector<SerializableTransaction *> &) override;
+  void save(const std::vector<SerializableTransaction *> &) override;
 
   class Factory : public AccountToStreamFactory {
   public:

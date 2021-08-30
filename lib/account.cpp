@@ -125,7 +125,7 @@ collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
 void InMemoryAccount::rename(std::string_view to) { name = to; }
 
 void InMemoryAccount::save(AccountSerialization &serialization) {
-  serialization.save(name, funds, collect(transactions));
+  serialization.save(collect(transactions));
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {

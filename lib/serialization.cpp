@@ -140,10 +140,7 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
 }
 
 void WritesAccountToStream::save(
-    std::string_view name, USD funds,
     const std::vector<SerializableTransaction *> &transactions) {
-  putNewLine(stream << name);
-  putNewLine(stream << "funds " << funds);
   putNewLine(stream << "credits");
   stream << "debits";
   for (const auto &transaction : transactions) {
