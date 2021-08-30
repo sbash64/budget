@@ -193,11 +193,8 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
                     categoryAllocations.at(std::string{accountName})};
   categoryAllocations.at(std::string{accountName}) = amountNeeded;
   callIfObserverExists(observer, [&](Observer *observer_) {
-    if (unallocatedIncome.cents > amount.cents)
-      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome -
-                                                       amount);
-    else if (unallocatedIncome.cents < amount.cents)
-      observer_->notifyThatIncomeDeficitHasChanged(amount - unallocatedIncome);
+    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome -
+                                                     amount);
     notifyThatCategoryAllocationHasChanged(observer_, accountName,
                                            categoryAllocations);
   });
@@ -221,12 +218,8 @@ void BudgetInMemory::closeAccount(std::string_view name) {
     const auto balance{at(expenseAccounts, name)->balance()};
     const auto leftover{categoryAllocations.at(std::string{name}) - balance};
     callIfObserverExists(observer, [&](Observer *observer_) {
-      if (unallocatedIncome.cents + leftover.cents > 0)
-        observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome +
-                                                         leftover);
-      else if (unallocatedIncome.cents + leftover.cents < 0)
-        observer_->notifyThatIncomeDeficitHasChanged(-leftover -
-                                                     unallocatedIncome);
+      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome +
+                                                       leftover);
     });
     unallocatedIncome += leftover;
     remove(expenseAccounts, name);

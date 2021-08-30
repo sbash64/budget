@@ -141,12 +141,6 @@ public:
     categoryAllocations_[std::string{name}].push_back(amount);
   }
 
-  void notifyThatIncomeDeficitHasChanged(USD amount) override {
-    incomeDeficit_.push_back(amount);
-  }
-
-  auto incomeDeficit() -> std::vector<USD> { return incomeDeficit_; }
-
   void notifyThatUnallocatedIncomeHasChanged(USD amount) override {
     unallocatedIncome_.push_back(amount);
   }
@@ -166,7 +160,6 @@ public:
 private:
   std::map<std::string, std::vector<USD>> categoryAllocations_;
   std::vector<USD> unallocatedIncome_;
-  std::vector<USD> incomeDeficit_;
   std::string newAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
@@ -602,7 +595,7 @@ void closesAccount(testcpplite::TestResult &result) {
         budget.allocate("giraffe", 7_cents);
         giraffe->setBalance(4_cents);
         budget.closeAccount("giraffe");
-        assertEqual(result, {7_cents, 4_cents}, observer.incomeDeficit());
+        assertEqual(result, {-7_cents, -4_cents}, observer.unallocatedIncome());
         assertEqual(result, {7_cents}, observer.categoryAllocations("giraffe"));
         PersistentMemoryStub persistence;
         budget.save(persistence);
@@ -612,28 +605,28 @@ void closesAccount(testcpplite::TestResult &result) {
 }
 
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-        giraffe->setBalance(11_cents);
-        budget.allocate("giraffe", 7_cents);
-        budget.closeAccount("giraffe");
-        assertEqual(result, {7_cents, 11_cents}, observer.incomeDeficit());
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    giraffe->setBalance(11_cents);
+    budget.allocate("giraffe", 7_cents);
+    budget.closeAccount("giraffe");
+    assertEqual(result, {-7_cents, -11_cents}, observer.unallocatedIncome());
+  });
 }
 
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 456_cents);
     assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {456_cents}, observer.incomeDeficit());
+    assertEqual(result, {-456_cents}, observer.unallocatedIncome());
   });
 }
 
@@ -647,7 +640,7 @@ void transfersAmountFromAccountAllocatedSufficiently(
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 101_cents);
     assertEqual(result, {101_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {101_cents}, observer.incomeDeficit());
+    assertEqual(result, {-101_cents}, observer.unallocatedIncome());
   });
 }
 
