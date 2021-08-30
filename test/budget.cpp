@@ -11,6 +11,7 @@
 #include <map>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace sbash64::budget {
 namespace {
@@ -136,7 +137,13 @@ public:
   }
 
   void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                              USD amount) override {}
+                                              USD amount) override {
+    categoryAllocations_[std::string{name}].push_back(amount);
+  }
+
+  auto categoryAllocations(std::string_view s) -> std::vector<USD> {
+    return categoryAllocations_.at(std::string{s});
+  }
 
   auto newAccount() -> const Account * { return newAccount_; }
 
@@ -145,6 +152,7 @@ public:
   auto totalBalance() -> USD { return totalBalance_; }
 
 private:
+  std::map<std::string, std::vector<USD>> categoryAllocations_;
   std::string newAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
@@ -279,10 +287,13 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
 void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &masterAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto account{addAccountStub(factory, "giraffe")};
     budget.transferTo("giraffe", 456_cents);
     assertEqual(result, 456_cents, masterAccount.withdrawn());
     assertEqual(result, 456_cents, account->deposited());
+    assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
   });
 }
 

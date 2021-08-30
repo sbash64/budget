@@ -59,9 +59,11 @@ static void notifyThatNetIncomeHasChanged(
 
 static auto makeExpenseAccount(Account::Factory &accountFactory,
                                std::string_view name,
+                               std::map<std::string, USD> &categoryAllocations,
                                Budget::Observer *observer)
     -> std::shared_ptr<Account> {
   auto account{accountFactory.make(name)};
+  categoryAllocations[std::string{name}] = USD{0};
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatExpenseAccountHasBeenCreated(*account, name);
   });
@@ -77,10 +79,11 @@ contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 static void createExpenseAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
     Account::Factory &accountFactory, std::string_view accountName,
+    std::map<std::string, USD> &categoryAllocations,
     Budget::Observer *observer) {
   if (!contains(accounts, accountName))
-    accounts[std::string{accountName}] =
-        makeExpenseAccount(accountFactory, accountName, observer);
+    accounts[std::string{accountName}] = makeExpenseAccount(
+        accountFactory, accountName, categoryAllocations, observer);
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
@@ -101,12 +104,12 @@ at(const std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
   return accounts.at(std::string{name});
 }
 
-static auto makeAndLoadExpenseAccount(Account::Factory &factory,
-                                      AccountDeserialization &deserialization,
-                                      std::string_view name,
-                                      Budget::Observer *observer)
-    -> std::shared_ptr<Account> {
-  auto account{makeExpenseAccount(factory, name, observer)};
+static auto makeAndLoadExpenseAccount(
+    Account::Factory &factory, AccountDeserialization &deserialization,
+    std::string_view name, std::map<std::string, USD> &categoryAllocations,
+    Budget::Observer *observer) -> std::shared_ptr<Account> {
+  auto account{
+      makeExpenseAccount(factory, name, categoryAllocations, observer)};
   account->load(deserialization);
   return account;
 }
@@ -125,7 +128,7 @@ void BudgetInMemory::addIncome(const Transaction &transaction) {
 void BudgetInMemory::addExpense(std::string_view accountName,
                                 const Transaction &transaction) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
-                               observer);
+                               categoryAllocations, observer);
   budget::add(at(expenseAccounts, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
 }
@@ -162,8 +165,13 @@ static void transferTo(Account &incomeAccount,
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
-                               observer);
+                               categoryAllocations, observer);
   budget::transferTo(incomeAccount, expenseAccounts, accountName, amount);
+  categoryAllocations.at(std::string{accountName}) += amount;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatCategoryAllocationHasChanged(
+        accountName, categoryAllocations.at(std::string{accountName}));
+  });
 }
 
 static void transfer(Account &from, Account &to, USD amount) {
@@ -173,7 +181,7 @@ static void transfer(Account &from, Account &to, USD amount) {
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
-                               observer);
+                               categoryAllocations, observer);
   const auto amount{amountNeeded - at(expenseAccounts, accountName)->balance()};
   if (amount.cents > 0)
     transfer(incomeAccount, *at(expenseAccounts, accountName), amount);
@@ -182,7 +190,8 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
-  createExpenseAccountIfNeeded(expenseAccounts, accountFactory, name, observer);
+  createExpenseAccountIfNeeded(expenseAccounts, accountFactory, name,
+                               categoryAllocations, observer);
 }
 
 static void
@@ -235,7 +244,7 @@ void BudgetInMemory::notifyThatIncomeAccountIsReady(
 void BudgetInMemory::notifyThatExpenseAccountIsReady(
     AccountDeserialization &deserialization, std::string_view name) {
   expenseAccounts[std::string{name}] = makeAndLoadExpenseAccount(
-      accountFactory, deserialization, name, observer);
+      accountFactory, deserialization, name, categoryAllocations, observer);
 }
 
 void BudgetInMemory::reduce() {
