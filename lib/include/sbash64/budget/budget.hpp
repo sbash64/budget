@@ -41,6 +41,7 @@ private:
   Account &incomeAccount;
   std::map<std::string, std::shared_ptr<Account>, std::less<>> expenseAccounts;
   std::map<std::string, USD> categoryAllocations;
+  USD unallocatedIncome{};
 };
 } // namespace sbash64::budget
 

@@ -185,8 +185,13 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   const auto amount{amountNeeded - at(expenseAccounts, accountName)->balance()};
   if (amount.cents > 0)
     transfer(incomeAccount, *at(expenseAccounts, accountName), amount);
-  else if (amount.cents < 0)
+  else if (amount.cents < 0) {
     transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
+    unallocatedIncome += -amount;
+    callIfObserverExists(observer, [&](Observer *observer_) {
+      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+    });
+  }
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {

@@ -215,6 +215,7 @@ public:
     virtual void notifyThatNetIncomeHasChanged(USD) = 0;
     virtual void notifyThatCategoryAllocationHasChanged(std::string_view name,
                                                         USD amount) = 0;
+    virtual void notifyThatUnallocatedIncomeHasChanged(USD) = 0;
   };
 
   virtual void attach(Observer *) = 0;

@@ -141,6 +141,12 @@ public:
     categoryAllocations_[std::string{name}].push_back(amount);
   }
 
+  void notifyThatUnallocatedIncomeHasChanged(USD amount) override {
+    unallocatedIncome_.push_back(amount);
+  }
+
+  auto unallocatedIncome() -> std::vector<USD> { return unallocatedIncome_; }
+
   auto categoryAllocations(std::string_view s) -> std::vector<USD> {
     return categoryAllocations_.at(std::string{s});
   }
@@ -153,6 +159,7 @@ public:
 
 private:
   std::map<std::string, std::vector<USD>> categoryAllocations_;
+  std::vector<USD> unallocatedIncome_;
   std::string newAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
@@ -620,12 +627,15 @@ void transfersAmountFromAccountAllocatedSufficiently(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &masterAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     giraffe->setBalance(123_cents);
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 101_cents);
     assertEqual(result, 22_cents, giraffe->withdrawn());
     assertEqual(result, 22_cents, masterAccount.deposited());
+    assertEqual(result, {22_cents}, observer.unallocatedIncome());
   });
 }
 
