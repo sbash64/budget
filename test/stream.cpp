@@ -324,7 +324,7 @@ allen
 
 void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
-      R"(jeff 12.34
+      R"(12.34
 steve 22
 sue 33
 allen 4.50)")};
