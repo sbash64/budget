@@ -48,7 +48,7 @@ class WritesBudgetToStream : public BudgetSerialization {
 public:
   WritesBudgetToStream(IoStreamFactory &, AccountToStreamFactory &);
   void save(SerializableAccountWithFunds incomeAccountWithFunds,
-            const std::vector<SerializableAccountWithFunds>
+            const std::vector<SerializableAccountWithFundsAndName>
                 &expenseAccountsWithFunds) override;
 
 private:

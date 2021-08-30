@@ -90,13 +90,13 @@ static void createExpenseAccountIfNeeded(
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
                                    std::less<>> &accounts,
                     std::map<std::string, USD> categoryAllocations)
-    -> std::vector<SerializableAccountWithFunds> {
-  std::vector<SerializableAccountWithFunds> collected;
+    -> std::vector<SerializableAccountWithFundsAndName> {
+  std::vector<SerializableAccountWithFundsAndName> collected;
   transform(
       accounts.begin(), accounts.end(), back_inserter(collected),
       [&](const std::pair<const std::string, std::shared_ptr<Account>> &pair) {
-        return SerializableAccountWithFunds{pair.second.get(),
-                                            categoryAllocations.at(pair.first)};
+        return SerializableAccountWithFundsAndName{
+            pair.second.get(), categoryAllocations.at(pair.first), pair.first};
       });
   return collected;
 }

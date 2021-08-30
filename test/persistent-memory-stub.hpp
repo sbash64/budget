@@ -13,7 +13,7 @@ class PersistentMemoryStub : public BudgetDeserialization,
                              public BudgetSerialization {
 public:
   void save(SerializableAccountWithFunds incomeAccountWithFunds,
-            const std::vector<SerializableAccountWithFunds>
+            const std::vector<SerializableAccountWithFundsAndName>
                 &expenseAccountsWithFunds) override {
     incomeAccountWithFunds_ = incomeAccountWithFunds;
     expenseAccountsWithFunds_ = expenseAccountsWithFunds;
@@ -23,7 +23,8 @@ public:
     return incomeAccountWithFunds_;
   }
 
-  auto expenseAccountsWithFunds() -> std::vector<SerializableAccountWithFunds> {
+  auto expenseAccountsWithFunds()
+      -> std::vector<SerializableAccountWithFundsAndName> {
     return expenseAccountsWithFunds_;
   }
 
@@ -43,7 +44,7 @@ public:
   auto accountFactory() -> const Account::Factory * { return accountFactory_; }
 
 private:
-  std::vector<SerializableAccountWithFunds> expenseAccountsWithFunds_;
+  std::vector<SerializableAccountWithFundsAndName> expenseAccountsWithFunds_;
   SerializableAccountWithFunds incomeAccountWithFunds_;
   const std::shared_ptr<Account> *primaryAccountToLoadInto_{};
   const std::map<std::string, std::shared_ptr<Account>, std::less<>>

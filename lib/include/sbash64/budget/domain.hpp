@@ -189,11 +189,17 @@ struct SerializableAccountWithFunds {
   USD funds;
 };
 
+struct SerializableAccountWithFundsAndName {
+  SerializableAccount *account{};
+  USD funds;
+  std::string name;
+};
+
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
   virtual void save(SerializableAccountWithFunds incomeAccountWithFunds,
-                    const std::vector<SerializableAccountWithFunds>
+                    const std::vector<SerializableAccountWithFundsAndName>
                         &expenseAccountsWithFunds) = 0;
 };
 
