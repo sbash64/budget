@@ -23,9 +23,8 @@ void verifiesIncome(testcpplite::TestResult &);
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &);
 void reducesEachAccount(testcpplite::TestResult &);
 void notifiesThatNetIncomeHasChangedOnAddedIncome(testcpplite::TestResult &);
-void notifiesThatTotalBalanceHasChangedOnDebit(testcpplite::TestResult &);
-void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
-    testcpplite::TestResult &);
+void notifiesThatNetIncomeHasChangedOnAddExpense(testcpplite::TestResult &);
+void notifiesThatNetIncomeHasChangedOnRemoveAccount(testcpplite::TestResult &);
 void createsAccount(testcpplite::TestResult &);
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);

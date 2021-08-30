@@ -49,10 +49,10 @@ static void notifyThatNetIncomeHasChanged(
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatNetIncomeHasChanged(accumulate(
         expenseAccounts.begin(), expenseAccounts.end(), incomeAccount.balance(),
-        [](USD total, const std::pair<std::string_view,
-                                      std::shared_ptr<Account>> &secondary) {
-          const auto &[name, account] = secondary;
-          return total + account->balance();
+        [](USD net, const std::pair<std::string_view, std::shared_ptr<Account>>
+                        &expenseAccount) {
+          const auto &[name, account] = expenseAccount;
+          return net - account->balance();
         }));
   });
 }

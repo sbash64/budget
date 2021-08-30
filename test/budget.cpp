@@ -486,17 +486,17 @@ void notifiesThatNetIncomeHasChangedOnAddedIncome(
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    incomeAccount.setBalance(456_cents);
-    giraffe->setBalance(123_cents);
-    penguin->setBalance(789_cents);
-    leopard->setBalance(1111_cents);
+    incomeAccount.setBalance(4_cents);
+    giraffe->setBalance(5_cents);
+    penguin->setBalance(6_cents);
+    leopard->setBalance(7_cents);
     addIncome(budget);
-    assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
+    assertEqual(result, 4_cents - 5_cents - 6_cents - 7_cents,
                 observer.netIncome());
   });
 }
 
-void notifiesThatTotalBalanceHasChangedOnDebit(
+void notifiesThatNetIncomeHasChangedOnAddExpense(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
@@ -505,17 +505,17 @@ void notifiesThatTotalBalanceHasChangedOnDebit(
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    incomeAccount.setBalance(456_cents);
-    giraffe->setBalance(123_cents);
-    penguin->setBalance(789_cents);
-    leopard->setBalance(1111_cents);
-    addIncome(budget);
-    assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
+    incomeAccount.setBalance(4_cents);
+    giraffe->setBalance(5_cents);
+    penguin->setBalance(6_cents);
+    leopard->setBalance(7_cents);
+    addExpense(budget, "penguin", {});
+    assertEqual(result, 4_cents - 5_cents - 6_cents - 7_cents,
                 observer.netIncome());
   });
 }
 
-void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
+void notifiesThatNetIncomeHasChangedOnRemoveAccount(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
@@ -524,13 +524,12 @@ void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    incomeAccount.setBalance(456_cents);
-    giraffe->setBalance(123_cents);
-    penguin->setBalance(789_cents);
-    leopard->setBalance(1111_cents);
+    incomeAccount.setBalance(4_cents);
+    giraffe->setBalance(5_cents);
+    penguin->setBalance(6_cents);
+    leopard->setBalance(7_cents);
     budget.removeAccount("penguin");
-    assertEqual(result, 456_cents + 123_cents + 1111_cents,
-                observer.netIncome());
+    assertEqual(result, 4_cents - 5_cents - 7_cents, observer.netIncome());
   });
 }
 
