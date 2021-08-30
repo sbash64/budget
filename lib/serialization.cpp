@@ -60,16 +60,31 @@ static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
   return putNewLine(*stream);
 }
 
+static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
+  stream << amount.cents / 100;
+  const auto leftoverCents{amount.cents % 100};
+  if (leftoverCents != 0) {
+    stream << '.';
+    if (leftoverCents < 10)
+      stream << '0';
+    stream << leftoverCents;
+  }
+  return stream;
+}
+
 void WritesBudgetToStream::save(
     SerializableAccountWithFunds incomeAccountWithFunds,
     const std::vector<SerializableAccountWithFundsAndName>
         &expenseAccountsWithFunds) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
+  putNewLine(*stream << incomeAccountWithFunds.funds);
   incomeAccountWithFunds.account->save(*accountSerialization);
   putNewLine(stream);
   for (auto accountWithFunds : expenseAccountsWithFunds) {
     putNewLine(stream);
+    putNewLine(*stream << accountWithFunds.name << ' '
+                       << accountWithFunds.funds);
     accountWithFunds.account->save(*accountSerialization);
     putNewLine(stream);
   }
@@ -122,18 +137,6 @@ WritesAccountToStream::Factory::Factory(TransactionToStreamFactory &factory)
 auto WritesAccountToStream::Factory::make(std::ostream &stream_)
     -> std::shared_ptr<AccountSerialization> {
   return std::make_shared<WritesAccountToStream>(stream_, factory);
-}
-
-static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
-  stream << amount.cents / 100;
-  const auto leftoverCents{amount.cents % 100};
-  if (leftoverCents != 0) {
-    stream << '.';
-    if (leftoverCents < 10)
-      stream << '0';
-    stream << leftoverCents;
-  }
-  return stream;
 }
 
 void WritesAccountToStream::save(

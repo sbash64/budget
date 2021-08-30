@@ -307,19 +307,22 @@ void fromBudget(testcpplite::TestResult &result) {
   SavesNameAccount steve{*stream, "steve"};
   SavesNameAccount sue{*stream, "sue"};
   SavesNameAccount allen{*stream, "allen"};
-  sessionSerialization.save(
-      {&jeff, 4_cents},
-      {{&steve, 1_cents}, {&sue, 2_cents}, {&allen, 3_cents}});
-  assertEqual(result, R"(
+  sessionSerialization.save({&jeff, 4_cents}, {{&steve, 1_cents, "stevey"},
+                                               {&sue, 2_cents, "suzie"},
+                                               {&allen, 3_cents, "arod"}});
+  assertEqual(result, R"(0.04
 jeff
 
+stevey 0.01
 steve
 
+suzie 0.02
 sue
 
+arod 0.03
 allen
 )",
-              '\n' + stream->str());
+              stream->str());
 }
 
 void toBudget(testcpplite::TestResult &result) {
