@@ -189,19 +189,19 @@ static void transfer(Account &from, Account &to, USD amount) {
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
-  const auto amount{amountNeeded - at(expenseAccounts, accountName)->balance()};
-  if (amount.cents > 0)
-    transfer(incomeAccount, *at(expenseAccounts, accountName), amount);
-  else if (amount.cents < 0) {
-    transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
-    unallocatedIncome += -amount;
-    categoryAllocations.at(std::string{accountName}) += amountNeeded;
-    callIfObserverExists(observer, [&](Observer *observer_) {
-      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
-      notifyThatCategoryAllocationHasChanged(observer_, accountName,
-                                             categoryAllocations);
-    });
-  }
+  const auto amount{amountNeeded -
+                    categoryAllocations.at(std::string{accountName})};
+  categoryAllocations.at(std::string{accountName}) = amountNeeded;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    if (unallocatedIncome.cents > amount.cents)
+      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome -
+                                                       amount);
+    else if (unallocatedIncome.cents < amount.cents)
+      observer_->notifyThatIncomeDeficitHasChanged(amount - unallocatedIncome);
+    notifyThatCategoryAllocationHasChanged(observer_, accountName,
+                                           categoryAllocations);
+  });
+  unallocatedIncome -= amount;
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
@@ -219,10 +219,16 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
     const auto balance{at(expenseAccounts, name)->balance()};
-    if (balance.cents > 0)
-      incomeAccount.deposit(balance);
-    else if (balance.cents < 0)
-      incomeAccount.withdraw(-balance);
+    const auto leftover{categoryAllocations.at(std::string{name}) - balance};
+    callIfObserverExists(observer, [&](Observer *observer_) {
+      if (unallocatedIncome.cents + leftover.cents > 0)
+        observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome +
+                                                         leftover);
+      else if (unallocatedIncome.cents + leftover.cents < 0)
+        observer_->notifyThatIncomeDeficitHasChanged(-leftover -
+                                                     unallocatedIncome);
+    });
+    unallocatedIncome += leftover;
     remove(expenseAccounts, name);
   }
 }

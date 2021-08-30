@@ -141,6 +141,12 @@ public:
     categoryAllocations_[std::string{name}].push_back(amount);
   }
 
+  void notifyThatIncomeDeficitHasChanged(USD amount) override {
+    incomeDeficit_.push_back(amount);
+  }
+
+  auto incomeDeficit() -> std::vector<USD> { return incomeDeficit_; }
+
   void notifyThatUnallocatedIncomeHasChanged(USD amount) override {
     unallocatedIncome_.push_back(amount);
   }
@@ -160,6 +166,7 @@ public:
 private:
   std::map<std::string, std::vector<USD>> categoryAllocations_;
   std::vector<USD> unallocatedIncome_;
+  std::vector<USD> incomeDeficit_;
   std::string newAccountName_;
   const Account *newAccount_{};
   USD totalBalance_{};
@@ -585,40 +592,48 @@ void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
 }
 
 void closesAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    const auto penguin{createAccountStub(budget, factory, "penguin")};
-    const auto leopard{createAccountStub(budget, factory, "leopard")};
-    giraffe->setBalance(123_cents);
-    budget.closeAccount("giraffe");
-    PersistentMemoryStub persistence;
-    budget.save(persistence);
-    assertEqual(result, {leopard.get(), penguin.get()},
-                persistence.secondaryAccounts());
-    assertEqual(result, 123_cents, masterAccount.deposited());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto penguin{createAccountStub(budget, factory, "penguin")};
+        const auto leopard{createAccountStub(budget, factory, "leopard")};
+        budget.allocate("giraffe", 7_cents);
+        giraffe->setBalance(4_cents);
+        budget.closeAccount("giraffe");
+        assertEqual(result, {7_cents, 4_cents}, observer.incomeDeficit());
+        assertEqual(result, {7_cents}, observer.categoryAllocations("giraffe"));
+        PersistentMemoryStub persistence;
+        budget.save(persistence);
+        assertEqual(result, {leopard.get(), penguin.get()},
+                    persistence.secondaryAccounts());
+      });
 }
 
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    giraffe->setBalance(-123_cents);
-    budget.closeAccount("giraffe");
-    assertEqual(result, 123_cents, masterAccount.withdrawn());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        giraffe->setBalance(11_cents);
+        budget.allocate("giraffe", 7_cents);
+        budget.closeAccount("giraffe");
+        assertEqual(result, {7_cents, 11_cents}, observer.incomeDeficit());
+      });
 }
 
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &masterAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    giraffe->setBalance(-123_cents);
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 456_cents);
-    assertEqual(result, 579_cents, giraffe->deposited());
-    assertEqual(result, 579_cents, masterAccount.withdrawn());
+    assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
+    assertEqual(result, {456_cents}, observer.incomeDeficit());
   });
 }
 
@@ -629,12 +644,10 @@ void transfersAmountFromAccountAllocatedSufficiently(
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    giraffe->setBalance(123_cents);
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 101_cents);
-    assertEqual(result, 22_cents, giraffe->withdrawn());
     assertEqual(result, {101_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {22_cents}, observer.unallocatedIncome());
+    assertEqual(result, {101_cents}, observer.incomeDeficit());
   });
 }
 
