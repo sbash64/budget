@@ -425,7 +425,7 @@ void renamesAccount(testcpplite::TestResult &result) {
       });
 }
 
-void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
+void verifiesExpenseForExistingAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
@@ -436,7 +436,7 @@ void verifiesDebitForExistingAccount(testcpplite::TestResult &result) {
       });
 }
 
-void verifiesCreditForMasterAccount(testcpplite::TestResult &result) {
+void verifiesIncome(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
                                Budget &budget) {
     budget.verifyIncome({1_cents, "hi", Date{2020, Month::April, 1}});
@@ -477,7 +477,7 @@ void reducesEachAccount(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesThatTotalBalanceHasChangedOnCredit(
+void notifiesThatNetIncomeHasChangedOnAddedIncome(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
