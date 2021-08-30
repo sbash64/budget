@@ -292,13 +292,13 @@ void debitsExistingAccount(testcpplite::TestResult &result) {
 }
 
 void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto account{addAccountStub(factory, "giraffe")};
     budget.transferTo("giraffe", 456_cents);
-    assertEqual(result, 456_cents, masterAccount.withdrawn());
+    assertEqual(result, {-456_cents}, observer.unallocatedIncome());
     assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
   });
 }

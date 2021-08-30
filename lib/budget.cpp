@@ -173,9 +173,10 @@ static void notifyThatCategoryAllocationHasChanged(
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
-  budget::transferTo(incomeAccount, expenseAccounts, accountName, amount);
   categoryAllocations.at(std::string{accountName}) += amount;
+  unallocatedIncome -= amount;
   callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
     notifyThatCategoryAllocationHasChanged(observer_, accountName,
                                            categoryAllocations);
   });
