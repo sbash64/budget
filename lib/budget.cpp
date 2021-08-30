@@ -248,9 +248,20 @@ void BudgetInMemory::notifyThatExpenseAccountIsReady(
 }
 
 void BudgetInMemory::reduce() {
+  unallocatedIncome += incomeAccount.balance();
   incomeAccount.reduce();
-  for (const auto &[name, account] : expenseAccounts)
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+  });
+  for (const auto &[name, account] : expenseAccounts) {
+    categoryAllocations.at(std::string{name}) -= account->balance();
     account->reduce();
+    std::string copied{name};
+    callIfObserverExists(observer, [&](Observer *observer_) {
+      notifyThatCategoryAllocationHasChanged(observer_, copied,
+                                             categoryAllocations);
+    });
+  }
 }
 
 void BudgetInMemory::restore() {

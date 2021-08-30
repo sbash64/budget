@@ -466,14 +466,24 @@ static void assertReduced(testcpplite::TestResult &result,
 void reducesEachAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
+    incomeAccount.setBalance(4_cents);
+    giraffe->setBalance(5_cents);
+    penguin->setBalance(6_cents);
+    leopard->setBalance(7_cents);
     budget.reduce();
     assertReduced(result, incomeAccount);
     assertReduced(result, *giraffe);
     assertReduced(result, *penguin);
     assertReduced(result, *leopard);
+    assertEqual(result, {4_cents}, observer.unallocatedIncome());
+    assertEqual(result, {-5_cents}, observer.categoryAllocations("giraffe"));
+    assertEqual(result, {-6_cents}, observer.categoryAllocations("penguin"));
+    assertEqual(result, {-7_cents}, observer.categoryAllocations("leopard"));
   });
 }
 
