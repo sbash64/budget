@@ -181,24 +181,18 @@ void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   });
 }
 
-static void transfer(Account &from, Account &to, USD amount) {
-  from.withdraw(amount);
-  to.deposit(amount);
-}
-
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
   const auto amount{amountNeeded -
                     categoryAllocations.at(std::string{accountName})};
   categoryAllocations.at(std::string{accountName}) = amountNeeded;
+  unallocatedIncome -= amount;
   callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome -
-                                                     amount);
+    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
     notifyThatCategoryAllocationHasChanged(observer_, accountName,
                                            categoryAllocations);
   });
-  unallocatedIncome -= amount;
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
@@ -215,13 +209,12 @@ remove(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
-    const auto balance{at(expenseAccounts, name)->balance()};
-    const auto leftover{categoryAllocations.at(std::string{name}) - balance};
-    callIfObserverExists(observer, [&](Observer *observer_) {
-      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome +
-                                                       leftover);
-    });
+    const auto leftover{categoryAllocations.at(std::string{name}) -
+                        at(expenseAccounts, name)->balance()};
     unallocatedIncome += leftover;
+    callIfObserverExists(observer, [&](Observer *observer_) {
+      observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+    });
     remove(expenseAccounts, name);
   }
 }
