@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <sstream>
@@ -14,7 +15,7 @@ static void add(Account &account, const Transaction &transaction) {
 
 static void add(const std::shared_ptr<Account> &account,
                 const Transaction &transaction) {
-  account->add(transaction);
+  add(*account, transaction);
 }
 
 static void verify(Account &account, const Transaction &transaction) {
@@ -23,7 +24,7 @@ static void verify(Account &account, const Transaction &transaction) {
 
 static void verify(const std::shared_ptr<Account> &account,
                    const Transaction &transaction) {
-  account->verify(transaction);
+  verify(*account, transaction);
 }
 
 static void remove(Account &account, const Transaction &transaction) {
@@ -32,7 +33,7 @@ static void remove(Account &account, const Transaction &transaction) {
 
 static void remove(const std::shared_ptr<Account> &account,
                    const Transaction &transaction) {
-  account->remove(transaction);
+  remove(*account, transaction);
 }
 
 static void
@@ -162,30 +163,31 @@ static void notifyThatCategoryAllocationHasChanged(
       name, categoryAllocations.at(std::string{name}));
 }
 
+static void transfer(std::map<std::string, USD> &categoryAllocations,
+                     USD &unallocatedIncome, std::string_view name, USD amount,
+                     Budget::Observer *observer) {
+  categoryAllocations.at(std::string{name}) += amount;
+  unallocatedIncome -= amount;
+  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
+    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+    notifyThatCategoryAllocationHasChanged(observer_, name,
+                                           categoryAllocations);
+  });
+}
+
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
-  categoryAllocations.at(std::string{accountName}) += amount;
-  unallocatedIncome -= amount;
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
-    notifyThatCategoryAllocationHasChanged(observer_, accountName,
-                                           categoryAllocations);
-  });
+  transfer(categoryAllocations, unallocatedIncome, accountName, amount,
+           observer);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
-  const auto amount{amountNeeded -
-                    categoryAllocations.at(std::string{accountName})};
-  categoryAllocations.at(std::string{accountName}) = amountNeeded;
-  unallocatedIncome -= amount;
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
-    notifyThatCategoryAllocationHasChanged(observer_, accountName,
-                                           categoryAllocations);
-  });
+  transfer(categoryAllocations, unallocatedIncome, accountName,
+           amountNeeded - categoryAllocations.at(std::string{accountName}),
+           observer);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
