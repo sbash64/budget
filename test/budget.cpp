@@ -59,6 +59,7 @@ public:
   void deposit(USD usd) override {}
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
+
   void add(const Transaction &t) override { addedTransaction_ = t; }
 
   void remove(const Transaction &t) override {
@@ -187,12 +188,12 @@ static void testBudgetInMemory(
   f(factory, masterAccount, budget);
 }
 
-static void debit(Budget &budget, std::string_view accountName,
-                  const Transaction &t) {
+static void addExpense(Budget &budget, std::string_view accountName,
+                       const Transaction &t) {
   budget.addExpense(accountName, t);
 }
 
-static void credit(Budget &budget, const Transaction &t = {}) {
+static void addIncome(Budget &budget, const Transaction &t = {}) {
   budget.addIncome(t);
 }
 
@@ -219,64 +220,61 @@ static void assertEqual(testcpplite::TestResult &result,
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
-static void assertDebited(testcpplite::TestResult &result,
-                          const std::shared_ptr<AccountStub> &account,
-                          const Transaction &t) {
-  assertEqual(result, t, account->addedTransaction());
-}
-
-static void assertCredited(testcpplite::TestResult &result,
-                           AccountStub &account, const Transaction &t) {
+static void assertAdded(testcpplite::TestResult &result, AccountStub &account,
+                        const Transaction &t) {
   assertEqual(result, t, account.addedTransaction());
 }
 
-static void assertCreditRemoved(testcpplite::TestResult &result,
-                                AccountStub &account, const Transaction &t) {
+static void assertAdded(testcpplite::TestResult &result,
+                        const std::shared_ptr<AccountStub> &account,
+                        const Transaction &t) {
+  assertAdded(result, *account, t);
+}
+
+static void assertRemoved(testcpplite::TestResult &result, AccountStub &account,
+                          const Transaction &t) {
   assertEqual(result, t, account.removedTransaction());
 }
 
-static void assertDebitRemoved(testcpplite::TestResult &result,
-                               const std::shared_ptr<AccountStub> &account,
-                               const Transaction &t) {
-  assertEqual(result, t, account->removedTransaction());
+static void assertRemoved(testcpplite::TestResult &result,
+                          const std::shared_ptr<AccountStub> &account,
+                          const Transaction &t) {
+  assertRemoved(result, *account, t);
 }
 
 void creditsMasterAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &masterAccount,
                                Budget &budget) {
-    credit(budget,
-           Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertCredited(
-        result, masterAccount,
-        Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    addIncome(budget,
+              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertAdded(result, masterAccount,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
 }
 
 void debitsNonexistentAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        const auto account{addAccountStub(factory, "giraffe")};
-        debit(budget, "giraffe",
-              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-        assertDebited(
-            result, account,
-            Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    const auto account{addAccountStub(factory, "giraffe")};
+    addExpense(budget, "giraffe",
+               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    assertAdded(result, account,
+                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+  });
 }
 
 void debitsExistingAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        const auto account{addAccountStub(factory, "giraffe")};
-        debit(budget, "giraffe",
-              Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-        add(factory, nullptr, "giraffe");
-        debit(budget, "giraffe",
-              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-        assertDebited(
-            result, account,
-            Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    const auto account{addAccountStub(factory, "giraffe")};
+    addExpense(budget, "giraffe",
+               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    add(factory, nullptr, "giraffe");
+    addExpense(budget, "giraffe",
+               Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertAdded(result, account,
+                Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+  });
 }
 
 void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
@@ -390,7 +388,7 @@ void removesDebit(testcpplite::TestResult &result) {
     const auto account{createAccountStub(budget, factory, "giraffe")};
     budget.removeExpense("giraffe", Transaction{123_cents, "raccoon",
                                                 Date{2013, Month::April, 3}});
-    assertDebitRemoved(
+    assertRemoved(
         result, account,
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
@@ -411,7 +409,7 @@ void removesCredit(testcpplite::TestResult &result) {
                                Budget &budget) {
     budget.removeIncome(
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertCreditRemoved(
+    assertRemoved(
         result, masterAccount,
         Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
   });
@@ -491,7 +489,7 @@ void notifiesThatTotalBalanceHasChangedOnCredit(
     giraffe->setBalance(123_cents);
     penguin->setBalance(789_cents);
     leopard->setBalance(1111_cents);
-    credit(budget);
+    addIncome(budget);
     assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
                 observer.totalBalance());
   });
@@ -510,7 +508,7 @@ void notifiesThatTotalBalanceHasChangedOnDebit(
     giraffe->setBalance(123_cents);
     penguin->setBalance(789_cents);
     leopard->setBalance(1111_cents);
-    credit(budget);
+    addIncome(budget);
     assertEqual(result, 456_cents + 123_cents + 789_cents + 1111_cents,
                 observer.totalBalance());
   });
