@@ -299,7 +299,6 @@ void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
     const auto account{addAccountStub(factory, "giraffe")};
     budget.transferTo("giraffe", 456_cents);
     assertEqual(result, 456_cents, masterAccount.withdrawn());
-    assertEqual(result, 456_cents, account->deposited());
     assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
   });
 }
@@ -625,8 +624,8 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
 
 void transfersAmountFromAccountAllocatedSufficiently(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
@@ -634,7 +633,7 @@ void transfersAmountFromAccountAllocatedSufficiently(
     budget.createAccount("giraffe");
     budget.allocate("giraffe", 101_cents);
     assertEqual(result, 22_cents, giraffe->withdrawn());
-    assertEqual(result, 22_cents, masterAccount.deposited());
+    assertEqual(result, {101_cents}, observer.categoryAllocations("giraffe"));
     assertEqual(result, {22_cents}, observer.unallocatedIncome());
   });
 }
