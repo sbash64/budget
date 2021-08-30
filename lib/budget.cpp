@@ -163,14 +163,21 @@ static void transferTo(Account &incomeAccount,
   at(expenseAccounts, accountName)->deposit(amount);
 }
 
+static void notifyThatCategoryAllocationHasChanged(
+    Budget::Observer *observer, std::string_view name,
+    const std::map<std::string, USD> &categoryAllocations) {
+  observer->notifyThatCategoryAllocationHasChanged(
+      name, categoryAllocations.at(std::string{name}));
+}
+
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                categoryAllocations, observer);
   budget::transferTo(incomeAccount, expenseAccounts, accountName, amount);
   categoryAllocations.at(std::string{accountName}) += amount;
   callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatCategoryAllocationHasChanged(
-        accountName, categoryAllocations.at(std::string{accountName}));
+    notifyThatCategoryAllocationHasChanged(observer_, accountName,
+                                           categoryAllocations);
   });
 }
 
@@ -191,8 +198,8 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
     categoryAllocations.at(std::string{accountName}) += amountNeeded;
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
-      observer_->notifyThatCategoryAllocationHasChanged(
-          accountName, categoryAllocations.at(std::string{accountName}));
+      notifyThatCategoryAllocationHasChanged(observer_, accountName,
+                                             categoryAllocations);
     });
   }
 }
