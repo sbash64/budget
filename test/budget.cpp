@@ -647,19 +647,24 @@ void transfersAmountFromAccountAllocatedSufficiently(
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &masterAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    giraffe->setBalance(-12_cents);
-    penguin->setBalance(34_cents);
-    leopard->setBalance(-56_cents);
-    budget.createAccount("giraffe");
-    budget.createAccount("penguin");
-    budget.createAccount("leopard");
+    budget.allocate("giraffe", 1_cents);
+    budget.allocate("penguin", 5_cents);
+    budget.allocate("leopard", 3_cents);
+    giraffe->setBalance(6_cents);
+    penguin->setBalance(2_cents);
+    leopard->setBalance(4_cents);
     budget.restore();
-    assertEqual(result, 12_cents, giraffe->deposited());
-    assertEqual(result, 56_cents, leopard->deposited());
-    assertEqual(result, {12_cents, 56_cents}, masterAccount.withdrawals());
+    assertEqual(result, {1_cents, 6_cents},
+                observer.categoryAllocations("giraffe"));
+    assertEqual(result, {3_cents, 4_cents},
+                observer.categoryAllocations("leopard"));
+    assertEqual(result, {-1_cents, -6_cents, -9_cents, -14_cents, -15_cents},
+                observer.unallocatedIncome());
   });
 }
 } // namespace sbash64::budget

@@ -262,9 +262,19 @@ void BudgetInMemory::reduce() {
 }
 
 void BudgetInMemory::restore() {
-  for (auto [name, account] : expenseAccounts)
-    if (account->balance().cents < 0)
-      budget::transferTo(incomeAccount, expenseAccounts, name,
-                         -account->balance());
+  for (auto [name, account] : expenseAccounts) {
+    const auto amount{categoryAllocations.at(std::string{name}) -
+                      at(expenseAccounts, name)->balance()};
+    if (amount.cents < 0) {
+      categoryAllocations.at(std::string{name}) -= amount;
+      unallocatedIncome += amount;
+      std::string copied{name};
+      callIfObserverExists(observer, [&](Observer *observer_) {
+        observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+        notifyThatCategoryAllocationHasChanged(observer_, copied,
+                                               categoryAllocations);
+      });
+    }
+  }
 }
 } // namespace sbash64::budget
