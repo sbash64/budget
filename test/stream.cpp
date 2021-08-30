@@ -14,7 +14,10 @@ namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override {}
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
+                                      USD usd) override {
+    unallocatedIncome_ = usd;
+  }
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override {
@@ -25,10 +28,11 @@ public:
     return expenseAccountNames_;
   }
 
-  void notifyThatUnallocatedIncomeIsReady(USD) override {}
+  auto unallocatedIncome() -> USD { return unallocatedIncome_; }
 
 private:
   std::vector<std::string> expenseAccountNames_;
+  USD unallocatedIncome_;
 };
 
 class SavesNameAccount : public SerializableAccount {
@@ -311,7 +315,7 @@ allen
 
 void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
-      R"(jeff
+      R"(jeff 12.34
 steve
 sue
 allen)")};
@@ -324,5 +328,6 @@ allen)")};
   assertEqual(result, "steve", observer.expenseAccountNames().at(0));
   assertEqual(result, "sue", observer.expenseAccountNames().at(1));
   assertEqual(result, "allen", observer.expenseAccountNames().at(2));
+  assertEqual(result, 1234_cents, observer.unallocatedIncome());
 }
 } // namespace sbash64::budget::streams

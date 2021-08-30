@@ -12,13 +12,29 @@ ReadsBudgetFromStream::ReadsBudgetFromStream(
     : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
                                             accountDeserializationFactory} {}
 
+static auto usd(std::string_view s) -> USD {
+  USD usd{};
+  std::istringstream stream{std::string{s}};
+  stream >> usd.cents;
+  usd.cents *= 100;
+  if (stream.get() == '.') {
+    int cents = 0;
+    stream >> cents;
+    usd.cents += cents;
+  }
+  return usd;
+}
+
 void ReadsBudgetFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   const auto accountDeserialization{
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  observer.notifyThatIncomeAccountIsReady(*accountDeserialization);
+  std::stringstream lineStream{line};
+  std::string word;
+  lineStream >> word >> word;
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(word));
   while (getline(*stream, line))
     observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
 }
@@ -62,19 +78,6 @@ ReadsAccountFromStream::Factory::Factory(TransactionFromStreamFactory &factory)
 auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
     -> std::shared_ptr<AccountDeserialization> {
   return std::make_shared<ReadsAccountFromStream>(stream_, factory);
-}
-
-static auto usd(std::string_view s) -> USD {
-  USD usd{};
-  std::istringstream stream{std::string{s}};
-  stream >> usd.cents;
-  usd.cents *= 100;
-  if (stream.get() == '.') {
-    int cents = 0;
-    stream >> cents;
-    usd.cents += cents;
-  }
-  return usd;
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {

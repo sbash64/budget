@@ -238,7 +238,7 @@ void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
 }
 
 void BudgetInMemory::notifyThatIncomeAccountIsReady(
-    AccountDeserialization &deserialization) {
+    AccountDeserialization &deserialization, USD) {
   incomeAccount.load(deserialization);
 }
 
