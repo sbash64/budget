@@ -277,7 +277,7 @@ void addsExpenseToExistingAccount(testcpplite::TestResult &result) {
   });
 }
 
-void transfersFromMasterAccountToOther(testcpplite::TestResult &result) {
+void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                Budget &budget) {
     BudgetObserverStub observer;
@@ -382,7 +382,7 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
   });
 }
 
-void removesDebit(testcpplite::TestResult &result) {
+void removesExpenseFromAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                Budget &budget) {
     const auto account{createAccountStub(budget, factory, "giraffe")};
@@ -394,7 +394,8 @@ void removesDebit(testcpplite::TestResult &result) {
   });
 }
 
-void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
+void doesNotRemoveExpenseFromNonexistentAccount(
+    testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                Budget &budget) {
     const auto account{addAccountStub(factory, "giraffe")};
@@ -404,7 +405,7 @@ void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &result) {
   });
 }
 
-void removesCredit(testcpplite::TestResult &result) {
+void removesIncomeFromAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
                                Budget &budget) {
     budget.removeIncome(

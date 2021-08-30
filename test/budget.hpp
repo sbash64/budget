@@ -7,13 +7,13 @@ namespace sbash64::budget {
 void addsIncomeToIncomeAccount(testcpplite::TestResult &);
 void addsExpenseToExpenseAccount(testcpplite::TestResult &);
 void addsExpenseToExistingAccount(testcpplite::TestResult &);
-void transfersFromMasterAccountToOther(testcpplite::TestResult &);
+void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 void clearsOldAccounts(testcpplite::TestResult &);
-void removesDebit(testcpplite::TestResult &);
-void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &);
-void removesCredit(testcpplite::TestResult &);
+void removesExpenseFromAccount(testcpplite::TestResult &);
+void doesNotRemoveExpenseFromNonexistentAccount(testcpplite::TestResult &);
+void removesIncomeFromAccount(testcpplite::TestResult &);
 void renamesAccount(testcpplite::TestResult &);
 void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
