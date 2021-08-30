@@ -25,6 +25,8 @@ public:
     return expenseAccountNames_;
   }
 
+  void notifyThatUnallocatedIncomeIsReady(USD) override {}
+
 private:
   std::vector<std::string> expenseAccountNames_;
 };

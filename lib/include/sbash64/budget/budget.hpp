@@ -34,6 +34,7 @@ public:
   void notifyThatIncomeAccountIsReady(AccountDeserialization &) override;
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
                                        std::string_view name) override;
+  void notifyThatUnallocatedIncomeIsReady(USD) override {}
 
 private:
   Account::Factory &accountFactory;
