@@ -54,18 +54,9 @@ public:
 
   [[nodiscard]] auto cleared() const -> bool { return cleared_; }
 
-  auto withdrawn() -> USD { return withdrawn_; }
+  void withdraw(USD usd) override {}
 
-  void withdraw(USD usd) override {
-    withdrawals_.push_back(usd);
-    withdrawn_ = usd;
-  }
-
-  auto deposited() -> USD { return deposited_; }
-
-  void deposit(USD usd) override { deposited_ = usd; }
-
-  auto withdrawals() -> std::vector<USD> { return withdrawals_; }
+  void deposit(USD usd) override {}
 
   void notifyThatIsReady(TransactionDeserialization &) override {}
   void add(const Transaction &t) override { addedTransaction_ = t; }
@@ -92,12 +83,9 @@ private:
   Transaction addedTransaction_;
   Transaction removedTransaction_;
   bool transactionRemoved_{};
-  std::vector<USD> withdrawals_;
   std::string newName_;
   const AccountDeserialization *deserialization_{};
   USD balance_{};
-  USD withdrawn_{};
-  USD deposited_{};
   bool removed_{};
   bool cleared_{};
   bool reduced_{};
@@ -645,8 +633,8 @@ void transfersAmountFromAccountAllocatedSufficiently(
 }
 
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &masterAccount, Budget &budget) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};

@@ -155,14 +155,6 @@ void BudgetInMemory::verifyExpense(std::string_view accountName,
   budget::verify(at(expenseAccounts, accountName), transaction);
 }
 
-static void transferTo(Account &incomeAccount,
-                       const std::map<std::string, std::shared_ptr<Account>,
-                                      std::less<>> &expenseAccounts,
-                       std::string_view accountName, USD amount) {
-  incomeAccount.withdraw(amount);
-  at(expenseAccounts, accountName)->deposit(amount);
-}
-
 static void notifyThatCategoryAllocationHasChanged(
     Budget::Observer *observer, std::string_view name,
     const std::map<std::string, USD> &categoryAllocations) {
