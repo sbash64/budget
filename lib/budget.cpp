@@ -58,7 +58,8 @@ static void notifyThatNetIncomeHasChanged(
                         &expenseAccountWithAllocation) {
           const auto &[name, accountWithAllocation] =
               expenseAccountWithAllocation;
-          return net - accountWithAllocation.account->balance();
+          return net - accountWithAllocation.account->balance() +
+                 accountWithAllocation.allocation;
         }));
   });
 }
