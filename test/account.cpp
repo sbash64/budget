@@ -102,9 +102,7 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
-  void notifyThatFundsHaveChanged(USD usd) override { funds_ = usd; }
-
-  auto funds() -> USD { return funds_; }
+  void notifyThatFundsHaveChanged(USD usd) override {}
 
   auto balance() -> USD { return balance_; }
 
@@ -125,7 +123,6 @@ public:
 private:
   ObservableTransaction *newTransactionRecord_{};
   USD balance_{};
-  USD funds_{};
   bool willBeRemoved_{};
 };
 
@@ -157,10 +154,6 @@ assertCreditsSaved(testcpplite::TestResult &result,
 }
 
 static void credit(Account &account, const Transaction &t = {}) {
-  account.add(t);
-}
-
-static void debit(Account &account, const Transaction &t = {}) {
   account.add(t);
 }
 
@@ -267,19 +260,6 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   });
 }
 } // namespace income
-
-namespace expense {
-void notifiesObserverOfNewDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    AccountObserverStub observer;
-    account.attach(&observer);
-    const auto record{addObservableTransactionStub(factory)};
-    debit(account);
-    assertEqual(result, record.get(), observer.newTransactionRecord());
-  });
-}
-} // namespace expense
 
 namespace income {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
