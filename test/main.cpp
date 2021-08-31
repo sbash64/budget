@@ -126,12 +126,6 @@ static auto runAllTests() -> int {
         "account::expense::notifiesObserverOfRemoval"},
        {account::income::notifiesObserverOfUpdatedFundsAndBalanceOnClear,
         "account notifiesObserverOfUpdatedFundsAndBalanceOnClear"},
-       {account::income::
-            notifiesObserverOfUpdatedFundsAndBalanceOnSerialization,
-        "account::income::notifiesObserverOfUpdatedFundsOnSerialization"},
-       {account::expense::
-            notifiesObserverOfUpdatedFundsAndBalanceOnSerialization,
-        "account::expense::notifiesObserverOfUpdatedFundsOnSerialization"},
        {account::expense::initializesAddedTransactions,
         "account::expense::initializesAddedTransactions"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},

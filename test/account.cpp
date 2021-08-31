@@ -150,13 +150,6 @@ static void assertEqual(testcpplite::TestResult &result,
 }
 
 static void
-assertDebitsSaved(testcpplite::TestResult &result,
-                  PersistentAccountStub &persistence,
-                  const std::vector<SerializableTransaction *> &transactions) {
-  assertEqual(result, persistence.transactions(), transactions);
-}
-
-static void
 assertCreditsSaved(testcpplite::TestResult &result,
                    PersistentAccountStub &persistence,
                    const std::vector<SerializableTransaction *> &transactions) {
@@ -169,12 +162,6 @@ static void credit(Account &account, const Transaction &t = {}) {
 
 static void debit(Account &account, const Transaction &t = {}) {
   account.add(t);
-}
-
-static void assertAccountName(testcpplite::TestResult &result,
-                              PersistentAccountStub &persistent,
-                              std::string_view expected) {
-  assertEqual(result, std::string{expected}, persistent.accountName());
 }
 
 namespace income {
@@ -238,8 +225,8 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
+    credit(account,
+           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     assertEqual(
         result,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
@@ -594,32 +581,4 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
   });
 }
 } // namespace income
-
-namespace income {
-void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.notifyThatFundsAreReady(1_cents);
-        assertEqual(result, 1_cents, observer.funds());
-        assertEqual(result, 1_cents, observer.balance());
-      });
-}
-} // namespace income
-
-namespace expense {
-void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.notifyThatFundsAreReady(1_cents);
-        assertEqual(result, 1_cents, observer.funds());
-        assertEqual(result, 1_cents, observer.balance());
-      });
-}
-} // namespace expense
 } // namespace sbash64::budget::account
