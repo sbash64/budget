@@ -40,7 +40,6 @@ static auto runAllTests() -> int {
        {streams::fromVerifiedTransaction, "streams from verified transaction"},
        {streams::toTransaction, "streams to transaction"},
        {streams::toVerifiedTransaction, "streams to verified transaction"},
-       {createsAccount, "creates account"},
        {addsIncomeToIncomeAccount, "credits master account when credited"},
        {verifiesIncome, "verifies credit for master account"},
        {addsExpenseToExpenseAccount,

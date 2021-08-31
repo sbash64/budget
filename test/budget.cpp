@@ -36,8 +36,6 @@ public:
     return deserialization_;
   }
 
-  auto newName() -> std::string { return newName_; }
-
   void reduce() override { reduced_ = true; }
 
   [[nodiscard]] auto reduced() const -> bool { return reduced_; }
@@ -76,7 +74,6 @@ private:
   Transaction addedTransaction_;
   Transaction removedTransaction_;
   bool transactionRemoved_{};
-  std::string newName_;
   const AccountDeserialization *deserialization_{};
   USD balance_{};
   bool removed_{};
@@ -86,19 +83,22 @@ private:
 
 class AccountFactoryStub : public Account::Factory {
 public:
-  void add(std::shared_ptr<Account> account, std::string_view name) {
-    accounts[std::string{name}] = std::move(account);
+  void add(const std::shared_ptr<Account> &account, std::string_view) {
+    accounts.push_back(account);
   }
 
   auto name() -> std::string { return name_; }
 
-  auto make(std::string_view s) -> std::shared_ptr<Account> override {
-    name_ = s;
-    return accounts.count(s) == 0 ? nullptr : accounts.at(std::string{s});
+  auto make() -> std::shared_ptr<Account> override {
+    if (accounts.empty())
+      return {};
+    auto account{accounts.front()};
+    accounts.erase(accounts.begin());
+    return account;
   }
 
 private:
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> accounts;
+  std::vector<std::shared_ptr<Account>> accounts;
   std::string name_;
 };
 
@@ -147,9 +147,10 @@ private:
 };
 } // namespace
 
-static void add(AccountFactoryStub &factory, std::shared_ptr<Account> account,
+static void add(AccountFactoryStub &factory,
+                const std::shared_ptr<Account> &account,
                 std::string_view accountName) {
-  factory.add(std::move(account), accountName);
+  factory.add(account, accountName);
 }
 
 static auto addAccountStub(AccountFactoryStub &factory, std::string_view name)
@@ -194,14 +195,6 @@ static void assertEqual(testcpplite::TestResult &result,
                         const SerializableAccount *actual) {
   assertEqual(result, static_cast<const void *>(expected),
               static_cast<const void *>(actual));
-}
-
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<SerializableAccount *> &expected,
-                        const std::vector<SerializableAccount *> &actual) {
-  assertEqual(result, expected.size(), actual.size());
-  for (gsl::index i{0}; i < expected.size(); ++i)
-    assertEqual(result, expected.at(i), actual.at(i));
 }
 
 static void assertEqual(testcpplite::TestResult &result,
@@ -579,14 +572,6 @@ void removesAccount(testcpplite::TestResult &result) {
     assertEqual(result, penguin.get(),
                 persistence.expenseAccountsWithFunds().at(1).account);
   });
-}
-
-void createsAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        createAccount(budget, "panda");
-        assertEqual(result, "panda", factory.name());
-      });
 }
 
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {

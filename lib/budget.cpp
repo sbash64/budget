@@ -100,7 +100,7 @@ makeExpenseAccount(std::map<std::string, AccountWithAllocation, std::less<>>
                    Account::Factory &accountFactory, std::string_view name,
                    Budget::Observer *observer) {
   accountsWithAllocation.insert(std::make_pair(
-      name, AccountWithAllocation{accountFactory.make(name), USD{0}}));
+      name, AccountWithAllocation{accountFactory.make(), USD{0}}));
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatExpenseAccountHasBeenCreated(
         *at(accountsWithAllocation, name), name);

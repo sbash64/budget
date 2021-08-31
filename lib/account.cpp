@@ -155,8 +155,7 @@ void InMemoryAccount::clear() {
   notifyUpdatedBalance(*this, observer);
 }
 
-auto InMemoryAccount::Factory::make(std::string_view name_)
-    -> std::shared_ptr<Account> {
+auto InMemoryAccount::Factory::make() -> std::shared_ptr<Account> {
   return std::make_shared<InMemoryAccount>(transactionFactory);
 }
 
