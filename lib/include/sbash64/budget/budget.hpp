@@ -9,6 +9,11 @@
 #include <string>
 
 namespace sbash64::budget {
+struct AccountWithAllocation {
+  std::shared_ptr<Account> account;
+  USD allocation;
+};
+
 class BudgetInMemory : public Budget {
 public:
   explicit BudgetInMemory(Account &, Account::Factory &);
@@ -40,8 +45,8 @@ private:
   Account::Factory &accountFactory;
   Observer *observer{};
   Account &incomeAccount;
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> expenseAccounts;
-  std::map<std::string, USD> categoryAllocations;
+  std::map<std::string, AccountWithAllocation, std::less<>>
+      expenseAccountsWithAllocations;
   USD unallocatedIncome{};
 };
 } // namespace sbash64::budget
