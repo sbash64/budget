@@ -213,31 +213,6 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
 }
 } // namespace income
 
-namespace expense {
-void initializesAddedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla{addObservableTransactionStub(factory)};
-    credit(account,
-           Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertEqual(
-        result,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}},
-        gorilla->initializedTransaction());
-  });
-}
-
-void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        AccountObserverStub observer;
-        account.attach(&observer);
-        account.remove();
-        assertTrue(result, observer.willBeRemoved());
-      });
-}
-} // namespace expense
-
 namespace income {
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testInMemoryAccount(
