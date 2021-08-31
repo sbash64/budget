@@ -187,7 +187,7 @@ static void transfer(std::map<std::string, AccountWithAllocation, std::less<>>
                          &accountsWithAllocation,
                      USD &unallocatedIncome, std::string_view name, USD amount,
                      Budget::Observer *observer) {
-  accountsWithAllocation.at(std::string{name}).allocation += amount;
+  accountsWithAllocation.find(name)->second.allocation += amount;
   unallocatedIncome -= amount;
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
@@ -276,10 +276,11 @@ void BudgetInMemory::notifyThatIncomeAccountIsReady(
 }
 
 void BudgetInMemory::notifyThatExpenseAccountIsReady(
-    AccountDeserialization &deserialization, std::string_view name, USD usd) {
+    AccountDeserialization &deserialization, std::string_view name,
+    USD allocated) {
   makeAndLoadExpenseAccount(expenseAccountsWithAllocations, accountFactory,
                             deserialization, name, observer);
-  expenseAccountsWithAllocations.find(name)->second.allocation += usd;
+  expenseAccountsWithAllocations.find(name)->second.allocation = allocated;
   notifyThatCategoryAllocationHasChanged(observer, name,
                                          expenseAccountsWithAllocations);
 }
