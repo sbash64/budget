@@ -3,7 +3,7 @@
 
 #include <sbash64/testcpplite/testcpplite.hpp>
 
-namespace sbash64::budget::account::income {
+namespace sbash64::budget::account {
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void savesNewName(testcpplite::TestResult &);
@@ -36,6 +36,6 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
 void withdrawsFromFunds(testcpplite::TestResult &);
 void depositsToFunds(testcpplite::TestResult &);
-} // namespace sbash64::budget::account::income
+} // namespace sbash64::budget::account
 
 #endif

@@ -157,7 +157,6 @@ static void credit(Account &account, const Transaction &t = {}) {
   account.add(t);
 }
 
-namespace income {
 static void testInMemoryAccount(
     const std::function<void(InMemoryAccount &,
                              ObservableTransactionFactoryStub &)> &test,
@@ -166,7 +165,6 @@ static void testInMemoryAccount(
   InMemoryAccount account{std::move(name), factory, true};
   test(account, factory);
 }
-} // namespace income
 
 static void assertBalanceEquals(testcpplite::TestResult &result, USD actual,
                                 AccountObserverStub &observer) {
@@ -189,7 +187,6 @@ addObservableTransactionInMemory(ObservableTransactionFactoryStub &factory)
   return transaction;
 }
 
-namespace income {
 void initializesAddedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -200,9 +197,7 @@ void initializesAddedTransactions(testcpplite::TestResult &result) {
                 ape->initializedTransaction());
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
@@ -223,9 +218,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
     assertEqual(result, record.get(), observer.newTransactionRecord());
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -241,9 +234,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     assertBalanceEquals(result, 5_cents + 3_cents + 11_cents, observer);
   });
 }
-} // namespace income
 
-namespace income {
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -256,9 +247,7 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
     assertCreditsSaved(result, persistence, {john.get(), andy.get()});
   });
 }
-} // namespace income
 
-namespace income {
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -280,9 +269,7 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
     assertFalse(result, bob->removesed());
   });
 }
-} // namespace income
 
-namespace income {
 void savesLoadedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -296,9 +283,7 @@ void savesLoadedTransactions(testcpplite::TestResult &result) {
     assertCreditsSaved(result, persistence, {mike.get(), joe.get()});
   });
 }
-} // namespace income
 
-namespace income {
 void savesRemainingTransactionsAfterRemovingSome(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -314,9 +299,7 @@ void savesRemainingTransactionsAfterRemovingSome(
     assertCreditsSaved(result, persistence, {ape.get()});
   });
 }
-} // namespace income
 
-namespace income {
 void savesRemainingTransactionAfterRemovingVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -336,9 +319,7 @@ void savesRemainingTransactionAfterRemovingVerified(
     assertCreditsSaved(result, persistence, {chimpanzee.get()});
   });
 }
-} // namespace income
 
-namespace income {
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -353,9 +334,7 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
     assertCreditsSaved(result, persistence, {gorilla1.get(), gorilla2.get()});
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -372,9 +351,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     assertBalanceEquals(result, 123_cents, observer);
   });
 }
-} // namespace income
 
-namespace income {
 void observesDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
@@ -395,9 +372,7 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
     assertEqual(result, mike.get(), abel.observer());
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -420,9 +395,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
     assertTrue(result, gorilla2Observer.verified());
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -446,9 +419,7 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
     assertTrue(result, observer.removed());
   });
 }
-} // namespace income
 
-namespace income {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -462,9 +433,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
     assertEqual(result, 2300_cents + 789_cents, account.balance());
   });
 }
-} // namespace income
 
-namespace income {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -480,9 +449,7 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
     assertCreditsSaved(result, persistence, {});
   });
 }
-} // namespace income
 
-namespace income {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -493,9 +460,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
     assertTrue(result, orangutan->removed());
   });
 }
-} // namespace income
 
-namespace income {
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
@@ -508,9 +473,7 @@ void returnsBalance(testcpplite::TestResult &result) {
     assertEqual(result, 4_cents + 123_cents + 111_cents, account.balance());
   });
 }
-} // namespace income
 
-namespace income {
 void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -524,5 +487,4 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
     assertEqual(result, 0_cents, observer.balance());
   });
 }
-} // namespace income
 } // namespace sbash64::budget::account
