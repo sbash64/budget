@@ -31,15 +31,8 @@ void ReadsBudgetFromStream::load(Observer &observer) {
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  std::string word;
-  std::stringstream lineStream{line};
-  lineStream >> word >> word;
-  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(word));
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(line));
   while (getline(*stream, line)) {
-    std::stringstream lineStream{line};
-    std::string name;
-    std::string amount;
-    lineStream >> name >> amount;
     const auto lastSpace{line.find_last_of(' ')};
     observer.notifyThatExpenseAccountIsReady(*accountDeserialization,
                                              line.substr(0, lastSpace),
