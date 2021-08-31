@@ -40,8 +40,10 @@ void ReadsBudgetFromStream::load(Observer &observer) {
     std::string name;
     std::string amount;
     lineStream >> name >> amount;
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, name,
-                                             usd(amount));
+    const auto lastSpace{line.find_last_of(' ')};
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization,
+                                             line.substr(0, lastSpace),
+                                             usd(line.substr(lastSpace)));
   }
 }
 

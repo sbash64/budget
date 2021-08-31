@@ -276,7 +276,7 @@ void fromBudget(testcpplite::TestResult &result) {
   SavesNameAccount sue{*stream, "sue"};
   SavesNameAccount allen{*stream, "allen"};
   sessionSerialization.save({&jeff, 4_cents}, {{&steve, 1_cents, "stevey"},
-                                               {&sue, 2_cents, "suzie"},
+                                               {&sue, 2_cents, "suzie yo"},
                                                {&allen, 3_cents, "arod"}});
   assertEqual(result, R"(0.04
 jeff
@@ -284,7 +284,7 @@ jeff
 stevey 0.01
 steve
 
-suzie 0.02
+suzie yo 0.02
 sue
 
 arod 0.03
@@ -297,7 +297,7 @@ void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
       R"(12.34
 steve 22
-sue 33
+sue is here 33
 allen 4.50)")};
   IoStreamFactoryStub streamFactory{input};
   AccountFromStreamFactoryStub accountDeserializationFactory;
@@ -306,7 +306,7 @@ allen 4.50)")};
   BudgetDeserializationObserverStub observer;
   readsBudget.load(observer);
   assertEqual(result, "steve", observer.expenseAccountNames().at(0));
-  assertEqual(result, "sue", observer.expenseAccountNames().at(1));
+  assertEqual(result, "sue is here", observer.expenseAccountNames().at(1));
   assertEqual(result, "allen", observer.expenseAccountNames().at(2));
   assertEqual(result, 2200_cents, observer.expenseAccountAllocations().at(0));
   assertEqual(result, 3300_cents, observer.expenseAccountAllocations().at(1));
