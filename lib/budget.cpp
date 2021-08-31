@@ -71,11 +71,12 @@ contains(std::map<std::string, AccountWithAllocation, std::less<>> &accounts,
   return accounts.contains(accountName);
 }
 
-static auto collect(
-    const std::map<std::string, AccountWithAllocation, std::less<>> &accounts)
+static auto collect(const std::map<std::string, AccountWithAllocation,
+                                   std::less<>> &accountsWithAllocation)
     -> std::vector<SerializableAccountWithFundsAndName> {
   std::vector<SerializableAccountWithFundsAndName> collected;
-  transform(accounts.begin(), accounts.end(), back_inserter(collected),
+  transform(accountsWithAllocation.begin(), accountsWithAllocation.end(),
+            back_inserter(collected),
             [&](const std::pair<const std::string, AccountWithAllocation>
                     &expenseAccountWithAllocation) {
               const auto &[name, accountWithAllocation] =
