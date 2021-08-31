@@ -504,11 +504,13 @@ void notifiesThatNetIncomeHasChangedOnAddedIncome(
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
     incomeAccount.setBalance(4_cents);
+    budget.reduce();
+    incomeAccount.setBalance(9_cents);
     giraffe->setBalance(5_cents);
     penguin->setBalance(6_cents);
     leopard->setBalance(7_cents);
     addIncome(budget);
-    assertEqual(result, 4_cents - 5_cents - 6_cents - 7_cents,
+    assertEqual(result, 9_cents + 4_cents - 5_cents - 6_cents - 7_cents,
                 observer.netIncome());
   });
 }

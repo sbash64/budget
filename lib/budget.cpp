@@ -46,12 +46,14 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
 
 static void notifyThatNetIncomeHasChanged(
     BudgetInMemory::Observer *observer, Account &incomeAccount,
+    USD unallocatedIncome,
     const std::map<std::string, AccountWithAllocation, std::less<>>
         &expenseAccountsWithAllocations) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatNetIncomeHasChanged(accumulate(
         expenseAccountsWithAllocations.begin(),
-        expenseAccountsWithAllocations.end(), incomeAccount.balance(),
+        expenseAccountsWithAllocations.end(),
+        incomeAccount.balance() + unallocatedIncome,
         [](USD net, const std::pair<std::string_view, AccountWithAllocation>
                         &expenseAccountWithAllocation) {
           const auto &[name, accountWithAllocation] =
@@ -129,7 +131,7 @@ void BudgetInMemory::attach(Observer *a) { observer = a; }
 
 void BudgetInMemory::addIncome(const Transaction &transaction) {
   budget::add(incomeAccount, transaction);
-  notifyThatNetIncomeHasChanged(observer, incomeAccount,
+  notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                 expenseAccountsWithAllocations);
 }
 
@@ -138,13 +140,13 @@ void BudgetInMemory::addExpense(std::string_view accountName,
   createExpenseAccountIfNeeded(expenseAccountsWithAllocations, accountFactory,
                                accountName, observer);
   budget::add(at(expenseAccountsWithAllocations, accountName), transaction);
-  notifyThatNetIncomeHasChanged(observer, incomeAccount,
+  notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                 expenseAccountsWithAllocations);
 }
 
 void BudgetInMemory::removeIncome(const Transaction &transaction) {
   budget::remove(incomeAccount, transaction);
-  notifyThatNetIncomeHasChanged(observer, incomeAccount,
+  notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                 expenseAccountsWithAllocations);
 }
 
@@ -153,7 +155,7 @@ void BudgetInMemory::removeExpense(std::string_view accountName,
   if (contains(expenseAccountsWithAllocations, accountName)) {
     budget::remove(at(expenseAccountsWithAllocations, accountName),
                    transaction);
-    notifyThatNetIncomeHasChanged(observer, incomeAccount,
+    notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                   expenseAccountsWithAllocations);
   }
 }
@@ -238,7 +240,7 @@ void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
 void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(expenseAccountsWithAllocations, name)) {
     remove(expenseAccountsWithAllocations, name);
-    notifyThatNetIncomeHasChanged(observer, incomeAccount,
+    notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                   expenseAccountsWithAllocations);
   }
 }
@@ -254,7 +256,7 @@ void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
   incomeAccount.clear();
   expenseAccountsWithAllocations.clear();
   persistentMemory.load(*this);
-  notifyThatNetIncomeHasChanged(observer, incomeAccount,
+  notifyThatNetIncomeHasChanged(observer, incomeAccount, unallocatedIncome,
                                 expenseAccountsWithAllocations);
 }
 
