@@ -93,9 +93,8 @@ static void remove(std::vector<std::shared_ptr<ObservableTransaction>> &records,
   }
 }
 
-InMemoryAccount::InMemoryAccount(std::string name,
-                                 ObservableTransaction::Factory &factory)
-    : name{std::move(name)}, factory{factory} {}
+InMemoryAccount::InMemoryAccount(ObservableTransaction::Factory &factory)
+    : factory{factory} {}
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
@@ -120,8 +119,6 @@ collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
     collected.push_back(account.get());
   return collected;
 }
-
-void InMemoryAccount::rename(std::string_view to) { name = to; }
 
 void InMemoryAccount::save(AccountSerialization &serialization) {
   serialization.save(collect(transactions));
@@ -160,8 +157,7 @@ void InMemoryAccount::clear() {
 
 auto InMemoryAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<Account> {
-  return std::make_shared<InMemoryAccount>(std::string{name_},
-                                           transactionFactory);
+  return std::make_shared<InMemoryAccount>(transactionFactory);
 }
 
 InMemoryAccount::Factory::Factory(

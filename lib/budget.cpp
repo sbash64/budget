@@ -7,6 +7,7 @@
 #include <numeric>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 namespace sbash64::budget {
 static void add(Account &account, const Transaction &transaction) {
@@ -216,7 +217,13 @@ void BudgetInMemory::closeAccount(std::string_view name) {
 }
 
 void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
-  at(expenseAccounts, from)->rename(to);
+  auto fromNode{categoryAllocations.extract(std::string{from})};
+  fromNode.key() = to;
+  categoryAllocations.insert(std::move(fromNode));
+
+  auto fromNode2{expenseAccounts.extract(std::string{from})};
+  fromNode2.key() = to;
+  expenseAccounts.insert(std::move(fromNode2));
 }
 
 void BudgetInMemory::removeAccount(std::string_view name) {

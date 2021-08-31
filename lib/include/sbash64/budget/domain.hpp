@@ -166,7 +166,6 @@ public:
   virtual void add(const Transaction &) = 0;
   virtual void verify(const Transaction &) = 0;
   virtual void remove(const Transaction &) = 0;
-  virtual void rename(std::string_view) = 0;
   virtual void reduce() = 0;
   virtual auto balance() -> USD = 0;
   virtual void remove() = 0;

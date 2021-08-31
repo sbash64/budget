@@ -157,10 +157,9 @@ static void credit(Account &account, const Transaction &t = {}) {
 
 static void testInMemoryAccount(
     const std::function<void(InMemoryAccount &,
-                             ObservableTransactionFactoryStub &)> &test,
-    std::string name = {}) {
+                             ObservableTransactionFactoryStub &)> &test) {
   ObservableTransactionFactoryStub factory;
-  InMemoryAccount account{std::move(name), factory};
+  InMemoryAccount account{factory};
   test(account, factory);
 }
 

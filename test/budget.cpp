@@ -38,8 +38,6 @@ public:
 
   auto newName() -> std::string { return newName_; }
 
-  void rename(std::string_view s) override { newName_ = s; }
-
   void reduce() override { reduced_ = true; }
 
   [[nodiscard]] auto reduced() const -> bool { return reduced_; }
@@ -424,9 +422,13 @@ void removesIncomeFromAccount(testcpplite::TestResult &result) {
 void renamesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.allocate("giraffe", 3_cents);
         budget.renameAccount("giraffe", "zebra");
-        assertEqual(result, "zebra", giraffe->newName());
+        budget.transferTo("zebra", 4_cents);
+        assertEqual(result, {7_cents}, observer.categoryAllocations("zebra"));
       });
 }
 
