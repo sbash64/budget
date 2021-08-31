@@ -14,8 +14,6 @@ public:
                   bool positive);
   void attach(Observer *) override;
   void rename(std::string_view) override;
-  void withdraw(USD) override;
-  void deposit(USD) override;
   void remove() override;
   void load(AccountDeserialization &) override;
   void notifyThatFundsAreReady(USD) override;

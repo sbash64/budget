@@ -225,13 +225,12 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    account.deposit(5_cents);
     addObservableTransactionStub(factory)->setAmount(3_cents);
     credit(account);
-    assertBalanceEquals(result, 5_cents + 3_cents, observer);
+    assertBalanceEquals(result, 3_cents, observer);
     addObservableTransactionStub(factory)->setAmount(11_cents);
     credit(account);
-    assertBalanceEquals(result, 5_cents + 3_cents + 11_cents, observer);
+    assertBalanceEquals(result, 3_cents + 11_cents, observer);
   });
 }
 
@@ -464,13 +463,12 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    account.deposit(4_cents);
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    assertEqual(result, 4_cents + 123_cents + 111_cents, account.balance());
+    assertEqual(result, 123_cents + 111_cents, account.balance());
   });
 }
 
@@ -480,7 +478,6 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    account.deposit(1_cents);
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{2_cents, "a", Date{}});
     account.clear();

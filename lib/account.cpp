@@ -167,18 +167,6 @@ auto InMemoryAccount::balance() -> USD {
                            : -budget::balance(transactions));
 }
 
-void InMemoryAccount::withdraw(USD usd) {
-  funds -= usd;
-  notifyUpdatedFunds(observer, funds);
-  notifyUpdatedBalance(*this, observer);
-}
-
-void InMemoryAccount::deposit(USD usd) {
-  funds += usd;
-  notifyUpdatedFunds(observer, funds);
-  notifyUpdatedBalance(*this, observer);
-}
-
 void InMemoryAccount::remove() {
   callIfObserverExists(observer, [&](Account::Observer *observer_) {
     observer_->notifyThatWillBeRemoved();

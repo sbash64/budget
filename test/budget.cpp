@@ -54,10 +54,6 @@ public:
 
   [[nodiscard]] auto cleared() const -> bool { return cleared_; }
 
-  void withdraw(USD usd) override {}
-
-  void deposit(USD usd) override {}
-
   void notifyThatIsReady(TransactionDeserialization &) override {}
 
   void add(const Transaction &t) override { addedTransaction_ = t; }
