@@ -140,7 +140,10 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryAccount::reduce() { budget::clear(transactions); }
+void InMemoryAccount::reduce() {
+  budget::clear(transactions);
+  notifyUpdatedBalance(*this, observer);
+}
 
 auto InMemoryAccount::balance() -> USD { return budget::balance(transactions); }
 

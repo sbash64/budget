@@ -419,6 +419,8 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
     addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
@@ -427,6 +429,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
                                 Date{2020, Month::February, 2}});
     account.reduce();
     assertEqual(result, 0_cents, account.balance());
+    assertEqual(result, 0_cents, observer.balance());
   });
 }
 
