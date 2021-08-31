@@ -407,28 +407,6 @@ void savesRemainingTransactionAfterRemovingVerified(
 }
 } // namespace income
 
-namespace expense {
-void savesRemainingTransactionAfterRemovingVerified(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto chimpanzee{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.verify(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.remove(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {chimpanzee.get()});
-  });
-}
-} // namespace expense
-
 namespace income {
 void savesDuplicateTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -445,23 +423,6 @@ void savesDuplicateTransactions(testcpplite::TestResult &result) {
   });
 }
 } // namespace income
-
-namespace expense {
-void savesDuplicateTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla1{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto gorilla2{addObservableTransactionInMemory(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {gorilla1.get(), gorilla2.get()});
-  });
-}
-} // namespace expense
 
 namespace income {
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
@@ -483,24 +444,6 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 } // namespace income
 
 namespace expense {
-void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    factory.add(std::make_shared<ObservableTransactionInMemory>());
-    factory.add(std::make_shared<ObservableTransactionInMemory>());
-    AccountObserverStub observer;
-    account.attach(&observer);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.remove(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertBalanceEquals(result, -789_cents, observer);
-  });
-}
-
 void observesDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
