@@ -10,13 +10,11 @@
 namespace sbash64::budget {
 class InMemoryAccount : public virtual Account {
 public:
-  InMemoryAccount(std::string name, ObservableTransaction::Factory &,
-                  bool positive);
+  InMemoryAccount(std::string name, ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void rename(std::string_view) override;
   void remove() override;
   void load(AccountDeserialization &) override;
-  void notifyThatFundsAreReady(USD) override;
   void clear() override;
   void reduce() override;
   void notifyThatIsReady(TransactionDeserialization &) override;
@@ -39,9 +37,7 @@ private:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
   std::string name;
   Observer *observer{};
-  USD funds{};
   ObservableTransaction::Factory &factory;
-  bool positive;
 };
 } // namespace sbash64::budget
 

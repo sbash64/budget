@@ -109,12 +109,6 @@ void ReadsAccountFromStream::load(Observer &observer) {
   std::string firstWord;
   std::stringstream lineStream{line};
   lineStream >> firstWord;
-  if (firstWord == "funds") {
-    std::string amount;
-    lineStream >> amount;
-    observer.notifyThatFundsAreReady(usd(amount));
-    getline(stream, line);
-  }
   while (stream.peek() != 'd') {
     observer.notifyThatIsReady(*transactionRecordDeserialization);
   }

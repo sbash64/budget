@@ -138,7 +138,6 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatIsReady(TransactionDeserialization &) = 0;
-    virtual void notifyThatFundsAreReady(USD) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
@@ -159,7 +158,6 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
-    virtual void notifyThatFundsHaveChanged(USD) = 0;
     virtual void notifyThatHasBeenAdded(ObservableTransaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };

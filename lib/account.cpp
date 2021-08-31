@@ -94,9 +94,8 @@ static void remove(std::vector<std::shared_ptr<ObservableTransaction>> &records,
 }
 
 InMemoryAccount::InMemoryAccount(std::string name,
-                                 ObservableTransaction::Factory &factory,
-                                 bool positive)
-    : name{std::move(name)}, factory{factory}, positive{positive} {}
+                                 ObservableTransaction::Factory &factory)
+    : name{std::move(name)}, factory{factory} {}
 
 void InMemoryAccount::attach(Observer *a) { observer = a; }
 
@@ -137,18 +136,6 @@ void InMemoryAccount::notifyThatIsReady(
   addTransaction(transactions, factory, *this, observer, deserialization);
 }
 
-static void notifyUpdatedFunds(Account::Observer *observer, USD funds) {
-  callIfObserverExists(observer, [&](Account::Observer *observer_) {
-    observer_->notifyThatFundsHaveChanged(funds);
-  });
-}
-
-void InMemoryAccount::notifyThatFundsAreReady(USD usd) {
-  funds = usd;
-  notifyUpdatedFunds(observer, funds);
-  notifyUpdatedBalance(*this, observer);
-}
-
 static void
 clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   for (const auto &record : records)
@@ -156,11 +143,7 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryAccount::reduce() {
-  funds = balance();
-  notifyUpdatedFunds(observer, funds);
-  budget::clear(transactions);
-}
+void InMemoryAccount::reduce() { budget::clear(transactions); }
 
 auto InMemoryAccount::balance() -> USD { return budget::balance(transactions); }
 
@@ -171,8 +154,6 @@ void InMemoryAccount::remove() {
 }
 
 void InMemoryAccount::clear() {
-  funds = {};
-  notifyUpdatedFunds(observer, funds);
   budget::clear(transactions);
   notifyUpdatedBalance(*this, observer);
 }
@@ -180,7 +161,7 @@ void InMemoryAccount::clear() {
 auto InMemoryAccount::Factory::make(std::string_view name_)
     -> std::shared_ptr<Account> {
   return std::make_shared<InMemoryAccount>(std::string{name_},
-                                           transactionFactory, false);
+                                           transactionFactory);
 }
 
 InMemoryAccount::Factory::Factory(

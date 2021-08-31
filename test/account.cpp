@@ -102,8 +102,6 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
-  void notifyThatFundsHaveChanged(USD usd) override {}
-
   auto balance() -> USD { return balance_; }
 
   void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
@@ -162,7 +160,7 @@ static void testInMemoryAccount(
                              ObservableTransactionFactoryStub &)> &test,
     std::string name = {}) {
   ObservableTransactionFactoryStub factory;
-  InMemoryAccount account{std::move(name), factory, true};
+  InMemoryAccount account{std::move(name), factory};
   test(account, factory);
 }
 

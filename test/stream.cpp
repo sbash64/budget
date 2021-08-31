@@ -130,13 +130,8 @@ public:
     return transactions_;
   }
 
-  auto funds() -> USD { return funds_; }
-
-  void notifyThatFundsAreReady(USD usd) override { funds_ = usd; }
-
 private:
   std::vector<VerifiableTransaction> transactions_;
-  USD funds_{};
   std::istream &stream;
 };
 
@@ -278,8 +273,7 @@ debits)"};
 
 void toAccountWithFunds(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(funds 12.32
-credits
+      R"(credits
 50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021
@@ -291,7 +285,6 @@ debits
   ReadsAccountFromStream accountDeserialization{input, factory};
   AccountDeserializationObserverStub observer{input};
   accountDeserialization.load(observer);
-  assertEqual(result, 1232_cents, observer.funds());
 }
 
 void fromBudget(testcpplite::TestResult &result) {
