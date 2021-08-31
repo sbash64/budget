@@ -443,19 +443,6 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 }
 } // namespace income
 
-namespace expense {
-void observesDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount(
-      [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
-        PersistentAccountStub persistence;
-        account.load(persistence);
-        assertEqual(result,
-                    static_cast<AccountDeserialization::Observer *>(&account),
-                    persistence.observer());
-      });
-}
-} // namespace expense
-
 namespace income {
 void observesDeserialization(testcpplite::TestResult &result) {
   testInMemoryAccount(
@@ -479,18 +466,6 @@ void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
 }
 } // namespace income
 
-namespace expense {
-void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto joe{addObservableTransactionStub(factory)};
-    TransactionDeserializationStub abel;
-    account.notifyThatIsReady(abel);
-    assertEqual(result, joe.get(), abel.observer());
-  });
-}
-} // namespace expense
-
 namespace income {
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &result) {
@@ -515,31 +490,6 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
   });
 }
 } // namespace income
-
-namespace expense {
-void notifiesObserverThatDuplicateTransactionsAreVerified(
-    testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla1{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub gorilla1Observer;
-    gorilla1->attach(&gorilla1Observer);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto gorilla2{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub gorilla2Observer;
-    gorilla2->attach(&gorilla2Observer);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verify(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.verify(
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    assertTrue(result, gorilla1Observer.verified());
-    assertTrue(result, gorilla2Observer.verified());
-  });
-}
-} // namespace expense
 
 namespace income {
 void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
@@ -566,32 +516,6 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   });
 }
 } // namespace income
-
-namespace expense {
-void notifiesObserverOfVerifiedDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto record{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub observer;
-    record->attach(&observer);
-    debit(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.verify(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertTrue(result, observer.verified());
-  });
-}
-
-void notifiesObserverOfRemovedDebit(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto record{addObservableTransactionInMemory(factory)};
-    TransactionObserverStub observer;
-    record->attach(&observer);
-    account.add(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    account.remove(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    assertTrue(result, observer.removed());
-  });
-}
-} // namespace expense
 
 namespace income {
 void reducesTransactionsToFunds(testcpplite::TestResult &result) {
