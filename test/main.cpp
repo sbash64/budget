@@ -35,7 +35,6 @@ static auto runAllTests() -> int {
        {streams::fromAccount, "streams from account"},
        {streams::nonfinalToAccount, "streams nonfinal to account"},
        {streams::finalToAccount, "streams final to account"},
-       {streams::toAccountWithFunds, "streams to account with funds"},
        {streams::fromTransaction, "streams from transaction"},
        {streams::fromVerifiedTransaction, "streams from verified transaction"},
        {streams::toTransaction, "streams to transaction"},

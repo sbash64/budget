@@ -223,9 +223,7 @@ void fromAccount(testcpplite::TestResult &result) {
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
   accountSerialization.save({&steve, &sue, &allen, &john});
-  assertEqual(result, R"(credits
-debits
-steve
+  assertEqual(result, R"(steve
 sue
 allen
 john)",
@@ -234,9 +232,7 @@ john)",
 
 void nonfinalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(credits
-debits
-^27.34 hyvee 1/12/2021
+      R"(^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
 
@@ -254,11 +250,9 @@ bobby)"};
 
 void finalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(credits
-50 transfer from master 1/10/2021
+      R"(50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
-13.80 transfer from master 2/8/2021
-debits)"};
+13.80 transfer from master 2/8/2021)"};
   TransactionFromStreamFactoryStub factory;
   ReadsAccountFromStream accountDeserialization{input, factory};
   AccountDeserializationObserverStub observer{input};
@@ -269,22 +263,6 @@ debits)"};
        {{2500_cents, "transfer from master", Date{2021, Month::April, 12}}},
        {{1380_cents, "transfer from master", Date{2021, Month::February, 8}}}},
       observer.transactions());
-}
-
-void toAccountWithFunds(testcpplite::TestResult &result) {
-  std::stringstream input{
-      R"(credits
-50 transfer from master 1/10/2021
-25 transfer from master 4/12/2021
-13.80 transfer from master 2/8/2021
-debits
-^27.34 hyvee 1/12/2021
-9.87 walmart 6/15/2021
-3.24 hyvee 2/8/2020)"};
-  TransactionFromStreamFactoryStub factory;
-  ReadsAccountFromStream accountDeserialization{input, factory};
-  AccountDeserializationObserverStub observer{input};
-  accountDeserialization.load(observer);
 }
 
 void fromBudget(testcpplite::TestResult &result) {

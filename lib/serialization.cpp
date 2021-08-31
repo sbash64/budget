@@ -104,15 +104,6 @@ auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
 
 void ReadsAccountFromStream::load(Observer &observer) {
   const auto transactionRecordDeserialization{factory.make(stream)};
-  std::string line;
-  getline(stream, line);
-  std::string firstWord;
-  std::stringstream lineStream{line};
-  lineStream >> firstWord;
-  while (stream.peek() != 'd') {
-    observer.notifyThatIsReady(*transactionRecordDeserialization);
-  }
-  getline(stream, line);
   auto next{stream.get()};
   while (stream && next != '\n') {
     stream.unget();
@@ -135,10 +126,11 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
 
 void WritesAccountToStream::save(
     const std::vector<SerializableTransaction *> &transactions) {
-  putNewLine(stream << "credits");
-  stream << "debits";
+  auto first{true};
   for (const auto &transaction : transactions) {
-    putNewLine(stream);
+    if (!first)
+      putNewLine(stream);
+    first = false;
     transaction->save(*factory.make(stream));
   }
 }
