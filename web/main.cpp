@@ -377,9 +377,8 @@ static auto date(std::string_view s) -> Date {
   return date;
 }
 
-static auto transaction(const nlohmann::json &json, std::string_view amountKey)
-    -> Transaction {
-  return {usd(json[std::string{amountKey}].get<std::string>()),
+static auto transaction(const nlohmann::json &json) -> Transaction {
+  return {usd(json["amount"].get<std::string>()),
           json["description"].get<std::string>(),
           date(json["date"].get<std::string>())};
 }
@@ -410,25 +409,23 @@ handleMessage(const std::unique_ptr<App> &application,
   if (methodIs(json, "add transaction"))
     call(application, [&json](Budget &budget) {
       if (accountIsMaster(json))
-        budget.addIncome(transaction(json, "amount"));
+        budget.addIncome(transaction(json));
       else
-        budget.addExpense(accountName(json), transaction(json, "amount"));
+        budget.addExpense(accountName(json), transaction(json));
     });
   else if (methodIs(json, "remove transaction"))
     call(application, [&json](Budget &budget) {
       if (accountIsMaster(json))
-        budget.removeIncome(transaction(json, "creditAmount"));
+        budget.removeIncome(transaction(json));
       else
-        budget.removeExpense(accountName(json),
-                             transaction(json, "debitAmount"));
+        budget.removeExpense(accountName(json), transaction(json));
     });
   else if (methodIs(json, "verify transaction"))
     call(application, [&json](Budget &budget) {
       if (accountIsMaster(json))
-        budget.verifyIncome(transaction(json, "creditAmount"));
+        budget.verifyIncome(transaction(json));
       else
-        budget.verifyExpense(accountName(json),
-                             transaction(json, "debitAmount"));
+        budget.verifyExpense(accountName(json), transaction(json));
     });
   else if (methodIs(json, "transfer"))
     call(application, [&json](Budget &budget) {

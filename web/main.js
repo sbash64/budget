@@ -21,17 +21,15 @@ function transactionMessage(
     method,
     name: accountName(selectedAccountSummaryRow),
     description: selectedTransactionRow.cells[1].textContent,
-    debitAmount: selectedTransactionRow.cells[2].textContent,
-    creditAmount: selectedTransactionRow.cells[3].textContent,
-    date: selectedTransactionRow.cells[4].textContent,
+    amount: selectedTransactionRow.cells[2].textContent,
+    date: selectedTransactionRow.cells[3].textContent,
   };
 }
 
 function updateTransaction(row, message) {
   row.cells[1].textContent = message.description;
-  row.cells[2].textContent = message.debitAmount;
-  row.cells[3].textContent = message.creditAmount;
-  row.cells[4].textContent = message.date;
+  row.cells[2].textContent = message.amount;
+  row.cells[3].textContent = message.date;
 }
 
 function accountTableBody(accountTableBodies, message) {
@@ -172,18 +170,12 @@ function main() {
   );
   transactionDescriptionHeaderElement.textContent = "Description";
   transactionDescriptionHeaderElement.style.width = "30ch";
-  const transactionDebitHeaderElement = createChild(
+  const transactionAmountHeaderElement = createChild(
     transactionTableHeader,
     "th"
   );
-  transactionDebitHeaderElement.textContent = "Debits";
-  transactionDebitHeaderElement.style.width = "9ch";
-  const transactionCreditHeaderElement = createChild(
-    transactionTableHeader,
-    "th"
-  );
-  transactionCreditHeaderElement.textContent = "Credits";
-  transactionCreditHeaderElement.style.width = "9ch";
+  transactionAmountHeaderElement.textContent = "Amount";
+  transactionAmountHeaderElement.style.width = "9ch";
   const transactionDateHeaderElement = createChild(
     transactionTableHeader,
     "th"
@@ -340,7 +332,6 @@ function main() {
         selection.name = "transaction selection";
         selection.type = "radio";
         createChild(row, "td");
-        createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "center";
         createChild(row, "td").style.textAlign = "center";
