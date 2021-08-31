@@ -462,6 +462,8 @@ void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
     budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe", 1_cents);
     assertEqual(result, "giraffe", observer.newAccountName());
     assertEqual(result, account.get(), observer.newAccount());
+    assertEqual(result, 1_cents,
+                observer.categoryAllocations("giraffe").front());
   });
 }
 

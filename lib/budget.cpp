@@ -177,8 +177,10 @@ static void notifyThatCategoryAllocationHasChanged(
     Budget::Observer *observer, std::string_view name,
     const std::map<std::string, AccountWithAllocation, std::less<>>
         &accountsWithAllocation) {
-  observer->notifyThatCategoryAllocationHasChanged(
-      name, accountsWithAllocation.find(name)->second.allocation);
+  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
+    observer_->notifyThatCategoryAllocationHasChanged(
+        name, accountsWithAllocation.find(name)->second.allocation);
+  });
 }
 
 static void transfer(std::map<std::string, AccountWithAllocation, std::less<>>
@@ -274,9 +276,12 @@ void BudgetInMemory::notifyThatIncomeAccountIsReady(
 }
 
 void BudgetInMemory::notifyThatExpenseAccountIsReady(
-    AccountDeserialization &deserialization, std::string_view name, USD) {
+    AccountDeserialization &deserialization, std::string_view name, USD usd) {
   makeAndLoadExpenseAccount(expenseAccountsWithAllocations, accountFactory,
                             deserialization, name, observer);
+  expenseAccountsWithAllocations.find(name)->second.allocation += usd;
+  notifyThatCategoryAllocationHasChanged(observer, name,
+                                         expenseAccountsWithAllocations);
 }
 
 void BudgetInMemory::reduce() {
