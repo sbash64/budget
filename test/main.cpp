@@ -105,10 +105,6 @@ static auto runAllTests() -> int {
         "notifiesObserverOfNewCredit"},
        {account::expense::notifiesObserverOfNewDebit,
         "notifiesObserverOfNewDebit"},
-       {account::expense::
-            notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
-        "account::expense::"
-        "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::expense::savesAllTransactionsAndAccountName,
         "account::expense::savesAllTransactionsAndAccountName"},
        {account::expense::savesLoadedTransactions,
