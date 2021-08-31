@@ -352,6 +352,7 @@ function main() {
         ).lastElementChild.textContent = message.amount;
         break;
       case "update account funds":
+      case "update unallocated income":
         accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
           message.amount;
         break;
@@ -359,7 +360,7 @@ function main() {
         updateTransaction(transactionRow(accountTableBodies, message), message);
         break;
       case "verify transaction":
-        transactionRow(accountTableBodies, message).cells[5].textContent = "✅";
+        transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
       default:
         break;
