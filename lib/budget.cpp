@@ -62,31 +62,9 @@ static void notifyThatNetIncomeHasChanged(
 }
 
 static auto
-makeExpenseAccount(std::map<std::string, AccountWithAllocation, std::less<>>
-                       &accountsWithAllocation,
-                   Account::Factory &accountFactory, std::string_view name,
-                   Budget::Observer *observer) {
-  auto account{accountFactory.make(name)};
-  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
-    observer_->notifyThatExpenseAccountHasBeenCreated(*account, name);
-  });
-  accountsWithAllocation[std::string{name}] = {std::move(account), USD{0}};
-}
-
-static auto
 contains(std::map<std::string, AccountWithAllocation, std::less<>> &accounts,
          std::string_view accountName) -> bool {
   return accounts.count(accountName) != 0;
-}
-
-static void createExpenseAccountIfNeeded(
-    std::map<std::string, AccountWithAllocation, std::less<>>
-        &accountsWithAllocation,
-    Account::Factory &accountFactory, std::string_view accountName,
-    Budget::Observer *observer) {
-  if (!contains(accountsWithAllocation, accountName))
-    makeExpenseAccount(accountsWithAllocation, accountFactory, accountName,
-                       observer);
 }
 
 static auto collect(
@@ -111,13 +89,36 @@ static auto at(const std::map<std::string, AccountWithAllocation, std::less<>>
   return accountsWithAllocation.at(std::string{name}).account;
 }
 
-static auto makeAndLoadExpenseAccount(
+static void
+makeExpenseAccount(std::map<std::string, AccountWithAllocation, std::less<>>
+                       &accountsWithAllocation,
+                   Account::Factory &accountFactory, std::string_view name,
+                   Budget::Observer *observer) {
+  accountsWithAllocation[std::string{name}] = {accountFactory.make(name),
+                                               USD{0}};
+  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
+    observer_->notifyThatExpenseAccountHasBeenCreated(
+        *at(accountsWithAllocation, name), name);
+  });
+}
+
+static void makeAndLoadExpenseAccount(
     std::map<std::string, AccountWithAllocation, std::less<>>
         &accountsWithAllocation,
     Account::Factory &factory, AccountDeserialization &deserialization,
     std::string_view name, Budget::Observer *observer) {
   makeExpenseAccount(accountsWithAllocation, factory, name, observer);
   at(accountsWithAllocation, name)->load(deserialization);
+}
+
+static void createExpenseAccountIfNeeded(
+    std::map<std::string, AccountWithAllocation, std::less<>>
+        &accountsWithAllocation,
+    Account::Factory &accountFactory, std::string_view accountName,
+    Budget::Observer *observer) {
+  if (!contains(accountsWithAllocation, accountName))
+    makeExpenseAccount(accountsWithAllocation, accountFactory, accountName,
+                       observer);
 }
 
 BudgetInMemory::BudgetInMemory(Account &incomeAccount,
