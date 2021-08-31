@@ -533,22 +533,6 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
 }
 } // namespace income
 
-namespace expense {
-void reducesTransactionsToFunds(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.reduce();
-    assertEqual(result, -789_cents - 456_cents, account.balance());
-  });
-}
-} // namespace expense
-
 namespace income {
 void clearsReducedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -567,21 +551,6 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
 }
 } // namespace income
 
-namespace expense {
-void clearsReducedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{3_cents, "gorilla", Date{2020, Month::January, 20}});
-    account.reduce();
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertDebitsSaved(result, persistence, {});
-  });
-}
-} // namespace expense
-
 namespace income {
 void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
@@ -594,23 +563,6 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
   });
 }
 } // namespace income
-
-namespace expense {
-void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto chimpanzee{addObservableTransactionStub(factory)};
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    account.reduce();
-    assertTrue(result, gorilla->removed());
-    assertTrue(result, chimpanzee->removed());
-  });
-}
-} // namespace expense
 
 namespace income {
 void returnsBalance(testcpplite::TestResult &result) {
@@ -628,20 +580,6 @@ void returnsBalance(testcpplite::TestResult &result) {
 } // namespace income
 
 namespace expense {
-void returnsBalance(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    account.deposit(4_cents);
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    addObservableTransactionInMemory(factory);
-    debit(account,
-          Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    assertEqual(result, 4_cents - 789_cents - 456_cents, account.balance());
-  });
-}
-
 void withdrawsFromFunds(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](InMemoryAccount &account, ObservableTransactionFactoryStub &) {
