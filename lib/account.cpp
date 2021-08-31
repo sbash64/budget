@@ -162,10 +162,7 @@ void InMemoryAccount::reduce() {
   budget::clear(transactions);
 }
 
-auto InMemoryAccount::balance() -> USD {
-  return funds + (positive ? budget::balance(transactions)
-                           : -budget::balance(transactions));
-}
+auto InMemoryAccount::balance() -> USD { return budget::balance(transactions); }
 
 void InMemoryAccount::remove() {
   callIfObserverExists(observer, [&](Account::Observer *observer_) {

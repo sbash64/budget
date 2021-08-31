@@ -429,7 +429,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
     account.reduce();
-    assertEqual(result, 2300_cents + 789_cents, account.balance());
+    assertEqual(result, 0_cents, account.balance());
   });
 }
 
