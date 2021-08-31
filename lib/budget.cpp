@@ -271,8 +271,13 @@ void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
 }
 
 void BudgetInMemory::notifyThatIncomeAccountIsReady(
-    AccountDeserialization &deserialization, USD) {
+    AccountDeserialization &deserialization, USD unallocated) {
   incomeAccountWithAllocation.account.load(deserialization);
+  incomeAccountWithAllocation.allocation = unallocated;
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatUnallocatedIncomeHasChanged(
+        incomeAccountWithAllocation.allocation);
+  });
 }
 
 void BudgetInMemory::notifyThatExpenseAccountIsReady(

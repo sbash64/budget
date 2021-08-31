@@ -313,6 +313,8 @@ static void assertDeserializes(
 void loadsAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
     const auto penguin{addAccountStub(factory, "penguin")};
     const auto leopard{addAccountStub(factory, "leopard")};
 
@@ -322,6 +324,7 @@ void loadsAccounts(testcpplite::TestResult &result) {
 
     AccountDeserializationStub deserialization;
     budget.notifyThatIncomeAccountIsReady(deserialization, 1_cents);
+    assertEqual(result, 1_cents, observer.unallocatedIncome().front());
     assertEqual(result, &deserialization, incomeAccount.deserialization());
     assertDeserializes(
         result, budget,
