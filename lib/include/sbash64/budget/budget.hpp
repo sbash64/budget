@@ -14,6 +14,11 @@ struct AccountWithAllocation {
   USD allocation;
 };
 
+struct StaticAccountWithAllocation {
+  Account &account;
+  USD allocation;
+};
+
 class BudgetInMemory : public Budget {
 public:
   explicit BudgetInMemory(Account &, Account::Factory &);
@@ -42,12 +47,11 @@ public:
                                        USD allocated) override;
 
 private:
-  Account::Factory &accountFactory;
-  Observer *observer{};
-  Account &incomeAccount;
   std::map<std::string, AccountWithAllocation, std::less<>>
       expenseAccountsWithAllocations;
-  USD unallocatedIncome{};
+  StaticAccountWithAllocation incomeAccountWithAllocation;
+  Account::Factory &accountFactory;
+  Observer *observer{};
 };
 } // namespace sbash64::budget
 
