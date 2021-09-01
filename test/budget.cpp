@@ -87,8 +87,6 @@ public:
     accounts.push_back(account);
   }
 
-  auto name() -> std::string { return name_; }
-
   auto make() -> std::shared_ptr<Account> override {
     if (accounts.empty())
       return {};
@@ -99,7 +97,6 @@ public:
 
 private:
   std::vector<std::shared_ptr<Account>> accounts;
-  std::string name_;
 };
 
 class ObservableTransactionFactoryStub : public ObservableTransaction::Factory {
@@ -227,6 +224,13 @@ static void assertRemoved(testcpplite::TestResult &result,
   assertRemoved(result, *account, t);
 }
 
+static void assertCategoryAllocations(testcpplite::TestResult &result,
+                                      BudgetObserverStub &observer,
+                                      const std::vector<USD> &expected,
+                                      std::string_view name) {
+  assertEqual(result, expected, observer.categoryAllocations(name));
+}
+
 void addsIncomeToIncomeAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
                                Budget &budget) {
@@ -263,15 +267,15 @@ void addsExpenseToExistingAccount(testcpplite::TestResult &result) {
 }
 
 void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto account{addAccountStub(factory, "giraffe")};
-    budget.transferTo("giraffe", 456_cents);
-    assertEqual(result, {-456_cents}, observer.unallocatedIncome());
-    assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        addAccountStub(factory, "giraffe");
+        budget.transferTo("giraffe", 456_cents);
+        assertEqual(result, {-456_cents}, observer.unallocatedIncome());
+        assertCategoryAllocations(result, observer, {456_cents}, "giraffe");
+      });
 }
 
 void savesAccounts(testcpplite::TestResult &result) {
@@ -424,7 +428,7 @@ void renamesAccount(testcpplite::TestResult &result) {
         budget.allocate("giraffe", 3_cents);
         budget.renameAccount("giraffe", "zebra");
         budget.transferTo("zebra", 4_cents);
-        assertEqual(result, {7_cents}, observer.categoryAllocations("zebra"));
+        assertCategoryAllocations(result, observer, {7_cents}, "zebra");
       });
 }
 
@@ -486,9 +490,9 @@ void reducesEachAccount(testcpplite::TestResult &result) {
     assertReduced(result, *penguin);
     assertReduced(result, *leopard);
     assertEqual(result, {4_cents}, observer.unallocatedIncome());
-    assertEqual(result, {-5_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {-6_cents}, observer.categoryAllocations("penguin"));
-    assertEqual(result, {-7_cents}, observer.categoryAllocations("leopard"));
+    assertCategoryAllocations(result, observer, {-5_cents}, "giraffe");
+    assertCategoryAllocations(result, observer, {-6_cents}, "penguin");
+    assertCategoryAllocations(result, observer, {-7_cents}, "leopard");
   });
 }
 
@@ -600,7 +604,7 @@ void closesAccount(testcpplite::TestResult &result) {
         giraffe->setBalance(4_cents);
         budget.closeAccount("giraffe");
         assertEqual(result, {-7_cents, -4_cents}, observer.unallocatedIncome());
-        assertEqual(result, {7_cents}, observer.categoryAllocations("giraffe"));
+        assertCategoryAllocations(result, observer, {7_cents}, "giraffe");
         PersistentMemoryStub persistence;
         budget.save(persistence);
         assertEqual(result, leopard.get(),
@@ -624,30 +628,30 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
 }
 
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.createAccount("giraffe");
-    budget.allocate("giraffe", 456_cents);
-    assertEqual(result, {456_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {-456_cents}, observer.unallocatedIncome());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.createAccount("giraffe");
+        budget.allocate("giraffe", 456_cents);
+        assertCategoryAllocations(result, observer, {456_cents}, "giraffe");
+        assertEqual(result, {-456_cents}, observer.unallocatedIncome());
+      });
 }
 
 void transfersAmountFromAccountAllocatedSufficiently(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.createAccount("giraffe");
-    budget.allocate("giraffe", 101_cents);
-    assertEqual(result, {101_cents}, observer.categoryAllocations("giraffe"));
-    assertEqual(result, {-101_cents}, observer.unallocatedIncome());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.createAccount("giraffe");
+        budget.allocate("giraffe", 101_cents);
+        assertCategoryAllocations(result, observer, {101_cents}, "giraffe");
+        assertEqual(result, {-101_cents}, observer.unallocatedIncome());
+      });
 }
 
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
