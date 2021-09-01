@@ -305,13 +305,13 @@ private:
 };
 } // namespace
 
-static auto backupDirectory(std::chrono::system_clock::time_point time)
+static auto backupDirectory(const std::filesystem::path &parentPath,
+                            std::chrono::system_clock::time_point time)
     -> std::filesystem::path {
   const auto converted{std::chrono::system_clock::to_time_t(time)};
   std::stringstream backupDirectory;
   backupDirectory << std::put_time(std::localtime(&converted), "%F_%T");
-  return std::filesystem::path{"/home/seth/budget/backups"} /
-         backupDirectory.str();
+  return parentPath / backupDirectory.str();
 }
 
 namespace {
@@ -337,12 +337,13 @@ struct App {
   std::uintmax_t backupCount = 0;
 
   App(websocketpp::server<debug_custom> &server,
-      websocketpp::connection_hdl connection, const std::string &budgetFilePath)
+      websocketpp::connection_hdl connection, const std::string &budgetFilePath,
+      const std::filesystem::path &backupParentPath)
       : streamFactory{budgetFilePath}, webSocketNotifier{server,
                                                          std::move(connection),
                                                          budget},
-        backupDirectory{
-            budget::backupDirectory(std::chrono::system_clock::now())},
+        backupDirectory{budget::backupDirectory(
+            backupParentPath, std::chrono::system_clock::now())},
         budgetFilePath{budgetFilePath} {
     webSocketNotifier.addAccount(incomeAccount, "Income");
     budget.load(budgetDeserialization);
@@ -465,10 +466,11 @@ handleMessage(const std::unique_ptr<App> &application,
 } // namespace sbash64::budget
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
+  if (argc < 3) {
     return EXIT_FAILURE;
   }
   const std::string budgetFilePath{argv[1]};
+  const std::filesystem::path backupParentPath{argv[2]};
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   websocketpp::server<debug_custom> server;
   try {
@@ -480,12 +482,13 @@ int main(int argc, char *argv[]) {
     server.init_asio();
     server.set_reuse_addr(true);
 
-    server.set_open_handler([&server, &applications, &budgetFilePath](
-                                const websocketpp::connection_hdl &connection) {
-      applications[connection.lock().get()] =
-          std::make_unique<sbash64::budget::App>(server, connection,
-                                                 budgetFilePath);
-    });
+    server.set_open_handler(
+        [&server, &applications, &budgetFilePath,
+         &backupParentPath](const websocketpp::connection_hdl &connection) {
+          applications[connection.lock().get()] =
+              std::make_unique<sbash64::budget::App>(
+                  server, connection, budgetFilePath, backupParentPath);
+        });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
       websocketpp::server<debug_custom>::connection_ptr con =
