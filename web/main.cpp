@@ -8,7 +8,6 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
-#include <utility>
 #include <websocketpp/common/connection_hdl.hpp>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
@@ -248,7 +247,7 @@ public:
   void notifyThatCategoryAllocationHasChanged(std::string_view name,
                                               USD usd) override {
     nlohmann::json json;
-    json["method"] = "update account funds";
+    json["method"] = "update account allocation";
     json["accountIndex"] = distance(
         children.begin(), find_if(children.begin(), children.end(),
                                   [name](const AccountObserverWithName &child) {
@@ -294,7 +293,7 @@ public:
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    json["method"] = "update total balance";
+    json["method"] = "update net income";
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }

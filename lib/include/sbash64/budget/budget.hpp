@@ -21,7 +21,7 @@ struct StaticAccountWithAllocation {
 
 class BudgetInMemory : public Budget {
 public:
-  explicit BudgetInMemory(Account &, Account::Factory &);
+  explicit BudgetInMemory(Account &incomeAccount, Account::Factory &);
   void attach(Observer *) override;
   void addIncome(const Transaction &) override;
   void addExpense(std::string_view accountName, const Transaction &) override;

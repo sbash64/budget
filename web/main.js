@@ -53,12 +53,12 @@ function main() {
   topPage.style.gridRow = 1;
   topPage.style.display = "grid";
 
-  const totalBalanceLabel = createChild(topPage, "label");
-  totalBalanceLabel.textContent = "Total Balance";
-  totalBalanceLabel.gridRow = 1;
+  const netIncomeLabel = createChild(topPage, "label");
+  netIncomeLabel.textContent = "Net Income";
+  netIncomeLabel.gridRow = 1;
 
-  const totalBalance = createChild(totalBalanceLabel, "strong");
-  totalBalance.style.margin = "1ch";
+  const netIncome = createChild(netIncomeLabel, "strong");
+  netIncome.style.margin = "1ch";
 
   const topPageButtons = createChild(topPage, "div");
   topPageButtons.gridRow = 2;
@@ -280,8 +280,8 @@ function main() {
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
-      case "update total balance": {
-        totalBalance.textContent = message.amount;
+      case "update net income": {
+        netIncome.textContent = message.amount;
         break;
       }
       case "add account": {
@@ -351,7 +351,7 @@ function main() {
           message
         ).lastElementChild.textContent = message.amount;
         break;
-      case "update account funds":
+      case "update account allocation":
       case "update unallocated income":
         accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
           message.amount;
