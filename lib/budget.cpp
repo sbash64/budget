@@ -44,6 +44,11 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
     f(observer);
 }
 
+static auto net(const AccountWithAllocation &accountWithAllocation) -> USD {
+  return accountWithAllocation.allocation -
+         accountWithAllocation.account->balance();
+}
+
 static void notifyThatNetIncomeHasChanged(
     BudgetInMemory::Observer *observer,
     StaticAccountWithAllocation incomeAccountWithAllocation,
@@ -55,12 +60,11 @@ static void notifyThatNetIncomeHasChanged(
         expenseAccountsWithAllocations.end(),
         incomeAccountWithAllocation.account.balance() +
             incomeAccountWithAllocation.allocation,
-        [](USD net, const std::pair<std::string_view, AccountWithAllocation>
+        [](USD net, const std::pair<std::string, AccountWithAllocation>
                         &expenseAccountWithAllocation) {
           const auto &[name, accountWithAllocation] =
               expenseAccountWithAllocation;
-          return net - accountWithAllocation.account->balance() +
-                 accountWithAllocation.allocation;
+          return net + budget::net(accountWithAllocation);
         }));
   });
 }
@@ -312,8 +316,7 @@ void BudgetInMemory::reduce() {
 
 void BudgetInMemory::restore() {
   for (auto [name, accountWithAllocation] : expenseAccountsWithAllocations) {
-    const auto amount{accountWithAllocation.allocation -
-                      at(expenseAccountsWithAllocations, name)->balance()};
+    const auto amount{net(accountWithAllocation)};
     if (amount.cents < 0)
       transfer(expenseAccountsWithAllocations,
                incomeAccountWithAllocation.allocation, name, -amount, observer);
