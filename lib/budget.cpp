@@ -242,9 +242,8 @@ static void remove(std::map<std::string, AccountWithAllocation, std::less<>>
 
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccountsWithAllocations, name)) {
-    incomeAccountWithAllocation.allocation +=
-        allocation(expenseAccountsWithAllocations, name) -
-        account(expenseAccountsWithAllocations, name)->balance();
+    incomeAccountWithAllocation.allocation += leftoverAfterExpenses(
+        expenseAccountsWithAllocations.find(name)->second);
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatUnallocatedIncomeHasChanged(
           incomeAccountWithAllocation.allocation);
