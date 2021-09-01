@@ -64,9 +64,8 @@ static void notifyThatNetIncomeHasChanged(
             incomeAccountWithAllocation.allocation,
         [](USD net, const std::pair<std::string, AccountWithAllocation>
                         &expenseAccountWithAllocation) {
-          const auto &[name, accountWithAllocation] =
-              expenseAccountWithAllocation;
-          return net + leftoverAfterExpenses(accountWithAllocation);
+          return net +
+                 leftoverAfterExpenses(expenseAccountWithAllocation.second);
         }));
   });
 }
@@ -78,11 +77,11 @@ contains(std::map<std::string, AccountWithAllocation, std::less<>> &accounts,
 }
 
 static auto collect(const std::map<std::string, AccountWithAllocation,
-                                   std::less<>> &accountsWithAllocation)
+                                   std::less<>> &expenseAccountsWithAllocation)
     -> std::vector<SerializableAccountWithFundsAndName> {
   std::vector<SerializableAccountWithFundsAndName> collected;
-  transform(accountsWithAllocation.begin(), accountsWithAllocation.end(),
-            back_inserter(collected),
+  transform(expenseAccountsWithAllocation.begin(),
+            expenseAccountsWithAllocation.end(), back_inserter(collected),
             [&](const std::pair<std::string, AccountWithAllocation>
                     &expenseAccountWithAllocation) {
               const auto &[name, accountWithAllocation] =
@@ -94,16 +93,22 @@ static auto collect(const std::map<std::string, AccountWithAllocation,
   return collected;
 }
 
+static auto at(const std::map<std::string, AccountWithAllocation, std::less<>>
+                   &accountsWithAllocation,
+               std::string_view name) -> const AccountWithAllocation & {
+  return accountsWithAllocation.find(name)->second;
+}
+
 static auto account(const std::map<std::string, AccountWithAllocation,
                                    std::less<>> &accountsWithAllocation,
                     std::string_view name) -> const std::shared_ptr<Account> & {
-  return accountsWithAllocation.find(name)->second.account;
+  return at(accountsWithAllocation, name).account;
 }
 
 static auto allocation(const std::map<std::string, AccountWithAllocation,
                                       std::less<>> &accountsWithAllocation,
                        std::string_view name) -> USD {
-  return accountsWithAllocation.find(name)->second.allocation;
+  return at(accountsWithAllocation, name).allocation;
 }
 
 static void
@@ -113,10 +118,11 @@ makeExpenseAccount(std::map<std::string, AccountWithAllocation, std::less<>>
                    Budget::Observer *observer) {
   accountsWithAllocation.insert(std::make_pair(
       name, AccountWithAllocation{accountFactory.make(), USD{0}}));
-  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
-    observer_->notifyThatExpenseAccountHasBeenCreated(
-        *account(accountsWithAllocation, name), name);
-  });
+  callIfObserverExists(
+      observer, [&accountsWithAllocation, name](Budget::Observer *observer_) {
+        observer_->notifyThatExpenseAccountHasBeenCreated(
+            *account(accountsWithAllocation, name), name);
+      });
 }
 
 static void makeAndLoadExpenseAccount(
@@ -242,8 +248,8 @@ static void remove(std::map<std::string, AccountWithAllocation, std::less<>>
 
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccountsWithAllocations, name)) {
-    incomeAccountWithAllocation.allocation += leftoverAfterExpenses(
-        expenseAccountsWithAllocations.find(name)->second);
+    incomeAccountWithAllocation.allocation +=
+        leftoverAfterExpenses(at(expenseAccountsWithAllocations, name));
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatUnallocatedIncomeHasChanged(
           incomeAccountWithAllocation.allocation);
