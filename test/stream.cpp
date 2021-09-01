@@ -226,7 +226,8 @@ void fromAccount(testcpplite::TestResult &result) {
   assertEqual(result, R"(steve
 sue
 allen
-john)",
+john
+)",
               stream.str());
 }
 
@@ -280,16 +281,12 @@ void fromBudget(testcpplite::TestResult &result) {
                                                {&allen, 3_cents, "arod"}});
   assertEqual(result, R"(0.04
 jeff
-
 stevey 0.01
 steve
-
 suzie yo 0.02
 sue
-
 arod 0.03
-allen
-)",
+allen)",
               stream->str());
 }
 

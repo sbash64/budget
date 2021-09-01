@@ -75,13 +75,11 @@ void WritesBudgetToStream::save(
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
   putNewLine(*stream << incomeAccountWithFunds.funds);
   incomeAccountWithFunds.account->save(*accountSerialization);
-  putNewLine(stream);
   for (auto accountWithFunds : expenseAccountsWithFunds) {
     putNewLine(stream);
     putNewLine(*stream << accountWithFunds.name << ' '
                        << accountWithFunds.funds);
     accountWithFunds.account->save(*accountSerialization);
-    putNewLine(stream);
   }
 }
 
@@ -121,12 +119,9 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
 
 void WritesAccountToStream::save(
     const std::vector<SerializableTransaction *> &transactions) {
-  auto first{true};
   for (const auto &transaction : transactions) {
-    if (!first)
-      putNewLine(stream);
-    first = false;
     transaction->save(*factory.make(stream));
+    putNewLine(stream);
   }
 }
 
