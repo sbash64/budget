@@ -398,7 +398,7 @@ static auto accountName(const nlohmann::json &json) -> std::string {
 }
 
 static auto accountIsMaster(const nlohmann::json &json) -> bool {
-  return accountName(json) == "master";
+  return accountName(json) == "Income";
 }
 
 static void
