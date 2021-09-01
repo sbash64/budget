@@ -188,10 +188,11 @@ static void notifyThatCategoryAllocationHasChanged(
     Budget::Observer *observer, std::string_view name,
     const std::map<std::string, AccountWithAllocation, std::less<>>
         &accountsWithAllocation) {
-  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
-    observer_->notifyThatCategoryAllocationHasChanged(
-        name, allocation(accountsWithAllocation, name));
-  });
+  callIfObserverExists(
+      observer, [name, &accountsWithAllocation](Budget::Observer *observer_) {
+        observer_->notifyThatCategoryAllocationHasChanged(
+            name, allocation(accountsWithAllocation, name));
+      });
 }
 
 static void transfer(std::map<std::string, AccountWithAllocation, std::less<>>
@@ -200,11 +201,13 @@ static void transfer(std::map<std::string, AccountWithAllocation, std::less<>>
                      Budget::Observer *observer) {
   accountsWithAllocation.find(name)->second.allocation += amount;
   unallocatedIncome -= amount;
-  callIfObserverExists(observer, [&](Budget::Observer *observer_) {
-    observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
-    notifyThatCategoryAllocationHasChanged(observer_, name,
-                                           accountsWithAllocation);
-  });
+  callIfObserverExists(
+      observer, [name, &accountsWithAllocation,
+                 unallocatedIncome](Budget::Observer *observer_) {
+        observer_->notifyThatUnallocatedIncomeHasChanged(unallocatedIncome);
+        notifyThatCategoryAllocationHasChanged(observer_, name,
+                                               accountsWithAllocation);
+      });
 }
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
