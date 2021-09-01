@@ -44,7 +44,9 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
     f(observer);
 }
 
-static auto net(const AccountWithAllocation &accountWithAllocation) -> USD {
+static auto
+leftoverAfterExpenses(const AccountWithAllocation &accountWithAllocation)
+    -> USD {
   return accountWithAllocation.allocation -
          accountWithAllocation.account->balance();
 }
@@ -64,7 +66,7 @@ static void notifyThatNetIncomeHasChanged(
                         &expenseAccountWithAllocation) {
           const auto &[name, accountWithAllocation] =
               expenseAccountWithAllocation;
-          return net + budget::net(accountWithAllocation);
+          return net + leftoverAfterExpenses(accountWithAllocation);
         }));
   });
 }
@@ -81,7 +83,7 @@ static auto collect(const std::map<std::string, AccountWithAllocation,
   std::vector<SerializableAccountWithFundsAndName> collected;
   transform(accountsWithAllocation.begin(), accountsWithAllocation.end(),
             back_inserter(collected),
-            [&](const std::pair<const std::string, AccountWithAllocation>
+            [&](const std::pair<std::string, AccountWithAllocation>
                     &expenseAccountWithAllocation) {
               const auto &[name, accountWithAllocation] =
                   expenseAccountWithAllocation;
@@ -92,10 +94,16 @@ static auto collect(const std::map<std::string, AccountWithAllocation,
   return collected;
 }
 
-static auto at(const std::map<std::string, AccountWithAllocation, std::less<>>
-                   &accountsWithAllocation,
-               std::string_view name) -> const std::shared_ptr<Account> & {
+static auto account(const std::map<std::string, AccountWithAllocation,
+                                   std::less<>> &accountsWithAllocation,
+                    std::string_view name) -> const std::shared_ptr<Account> & {
   return accountsWithAllocation.find(name)->second.account;
+}
+
+static auto allocation(const std::map<std::string, AccountWithAllocation,
+                                      std::less<>> &accountsWithAllocation,
+                       std::string_view name) -> USD {
+  return accountsWithAllocation.find(name)->second.allocation;
 }
 
 static void
@@ -107,7 +115,7 @@ makeExpenseAccount(std::map<std::string, AccountWithAllocation, std::less<>>
       name, AccountWithAllocation{accountFactory.make(), USD{0}}));
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatExpenseAccountHasBeenCreated(
-        *at(accountsWithAllocation, name), name);
+        *account(accountsWithAllocation, name), name);
   });
 }
 
@@ -117,7 +125,7 @@ static void makeAndLoadExpenseAccount(
     Account::Factory &factory, AccountDeserialization &deserialization,
     std::string_view name, Budget::Observer *observer) {
   makeExpenseAccount(accountsWithAllocation, factory, name, observer);
-  at(accountsWithAllocation, name)->load(deserialization);
+  account(accountsWithAllocation, name)->load(deserialization);
 }
 
 static void createExpenseAccountIfNeeded(
@@ -138,7 +146,7 @@ BudgetInMemory::BudgetInMemory(Account &incomeAccount,
 void BudgetInMemory::attach(Observer *a) { observer = a; }
 
 void BudgetInMemory::addIncome(const Transaction &transaction) {
-  budget::add(incomeAccountWithAllocation.account, transaction);
+  add(incomeAccountWithAllocation.account, transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccountWithAllocation,
                                 expenseAccountsWithAllocations);
 }
@@ -147,13 +155,13 @@ void BudgetInMemory::addExpense(std::string_view accountName,
                                 const Transaction &transaction) {
   createExpenseAccountIfNeeded(expenseAccountsWithAllocations, accountFactory,
                                accountName, observer);
-  budget::add(at(expenseAccountsWithAllocations, accountName), transaction);
+  add(account(expenseAccountsWithAllocations, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccountWithAllocation,
                                 expenseAccountsWithAllocations);
 }
 
 void BudgetInMemory::removeIncome(const Transaction &transaction) {
-  budget::remove(incomeAccountWithAllocation.account, transaction);
+  remove(incomeAccountWithAllocation.account, transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccountWithAllocation,
                                 expenseAccountsWithAllocations);
 }
@@ -161,20 +169,19 @@ void BudgetInMemory::removeIncome(const Transaction &transaction) {
 void BudgetInMemory::removeExpense(std::string_view accountName,
                                    const Transaction &transaction) {
   if (contains(expenseAccountsWithAllocations, accountName)) {
-    budget::remove(at(expenseAccountsWithAllocations, accountName),
-                   transaction);
+    remove(account(expenseAccountsWithAllocations, accountName), transaction);
     notifyThatNetIncomeHasChanged(observer, incomeAccountWithAllocation,
                                   expenseAccountsWithAllocations);
   }
 }
 
 void BudgetInMemory::verifyIncome(const Transaction &transaction) {
-  budget::verify(incomeAccountWithAllocation.account, transaction);
+  verify(incomeAccountWithAllocation.account, transaction);
 }
 
 void BudgetInMemory::verifyExpense(std::string_view accountName,
                                    const Transaction &transaction) {
-  budget::verify(at(expenseAccountsWithAllocations, accountName), transaction);
+  verify(account(expenseAccountsWithAllocations, accountName), transaction);
 }
 
 static void notifyThatCategoryAllocationHasChanged(
@@ -183,7 +190,7 @@ static void notifyThatCategoryAllocationHasChanged(
         &accountsWithAllocation) {
   callIfObserverExists(observer, [&](Budget::Observer *observer_) {
     observer_->notifyThatCategoryAllocationHasChanged(
-        name, accountsWithAllocation.find(name)->second.allocation);
+        name, allocation(accountsWithAllocation, name));
   });
 }
 
@@ -211,12 +218,11 @@ void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccountsWithAllocations, accountFactory,
                                accountName, observer);
-  transfer(
-      expenseAccountsWithAllocations, incomeAccountWithAllocation.allocation,
-      accountName,
-      amountNeeded -
-          expenseAccountsWithAllocations.find(accountName)->second.allocation,
-      observer);
+  transfer(expenseAccountsWithAllocations,
+           incomeAccountWithAllocation.allocation, accountName,
+           amountNeeded -
+               allocation(expenseAccountsWithAllocations, accountName),
+           observer);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
@@ -227,15 +233,15 @@ void BudgetInMemory::createAccount(std::string_view name) {
 static void remove(std::map<std::string, AccountWithAllocation, std::less<>>
                        &accountsWithAllocation,
                    std::string_view name) {
-  at(accountsWithAllocation, name)->remove();
+  account(accountsWithAllocation, name)->remove();
   accountsWithAllocation.erase(std::string{name});
 }
 
 void BudgetInMemory::closeAccount(std::string_view name) {
   if (contains(expenseAccountsWithAllocations, name)) {
     incomeAccountWithAllocation.allocation +=
-        expenseAccountsWithAllocations.find(name)->second.allocation -
-        at(expenseAccountsWithAllocations, name)->balance();
+        allocation(expenseAccountsWithAllocations, name) -
+        account(expenseAccountsWithAllocations, name)->balance();
     callIfObserverExists(observer, [&](Observer *observer_) {
       observer_->notifyThatUnallocatedIncomeHasChanged(
           incomeAccountWithAllocation.allocation);
@@ -316,7 +322,7 @@ void BudgetInMemory::reduce() {
 
 void BudgetInMemory::restore() {
   for (auto [name, accountWithAllocation] : expenseAccountsWithAllocations) {
-    const auto amount{net(accountWithAllocation)};
+    const auto amount{leftoverAfterExpenses(accountWithAllocation)};
     if (amount.cents < 0)
       transfer(expenseAccountsWithAllocations,
                incomeAccountWithAllocation.allocation, name, -amount, observer);
