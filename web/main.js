@@ -147,12 +147,12 @@ function main() {
   );
   accountSummaryNameHeaderElement.textContent = "Name";
   accountSummaryNameHeaderElement.style.width = "20ch";
-  const accountSummaryFundsHeaderElement = createChild(
+  const accountSummaryAllocationHeaderElement = createChild(
     accountSummaryTableHeadRow,
     "th"
   );
-  accountSummaryFundsHeaderElement.textContent = "Funds";
-  accountSummaryFundsHeaderElement.style.width = "9ch";
+  accountSummaryAllocationHeaderElement.textContent = "Allocation";
+  accountSummaryAllocationHeaderElement.style.width = "9ch";
   const accountSummaryBalanceHeaderElement = createChild(
     accountSummaryTableHeadRow,
     "th"
