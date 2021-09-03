@@ -140,6 +140,7 @@ static auto runAllTests() -> int {
         "transaction notifiesObserverOfLoadedVerification"},
        {transaction::savesInitializedTransaction,
         "transaction savesInitializedTransaction"},
+       {transaction::savesArchival, "transaction::savesArchival"},
        {transaction::removesInitializedTransaction,
         "transaction removesInitializedTransaction"},
        {transaction::doesNotVerifyUnequalInitializedTransaction,

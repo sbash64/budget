@@ -136,6 +136,16 @@ void savesInitializedTransaction(testcpplite::TestResult &result) {
   });
 }
 
+void savesArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionSerializationStub serialization;
+    record.archive();
+    record.save(serialization);
+    assertTrue(result,
+               serialization.archivableVerifiableTransaction().archived);
+  });
+}
+
 void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;

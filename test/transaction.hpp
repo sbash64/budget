@@ -13,6 +13,7 @@ void savesVerificationByQuery(testcpplite::TestResult &);
 void notifiesObserverOfRemoval(testcpplite::TestResult &);
 void savesLoadedTransaction(testcpplite::TestResult &);
 void savesInitializedTransaction(testcpplite::TestResult &);
+void savesArchival(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
 void isArchived(testcpplite::TestResult &);
