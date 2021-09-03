@@ -119,6 +119,7 @@ static auto runAllTests() -> int {
        {transaction::notifiesObserverOfLoadedTransaction,
         "notifiesThatIsAfterReady"},
        {transaction::isArchived, "transaction::isArchived"},
+       {transaction::isVerified, "transaction::isVerified"},
        {transaction::notifiesObserverOfInitializedTransaction,
         "notifiesThatIsAfterInitialize"},
        {transaction::removesLoadedTransaction, "removesLoadedValue"},

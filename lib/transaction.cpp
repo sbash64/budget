@@ -59,6 +59,10 @@ auto ObservableTransactionInMemory::archived() -> bool {
   return archivableVerifiableTransaction.archived;
 }
 
+auto ObservableTransactionInMemory::verified() -> bool {
+  return archivableVerifiableTransaction.verified;
+}
+
 void ObservableTransactionInMemory::remove() { budget::remove(observer); }
 
 void ObservableTransactionInMemory::save(

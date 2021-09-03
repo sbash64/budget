@@ -195,6 +195,13 @@ void isArchived(testcpplite::TestResult &result) {
   });
 }
 
+void isVerified(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.ready({Transaction{}, true});
+    assertTrue(result, record.verified());
+  });
+}
+
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
