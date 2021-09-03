@@ -152,9 +152,15 @@ static void loadTransaction(
         &onDeserialization) {
   std::stringstream transaction{line};
   auto verified{false};
+  auto archived{false};
   if (transaction.peek() == '^') {
     transaction.get();
     verified = true;
+  }
+  if (transaction.peek() == '%') {
+    transaction.get();
+    verified = true;
+    archived = true;
   }
   std::string next;
   transaction >> next;
@@ -173,7 +179,7 @@ static void loadTransaction(
   }
   description << next;
   onDeserialization(
-      {{amount, description.str(), date(eventuallyDate)}, verified});
+      {{amount, description.str(), date(eventuallyDate)}, verified, archived});
 }
 
 void ReadsTransactionFromStream::load(Observer &observer) {
@@ -209,9 +215,11 @@ static void save(std::ostream &stream, const Transaction &transaction) {
 }
 
 void WritesTransactionToStream::save(
-    const ArchivableVerifiableTransaction &credit) {
-  if (credit.verified)
+    const ArchivableVerifiableTransaction &transaction) {
+  if (transaction.archived)
+    stream << '%';
+  else if (transaction.verified)
     stream << '^';
-  budget::save(stream, credit.transaction);
+  budget::save(stream, transaction.transaction);
 }
 } // namespace sbash64::budget
