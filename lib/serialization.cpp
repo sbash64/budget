@@ -146,10 +146,10 @@ static auto date(std::string_view s) -> Date {
   return Date{year, Month{month}, day};
 }
 
-static void
-loadTransaction(std::string &line,
-                const std::function<void(const VerifiableTransaction &)>
-                    &onDeserialization) {
+static void loadTransaction(
+    std::string &line,
+    const std::function<void(const ArchivableVerifiableTransaction &)>
+        &onDeserialization) {
   std::stringstream transaction{line};
   auto verified{false};
   if (transaction.peek() == '^') {
@@ -179,8 +179,9 @@ loadTransaction(std::string &line,
 void ReadsTransactionFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
-  loadTransaction(
-      line, [&observer](const VerifiableTransaction &t) { observer.ready(t); });
+  loadTransaction(line, [&observer](const ArchivableVerifiableTransaction &t) {
+    observer.ready(t);
+  });
 }
 
 WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)

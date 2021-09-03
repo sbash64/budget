@@ -96,7 +96,7 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void ready(const VerifiableTransaction &) = 0;
+    virtual void ready(const ArchivableVerifiableTransaction &) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionDeserialization);

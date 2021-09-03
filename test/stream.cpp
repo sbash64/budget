@@ -95,21 +95,22 @@ public:
 class TransactionDeserializationObserverStub
     : public TransactionDeserialization::Observer {
 public:
-  auto transaction() -> VerifiableTransaction { return transaction_; }
+  auto transaction() -> ArchivableVerifiableTransaction { return transaction_; }
 
-  void ready(const VerifiableTransaction &t) override {
+  void ready(const ArchivableVerifiableTransaction &t) override {
     transaction_ = t;
     if (onReady)
       onReady(t);
   }
 
-  void setOnReady(std::function<void(const VerifiableTransaction &)> f) {
+  void
+  setOnReady(std::function<void(const ArchivableVerifiableTransaction &)> f) {
     onReady = std::move(f);
   }
 
 private:
-  VerifiableTransaction transaction_;
-  std::function<void(const VerifiableTransaction &)> onReady;
+  ArchivableVerifiableTransaction transaction_;
+  std::function<void(const ArchivableVerifiableTransaction &)> onReady;
 };
 
 class AccountDeserializationObserverStub
@@ -121,17 +122,18 @@ public:
   void notifyThatIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
     TransactionDeserializationObserverStub observer;
-    observer.setOnReady(
-        [&](const VerifiableTransaction &t) { transactions_.push_back(t); });
+    observer.setOnReady([&](const ArchivableVerifiableTransaction &t) {
+      transactions_.push_back(t);
+    });
     reads.load(observer);
   }
 
-  auto transactions() -> std::vector<VerifiableTransaction> {
+  auto transactions() -> std::vector<ArchivableVerifiableTransaction> {
     return transactions_;
   }
 
 private:
-  std::vector<VerifiableTransaction> transactions_;
+  std::vector<ArchivableVerifiableTransaction> transactions_;
   std::istream &stream;
 };
 
@@ -169,12 +171,13 @@ private:
 };
 } // namespace
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<VerifiableTransaction> &expected,
-                        const std::vector<VerifiableTransaction> &actual) {
+static void
+assertEqual(testcpplite::TestResult &result,
+            const std::vector<ArchivableVerifiableTransaction> &expected,
+            const std::vector<ArchivableVerifiableTransaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<VerifiableTransaction>::size_type i{0}; i < expected.size();
-       ++i)
+  for (std::vector<ArchivableVerifiableTransaction>::size_type i{0};
+       i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
@@ -199,9 +202,10 @@ void toTransaction(testcpplite::TestResult &result) {
   ReadsTransactionFromStream readsTransaction{input};
   TransactionDeserializationObserverStub observer;
   readsTransaction.load(observer);
-  assertEqual(result,
-              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false},
-              observer.transaction());
+  assertEqual(
+      result,
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false, false},
+      observer.transaction());
 }
 
 void toVerifiedTransaction(testcpplite::TestResult &result) {
@@ -209,9 +213,10 @@ void toVerifiedTransaction(testcpplite::TestResult &result) {
   ReadsTransactionFromStream readsTransaction{input};
   TransactionDeserializationObserverStub observer;
   readsTransaction.load(observer);
-  assertEqual(result,
-              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
-              observer.transaction());
+  assertEqual(
+      result,
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true, false},
+      observer.transaction());
 }
 
 void fromAccount(testcpplite::TestResult &result) {

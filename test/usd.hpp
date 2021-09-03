@@ -20,6 +20,10 @@ void assertEqual(testcpplite::TestResult &result,
                  const VerifiableTransaction &actual);
 
 void assertEqual(testcpplite::TestResult &result,
+                 const ArchivableVerifiableTransaction &expected,
+                 const ArchivableVerifiableTransaction &actual);
+
+void assertEqual(testcpplite::TestResult &result,
                  const std::vector<Transaction> &expected,
                  const std::vector<Transaction> &actual);
 } // namespace sbash64::budget

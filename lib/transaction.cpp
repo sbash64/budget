@@ -76,7 +76,7 @@ auto ObservableTransactionInMemory::amount() -> USD {
 }
 
 void ObservableTransactionInMemory::ready(
-    const VerifiableTransaction &loadedVerifiableTransaction) {
+    const ArchivableVerifiableTransaction &loadedVerifiableTransaction) {
   archivableVerifiableTransaction.transaction =
       loadedVerifiableTransaction.transaction;
   archivableVerifiableTransaction.verified =

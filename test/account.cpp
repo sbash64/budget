@@ -16,7 +16,7 @@ namespace sbash64::budget::account {
 namespace {
 class ObservableTransactionStub : public ObservableTransaction {
 public:
-  void ready(const VerifiableTransaction &) override {}
+  void ready(const ArchivableVerifiableTransaction &) override {}
 
   void attach(Observer *) override {}
 

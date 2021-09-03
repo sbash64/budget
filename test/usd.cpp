@@ -39,6 +39,16 @@ void assertEqual(testcpplite::TestResult &result,
 }
 
 void assertEqual(testcpplite::TestResult &result,
+                 const ArchivableVerifiableTransaction &expected,
+                 const ArchivableVerifiableTransaction &actual) {
+  assertEqual(result, expected.transaction, actual.transaction);
+  assertEqual(result, static_cast<int>(expected.verified),
+              static_cast<int>(actual.verified));
+  assertEqual(result, static_cast<int>(expected.archived),
+              static_cast<int>(actual.archived));
+}
+
+void assertEqual(testcpplite::TestResult &result,
                  const std::vector<Transaction> &expected,
                  const std::vector<Transaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
