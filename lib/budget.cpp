@@ -73,7 +73,7 @@ static void notifyThatNetIncomeHasChanged(
 static auto
 contains(std::map<std::string, AccountWithAllocation, std::less<>> &accounts,
          std::string_view accountName) -> bool {
-  return accounts.contains(accountName);
+  return accounts.find(accountName) != accounts.end();
 }
 
 static auto collect(const std::map<std::string, AccountWithAllocation,
