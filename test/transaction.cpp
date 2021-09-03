@@ -37,7 +37,7 @@ public:
 
   [[nodiscard]] auto archived() const -> bool { return archived_; }
 
-  void notifyThatIsArchived() { archived_ = true; }
+  void notifyThatIsArchived() override { archived_ = true; }
 
 private:
   Transaction transaction_;
@@ -174,6 +174,13 @@ void notifiesObserverOfArchival(testcpplite::TestResult &result) {
     record.attach(&observer);
     record.archive();
     assertTrue(result, observer.archived());
+  });
+}
+
+void isArchived(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.archive();
+    assertTrue(result, record.archived());
   });
 }
 

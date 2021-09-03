@@ -58,6 +58,8 @@ public:
 
   void archive() override {}
 
+  auto archived() -> bool override { return {}; }
+
 private:
   Transaction initializedTransaction_;
   const Transaction *removesTransaction_{};

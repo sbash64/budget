@@ -16,6 +16,7 @@ public:
   void ready(const VerifiableTransaction &) override;
   void remove() override;
   void archive() override;
+  auto archived() -> bool override;
 
   class Factory : public ObservableTransaction::Factory {
   public:
@@ -23,7 +24,7 @@ public:
   };
 
 private:
-  VerifiableTransaction verifiableTransaction;
+  ArchivableVerifiableTransaction archivableVerifiableTransaction;
   Observer *observer{};
 };
 } // namespace sbash64::budget

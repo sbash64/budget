@@ -76,6 +76,15 @@ struct VerifiableTransaction {
   auto operator==(const VerifiableTransaction &) const -> bool = default;
 };
 
+struct ArchivableVerifiableTransaction {
+  Transaction transaction;
+  bool verified{};
+  bool archived{};
+
+  auto operator==(const ArchivableVerifiableTransaction &) const
+      -> bool = default;
+};
+
 class TransactionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionSerialization);
@@ -119,6 +128,7 @@ public:
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
   virtual void archive() = 0;
+  virtual auto archived() -> bool = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {

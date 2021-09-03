@@ -15,6 +15,7 @@ void savesLoadedTransaction(testcpplite::TestResult &);
 void savesInitializedTransaction(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
+void isArchived(testcpplite::TestResult &);
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &);
 void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
