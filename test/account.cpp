@@ -451,14 +451,14 @@ void returnsBalance(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesObserverOfUpdatedFundsAndBalanceOnClear(
-    testcpplite::TestResult &result) {
+void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    addObservableTransactionInMemory(factory);
-    add(account, Transaction{2_cents, "a", Date{}});
+    const auto orangutan{addObservableTransactionStub(factory)};
+    orangutan->setAmount(1_cents);
+    add(account);
     account.clear();
     assertEqual(result, 0_cents, observer.balance());
   });

@@ -28,7 +28,7 @@ void notifiesUpdatedBalanceAfterArchivingVerified(testcpplite::TestResult &);
 void archivesVerifiedTransactions(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
-void notifiesObserverOfUpdatedFundsAndBalanceOnClear(testcpplite::TestResult &);
+void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
 void withdrawsFromFunds(testcpplite::TestResult &);
