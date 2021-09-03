@@ -78,7 +78,7 @@ private:
 class WritesTransactionToStream : public TransactionSerialization {
 public:
   explicit WritesTransactionToStream(std::ostream &);
-  void save(const VerifiableTransaction &) override;
+  void save(const ArchivableVerifiableTransaction &) override;
 
   class Factory : public TransactionToStreamFactory {
   public:

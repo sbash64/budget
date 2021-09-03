@@ -9,16 +9,16 @@ namespace sbash64::budget::transaction {
 namespace {
 class TransactionSerializationStub : public TransactionSerialization {
 public:
-  void save(const VerifiableTransaction &vt) override {
-    verifiableTransaction_ = vt;
+  void save(const ArchivableVerifiableTransaction &vt) override {
+    archivableVerifiableTransaction_ = vt;
   }
 
-  auto verifiableTransaction() -> VerifiableTransaction {
-    return verifiableTransaction_;
+  auto archivableVerifiableTransaction() -> ArchivableVerifiableTransaction {
+    return archivableVerifiableTransaction_;
   }
 
 private:
-  VerifiableTransaction verifiableTransaction_;
+  ArchivableVerifiableTransaction archivableVerifiableTransaction_;
 };
 
 class TransactionObserverStub : public ObservableTransaction::Observer {
@@ -104,7 +104,8 @@ void savesVerificationByQuery(testcpplite::TestResult &result) {
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     TransactionSerializationStub serialization;
     record.save(serialization);
-    assertTrue(result, serialization.verifiableTransaction().verified);
+    assertTrue(result,
+               serialization.archivableVerifiableTransaction().verified);
   });
 }
 
@@ -118,7 +119,7 @@ void savesLoadedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.verifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction().transaction);
   });
 }
 
@@ -131,7 +132,7 @@ void savesInitializedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.verifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction().transaction);
   });
 }
 

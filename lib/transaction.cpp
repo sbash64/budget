@@ -63,8 +63,7 @@ void ObservableTransactionInMemory::remove() { budget::remove(observer); }
 
 void ObservableTransactionInMemory::save(
     TransactionSerialization &serialization) {
-  serialization.save({archivableVerifiableTransaction.transaction,
-                      archivableVerifiableTransaction.verified});
+  serialization.save(archivableVerifiableTransaction);
 }
 
 void ObservableTransactionInMemory::load(

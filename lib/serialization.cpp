@@ -207,7 +207,8 @@ static void save(std::ostream &stream, const Transaction &transaction) {
          << transaction.date;
 }
 
-void WritesTransactionToStream::save(const VerifiableTransaction &credit) {
+void WritesTransactionToStream::save(
+    const ArchivableVerifiableTransaction &credit) {
   if (credit.verified)
     stream << '^';
   budget::save(stream, credit.transaction);

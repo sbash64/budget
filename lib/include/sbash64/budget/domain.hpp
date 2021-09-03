@@ -88,7 +88,7 @@ struct ArchivableVerifiableTransaction {
 class TransactionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionSerialization);
-  virtual void save(const VerifiableTransaction &) = 0;
+  virtual void save(const ArchivableVerifiableTransaction &) = 0;
 };
 
 class TransactionDeserialization {
