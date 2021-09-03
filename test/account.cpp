@@ -441,12 +441,13 @@ void archivesVerifiedTransactions(testcpplite::TestResult &result) {
 void returnsBalance(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    add(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    addObservableTransactionInMemory(factory);
-    add(account,
-        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    assertEqual(result, 123_cents + 111_cents, account.balance());
+    const auto orangutan{addObservableTransactionStub(factory)};
+    const auto gorilla{addObservableTransactionStub(factory)};
+    add(account);
+    add(account);
+    orangutan->setAmount(1_cents);
+    gorilla->setAmount(2_cents);
+    assertEqual(result, 1_cents + 2_cents, account.balance());
   });
 }
 
