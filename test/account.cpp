@@ -52,9 +52,7 @@ public:
 
   void setAmount(USD x) { amount_ = x; }
 
-  void remove() override { removed_ = true; }
-
-  [[nodiscard]] auto removed() const -> bool { return removed_; }
+  void remove() override {}
 
   void archive() override { wasArchived_ = true; }
 
@@ -64,7 +62,7 @@ public:
 
   auto verified() -> bool override { return verified_; }
 
-  auto wasArchived() -> bool { return wasArchived_; }
+  [[nodiscard]] auto wasArchived() const -> bool { return wasArchived_; }
 
   void setArchived() { archived_ = true; }
 
@@ -72,7 +70,6 @@ private:
   Transaction initializedTransaction_;
   const Transaction *removesTransaction_{};
   USD amount_;
-  bool removed_{};
   bool removes_{};
   bool removesed_{};
   bool verified_{};
