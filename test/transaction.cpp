@@ -240,6 +240,17 @@ void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesObserverOfLoadedArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.ready(
+        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true,
+         true});
+    assertTrue(result, observer.archived());
+  });
+}
+
 void observesDeserialization(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionDeserializationStub deserialization;

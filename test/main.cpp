@@ -139,6 +139,8 @@ static auto runAllTests() -> int {
         "transaction savesVerificationByQuery"},
        {transaction::notifiesObserverOfLoadedVerification,
         "transaction notifiesObserverOfLoadedVerification"},
+       {transaction::notifiesObserverOfLoadedArchival,
+        "transaction::notifiesObserverOfLoadedArchival"},
        {transaction::savesInitializedTransaction,
         "transaction savesInitializedTransaction"},
        {transaction::savesArchival, "transaction::savesArchival"},

@@ -19,6 +19,7 @@ void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
 void isArchived(testcpplite::TestResult &);
 void isVerified(testcpplite::TestResult &);
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &);
+void notifiesObserverOfLoadedArchival(testcpplite::TestResult &);
 void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
 void notifiesObserverOfArchival(testcpplite::TestResult &);

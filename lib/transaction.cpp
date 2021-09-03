@@ -81,15 +81,14 @@ auto ObservableTransactionInMemory::amount() -> USD {
 
 void ObservableTransactionInMemory::ready(
     const ArchivableVerifiableTransaction &loadedVerifiableTransaction) {
-  archivableVerifiableTransaction.transaction =
-      loadedVerifiableTransaction.transaction;
-  archivableVerifiableTransaction.verified =
-      loadedVerifiableTransaction.verified;
+  archivableVerifiableTransaction = loadedVerifiableTransaction;
   callIfObserverExists(
       observer, [&loadedVerifiableTransaction](Observer *observer_) {
         observer_->notifyThatIs(loadedVerifiableTransaction.transaction);
         if (loadedVerifiableTransaction.verified)
           observer_->notifyThatIsVerified();
+        if (loadedVerifiableTransaction.archived)
+          observer_->notifyThatIsArchived();
       });
 }
 
