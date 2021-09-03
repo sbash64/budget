@@ -22,8 +22,8 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
 void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
-void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &);
-void notifiesObserverOfRemovedCredit(testcpplite::TestResult &);
+void notifiesObserverOfVerifiedTransaction(testcpplite::TestResult &);
+void notifiesObserverOfRemovedTransaction(testcpplite::TestResult &);
 void notifiesUpdatedBalanceAfterArchivingVerified(testcpplite::TestResult &);
 void archivesVerifiedTransactions(testcpplite::TestResult &);
 void returnsBalance(testcpplite::TestResult &);

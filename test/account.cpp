@@ -375,7 +375,7 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
   });
 }
 
-void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
+void notifiesObserverOfVerifiedTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
@@ -387,13 +387,13 @@ void notifiesObserverOfVerifiedCredit(testcpplite::TestResult &result) {
   });
 }
 
-void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
+void notifiesObserverOfRemovedTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
     record->attach(&observer);
-    account.add(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
+    add(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.remove(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.removed());
   });
