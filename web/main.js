@@ -272,10 +272,12 @@ function main() {
   allocateButton.textContent = "allocate";
 
   let selectedAccountTransactionTableBody = null;
+  let selectedAccountArchiveTableBody = null;
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
   const accountTableBodies = [];
   const accountSummaryRows = [];
+  const archivedTableBodies = [];
   const websocket = new WebSocket(`ws://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -298,19 +300,26 @@ function main() {
         const transactionTableBody = createChild(transactionTable, "tbody");
         accountTableBodies.push(transactionTableBody);
 
+        const archivedTableBody = createChild(transactionTable, "tbody");
+        archivedTableBodies.push(archivedTableBody);
+
         if (selectedAccountTransactionTableBody)
           selectedAccountTransactionTableBody.style.display = "none";
         rightHandContentHeader.textContent = message.name;
         selectedAccountTransactionTableBody = transactionTableBody;
+        selectedAccountArchiveTableBody = archivedTableBody;
         selectedAccountSummaryRow = row;
         selection.checked = true;
 
         selection.addEventListener("change", () => {
-          if (selectedAccountTransactionTableBody)
+          if (selectedAccountTransactionTableBody) {
             selectedAccountTransactionTableBody.style.display = "none";
+            selectedAccountArchiveTableBody.style.display = "none";
+          }
           transactionTableBody.style.display = "";
           rightHandContentHeader.textContent = accountName(row);
           selectedAccountTransactionTableBody = transactionTableBody;
+          selectedAccountArchiveTableBody = archivedTableBody;
           selectedAccountSummaryRow = row;
         });
 
@@ -362,6 +371,17 @@ function main() {
       case "verify transaction":
         transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
+      case "archive transaction": {
+        archivedTableBodies[message.accountIndex].appendChild(
+          transactionRow(accountTableBodies, message)
+        );
+        const archived =
+          archivedTableBodies[message.accountIndex].rows[
+            message.transactionIndex
+          ];
+        archived.cells[0].removeChild(archived.cells[0].firstChild);
+        break;
+      }
       default:
         break;
     }

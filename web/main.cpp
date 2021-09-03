@@ -120,6 +120,16 @@ public:
                 websocketpp::frame::opcode::value::text);
   }
 
+  void notifyThatIsArchived() override {
+    nlohmann::json json;
+    json["method"] = "archive transaction";
+    json["accountIndex"] = parent.index();
+    json["transactionIndex"] = parent.index(this);
+    server.send(connection, json.dump(),
+                websocketpp::frame::opcode::value::text);
+    parent.release(this);
+  }
+
   void notifyThatIs(const Transaction &t) override {
     nlohmann::json json;
     json["description"] = t.description;
