@@ -49,6 +49,13 @@ auto ObservableTransactionInMemory::removes(const Transaction &transaction)
   return false;
 }
 
+void ObservableTransactionInMemory::archive() {
+  callIfObserverExists(observer,
+                       [](ObservableTransaction::Observer *observer_) {
+                         observer_->notifyThatIsArchived();
+                       });
+}
+
 void ObservableTransactionInMemory::remove() { budget::remove(observer); }
 
 void ObservableTransactionInMemory::save(

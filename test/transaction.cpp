@@ -35,10 +35,15 @@ public:
 
   void notifyThatWillBeRemoved() override { removed_ = true; }
 
+  [[nodiscard]] auto archived() const -> bool { return archived_; }
+
+  void notifyThatIsArchived() { archived_ = true; }
+
 private:
   Transaction transaction_;
   bool verified_{};
   bool removed_{};
+  bool archived_{};
 };
 
 class TransactionDeserializationStub : public TransactionDeserialization {
@@ -160,6 +165,15 @@ void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
     record.removes(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     assertTrue(result, observer.removed());
+  });
+}
+
+void notifiesObserverOfArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.archive();
+    assertTrue(result, observer.archived());
   });
 }
 

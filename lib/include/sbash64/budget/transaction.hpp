@@ -15,6 +15,7 @@ public:
   auto amount() -> USD override;
   void ready(const VerifiableTransaction &) override;
   void remove() override;
+  void archive() override;
 
   class Factory : public ObservableTransaction::Factory {
   public:

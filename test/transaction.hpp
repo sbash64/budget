@@ -18,6 +18,7 @@ void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &);
 void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
+void notifiesObserverOfArchival(testcpplite::TestResult &);
 void removesLoadedTransaction(testcpplite::TestResult &);
 void removesInitializedTransaction(testcpplite::TestResult &);
 void doesNotRemoveUnequalTransaction(testcpplite::TestResult &);

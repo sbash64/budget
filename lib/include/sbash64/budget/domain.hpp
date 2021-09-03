@@ -108,6 +108,7 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatIsVerified() = 0;
+    virtual void notifyThatIsArchived() = 0;
     virtual void notifyThatIs(const Transaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };
@@ -117,6 +118,7 @@ public:
   virtual auto verifies(const Transaction &) -> bool = 0;
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
+  virtual void archive() = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {

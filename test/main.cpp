@@ -123,6 +123,8 @@ static auto runAllTests() -> int {
        {transaction::removesLoadedTransaction, "removesLoadedValue"},
        {transaction::notifiesObserverOfRemovalByQuery,
         "notifiesObserverOfRemovalByQuery"},
+       {transaction::notifiesObserverOfArchival,
+        "transaction::notifiesObserverOfArchival"},
        {transaction::doesNotRemoveUnequalTransaction,
         "doesNotRemoveUnequalValue"},
        {transaction::verifiesMatchingInitializedTransaction,

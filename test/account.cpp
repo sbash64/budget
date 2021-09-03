@@ -56,6 +56,8 @@ public:
 
   [[nodiscard]] auto removed() const -> bool { return removed_; }
 
+  void archive() override {}
+
 private:
   Transaction initializedTransaction_;
   const Transaction *removesTransaction_{};
@@ -94,6 +96,8 @@ public:
   [[nodiscard]] auto removed() const -> bool { return removed_; }
 
   void notifyThatWillBeRemoved() override { removed_ = true; }
+
+  void notifyThatIsArchived() override {}
 
 private:
   bool verified_{};
