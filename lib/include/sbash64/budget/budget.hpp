@@ -9,16 +9,28 @@
 #include <string>
 
 namespace sbash64::budget {
+struct AccountWithAllocation {
+  std::shared_ptr<Account> account;
+  USD allocation;
+};
+
+struct StaticAccountWithAllocation {
+  Account &account;
+  USD allocation;
+};
+
 class BudgetInMemory : public Budget {
 public:
-  explicit BudgetInMemory(Account &, Account::Factory &);
+  explicit BudgetInMemory(Account &incomeAccount, Account::Factory &);
   void attach(Observer *) override;
-  void credit(const Transaction &) override;
-  void debit(std::string_view accountName, const Transaction &) override;
-  void removeCredit(const Transaction &) override;
-  void removeDebit(std::string_view accountName, const Transaction &) override;
-  void verifyCredit(const Transaction &) override;
-  void verifyDebit(std::string_view accountName, const Transaction &) override;
+  void addIncome(const Transaction &) override;
+  void addExpense(std::string_view accountName, const Transaction &) override;
+  void removeIncome(const Transaction &) override;
+  void removeExpense(std::string_view accountName,
+                     const Transaction &) override;
+  void verifyIncome(const Transaction &) override;
+  void verifyExpense(std::string_view accountName,
+                     const Transaction &) override;
   void transferTo(std::string_view accountName, USD amount) override;
   void allocate(std::string_view accountName, USD) override;
   void createAccount(std::string_view name) override;
@@ -29,16 +41,17 @@ public:
   void restore() override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;
-  void notifyThatPrimaryAccountIsReady(AccountDeserialization &,
-                                       std::string_view name) override;
-  void notifyThatSecondaryAccountIsReady(AccountDeserialization &,
-                                         std::string_view name) override;
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &, USD) override;
+  void notifyThatExpenseAccountIsReady(AccountDeserialization &,
+                                       std::string_view name,
+                                       USD allocated) override;
 
 private:
+  std::map<std::string, AccountWithAllocation, std::less<>>
+      expenseAccountsWithAllocations;
+  StaticAccountWithAllocation incomeAccountWithAllocation;
   Account::Factory &accountFactory;
   Observer *observer{};
-  Account &incomeAccount;
-  std::map<std::string, std::shared_ptr<Account>, std::less<>> expenseAccounts;
 };
 } // namespace sbash64::budget
 

@@ -21,17 +21,15 @@ function transactionMessage(
     method,
     name: accountName(selectedAccountSummaryRow),
     description: selectedTransactionRow.cells[1].textContent,
-    debitAmount: selectedTransactionRow.cells[2].textContent,
-    creditAmount: selectedTransactionRow.cells[3].textContent,
-    date: selectedTransactionRow.cells[4].textContent,
+    amount: selectedTransactionRow.cells[2].textContent,
+    date: selectedTransactionRow.cells[3].textContent,
   };
 }
 
 function updateTransaction(row, message) {
   row.cells[1].textContent = message.description;
-  row.cells[2].textContent = message.debitAmount;
-  row.cells[3].textContent = message.creditAmount;
-  row.cells[4].textContent = message.date;
+  row.cells[2].textContent = message.amount;
+  row.cells[3].textContent = message.date;
 }
 
 function accountTableBody(accountTableBodies, message) {
@@ -55,12 +53,12 @@ function main() {
   topPage.style.gridRow = 1;
   topPage.style.display = "grid";
 
-  const totalBalanceLabel = createChild(topPage, "label");
-  totalBalanceLabel.textContent = "Total Balance";
-  totalBalanceLabel.gridRow = 1;
+  const netIncomeLabel = createChild(topPage, "label");
+  netIncomeLabel.textContent = "Net Income";
+  netIncomeLabel.gridRow = 1;
 
-  const totalBalance = createChild(totalBalanceLabel, "strong");
-  totalBalance.style.margin = "1ch";
+  const netIncome = createChild(netIncomeLabel, "strong");
+  netIncome.style.margin = "1ch";
 
   const topPageButtons = createChild(topPage, "div");
   topPageButtons.gridRow = 2;
@@ -149,12 +147,12 @@ function main() {
   );
   accountSummaryNameHeaderElement.textContent = "Name";
   accountSummaryNameHeaderElement.style.width = "20ch";
-  const accountSummaryFundsHeaderElement = createChild(
+  const accountSummaryAllocationHeaderElement = createChild(
     accountSummaryTableHeadRow,
     "th"
   );
-  accountSummaryFundsHeaderElement.textContent = "Funds";
-  accountSummaryFundsHeaderElement.style.width = "9ch";
+  accountSummaryAllocationHeaderElement.textContent = "Allocation";
+  accountSummaryAllocationHeaderElement.style.width = "9ch";
   const accountSummaryBalanceHeaderElement = createChild(
     accountSummaryTableHeadRow,
     "th"
@@ -172,18 +170,12 @@ function main() {
   );
   transactionDescriptionHeaderElement.textContent = "Description";
   transactionDescriptionHeaderElement.style.width = "30ch";
-  const transactionDebitHeaderElement = createChild(
+  const transactionAmountHeaderElement = createChild(
     transactionTableHeader,
     "th"
   );
-  transactionDebitHeaderElement.textContent = "Debits";
-  transactionDebitHeaderElement.style.width = "9ch";
-  const transactionCreditHeaderElement = createChild(
-    transactionTableHeader,
-    "th"
-  );
-  transactionCreditHeaderElement.textContent = "Credits";
-  transactionCreditHeaderElement.style.width = "9ch";
+  transactionAmountHeaderElement.textContent = "Amount";
+  transactionAmountHeaderElement.style.width = "9ch";
   const transactionDateHeaderElement = createChild(
     transactionTableHeader,
     "th"
@@ -288,8 +280,8 @@ function main() {
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
-      case "update total balance": {
-        totalBalance.textContent = message.amount;
+      case "update net income": {
+        netIncome.textContent = message.amount;
         break;
       }
       case "add account": {
@@ -341,7 +333,6 @@ function main() {
         selection.type = "radio";
         createChild(row, "td");
         createChild(row, "td").style.textAlign = "right";
-        createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "center";
         createChild(row, "td").style.textAlign = "center";
         selection.addEventListener("change", () => {
@@ -360,7 +351,8 @@ function main() {
           message
         ).lastElementChild.textContent = message.amount;
         break;
-      case "update account funds":
+      case "update account allocation":
+      case "update unallocated income":
         accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
           message.amount;
         break;
@@ -368,7 +360,7 @@ function main() {
         updateTransaction(transactionRow(accountTableBodies, message), message);
         break;
       case "verify transaction":
-        transactionRow(accountTableBodies, message).cells[5].textContent = "✅";
+        transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
       default:
         break;

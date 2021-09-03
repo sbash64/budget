@@ -12,15 +12,32 @@ ReadsBudgetFromStream::ReadsBudgetFromStream(
     : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
                                             accountDeserializationFactory} {}
 
+static auto usd(std::string_view s) -> USD {
+  USD usd{};
+  std::istringstream stream{std::string{s}};
+  stream >> usd.cents;
+  usd.cents *= 100;
+  if (stream.get() == '.') {
+    int cents = 0;
+    stream >> cents;
+    usd.cents += cents;
+  }
+  return usd;
+}
+
 void ReadsBudgetFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   const auto accountDeserialization{
       accountDeserializationFactory.make(*stream)};
   std::string line;
   getline(*stream, line);
-  observer.notifyThatPrimaryAccountIsReady(*accountDeserialization, line);
-  while (getline(*stream, line))
-    observer.notifyThatSecondaryAccountIsReady(*accountDeserialization, line);
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(line));
+  while (getline(*stream, line)) {
+    const auto lastSpace{line.find_last_of(' ')};
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization,
+                                             line.substr(0, lastSpace),
+                                             usd(line.substr(lastSpace)));
+  }
 }
 
 WritesBudgetToStream::WritesBudgetToStream(
@@ -38,17 +55,31 @@ static auto putNewLine(const std::shared_ptr<std::ostream> &stream)
   return putNewLine(*stream);
 }
 
+static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
+  stream << amount.cents / 100;
+  const auto leftoverCents{amount.cents % 100};
+  if (leftoverCents != 0) {
+    stream << '.';
+    if (leftoverCents < 10)
+      stream << '0';
+    stream << leftoverCents;
+  }
+  return stream;
+}
+
 void WritesBudgetToStream::save(
-    SerializableAccount &primary,
-    const std::vector<SerializableAccount *> &secondaries) {
+    SerializableAccountWithFunds incomeAccountWithFunds,
+    const std::vector<SerializableAccountWithFundsAndName>
+        &expenseAccountsWithFunds) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
-  primary.save(*accountSerialization);
-  putNewLine(stream);
-  for (auto *account : secondaries) {
+  putNewLine(*stream << incomeAccountWithFunds.funds);
+  incomeAccountWithFunds.account->save(*accountSerialization);
+  for (auto accountWithFunds : expenseAccountsWithFunds) {
     putNewLine(stream);
-    account->save(*accountSerialization);
-    putNewLine(stream);
+    putNewLine(*stream << accountWithFunds.name << ' '
+                       << accountWithFunds.funds);
+    accountWithFunds.account->save(*accountSerialization);
   }
 }
 
@@ -64,40 +95,12 @@ auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
   return std::make_shared<ReadsAccountFromStream>(stream_, factory);
 }
 
-static auto usd(std::string_view s) -> USD {
-  USD usd{};
-  std::istringstream stream{std::string{s}};
-  stream >> usd.cents;
-  usd.cents *= 100;
-  if (stream.get() == '.') {
-    int cents = 0;
-    stream >> cents;
-    usd.cents += cents;
-  }
-  return usd;
-}
-
 void ReadsAccountFromStream::load(Observer &observer) {
   const auto transactionRecordDeserialization{factory.make(stream)};
-  std::string line;
-  getline(stream, line);
-  std::string firstWord;
-  std::stringstream lineStream{line};
-  lineStream >> firstWord;
-  if (firstWord == "funds") {
-    std::string amount;
-    lineStream >> amount;
-    observer.notifyThatFundsAreReady(usd(amount));
-    getline(stream, line);
-  }
-  while (stream.peek() != 'd') {
-    observer.notifyThatCreditIsReady(*transactionRecordDeserialization);
-  }
-  getline(stream, line);
   auto next{stream.get()};
   while (stream && next != '\n') {
     stream.unget();
-    observer.notifyThatDebitIsReady(*transactionRecordDeserialization);
+    observer.notifyThatIsReady(*transactionRecordDeserialization);
     next = stream.get();
   }
 }
@@ -114,37 +117,12 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
   return std::make_shared<WritesAccountToStream>(stream_, factory);
 }
 
-static void save(std::ostream &stream, std::string_view name,
-                 const std::vector<SerializableTransaction *> &transactions,
-                 TransactionToStreamFactory &factory) {
-  stream << name;
-  for (const auto &transaction : transactions) {
-    putNewLine(stream);
-    transaction->save(*factory.make(stream));
-  }
-}
-
-static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
-  stream << amount.cents / 100;
-  const auto leftoverCents{amount.cents % 100};
-  if (leftoverCents != 0) {
-    stream << '.';
-    if (leftoverCents < 10)
-      stream << '0';
-    stream << leftoverCents;
-  }
-  return stream;
-}
-
 void WritesAccountToStream::save(
-    std::string_view name, USD funds,
-    const std::vector<SerializableTransaction *> &credits,
-    const std::vector<SerializableTransaction *> &debits) {
-  putNewLine(stream << name);
-  putNewLine(stream << "funds " << funds);
-  budget::save(stream, "credits", credits, factory);
-  putNewLine(stream);
-  budget::save(stream, "debits", debits, factory);
+    const std::vector<SerializableTransaction *> &transactions) {
+  for (const auto &transaction : transactions) {
+    transaction->save(*factory.make(stream));
+    putNewLine(stream);
+  }
 }
 
 ReadsTransactionFromStream::ReadsTransactionFromStream(std::istream &stream)

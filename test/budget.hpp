@@ -4,28 +4,27 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget {
-void creditsMasterAccount(testcpplite::TestResult &);
-void debitsNonexistentAccount(testcpplite::TestResult &);
-void debitsExistingAccount(testcpplite::TestResult &);
-void transfersFromMasterAccountToOther(testcpplite::TestResult &);
+void addsIncomeToIncomeAccount(testcpplite::TestResult &);
+void addsExpenseToExpenseAccount(testcpplite::TestResult &);
+void addsExpenseToExistingAccount(testcpplite::TestResult &);
+void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 void clearsOldAccounts(testcpplite::TestResult &);
-void removesDebit(testcpplite::TestResult &);
-void doesNotRemoveDebitFromNonexistentAccount(testcpplite::TestResult &);
-void removesCredit(testcpplite::TestResult &);
+void removesExpenseFromAccount(testcpplite::TestResult &);
+void doesNotRemoveExpenseFromNonexistentAccount(testcpplite::TestResult &);
+void removesIncomeFromAccount(testcpplite::TestResult &);
 void renamesAccount(testcpplite::TestResult &);
 void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);
-void verifiesDebitForExistingAccount(testcpplite::TestResult &);
-void verifiesCreditForMasterAccount(testcpplite::TestResult &);
+void verifiesExpenseForExistingAccount(testcpplite::TestResult &);
+void verifiesIncome(testcpplite::TestResult &);
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &);
 void reducesEachAccount(testcpplite::TestResult &);
-void notifiesThatTotalBalanceHasChangedOnCredit(testcpplite::TestResult &);
-void notifiesThatTotalBalanceHasChangedOnDebit(testcpplite::TestResult &);
-void notifiesThatTotalBalanceHasChangedOnRemoveAccount(
-    testcpplite::TestResult &);
+void notifiesThatNetIncomeHasChangedOnAddedIncome(testcpplite::TestResult &);
+void notifiesThatNetIncomeHasChangedOnAddExpense(testcpplite::TestResult &);
+void notifiesThatNetIncomeHasChangedOnRemoveAccount(testcpplite::TestResult &);
 void createsAccount(testcpplite::TestResult &);
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &);
 void closesAccount(testcpplite::TestResult &);
