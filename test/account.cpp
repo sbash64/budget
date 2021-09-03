@@ -314,16 +314,20 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
-    factory.add(std::make_shared<ObservableTransactionInMemory>());
-    factory.add(std::make_shared<ObservableTransactionInMemory>());
     AccountObserverStub observer;
     account.attach(&observer);
-    add(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
-    add(account,
-        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    account.remove(
-        Transaction{111_cents, "orangutan", Date{2020, Month::March, 4}});
-    assertBalanceEquals(result, 123_cents, observer);
+    const auto ape{addObservableTransactionStub(factory)};
+    const auto orangutan{addObservableTransactionStub(factory)};
+    const auto chimp{addObservableTransactionStub(factory)};
+    add(account);
+    add(account);
+    add(account);
+    ape->setAmount(1_cents);
+    orangutan->setAmount(2_cents);
+    chimp->setAmount(3_cents);
+    orangutan->setRemoves();
+    account.remove({});
+    assertBalanceEquals(result, 1_cents + 3_cents, observer);
   });
 }
 
