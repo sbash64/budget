@@ -56,9 +56,17 @@ public:
 
   [[nodiscard]] auto removed() const -> bool { return removed_; }
 
-  void archive() override {}
+  void archive() override { wasArchived_ = true; }
 
-  auto archived() -> bool override { return {}; }
+  auto archived() -> bool override { return archived_; }
+
+  void setVerified() { verified_ = true; }
+
+  auto verified() -> bool override { return verified_; }
+
+  auto wasArchived() -> bool { return wasArchived_; }
+
+  void setArchived() { archived_ = true; }
 
 private:
   Transaction initializedTransaction_;
@@ -67,6 +75,9 @@ private:
   bool removed_{};
   bool removes_{};
   bool removesed_{};
+  bool verified_{};
+  bool wasArchived_{};
+  bool archived_{};
 };
 
 class ObservableTransactionFactoryStub : public ObservableTransaction::Factory {
@@ -422,47 +433,42 @@ void notifiesObserverOfRemovedCredit(testcpplite::TestResult &result) {
   });
 }
 
-void reducesTransactionsToFunds(testcpplite::TestResult &result) {
+void notifiesUpdatedBalanceAfterArchivingVerified(
+    testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
     account.attach(&observer);
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    addObservableTransactionInMemory(factory);
-    credit(account, Transaction{2300_cents, "orangutan",
-                                Date{2020, Month::February, 2}});
+    const auto orangutan{addObservableTransactionStub(factory)};
+    const auto gorilla{addObservableTransactionStub(factory)};
+    const auto chimp{addObservableTransactionStub(factory)};
+    credit(account);
+    credit(account);
+    credit(account);
+    orangutan->setAmount(1_cents);
+    gorilla->setAmount(2_cents);
+    chimp->setAmount(3_cents);
+    gorilla->setArchived();
     account.archiveVerified();
-    assertEqual(result, 0_cents, account.balance());
-    assertEqual(result, 0_cents, observer.balance());
+    assertEqual(result, 1_cents + 3_cents, account.balance());
+    assertEqual(result, 1_cents + 3_cents, observer.balance());
   });
 }
 
-void clearsReducedTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{2_cents, "chimpanzee", Date{2020, Month::June, 1}});
-    addObservableTransactionInMemory(factory);
-    credit(account,
-           Transaction{1_cents, "orangutan", Date{2020, Month::February, 2}});
-    account.archiveVerified();
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertCreditsSaved(result, persistence, {});
-  });
-}
-
-void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
+void archivesVerifiedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto orangutan{addObservableTransactionStub(factory)};
-    credit(account, Transaction{2300_cents, "orangutan",
-                                Date{2020, Month::February, 2}});
+    const auto gorilla{addObservableTransactionStub(factory)};
+    const auto chimp{addObservableTransactionStub(factory)};
+    credit(account);
+    credit(account);
+    credit(account);
+    gorilla->setVerified();
     account.archiveVerified();
-    assertTrue(result, orangutan->removed());
+    assertFalse(result, orangutan->wasArchived());
+    assertFalse(result, chimp->wasArchived());
+    assertTrue(result, gorilla->wasArchived());
   });
 }
 

@@ -17,7 +17,7 @@ balance(const std::vector<std::shared_ptr<ObservableTransaction>> &transactions)
   return accumulate(
       transactions.begin(), transactions.end(), USD{0},
       [](USD total, const std::shared_ptr<ObservableTransaction> &t) {
-        return total + t->amount();
+        return total + (t->archived() ? USD{0} : t->amount());
       });
 }
 
@@ -141,7 +141,9 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
 }
 
 void InMemoryAccount::archiveVerified() {
-  budget::clear(transactions);
+  for (const auto &transaction : transactions)
+    if (transaction->verified())
+      transaction->archive();
   notifyUpdatedBalance(*this, observer);
 }
 

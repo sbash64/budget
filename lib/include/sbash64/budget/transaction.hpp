@@ -17,6 +17,7 @@ public:
   void remove() override;
   void archive() override;
   auto archived() -> bool override;
+  auto verified() -> bool override { return {}; }
 
   class Factory : public ObservableTransaction::Factory {
   public:
