@@ -310,21 +310,6 @@ void savesRemainingTransactionsAfterRemovingSome(
   });
 }
 
-void savesDuplicateTransactions(testcpplite::TestResult &result) {
-  testInMemoryAccount([&result](InMemoryAccount &account,
-                                ObservableTransactionFactoryStub &factory) {
-    const auto gorilla1{addObservableTransactionInMemory(factory)};
-    add(account,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    const auto gorilla2{addObservableTransactionInMemory(factory)};
-    add(account,
-        Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
-    PersistentAccountStub persistence;
-    account.save(persistence);
-    assertSaved(result, persistence, {gorilla1.get(), gorilla2.get()});
-  });
-}
-
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &result) {
   testInMemoryAccount([&result](InMemoryAccount &account,

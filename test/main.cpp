@@ -93,8 +93,6 @@ static auto runAllTests() -> int {
        {account::hasTransactionsObserveDeserialization,
         "passesNewTransactionRecordsToDeserialization"},
        {account::savesLoadedTransactions, "savesTransactionRecordsLoaded"},
-       {account::savesDuplicateTransactions,
-        "savesDuplicateTransactionRecords"},
        {account::notifiesObserverThatDuplicateTransactionsAreVerified,
         "notifiesDuplicateTransactionsAreVerified"},
        {account::notifiesObserverOfNewCredit, "notifiesObserverOfNewCredit"},
