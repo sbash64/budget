@@ -433,7 +433,7 @@ void reducesTransactionsToFunds(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
-    account.reduce();
+    account.archiveVerified();
     assertEqual(result, 0_cents, account.balance());
     assertEqual(result, 0_cents, observer.balance());
   });
@@ -448,7 +448,7 @@ void clearsReducedTransactions(testcpplite::TestResult &result) {
     addObservableTransactionInMemory(factory);
     credit(account,
            Transaction{1_cents, "orangutan", Date{2020, Month::February, 2}});
-    account.reduce();
+    account.archiveVerified();
     PersistentAccountStub persistence;
     account.save(persistence);
     assertCreditsSaved(result, persistence, {});
@@ -461,7 +461,7 @@ void removesTransactionsWhenReducing(testcpplite::TestResult &result) {
     const auto orangutan{addObservableTransactionStub(factory)};
     credit(account, Transaction{2300_cents, "orangutan",
                                 Date{2020, Month::February, 2}});
-    account.reduce();
+    account.archiveVerified();
     assertTrue(result, orangutan->removed());
   });
 }

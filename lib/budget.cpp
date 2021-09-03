@@ -315,7 +315,7 @@ void BudgetInMemory::reduce() {
     observer_->notifyThatUnallocatedIncomeHasChanged(
         incomeAccountWithAllocation.allocation);
   });
-  incomeAccountWithAllocation.account.reduce();
+  incomeAccountWithAllocation.account.archiveVerified();
   for (auto &[name, accountWithAllocation] : expenseAccountsWithAllocations) {
     accountWithAllocation.allocation -=
         accountWithAllocation.account->balance();
@@ -324,7 +324,7 @@ void BudgetInMemory::reduce() {
       notifyThatCategoryAllocationHasChanged(observer_, view,
                                              expenseAccountsWithAllocations);
     });
-    accountWithAllocation.account->reduce();
+    accountWithAllocation.account->archiveVerified();
   }
 }
 

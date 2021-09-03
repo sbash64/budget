@@ -36,7 +36,7 @@ public:
     return deserialization_;
   }
 
-  void reduce() override { reduced_ = true; }
+  void archiveVerified() override { reduced_ = true; }
 
   [[nodiscard]] auto reduced() const -> bool { return reduced_; }
 
