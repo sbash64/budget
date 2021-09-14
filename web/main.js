@@ -303,8 +303,10 @@ function main() {
         const archivedTableBody = createChild(transactionTable, "tbody");
         archivedTableBodies.push(archivedTableBody);
 
-        if (selectedAccountTransactionTableBody)
+        if (selectedAccountTransactionTableBody) {
           selectedAccountTransactionTableBody.style.display = "none";
+          selectedAccountArchiveTableBody.style.display = "none";
+        }
         rightHandContentHeader.textContent = message.name;
         selectedAccountTransactionTableBody = transactionTableBody;
         selectedAccountArchiveTableBody = archivedTableBody;
@@ -317,6 +319,7 @@ function main() {
             selectedAccountArchiveTableBody.style.display = "none";
           }
           transactionTableBody.style.display = "";
+          archivedTableBody.style.display = "";
           rightHandContentHeader.textContent = accountName(row);
           selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountArchiveTableBody = archivedTableBody;
