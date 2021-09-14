@@ -372,14 +372,9 @@ function main() {
         transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
       case "archive transaction": {
-        archivedTableBodies[message.accountIndex].appendChild(
-          transactionRow(accountTableBodies, message)
-        );
-        const archived =
-          archivedTableBodies[message.accountIndex].rows[
-            message.transactionIndex
-          ];
-        archived.cells[0].removeChild(archived.cells[0].firstChild);
+        const row = transactionRow(accountTableBodies, message);
+        row.cells[0].removeChild(row.cells[0].firstChild);
+        archivedTableBodies[message.accountIndex].appendChild(row);
         break;
       }
       default:
