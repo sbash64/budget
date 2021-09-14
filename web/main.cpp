@@ -100,6 +100,15 @@ public:
   using Parent::index;
 };
 
+auto json(ParentAndChild &parent, void *child, std::string_view method)
+    -> nlohmann::json {
+  nlohmann::json json;
+  json["method"] = method;
+  json["accountIndex"] = parent.index();
+  json["transactionIndex"] = parent.index(child);
+  return json;
+}
+
 class WebSocketTransactionRecordObserver
     : public ObservableTransaction::Observer {
 public:
@@ -112,26 +121,18 @@ public:
   }
 
   void notifyThatIsVerified() override {
-    nlohmann::json json;
-    json["method"] = "verify transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
+    server.send(connection, json(parent, this, "verify transaction").dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatIsArchived() override {
-    nlohmann::json json;
-    json["method"] = "archive transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
+    server.send(connection, json(parent, this, "archive transaction").dump(),
                 websocketpp::frame::opcode::value::text);
     parent.release(this);
   }
 
   void notifyThatIs(const Transaction &t) override {
-    nlohmann::json json;
+    auto json = budget::json(parent, this, "update transaction");
     json["description"] = t.description;
     std::stringstream amountStream;
     amountStream << t.amount;
@@ -139,19 +140,12 @@ public:
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
-    json["method"] = "update transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
     server.send(connection, json.dump(),
                 websocketpp::frame::opcode::value::text);
   }
 
   void notifyThatWillBeRemoved() override {
-    nlohmann::json json;
-    json["method"] = "remove transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
+    server.send(connection, json(parent, this, "remove transaction").dump(),
                 websocketpp::frame::opcode::value::text);
     parent.release(this);
   }
