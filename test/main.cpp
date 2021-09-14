@@ -127,6 +127,8 @@ static auto runAllTests() -> int {
         "notifiesObserverOfRemovalByQuery"},
        {transaction::notifiesObserverOfArchival,
         "transaction::notifiesObserverOfArchival"},
+       {transaction::doesNotNotifyObserverOfArchivalTwice,
+        "transaction::doesNotNotifyObserverOfArchivalTwice"},
        {transaction::doesNotRemoveUnequalTransaction,
         "doesNotRemoveUnequalValue"},
        {transaction::verifiesMatchingInitializedTransaction,

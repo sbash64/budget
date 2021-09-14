@@ -23,6 +23,7 @@ void notifiesObserverOfLoadedArchival(testcpplite::TestResult &);
 void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &);
 void notifiesObserverOfArchival(testcpplite::TestResult &);
+void doesNotNotifyObserverOfArchivalTwice(testcpplite::TestResult &);
 void removesLoadedTransaction(testcpplite::TestResult &);
 void removesInitializedTransaction(testcpplite::TestResult &);
 void doesNotRemoveUnequalTransaction(testcpplite::TestResult &);

@@ -48,11 +48,13 @@ auto ObservableTransactionInMemory::removes(const Transaction &match) -> bool {
 }
 
 void ObservableTransactionInMemory::archive() {
-  archivableVerifiableTransaction.archived = true;
-  callIfObserverExists(observer,
-                       [](ObservableTransaction::Observer *observer_) {
-                         observer_->notifyThatIsArchived();
-                       });
+  if (!archivableVerifiableTransaction.archived) {
+    archivableVerifiableTransaction.archived = true;
+    callIfObserverExists(observer,
+                         [](ObservableTransaction::Observer *observer_) {
+                           observer_->notifyThatIsArchived();
+                         });
+  }
 }
 
 auto ObservableTransactionInMemory::archived() -> bool {
