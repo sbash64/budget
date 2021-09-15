@@ -46,9 +46,9 @@ function accountSummaryRow(accountSummaryRows, message) {
   return accountSummaryRows[message.accountIndex];
 }
 
-function sendOnClick(button, websocket, message) {
+function sendOnClick(button, websocket, messageFunctor) {
   button.addEventListener("click", () => {
-    sendMessage(websocket, message);
+    sendMessage(websocket, messageFunctor());
   });
 }
 
@@ -391,35 +391,31 @@ function main() {
         break;
     }
   };
-  sendOnClick(saveButton, websocket, {
+  sendOnClick(saveButton, websocket, () => ({
     method: "save",
-  });
-  sendOnClick(reduceButton, websocket, {
+  }));
+  sendOnClick(reduceButton, websocket, () => ({
     method: "reduce",
-  });
-  sendOnClick(restoreButton, websocket, {
+  }));
+  sendOnClick(restoreButton, websocket, () => ({
     method: "restore",
-  });
-  sendOnClick(removeAccountButton, websocket, {
+  }));
+  sendOnClick(removeAccountButton, websocket, () => ({
     method: "remove account",
     name: accountName(selectedAccountSummaryRow),
-  });
-  sendOnClick(closeAccountButton, websocket, {
+  }));
+  sendOnClick(closeAccountButton, websocket, () => ({
     method: "close account",
     name: accountName(selectedAccountSummaryRow),
-  });
-  sendOnClick(
-    removeTransactionButton,
-    websocket,
+  }));
+  sendOnClick(removeTransactionButton, websocket, () =>
     transactionMessage(
       selectedAccountSummaryRow,
       selectedTransactionRow,
       "remove transaction"
     )
   );
-  sendOnClick(
-    verifyTransactionButton,
-    websocket,
+  sendOnClick(verifyTransactionButton, websocket, () =>
     transactionMessage(
       selectedAccountSummaryRow,
       selectedTransactionRow,
