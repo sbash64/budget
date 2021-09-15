@@ -101,10 +101,14 @@ public:
   using Parent::index;
 };
 
+void assignMethod(nlohmann::json &json, std::string_view name) {
+  json["method"] = name;
+}
+
 auto json(ParentAndChild &parent, void *child, std::string_view method)
     -> nlohmann::json {
   nlohmann::json json;
-  json["method"] = method;
+  assignMethod(json, method);
   json["accountIndex"] = parent.index();
   json["transactionIndex"] = parent.index(child);
   return json;
@@ -192,7 +196,7 @@ public:
 
   void notifyThatBalanceHasChanged(USD usd) override {
     nlohmann::json json;
-    json["method"] = "update account balance";
+    assignMethod(json, "update account balance");
     json["accountIndex"] = parent.index(this);
     assign(json, usd);
     send(server, connection, json);
@@ -202,14 +206,14 @@ public:
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this));
     nlohmann::json json;
-    json["method"] = "add transaction";
+    assignMethod(json, "add transaction");
     json["accountIndex"] = parent.index(this);
     send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
     nlohmann::json json;
-    json["method"] = "remove account";
+    assignMethod(json, "remove account");
     json["accountIndex"] = parent.index(this);
     send(server, connection, json);
     parent.release(this);
@@ -253,7 +257,7 @@ public:
   void notifyThatCategoryAllocationHasChanged(std::string_view name,
                                               USD usd) override {
     nlohmann::json json;
-    json["method"] = "update account allocation";
+    assignMethod(json, "update account allocation");
     json["accountIndex"] = distance(
         children.begin(), find_if(children.begin(), children.end(),
                                   [name](const AccountObserverWithName &child) {
@@ -265,7 +269,7 @@ public:
 
   void notifyThatUnallocatedIncomeHasChanged(USD usd) override {
     nlohmann::json json;
-    json["method"] = "update unallocated income";
+    assignMethod(json, "update unallocated income");
     json["accountIndex"] = 0;
     assign(json, usd);
     send(server, connection, json);
@@ -278,7 +282,7 @@ public:
                                 std::string{name}});
     nlohmann::json json;
     json["name"] = name;
-    json["method"] = "add account";
+    assignMethod(json, "add account");
     send(server, connection, json);
   }
 
@@ -290,7 +294,7 @@ public:
   void notifyThatNetIncomeHasChanged(USD usd) override {
     nlohmann::json json;
     assign(json, usd);
-    json["method"] = "update net income";
+    assignMethod(json, "update net income");
     send(server, connection, json);
   }
 
