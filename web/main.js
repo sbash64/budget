@@ -46,6 +46,12 @@ function accountSummaryRow(accountSummaryRows, message) {
   return accountSummaryRows[message.accountIndex];
 }
 
+function sendOnClick(button, websocket, message) {
+  button.addEventListener("click", () => {
+    sendMessage(websocket, message);
+  });
+}
+
 function main() {
   const page = createChild(document.body, "div");
   page.style.display = "grid";
@@ -376,7 +382,8 @@ function main() {
         break;
       case "archive transaction": {
         const row = transactionRow(accountTableBodies, message);
-        row.cells[0].removeChild(row.cells[0].firstChild);
+        const selectionContainer = row.cells[0];
+        selectionContainer.removeChild(selectionContainer.firstChild);
         archivedTableBodies[message.accountIndex].appendChild(row);
         break;
       }
@@ -384,39 +391,47 @@ function main() {
         break;
     }
   };
-  saveButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "save",
-    });
+  sendOnClick(saveButton, websocket, {
+    method: "save",
   });
-  reduceButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "reduce",
-    });
+  sendOnClick(reduceButton, websocket, {
+    method: "reduce",
   });
-  restoreButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "restore",
-    });
+  sendOnClick(restoreButton, websocket, {
+    method: "restore",
   });
+  sendOnClick(removeAccountButton, websocket, {
+    method: "remove account",
+    name: accountName(selectedAccountSummaryRow),
+  });
+  sendOnClick(closeAccountButton, websocket, {
+    method: "close account",
+    name: accountName(selectedAccountSummaryRow),
+  });
+  sendOnClick(
+    removeTransactionButton,
+    websocket,
+    transactionMessage(
+      selectedAccountSummaryRow,
+      selectedTransactionRow,
+      "remove transaction"
+    )
+  );
+  sendOnClick(
+    verifyTransactionButton,
+    websocket,
+    transactionMessage(
+      selectedAccountSummaryRow,
+      selectedTransactionRow,
+      "verify transaction"
+    )
+  );
   createAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
       method: "create account",
       name: newAccountNameInput.value,
     });
     newAccountNameInput.value = "";
-  });
-  removeAccountButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "remove account",
-      name: accountName(selectedAccountSummaryRow),
-    });
-  });
-  closeAccountButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "close account",
-      name: accountName(selectedAccountSummaryRow),
-    });
   });
   transferButton.addEventListener("click", () => {
     sendMessage(websocket, {
@@ -445,26 +460,6 @@ function main() {
     addTransactionDescriptionInput.value = "";
     addTransactionAmountInput.value = "";
     addTransactionDateInput.value = "";
-  });
-  removeTransactionButton.addEventListener("click", () => {
-    sendMessage(
-      websocket,
-      transactionMessage(
-        selectedAccountSummaryRow,
-        selectedTransactionRow,
-        "remove transaction"
-      )
-    );
-  });
-  verifyTransactionButton.addEventListener("click", () => {
-    sendMessage(
-      websocket,
-      transactionMessage(
-        selectedAccountSummaryRow,
-        selectedTransactionRow,
-        "verify transaction"
-      )
-    );
   });
 }
 
