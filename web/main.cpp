@@ -116,6 +116,12 @@ void send(websocketpp::server<debug_custom> &server,
               websocketpp::frame::opcode::value::text);
 }
 
+void assign(nlohmann::json &json, USD usd) {
+  std::stringstream stream;
+  stream << usd;
+  json["amount"] = stream.str();
+}
+
 class WebSocketTransactionRecordObserver
     : public ObservableTransaction::Observer {
 public:
@@ -139,9 +145,7 @@ public:
   void notifyThatIs(const Transaction &t) override {
     auto json = budget::json(parent, this, "update transaction");
     json["description"] = t.description;
-    std::stringstream amountStream;
-    amountStream << t.amount;
-    json["amount"] = amountStream.str();
+    assign(json, t.amount);
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
@@ -190,9 +194,7 @@ public:
     nlohmann::json json;
     json["method"] = "update account balance";
     json["accountIndex"] = parent.index(this);
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
+    assign(json, usd);
     send(server, connection, json);
   }
 
@@ -257,9 +259,7 @@ public:
                                   [name](const AccountObserverWithName &child) {
                                     return child.name == name;
                                   }));
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
+    assign(json, usd);
     send(server, connection, json);
   }
 
@@ -267,9 +267,7 @@ public:
     nlohmann::json json;
     json["method"] = "update unallocated income";
     json["accountIndex"] = 0;
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
+    assign(json, usd);
     send(server, connection, json);
   }
 
@@ -291,9 +289,7 @@ public:
 
   void notifyThatNetIncomeHasChanged(USD usd) override {
     nlohmann::json json;
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
+    assign(json, usd);
     json["method"] = "update net income";
     send(server, connection, json);
   }
