@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
+#include <utility>
 #include <websocketpp/common/connection_hdl.hpp>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
@@ -109,6 +110,12 @@ auto json(ParentAndChild &parent, void *child, std::string_view method)
   return json;
 }
 
+void send(websocketpp::server<debug_custom> &server,
+          websocketpp::connection_hdl connection, const nlohmann::json &json) {
+  server.send(std::move(connection), json.dump(),
+              websocketpp::frame::opcode::value::text);
+}
+
 class WebSocketTransactionRecordObserver
     : public ObservableTransaction::Observer {
 public:
@@ -121,13 +128,11 @@ public:
   }
 
   void notifyThatIsVerified() override {
-    server.send(connection, json(parent, this, "verify transaction").dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json(parent, this, "verify transaction"));
   }
 
   void notifyThatIsArchived() override {
-    server.send(connection, json(parent, this, "archive transaction").dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json(parent, this, "archive transaction"));
     parent.release(this);
   }
 
@@ -140,13 +145,11 @@ public:
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
-    server.send(connection, json(parent, this, "remove transaction").dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json(parent, this, "remove transaction"));
     parent.release(this);
   }
 
@@ -190,8 +193,7 @@ public:
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatHasBeenAdded(ObservableTransaction &t) override {
@@ -200,16 +202,14 @@ public:
     nlohmann::json json;
     json["method"] = "add transaction";
     json["accountIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
     nlohmann::json json;
     json["method"] = "remove account";
     json["accountIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
     parent.release(this);
   }
 
@@ -260,8 +260,7 @@ public:
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatUnallocatedIncomeHasChanged(USD usd) override {
@@ -271,8 +270,7 @@ public:
     std::stringstream amountStream;
     amountStream << usd;
     json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void addAccount(Account &account, std::string_view name) {
@@ -283,8 +281,7 @@ public:
     nlohmann::json json;
     json["name"] = name;
     json["method"] = "add account";
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatExpenseAccountHasBeenCreated(Account &account,
@@ -298,8 +295,7 @@ public:
     amountStream << usd;
     json["amount"] = amountStream.str();
     json["method"] = "update net income";
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
 private:
