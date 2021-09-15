@@ -105,12 +105,18 @@ void assignMethod(nlohmann::json &json, std::string_view name) {
   json["method"] = name;
 }
 
-auto json(ParentAndChild &parent, void *child, std::string_view method)
-    -> nlohmann::json {
+auto json(ParentAndChild &parent, ObservableTransaction::Observer *observer,
+          std::string_view method) -> nlohmann::json {
   nlohmann::json json;
   assignMethod(json, method);
   json["accountIndex"] = parent.index();
-  json["transactionIndex"] = parent.index(child);
+  json["transactionIndex"] = parent.index(observer);
+  return json;
+}
+
+auto json(Parent &parent, Account::Observer *observer) -> nlohmann::json {
+  nlohmann::json json;
+  json["accountIndex"] = parent.index(observer);
   return json;
 }
 
@@ -195,9 +201,8 @@ public:
   }
 
   void notifyThatBalanceHasChanged(USD usd) override {
-    nlohmann::json json;
+    auto json = budget::json(parent, this);
     assignMethod(json, "update account balance");
-    json["accountIndex"] = parent.index(this);
     assign(json, usd);
     send(server, connection, json);
   }
@@ -205,16 +210,14 @@ public:
   void notifyThatHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this));
-    nlohmann::json json;
+    auto json = budget::json(parent, this);
     assignMethod(json, "add transaction");
-    json["accountIndex"] = parent.index(this);
     send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
-    nlohmann::json json;
+    auto json = budget::json(parent, this);
     assignMethod(json, "remove account");
-    json["accountIndex"] = parent.index(this);
     send(server, connection, json);
     parent.release(this);
   }
