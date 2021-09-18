@@ -26,6 +26,10 @@ public:
 
   void setBalance(USD b) { balance_ = b; }
 
+  void setBalanceOnTransactionArchive(USD usd) {
+    balanceOnTransactionArchive = usd;
+  }
+
   void attach(Observer *) override {}
 
   void save(AccountSerialization &) override {}
@@ -37,6 +41,7 @@ public:
   }
 
   void archiveVerifiedTransactions() override {
+    balance_ = balanceOnTransactionArchive;
     archivedVerifiedTransactions_ = true;
   }
 
@@ -80,6 +85,7 @@ private:
   bool transactionRemoved_{};
   const AccountDeserialization *deserialization_{};
   USD balance_{};
+  USD balanceOnTransactionArchive{};
   bool removed_{};
   bool cleared_{};
   bool archivedVerifiedTransactions_{};
@@ -484,10 +490,10 @@ void reducesEachAccount(testcpplite::TestResult &result) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    incomeAccount.setBalance(4_cents);
-    giraffe->setBalance(5_cents);
-    penguin->setBalance(6_cents);
-    leopard->setBalance(7_cents);
+    incomeAccount.setBalanceOnTransactionArchive(4_cents);
+    giraffe->setBalanceOnTransactionArchive(5_cents);
+    penguin->setBalanceOnTransactionArchive(6_cents);
+    leopard->setBalanceOnTransactionArchive(7_cents);
     budget.reduce();
     assertReduced(result, incomeAccount);
     assertReduced(result, *giraffe);
@@ -509,10 +515,10 @@ void notifiesThatNetIncomeHasChangedOnAddedIncome(
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    giraffe->setBalance(1_cents);
-    penguin->setBalance(2_cents);
-    leopard->setBalance(3_cents);
-    incomeAccount.setBalance(4_cents);
+    giraffe->setBalanceOnTransactionArchive(1_cents);
+    penguin->setBalanceOnTransactionArchive(2_cents);
+    leopard->setBalanceOnTransactionArchive(3_cents);
+    incomeAccount.setBalanceOnTransactionArchive(4_cents);
     budget.reduce();
     giraffe->setBalance(5_cents);
     penguin->setBalance(6_cents);

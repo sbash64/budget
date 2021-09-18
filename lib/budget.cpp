@@ -309,14 +309,15 @@ void BudgetInMemory::notifyThatExpenseAccountIsReady(
 }
 
 void BudgetInMemory::reduce() {
+  incomeAccountWithAllocation.account.archiveVerifiedTransactions();
   incomeAccountWithAllocation.allocation +=
       incomeAccountWithAllocation.account.balance();
   callIfObserverExists(observer, [&](Observer *observer_) {
     observer_->notifyThatUnallocatedIncomeHasChanged(
         incomeAccountWithAllocation.allocation);
   });
-  incomeAccountWithAllocation.account.archiveVerifiedTransactions();
   for (auto &[name, accountWithAllocation] : expenseAccountsWithAllocations) {
+    accountWithAllocation.account->archiveVerifiedTransactions();
     accountWithAllocation.allocation -=
         accountWithAllocation.account->balance();
     std::string_view view{name};
@@ -324,7 +325,6 @@ void BudgetInMemory::reduce() {
       notifyThatCategoryAllocationHasChanged(observer_, view,
                                              expenseAccountsWithAllocations);
     });
-    accountWithAllocation.account->archiveVerifiedTransactions();
   }
 }
 
