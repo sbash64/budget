@@ -36,9 +36,13 @@ public:
     return deserialization_;
   }
 
-  void archiveVerified() override { reduced_ = true; }
+  void archiveVerifiedTransactions() override {
+    archivedVerifiedTransactions_ = true;
+  }
 
-  [[nodiscard]] auto reduced() const -> bool { return reduced_; }
+  [[nodiscard]] auto archivedVerifiedTransactions() const -> bool {
+    return archivedVerifiedTransactions_;
+  }
 
   auto balance() -> USD override { return balance_; }
 
@@ -78,7 +82,7 @@ private:
   USD balance_{};
   bool removed_{};
   bool cleared_{};
-  bool reduced_{};
+  bool archivedVerifiedTransactions_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -469,7 +473,7 @@ void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
 
 static void assertReduced(testcpplite::TestResult &result,
                           AccountStub &account) {
-  assertTrue(result, account.reduced());
+  assertTrue(result, account.archivedVerifiedTransactions());
 }
 
 void reducesEachAccount(testcpplite::TestResult &result) {

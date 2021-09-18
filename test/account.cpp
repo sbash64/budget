@@ -412,7 +412,7 @@ void notifiesUpdatedBalanceAfterArchivingVerified(
     gorilla->setAmount(2_cents);
     chimp->setAmount(3_cents);
     gorilla->setArchived();
-    account.archiveVerified();
+    account.archiveVerifiedTransactions();
     assertEqual(result, 1_cents + 3_cents, account.balance());
     assertEqual(result, 1_cents + 3_cents, observer.balance());
   });
@@ -428,7 +428,7 @@ void archivesVerifiedTransactions(testcpplite::TestResult &result) {
     add(account);
     add(account);
     gorilla->setVerified();
-    account.archiveVerified();
+    account.archiveVerifiedTransactions();
     assertFalse(result, orangutan->wasArchived());
     assertFalse(result, chimp->wasArchived());
     assertTrue(result, gorilla->wasArchived());

@@ -15,7 +15,7 @@ public:
   void remove() override;
   void load(AccountDeserialization &) override;
   void clear() override;
-  void archiveVerified() override;
+  void archiveVerifiedTransactions() override;
   void notifyThatIsReady(TransactionDeserialization &) override;
   void save(AccountSerialization &) override;
   void add(const Transaction &) override;

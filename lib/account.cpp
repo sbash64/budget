@@ -140,7 +140,7 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryAccount::archiveVerified() {
+void InMemoryAccount::archiveVerifiedTransactions() {
   for (const auto &transaction : transactions)
     if (transaction->verified())
       transaction->archive();

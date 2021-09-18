@@ -179,7 +179,7 @@ public:
   virtual void add(const Transaction &) = 0;
   virtual void verify(const Transaction &) = 0;
   virtual void remove(const Transaction &) = 0;
-  virtual void archiveVerified() = 0;
+  virtual void archiveVerifiedTransactions() = 0;
   virtual auto balance() -> USD = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;
