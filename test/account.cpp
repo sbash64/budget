@@ -525,4 +525,15 @@ void notifiesObserverOfDecreasedAllocation(testcpplite::TestResult &result) {
         assertEqual(result, -1_cents, observer.allocation());
       });
 }
+
+void notifiesObserverOfLoadedAllocation(testcpplite::TestResult &result) {
+  testInMemoryAccount(
+      [&result](AccountInMemory &account, ObservableTransactionFactoryStub &) {
+        AccountObserverStub observer;
+        account.attach(&observer);
+        account.notifyThatAllocatedIsReady(1_cents);
+        assertEqual(result, 1_cents, account.allocated());
+        assertEqual(result, 1_cents, observer.allocation());
+      });
+}
 } // namespace sbash64::budget::account

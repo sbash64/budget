@@ -202,7 +202,10 @@ void AccountInMemory::decreaseAllocationBy(USD usd) {
 
 auto AccountInMemory::allocated() -> USD { return allocation; }
 
-void AccountInMemory::notifyThatAllocatedIsReady(USD) {}
+void AccountInMemory::notifyThatAllocatedIsReady(USD usd) {
+  allocation = usd;
+  notifyUpdatedAllocation(observer, allocation);
+}
 
 auto AccountInMemory::Factory::make() -> std::shared_ptr<Account> {
   return std::make_shared<AccountInMemory>(transactionFactory);
