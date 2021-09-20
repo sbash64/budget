@@ -200,6 +200,13 @@ public:
             -> bool { return child.get() == a; }));
   }
 
+  void notifyThatAllocationHasChanged(USD usd) override {
+    auto json = budget::json(parent, this);
+    assignMethod(json, "update account allocation");
+    assign(json, usd);
+    send(server, connection, json);
+  }
+
   void notifyThatBalanceHasChanged(USD usd) override {
     auto json = budget::json(parent, this);
     assignMethod(json, "update account balance");
@@ -255,27 +262,6 @@ public:
                            [&](const AccountObserverWithName &child) -> bool {
                              return child.observer.get() == a;
                            }));
-  }
-
-  void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                              USD usd) override {
-    nlohmann::json json;
-    assignMethod(json, "update account allocation");
-    json["accountIndex"] = distance(
-        children.begin(), find_if(children.begin(), children.end(),
-                                  [name](const AccountObserverWithName &child) {
-                                    return child.name == name;
-                                  }));
-    assign(json, usd);
-    send(server, connection, json);
-  }
-
-  void notifyThatUnallocatedIncomeHasChanged(USD usd) override {
-    nlohmann::json json;
-    assignMethod(json, "update unallocated income");
-    json["accountIndex"] = 0;
-    assign(json, usd);
-    send(server, connection, json);
   }
 
   void addAccount(Account &account, std::string_view name) {
