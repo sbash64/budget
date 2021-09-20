@@ -484,4 +484,23 @@ void increasesAllocationByAmountArchived(testcpplite::TestResult &result) {
     assertEqual(result, 4_cents, observer.balance());
   });
 }
+
+void decreasesAllocationByAmountArchived(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](AccountInMemory &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    const auto orangutan{addObservableTransactionInMemory(factory)};
+    const auto gorilla{addObservableTransactionInMemory(factory)};
+    const auto chimp{addObservableTransactionInMemory(factory)};
+    add(account, Transaction{2_cents, "gorilla", Date{2020, Month::June, 2}});
+    add(account, Transaction{3_cents, "chimp", Date{2020, Month::June, 2}});
+    add(account, Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.verify(Transaction{2_cents, "gorilla", Date{2020, Month::June, 2}});
+    account.verify(Transaction{3_cents, "chimp", Date{2020, Month::June, 2}});
+    account.decreaseAllocationByResolvingVerifiedTransactions();
+    assertEqual(result, -2_cents - 3_cents, observer.allocation());
+    assertEqual(result, 4_cents, observer.balance());
+  });
+}
 } // namespace sbash64::budget::account

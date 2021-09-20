@@ -147,7 +147,17 @@ void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
   notifyUpdatedBalance(transactions, observer);
 }
 
-void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {}
+void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {
+  for (const auto &transaction : transactions)
+    if (transaction->verified()) {
+      allocation -= transaction->amount();
+      transaction->archive();
+    }
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatAllocationHasChanged(allocation);
+  });
+  notifyUpdatedBalance(transactions, observer);
+}
 
 auto AccountInMemory::balance() -> USD { return budget::balance(transactions); }
 
