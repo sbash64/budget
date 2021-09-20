@@ -93,12 +93,6 @@ static auto at(const std::map<std::string, std::shared_ptr<Account>,
   return accountsWithAllocation.find(name)->second;
 }
 
-static auto account(const std::map<std::string, std::shared_ptr<Account>,
-                                   std::less<>> &accountsWithAllocation,
-                    std::string_view name) -> const std::shared_ptr<Account> & {
-  return at(accountsWithAllocation, name);
-}
-
 static auto allocation(const std::map<std::string, std::shared_ptr<Account>,
                                       std::less<>> &accountsWithAllocation,
                        std::string_view name) -> USD {
@@ -114,7 +108,7 @@ makeExpenseAccount(std::map<std::string, std::shared_ptr<Account>, std::less<>>
   callIfObserverExists(
       observer, [&accountsWithAllocation, name](Budget::Observer *observer_) {
         observer_->notifyThatExpenseAccountHasBeenCreated(
-            *account(accountsWithAllocation, name), name);
+            *at(accountsWithAllocation, name), name);
       });
 }
 
@@ -124,7 +118,7 @@ static void makeAndLoadExpenseAccount(
     Account::Factory &factory, AccountDeserialization &deserialization,
     std::string_view name, Budget::Observer *observer) {
   makeExpenseAccount(accountsWithAllocation, factory, name, observer);
-  account(accountsWithAllocation, name)->load(deserialization);
+  at(accountsWithAllocation, name)->load(deserialization);
 }
 
 static void createExpenseAccountIfNeeded(
@@ -185,14 +179,14 @@ static void transfer(Account &from, Account &to, USD amount) {
 
 static void transfer(std::map<std::string, std::shared_ptr<Account>,
                               std::less<>> &expenseAccounts,
-                     Account &from, std::string_view name, USD amount) {
+                     std::string_view name, Account &from, USD amount) {
   transfer(from, *at(expenseAccounts, name), amount);
 }
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
-  transfer(expenseAccounts, incomeAccount, accountName, amount);
+  transfer(expenseAccounts, accountName, incomeAccount, amount);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
@@ -200,7 +194,7 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
                                observer);
   const auto amount{amountNeeded - allocation(expenseAccounts, accountName)};
   if (amount.cents > 0)
-    transfer(incomeAccount, *at(expenseAccounts, accountName), amount);
+    transfer(expenseAccounts, accountName, incomeAccount, amount);
   else if (amount.cents < 0)
     transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
 }
@@ -212,7 +206,7 @@ void BudgetInMemory::createAccount(std::string_view name) {
 static void remove(std::map<std::string, std::shared_ptr<Account>, std::less<>>
                        &accountsWithAllocation,
                    std::string_view name) {
-  account(accountsWithAllocation, name)->remove();
+  at(accountsWithAllocation, name)->remove();
   accountsWithAllocation.erase(std::string{name});
 }
 
@@ -245,8 +239,8 @@ void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
-  for (auto [name, accountWithAllocation] : expenseAccounts)
-    accountWithAllocation->remove();
+  for (auto [name, account] : expenseAccounts)
+    account->remove();
   incomeAccount.clear();
   expenseAccounts.clear();
   persistentMemory.load(*this);
@@ -266,16 +260,15 @@ void BudgetInMemory::notifyThatExpenseAccountIsReady(
 
 void BudgetInMemory::reduce() {
   incomeAccount.increaseAllocationByResolvingVerifiedTransactions();
-  for (auto &[name, accountWithAllocation] : expenseAccounts) {
-    accountWithAllocation->decreaseAllocationByResolvingVerifiedTransactions();
-  }
+  for (auto &[name, account] : expenseAccounts)
+    account->decreaseAllocationByResolvingVerifiedTransactions();
 }
 
 void BudgetInMemory::restore() {
-  for (auto [name, accountWithAllocation] : expenseAccounts) {
-    const auto amount{leftoverAfterExpenses(*accountWithAllocation)};
+  for (auto [name, account] : expenseAccounts) {
+    const auto amount{leftoverAfterExpenses(*account)};
     if (amount.cents < 0)
-      transfer(expenseAccounts, incomeAccount, name, -amount);
+      transfer(expenseAccounts, name, incomeAccount, -amount);
   }
 }
 } // namespace sbash64::budget
