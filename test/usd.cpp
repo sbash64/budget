@@ -31,14 +31,6 @@ void assertEqual(testcpplite::TestResult &result, const Transaction &expected,
 }
 
 void assertEqual(testcpplite::TestResult &result,
-                 const VerifiableTransaction &expected,
-                 const VerifiableTransaction &actual) {
-  assertEqual(result, expected.transaction, actual.transaction);
-  assertEqual(result, static_cast<int>(expected.verified),
-              static_cast<int>(actual.verified));
-}
-
-void assertEqual(testcpplite::TestResult &result,
                  const ArchivableVerifiableTransaction &expected,
                  const ArchivableVerifiableTransaction &actual) {
   assertEqual(result, expected.transaction, actual.transaction);

@@ -68,21 +68,11 @@ public:
 
   auto funds() -> USD { return funds_; }
 
-  void setCreditsToLoad(std::vector<VerifiableTransaction> t) {
-    creditsToLoad = std::move(t);
-  }
-
-  void setDebitsToLoad(std::vector<VerifiableTransaction> t) {
-    debitsToLoad = std::move(t);
-  }
-
   void load(Observer &observer) override { observer_ = &observer; }
 
   auto observer() -> const Observer * { return observer_; }
 
 private:
-  std::vector<VerifiableTransaction> creditsToLoad;
-  std::vector<VerifiableTransaction> debitsToLoad;
   std::string accountName_;
   std::vector<SerializableTransaction *> transactions_;
   USD funds_{};

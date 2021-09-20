@@ -69,13 +69,6 @@ struct Transaction {
   auto operator==(const Transaction &) const -> bool = default;
 };
 
-struct VerifiableTransaction {
-  Transaction transaction;
-  bool verified{};
-
-  auto operator==(const VerifiableTransaction &) const -> bool = default;
-};
-
 struct ArchivableVerifiableTransaction {
   Transaction transaction;
   bool verified{};
