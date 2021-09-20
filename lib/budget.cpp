@@ -152,7 +152,7 @@ void BudgetInMemory::addExpense(std::string_view accountName,
                                 const Transaction &transaction) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
-  add(account(expenseAccounts, accountName), transaction);
+  add(at(expenseAccounts, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
 }
 
@@ -164,7 +164,7 @@ void BudgetInMemory::removeIncome(const Transaction &transaction) {
 void BudgetInMemory::removeExpense(std::string_view accountName,
                                    const Transaction &transaction) {
   if (contains(expenseAccounts, accountName)) {
-    remove(account(expenseAccounts, accountName), transaction);
+    remove(at(expenseAccounts, accountName), transaction);
     notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
   }
 }
@@ -175,34 +175,34 @@ void BudgetInMemory::verifyIncome(const Transaction &transaction) {
 
 void BudgetInMemory::verifyExpense(std::string_view accountName,
                                    const Transaction &transaction) {
-  verify(account(expenseAccounts, accountName), transaction);
+  verify(at(expenseAccounts, accountName), transaction);
+}
+
+static void transfer(Account &from, Account &to, USD amount) {
+  from.decreaseAllocationBy(amount);
+  to.increaseAllocationBy(amount);
 }
 
 static void transfer(std::map<std::string, std::shared_ptr<Account>,
-                              std::less<>> &accountsWithAllocation,
-                     Account &from, std::string_view name, USD amount,
-                     Budget::Observer *observer) {
-  accountsWithAllocation.find(name)->second->increaseAllocationBy(amount);
-  from.decreaseAllocationBy(amount);
+                              std::less<>> &expenseAccounts,
+                     Account &from, std::string_view name, USD amount) {
+  transfer(from, *at(expenseAccounts, name), amount);
 }
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
-  transfer(expenseAccounts, incomeAccount, accountName, amount, observer);
+  transfer(expenseAccounts, incomeAccount, accountName, amount);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
   const auto amount{amountNeeded - allocation(expenseAccounts, accountName)};
-  if (amount.cents > 0) {
-    at(expenseAccounts, accountName)->increaseAllocationBy(amount);
-    incomeAccount.decreaseAllocationBy(amount);
-  } else if (amount.cents < 0) {
-    at(expenseAccounts, accountName)->decreaseAllocationBy(-amount);
-    incomeAccount.increaseAllocationBy(-amount);
-  }
+  if (amount.cents > 0)
+    transfer(incomeAccount, *at(expenseAccounts, accountName), amount);
+  else if (amount.cents < 0)
+    transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
@@ -275,7 +275,7 @@ void BudgetInMemory::restore() {
   for (auto [name, accountWithAllocation] : expenseAccounts) {
     const auto amount{leftoverAfterExpenses(*accountWithAllocation)};
     if (amount.cents < 0)
-      transfer(expenseAccounts, incomeAccount, name, -amount, observer);
+      transfer(expenseAccounts, incomeAccount, name, -amount);
   }
 }
 } // namespace sbash64::budget
