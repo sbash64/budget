@@ -89,6 +89,9 @@ auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {
+  std::string allocation;
+  getline(stream, allocation);
+  observer.notifyThatAllocatedIsReady(usd(allocation));
   const auto transactionRecordDeserialization{factory.make(stream)};
   auto next{stream.get()};
   while (stream && next != '\n') {

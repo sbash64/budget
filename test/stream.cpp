@@ -127,11 +127,14 @@ public:
     return transactions_;
   }
 
-  void notifyThatAllocatedIsReady(USD) override {}
+  void notifyThatAllocatedIsReady(USD usd) override { allocation_ = usd; }
+
+  auto allocation() -> USD { return allocation_; }
 
 private:
   std::vector<ArchivableVerifiableTransaction> transactions_;
   std::istream &stream;
+  USD allocation_{};
 };
 
 class IoStreamFactoryStub : public IoStreamFactory {
@@ -255,7 +258,8 @@ john
 
 void nonfinalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(^27.34 hyvee 1/12/2021
+      R"(12.34
+^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
 
@@ -269,11 +273,13 @@ bobby)"};
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               observer.transactions());
+  assertEqual(result, 1234_cents, observer.allocation());
 }
 
 void finalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(50 transfer from master 1/10/2021
+      R"(12.34
+50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021)"};
   TransactionFromStreamFactoryStub factory;
