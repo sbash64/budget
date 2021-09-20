@@ -1,4 +1,5 @@
 #include "account.hpp"
+#include "domain.hpp"
 
 #include <functional>
 #include <numeric>
@@ -56,7 +57,7 @@ static auto make(ObservableTransaction::Factory &factory,
 }
 
 static void
-notifyUpdatedBalance(AccountInMemory::TransactionsType &transactions,
+notifyUpdatedBalance(const AccountInMemory::TransactionsType &transactions,
                      Account::Observer *observer) {
   callIfObserverExists(observer, [&](AccountInMemory::Observer *observer_) {
     observer_->notifyThatBalanceHasChanged(balance(transactions));
@@ -135,28 +136,40 @@ static void clear(AccountInMemory::TransactionsType &records) {
   records.clear();
 }
 
-void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
+static void resolveVerifiedTransactions(
+    const AccountInMemory::TransactionsType &transactions, USD &allocation,
+    const std::function<void(USD &, const std::shared_ptr<ObservableTransaction>
+                                        &)> &updateAllocation,
+    Account::Observer *observer) {
   for (const auto &transaction : transactions)
     if (transaction->verified()) {
-      allocation += transaction->amount();
+      updateAllocation(allocation, transaction);
       transaction->archive();
     }
-  callIfObserverExists(observer, [&](Observer *observer_) {
+  callIfObserverExists(observer, [&](Account::Observer *observer_) {
     observer_->notifyThatAllocationHasChanged(allocation);
   });
   notifyUpdatedBalance(transactions, observer);
 }
 
+void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
+  resolveVerifiedTransactions(
+      transactions, allocation,
+      [](USD &allocation_,
+         const std::shared_ptr<ObservableTransaction> &transaction) {
+        allocation_ += transaction->amount();
+      },
+      observer);
+}
+
 void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {
-  for (const auto &transaction : transactions)
-    if (transaction->verified()) {
-      allocation -= transaction->amount();
-      transaction->archive();
-    }
-  callIfObserverExists(observer, [&](Observer *observer_) {
-    observer_->notifyThatAllocationHasChanged(allocation);
-  });
-  notifyUpdatedBalance(transactions, observer);
+  resolveVerifiedTransactions(
+      transactions, allocation,
+      [](USD &allocation_,
+         const std::shared_ptr<ObservableTransaction> &transaction) {
+        allocation_ -= transaction->amount();
+      },
+      observer);
 }
 
 auto AccountInMemory::balance() -> USD { return budget::balance(transactions); }
