@@ -2,10 +2,8 @@
 
 #include <algorithm>
 #include <functional>
-#include <map>
 #include <memory>
 #include <numeric>
-#include <sstream>
 #include <string_view>
 #include <utility>
 
@@ -50,55 +48,47 @@ static auto leftoverAfterExpenses(Account &account) -> USD {
 
 static void notifyThatNetIncomeHasChanged(
     BudgetInMemory::Observer *observer, Account &incomeAccount,
-    const std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &expenseAccounts) {
+    const BudgetInMemory::ExpenseAccountsType &expenseAccounts) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
-    observer_->notifyThatNetIncomeHasChanged(accumulate(
-        expenseAccounts.begin(), expenseAccounts.end(),
-        incomeAccount.balance() + incomeAccount.allocated(),
-        [](USD net, const std::pair<std::string, std::shared_ptr<Account>>
-                        &expenseAccount) {
-          const auto &[name, account] = expenseAccount;
-          return net + leftoverAfterExpenses(*account);
-        }));
+    observer_->notifyThatNetIncomeHasChanged(
+        accumulate(expenseAccounts.begin(), expenseAccounts.end(),
+                   incomeAccount.balance() + incomeAccount.allocated(),
+                   [](USD net, const auto &expenseAccount) {
+                     const auto &[name, account] = expenseAccount;
+                     return net + leftoverAfterExpenses(*account);
+                   }));
   });
 }
 
-static auto
-contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
-         std::string_view accountName) -> bool {
+static auto contains(BudgetInMemory::ExpenseAccountsType &accounts,
+                     std::string_view accountName) -> bool {
   return accounts.find(accountName) != accounts.end();
 }
 
-static auto collect(const std::map<std::string, std::shared_ptr<Account>,
-                                   std::less<>> &expenseAccounts)
+static auto collect(const BudgetInMemory::ExpenseAccountsType &expenseAccounts)
     -> std::vector<SerializableAccountWithName> {
   std::vector<SerializableAccountWithName> collected;
   transform(expenseAccounts.begin(), expenseAccounts.end(),
-            back_inserter(collected),
-            [&](const std::pair<std::string, std::shared_ptr<Account>>
-                    &expenseAccount) {
+            back_inserter(collected), [&](const auto &expenseAccount) {
               const auto &[name, account] = expenseAccount;
               return SerializableAccountWithName{account.get(), name};
             });
   return collected;
 }
 
-static auto at(const std::map<std::string, std::shared_ptr<Account>,
-                              std::less<>> &expenseAccounts,
+static auto at(const BudgetInMemory::ExpenseAccountsType &expenseAccounts,
                std::string_view name) -> const std::shared_ptr<Account> & {
   return expenseAccounts.find(name)->second;
 }
 
-static auto allocation(const std::map<std::string, std::shared_ptr<Account>,
-                                      std::less<>> &expenseAccounts,
-                       std::string_view name) -> USD {
+static auto
+allocation(const BudgetInMemory::ExpenseAccountsType &expenseAccounts,
+           std::string_view name) -> USD {
   return at(expenseAccounts, name)->allocated();
 }
 
 static void
-makeExpenseAccount(std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                       &expenseAccounts,
+makeExpenseAccount(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
                    Account::Factory &accountFactory, std::string_view name,
                    Budget::Observer *observer) {
   expenseAccounts.insert(std::make_pair(name, accountFactory.make()));
@@ -109,18 +99,17 @@ makeExpenseAccount(std::map<std::string, std::shared_ptr<Account>, std::less<>>
                        });
 }
 
-static void makeAndLoadExpenseAccount(
-    std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &expenseAccounts,
-    Account::Factory &factory, AccountDeserialization &deserialization,
-    std::string_view name, Budget::Observer *observer) {
+static void
+makeAndLoadExpenseAccount(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
+                          Account::Factory &factory,
+                          AccountDeserialization &deserialization,
+                          std::string_view name, Budget::Observer *observer) {
   makeExpenseAccount(expenseAccounts, factory, name, observer);
   at(expenseAccounts, name)->load(deserialization);
 }
 
 static void createExpenseAccountIfNeeded(
-    std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &expenseAccounts,
+    BudgetInMemory::ExpenseAccountsType &expenseAccounts,
     Account::Factory &accountFactory, std::string_view accountName,
     Budget::Observer *observer) {
   if (!contains(expenseAccounts, accountName))
@@ -173,8 +162,7 @@ static void transfer(Account &from, Account &to, USD amount) {
   to.increaseAllocationBy(amount);
 }
 
-static void transfer(std::map<std::string, std::shared_ptr<Account>,
-                              std::less<>> &expenseAccounts,
+static void transfer(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
                      std::string_view name, Account &from, USD amount) {
   transfer(from, *at(expenseAccounts, name), amount);
 }
@@ -199,8 +187,7 @@ void BudgetInMemory::createAccount(std::string_view name) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, name, observer);
 }
 
-static void remove(std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                       &accountsWithAllocation,
+static void remove(BudgetInMemory::ExpenseAccountsType &accountsWithAllocation,
                    std::string_view name) {
   at(accountsWithAllocation, name)->remove();
   accountsWithAllocation.erase(std::string{name});
