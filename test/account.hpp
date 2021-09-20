@@ -33,6 +33,8 @@ void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
 void increasesAllocationByAmountArchived(testcpplite::TestResult &);
 void decreasesAllocationByAmountArchived(testcpplite::TestResult &);
+void notifiesObserverOfIncreasedAllocation(testcpplite::TestResult &);
+void notifiesObserverOfDecreasedAllocation(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

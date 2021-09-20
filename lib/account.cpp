@@ -136,6 +136,13 @@ static void clear(AccountInMemory::TransactionsType &records) {
   records.clear();
 }
 
+static void notifyUpdatedAllocation(Account::Observer *observer,
+                                    USD allocation) {
+  callIfObserverExists(observer, [allocation](Account::Observer *observer_) {
+    observer_->notifyThatAllocationHasChanged(allocation);
+  });
+}
+
 static void resolveVerifiedTransactions(
     const AccountInMemory::TransactionsType &transactions, USD &allocation,
     const std::function<void(USD &, const std::shared_ptr<ObservableTransaction>
@@ -146,9 +153,7 @@ static void resolveVerifiedTransactions(
       updateAllocation(allocation, transaction);
       transaction->archive();
     }
-  callIfObserverExists(observer, [&](Account::Observer *observer_) {
-    observer_->notifyThatAllocationHasChanged(allocation);
-  });
+  notifyUpdatedAllocation(observer, allocation);
   notifyUpdatedBalance(transactions, observer);
 }
 
@@ -185,9 +190,15 @@ void AccountInMemory::clear() {
   notifyUpdatedBalance(transactions, observer);
 }
 
-void AccountInMemory::increaseAllocationBy(USD) {}
+void AccountInMemory::increaseAllocationBy(USD usd) {
+  allocation += usd;
+  notifyUpdatedAllocation(observer, allocation);
+}
 
-void AccountInMemory::decreaseAllocationBy(USD) {}
+void AccountInMemory::decreaseAllocationBy(USD usd) {
+  allocation -= usd;
+  notifyUpdatedAllocation(observer, allocation);
+}
 
 auto AccountInMemory::allocated() -> USD { return {}; }
 
