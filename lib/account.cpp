@@ -55,13 +55,6 @@ static auto make(ObservableTransaction::Factory &factory,
   return transaction;
 }
 
-static void notifyUpdatedBalance(Account &account,
-                                 Account::Observer *observer) {
-  callIfObserverExists(observer, [&](AccountInMemory::Observer *observer_) {
-    observer_->notifyThatBalanceHasChanged(account.balance());
-  });
-}
-
 static void
 notifyUpdatedBalance(AccountInMemory::TransactionsType &transactions,
                      Account::Observer *observer) {
@@ -151,7 +144,7 @@ void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
   callIfObserverExists(observer, [&](Observer *observer_) {
     observer_->notifyThatAllocationHasChanged(allocation);
   });
-  notifyUpdatedBalance(*this, observer);
+  notifyUpdatedBalance(transactions, observer);
 }
 
 void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {}
@@ -166,8 +159,16 @@ void AccountInMemory::remove() {
 
 void AccountInMemory::clear() {
   budget::clear(transactions);
-  notifyUpdatedBalance(*this, observer);
+  notifyUpdatedBalance(transactions, observer);
 }
+
+void AccountInMemory::increaseAllocationBy(USD) {}
+
+void AccountInMemory::decreaseAllocationBy(USD) {}
+
+auto AccountInMemory::allocated() -> USD { return {}; }
+
+void AccountInMemory::notifyThatAllocatedIsReady(USD) {}
 
 auto AccountInMemory::Factory::make() -> std::shared_ptr<Account> {
   return std::make_shared<AccountInMemory>(transactionFactory);
@@ -176,8 +177,4 @@ auto AccountInMemory::Factory::make() -> std::shared_ptr<Account> {
 AccountInMemory::Factory::Factory(
     ObservableTransaction::Factory &transactionFactory)
     : transactionFactory{transactionFactory} {}
-void AccountInMemory::increaseAllocationBy(USD) {}
-void AccountInMemory::decreaseAllocationBy(USD) {}
-auto AccountInMemory::allocated() -> USD { return {}; }
-void AccountInMemory::notifyThatAllocatedIsReady(USD) {}
 } // namespace sbash64::budget
