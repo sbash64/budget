@@ -461,8 +461,10 @@ void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &result) {
     const auto orangutan{addObservableTransactionStub(factory)};
     orangutan->setAmount(1_cents);
     add(account);
+    account.increaseAllocationBy(2_cents);
     account.clear();
     assertEqual(result, 0_cents, observer.balance());
+    assertEqual(result, 0_cents, observer.allocation());
   });
 }
 

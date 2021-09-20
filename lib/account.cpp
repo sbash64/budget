@@ -91,45 +91,6 @@ static void remove(AccountInMemory::TransactionsType &transactions,
   }
 }
 
-AccountInMemory::AccountInMemory(ObservableTransaction::Factory &factory)
-    : factory{factory} {}
-
-void AccountInMemory::attach(Observer *a) { observer = a; }
-
-void AccountInMemory::add(const Transaction &transaction) {
-  budget::add(transactions, factory, observer, transaction);
-}
-
-void AccountInMemory::remove(const Transaction &transaction) {
-  budget::remove(transactions, observer, transaction);
-}
-
-void AccountInMemory::verify(const Transaction &transaction) {
-  budget::verify(transaction, transactions);
-}
-
-static auto collect(const AccountInMemory::TransactionsType &accounts)
-    -> std::vector<SerializableTransaction *> {
-  std::vector<SerializableTransaction *> collected;
-  collected.reserve(accounts.size());
-  for (const auto &account : accounts)
-    collected.push_back(account.get());
-  return collected;
-}
-
-void AccountInMemory::save(AccountSerialization &serialization) {
-  serialization.save(collect(transactions), USD{});
-}
-
-void AccountInMemory::load(AccountDeserialization &deserialization) {
-  deserialization.load(*this);
-}
-
-void AccountInMemory::notifyThatIsReady(
-    TransactionDeserialization &deserialization) {
-  addTransaction(transactions, factory, observer, deserialization);
-}
-
 static void clear(AccountInMemory::TransactionsType &records) {
   for (const auto &record : records)
     record->remove();
@@ -155,6 +116,45 @@ static void resolveVerifiedTransactions(
     }
   notifyUpdatedAllocation(observer, allocation);
   notifyUpdatedBalance(transactions, observer);
+}
+
+static auto collect(const AccountInMemory::TransactionsType &accounts)
+    -> std::vector<SerializableTransaction *> {
+  std::vector<SerializableTransaction *> collected;
+  collected.reserve(accounts.size());
+  for (const auto &account : accounts)
+    collected.push_back(account.get());
+  return collected;
+}
+
+AccountInMemory::AccountInMemory(ObservableTransaction::Factory &factory)
+    : factory{factory} {}
+
+void AccountInMemory::attach(Observer *a) { observer = a; }
+
+void AccountInMemory::add(const Transaction &transaction) {
+  budget::add(transactions, factory, observer, transaction);
+}
+
+void AccountInMemory::remove(const Transaction &transaction) {
+  budget::remove(transactions, observer, transaction);
+}
+
+void AccountInMemory::verify(const Transaction &transaction) {
+  budget::verify(transaction, transactions);
+}
+
+void AccountInMemory::save(AccountSerialization &serialization) {
+  serialization.save(collect(transactions), USD{});
+}
+
+void AccountInMemory::load(AccountDeserialization &deserialization) {
+  deserialization.load(*this);
+}
+
+void AccountInMemory::notifyThatIsReady(
+    TransactionDeserialization &deserialization) {
+  addTransaction(transactions, factory, observer, deserialization);
 }
 
 void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
@@ -187,6 +187,8 @@ void AccountInMemory::remove() {
 
 void AccountInMemory::clear() {
   budget::clear(transactions);
+  allocation.cents = 0;
+  notifyUpdatedAllocation(observer, allocation);
   notifyUpdatedBalance(transactions, observer);
 }
 
