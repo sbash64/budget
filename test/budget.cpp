@@ -157,15 +157,6 @@ public:
     newAccount_ = &account;
   }
 
-  void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                              USD amount) override {
-    categoryAllocations_[std::string{name}].push_back(amount);
-  }
-
-  void notifyThatUnallocatedIncomeHasChanged(USD amount) override {
-    unallocatedIncome_.push_back(amount);
-  }
-
   auto unallocatedIncome() -> std::vector<USD> { return unallocatedIncome_; }
 
   auto categoryAllocations(std::string_view s) -> std::vector<USD> {

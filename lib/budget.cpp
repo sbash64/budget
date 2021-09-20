@@ -178,17 +178,6 @@ void BudgetInMemory::verifyExpense(std::string_view accountName,
   verify(account(expenseAccounts, accountName), transaction);
 }
 
-static void notifyThatCategoryAllocationHasChanged(
-    Budget::Observer *observer, std::string_view name,
-    const std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &accountsWithAllocation) {
-  callIfObserverExists(
-      observer, [name, &accountsWithAllocation](Budget::Observer *observer_) {
-        observer_->notifyThatCategoryAllocationHasChanged(
-            name, allocation(accountsWithAllocation, name));
-      });
-}
-
 static void transfer(std::map<std::string, std::shared_ptr<Account>,
                               std::less<>> &accountsWithAllocation,
                      Account &from, std::string_view name, USD amount,

@@ -199,9 +199,9 @@ struct SerializableAccountWithName {
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
-  virtual void save(SerializableAccount *incomeAccountWithFunds,
-                    const std::vector<SerializableAccountWithName>
-                        &expenseAccountsWithFunds) = 0;
+  virtual void
+  save(SerializableAccount *incomeAccount,
+       const std::vector<SerializableAccountWithName> &expenseAccounts) = 0;
 };
 
 class BudgetDeserialization {
@@ -226,9 +226,6 @@ public:
     notifyThatExpenseAccountHasBeenCreated(Account &,
                                            std::string_view name) = 0;
     virtual void notifyThatNetIncomeHasChanged(USD) = 0;
-    virtual void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                                        USD amount) = 0;
-    virtual void notifyThatUnallocatedIncomeHasChanged(USD) = 0;
   };
 
   virtual void attach(Observer *) = 0;
