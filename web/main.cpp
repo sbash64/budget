@@ -320,8 +320,8 @@ static auto backupDirectory(const std::filesystem::path &parentPath,
 namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
-  InMemoryAccount incomeAccount{transactionFactory};
-  InMemoryAccount::Factory accountFactory{transactionFactory};
+  AccountInMemory incomeAccount{transactionFactory};
+  AccountInMemory::Factory accountFactory{transactionFactory};
   BudgetInMemory budget{incomeAccount, accountFactory};
   FileStreamFactory streamFactory;
   WritesTransactionToStream::Factory transactionRecordSerializationFactory;
