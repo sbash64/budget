@@ -58,15 +58,16 @@ public:
   auto accountName() -> std::string { return accountName_; }
 
   void save(const std::vector<SerializableTransaction *> &transactions,
-            USD) override {
+            USD usd) override {
     transactions_ = transactions;
+    allocation_ = usd;
   }
 
   auto transactions() -> std::vector<SerializableTransaction *> {
     return transactions_;
   }
 
-  auto funds() -> USD { return funds_; }
+  auto allocation() -> USD { return allocation_; }
 
   void load(Observer &observer) override { observer_ = &observer; }
 
@@ -75,7 +76,7 @@ public:
 private:
   std::string accountName_;
   std::vector<SerializableTransaction *> transactions_;
-  USD funds_{};
+  USD allocation_{};
   const Observer *observer_{};
 };
 } // namespace sbash64::budget

@@ -254,9 +254,11 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
     add(account);
     const auto andy{addObservableTransactionStub(factory)};
     add(account);
+    account.increaseAllocationBy(1_cents);
     PersistentAccountStub persistence;
     account.save(persistence);
     assertSaved(result, persistence, {john.get(), andy.get()});
+    assertEqual(result, 1_cents, persistence.allocation());
   });
 }
 

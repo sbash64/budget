@@ -145,7 +145,7 @@ void AccountInMemory::verify(const Transaction &transaction) {
 }
 
 void AccountInMemory::save(AccountSerialization &serialization) {
-  serialization.save(collect(transactions), USD{});
+  serialization.save(collect(transactions), allocation);
 }
 
 void AccountInMemory::load(AccountDeserialization &deserialization) {
