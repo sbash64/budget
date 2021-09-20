@@ -121,7 +121,7 @@ collect(const std::vector<std::shared_ptr<ObservableTransaction>> &accounts)
 }
 
 void InMemoryAccount::save(AccountSerialization &serialization) {
-  serialization.save(collect(transactions));
+  serialization.save(collect(transactions), USD{});
 }
 
 void InMemoryAccount::load(AccountDeserialization &deserialization) {
@@ -140,12 +140,19 @@ clear(std::vector<std::shared_ptr<ObservableTransaction>> &records) {
   records.clear();
 }
 
-void InMemoryAccount::archiveVerifiedTransactions() {
+void InMemoryAccount::increaseAllocationByResolvingVerifiedTransactions() {
   for (const auto &transaction : transactions)
-    if (transaction->verified())
+    if (transaction->verified()) {
+      allocation += transaction->amount();
       transaction->archive();
+    }
+  callIfObserverExists(observer, [&](Observer *observer_) {
+    observer_->notifyThatAllocationHasChanged(allocation);
+  });
   notifyUpdatedBalance(*this, observer);
 }
+
+void InMemoryAccount::decreaseAllocationByResolvingVerifiedTransactions() {}
 
 auto InMemoryAccount::balance() -> USD { return budget::balance(transactions); }
 

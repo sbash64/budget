@@ -31,8 +31,7 @@ void notifiesObserverOfUpdatedFundsOnReduce(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedFundsAndBalanceOnSerialization(
     testcpplite::TestResult &);
-void withdrawsFromFunds(testcpplite::TestResult &);
-void depositsToFunds(testcpplite::TestResult &);
+void increasesAllocationByAmountArchived(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif

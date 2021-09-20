@@ -29,14 +29,10 @@ void ReadsBudgetFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   const auto accountDeserialization{
       accountDeserializationFactory.make(*stream)};
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization);
   std::string line;
-  getline(*stream, line);
-  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(line));
   while (getline(*stream, line)) {
-    const auto lastSpace{line.find_last_of(' ')};
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization,
-                                             line.substr(0, lastSpace),
-                                             usd(line.substr(lastSpace)));
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
   }
 }
 
@@ -68,17 +64,14 @@ static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
 }
 
 void WritesBudgetToStream::save(
-    SerializableAccountWithFunds incomeAccountWithFunds,
-    const std::vector<SerializableAccountWithFundsAndName>
-        &expenseAccountsWithFunds) {
+    SerializableAccount *incomeAccountWithFunds,
+    const std::vector<SerializableAccountWithName> &expenseAccountsWithFunds) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
-  putNewLine(*stream << incomeAccountWithFunds.funds);
-  incomeAccountWithFunds.account->save(*accountSerialization);
+  incomeAccountWithFunds->save(*accountSerialization);
   for (auto accountWithFunds : expenseAccountsWithFunds) {
     putNewLine(stream);
-    putNewLine(*stream << accountWithFunds.name << ' '
-                       << accountWithFunds.funds);
+    putNewLine(*stream << accountWithFunds.name);
     accountWithFunds.account->save(*accountSerialization);
   }
 }
@@ -118,7 +111,8 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
 }
 
 void WritesAccountToStream::save(
-    const std::vector<SerializableTransaction *> &transactions) {
+    const std::vector<SerializableTransaction *> &transactions, USD allocated) {
+  putNewLine(stream << allocated);
   for (const auto &transaction : transactions) {
     transaction->save(*factory.make(stream));
     putNewLine(stream);

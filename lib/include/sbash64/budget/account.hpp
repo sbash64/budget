@@ -15,7 +15,12 @@ public:
   void remove() override;
   void load(AccountDeserialization &) override;
   void clear() override;
-  void archiveVerifiedTransactions() override;
+  void increaseAllocationBy(USD) override {}
+  void decreaseAllocationBy(USD) override {}
+  auto allocated() -> USD override { return {}; }
+  void notifyThatAllocatedIsReady(USD) override {}
+  void increaseAllocationByResolvingVerifiedTransactions() override;
+  void decreaseAllocationByResolvingVerifiedTransactions() override;
   void notifyThatIsReady(TransactionDeserialization &) override;
   void save(AccountSerialization &) override;
   void add(const Transaction &) override;
@@ -36,6 +41,7 @@ private:
   std::vector<std::shared_ptr<ObservableTransaction>> transactions;
   Observer *observer{};
   ObservableTransaction::Factory &factory;
+  USD allocation{};
 };
 } // namespace sbash64::budget
 

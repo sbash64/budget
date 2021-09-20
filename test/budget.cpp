@@ -22,13 +22,32 @@ public:
 
 class AccountStub : public virtual Account {
 public:
+  auto decreasedAllocationAmount() -> USD { return decreasedAllocationAmount_; }
+
+  auto increasedAllocationAmount() -> USD { return increasedAllocationAmount_; }
+
+  auto decreasedAllocationAmounts() -> std::vector<USD> {
+    return decreasedAllocationAmounts_;
+  }
+
+  void increaseAllocationBy(USD usd) override {
+    increasedAllocationAmount_ = usd;
+  }
+
+  void decreaseAllocationBy(USD usd) override {
+    decreasedAllocationAmount_ = usd;
+    decreasedAllocationAmounts_.push_back(usd);
+  }
+
+  void notifyThatAllocatedIsReady(USD) override {}
+
   void clear() override { cleared_ = true; }
 
   void setBalance(USD b) { balance_ = b; }
 
-  void setBalanceOnTransactionArchive(USD usd) {
-    balanceOnTransactionArchive = usd;
-  }
+  void setAllocated(USD usd) { allocated_ = usd; }
+
+  auto allocated() -> USD override { return allocated_; }
 
   void attach(Observer *) override {}
 
@@ -40,13 +59,22 @@ public:
     return deserialization_;
   }
 
-  void archiveVerifiedTransactions() override {
-    balance_ = balanceOnTransactionArchive;
-    archivedVerifiedTransactions_ = true;
+  void increaseAllocationByResolvingVerifiedTransactions() override {
+    increasedAllocationByResolvingVerifiedTransactions_ = true;
   }
 
-  [[nodiscard]] auto archivedVerifiedTransactions() const -> bool {
-    return archivedVerifiedTransactions_;
+  void decreaseAllocationByResolvingVerifiedTransactions() override {
+    decreasedAllocationByResolvingVerifiedTransactions_ = true;
+  }
+
+  [[nodiscard]] auto increasedAllocationByResolvingVerifiedTransactions() const
+      -> bool {
+    return increasedAllocationByResolvingVerifiedTransactions_;
+  }
+
+  [[nodiscard]] auto decreasedAllocationByResolvingVerifiedTransactions() const
+      -> bool {
+    return decreasedAllocationByResolvingVerifiedTransactions_;
   }
 
   auto balance() -> USD override { return balance_; }
@@ -82,13 +110,18 @@ private:
   Transaction verifiedTransaction_;
   Transaction addedTransaction_;
   Transaction removedTransaction_;
-  bool transactionRemoved_{};
+  std::vector<USD> decreasedAllocationAmounts_;
   const AccountDeserialization *deserialization_{};
   USD balance_{};
   USD balanceOnTransactionArchive{};
+  USD increasedAllocationAmount_{};
+  USD decreasedAllocationAmount_{};
+  USD allocated_{};
+  bool transactionRemoved_{};
   bool removed_{};
   bool cleared_{};
-  bool archivedVerifiedTransactions_{};
+  bool increasedAllocationByResolvingVerifiedTransactions_{};
+  bool decreasedAllocationByResolvingVerifiedTransactions_{};
 };
 
 class AccountFactoryStub : public Account::Factory {
@@ -277,15 +310,15 @@ void addsExpenseToExistingAccount(testcpplite::TestResult &result) {
 }
 
 void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        addAccountStub(factory, "giraffe");
-        budget.transferTo("giraffe", 456_cents);
-        assertEqual(result, {-456_cents}, observer.unallocatedIncome());
-        assertCategoryAllocations(result, observer, {456_cents}, "giraffe");
-      });
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{addAccountStub(factory, "giraffe")};
+    budget.transferTo("giraffe", 456_cents);
+    assertEqual(result, 456_cents, giraffe->increasedAllocationAmount());
+    assertEqual(result, 456_cents, incomeAccount.decreasedAllocationAmount());
+  });
 }
 
 void savesAccounts(testcpplite::TestResult &result) {
@@ -296,24 +329,23 @@ void savesAccounts(testcpplite::TestResult &result) {
     const auto leopard{createAccountStub(budget, factory, "leopard")};
     PersistentMemoryStub persistence;
     budget.save(persistence);
-    assertEqual(result, &incomeAccount,
-                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, &incomeAccount, persistence.incomeAccountWithFunds());
     assertEqual(result, giraffe.get(),
-                persistence.expenseAccountsWithFunds().at(0).account);
+                persistence.expenseAccountsWithNames().at(0).account);
     assertEqual(result, leopard.get(),
-                persistence.expenseAccountsWithFunds().at(1).account);
+                persistence.expenseAccountsWithNames().at(1).account);
     assertEqual(result, penguin.get(),
-                persistence.expenseAccountsWithFunds().at(2).account);
+                persistence.expenseAccountsWithNames().at(2).account);
   });
 }
 
 static void assertDeserializes(
     testcpplite::TestResult &result, BudgetDeserialization::Observer &observer,
     void (BudgetDeserialization::Observer::*notify)(AccountDeserialization &,
-                                                    std::string_view, USD),
+                                                    std::string_view),
     AccountDeserialization &deserialization, std::string_view name,
     const std::shared_ptr<AccountStub> &account) {
-  (observer.*notify)(deserialization, name, 1_cents);
+  (observer.*notify)(deserialization, name);
   assertEqual(result, &deserialization, account->deserialization());
 }
 
@@ -330,8 +362,8 @@ void loadsAccounts(testcpplite::TestResult &result) {
     assertEqual(result, &budget, persistence.observer());
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatIncomeAccountIsReady(deserialization, 1_cents);
-    assertEqual(result, 1_cents, observer.unallocatedIncome().front());
+    budget.notifyThatIncomeAccountIsReady(deserialization);
+    // assertEqual(result, 1_cents, observer.unallocatedIncome().front());
     assertEqual(result, &deserialization, incomeAccount.deserialization());
     assertDeserializes(
         result, budget,
@@ -343,12 +375,11 @@ void loadsAccounts(testcpplite::TestResult &result) {
         deserialization, "leopard", leopard);
 
     budget.save(persistence);
-    assertEqual(result, &incomeAccount,
-                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, &incomeAccount, persistence.incomeAccountWithFunds());
     assertEqual(result, leopard.get(),
-                persistence.expenseAccountsWithFunds().at(0).account);
+                persistence.expenseAccountsWithNames().at(0).account);
     assertEqual(result, penguin.get(),
-                persistence.expenseAccountsWithFunds().at(1).account);
+                persistence.expenseAccountsWithNames().at(1).account);
   });
 }
 
@@ -362,9 +393,9 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     budget.load(persistence);
 
     AccountDeserializationStub deserialization;
-    budget.notifyThatIncomeAccountIsReady(deserialization, 1_cents);
-    budget.notifyThatExpenseAccountIsReady(deserialization, "penguin", 3_cents);
-    budget.notifyThatExpenseAccountIsReady(deserialization, "leopard", 5_cents);
+    budget.notifyThatIncomeAccountIsReady(deserialization);
+    budget.notifyThatExpenseAccountIsReady(deserialization, "penguin");
+    budget.notifyThatExpenseAccountIsReady(deserialization, "leopard");
 
     const auto turtle{addAccountStub(factory, "turtle")};
     const auto tiger{addAccountStub(factory, "tiger")};
@@ -375,7 +406,7 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
     assertTrue(result, penguin->removed());
     assertTrue(result, leopard->removed());
 
-    budget.notifyThatIncomeAccountIsReady(deserialization, 2_cents);
+    budget.notifyThatIncomeAccountIsReady(deserialization);
     assertDeserializes(
         result, budget,
         &BudgetDeserialization::Observer::notifyThatExpenseAccountIsReady,
@@ -386,12 +417,11 @@ void clearsOldAccounts(testcpplite::TestResult &result) {
         deserialization, "tiger", tiger);
 
     budget.save(persistence);
-    assertEqual(result, &incomeAccount,
-                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, &incomeAccount, persistence.incomeAccountWithFunds());
     assertEqual(result, tiger.get(),
-                persistence.expenseAccountsWithFunds().at(0).account);
+                persistence.expenseAccountsWithNames().at(0).account);
     assertEqual(result, turtle.get(),
-                persistence.expenseAccountsWithFunds().at(1).account);
+                persistence.expenseAccountsWithNames().at(1).account);
   });
 }
 
@@ -435,10 +465,9 @@ void renamesAccount(testcpplite::TestResult &result) {
         BudgetObserverStub observer;
         budget.attach(&observer);
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-        budget.allocate("giraffe", 3_cents);
         budget.renameAccount("giraffe", "zebra");
         budget.transferTo("zebra", 4_cents);
-        assertCategoryAllocations(result, observer, {7_cents}, "zebra");
+        assertEqual(result, 4_cents, giraffe->increasedAllocationAmount());
       });
 }
 
@@ -463,23 +492,28 @@ void verifiesIncome(testcpplite::TestResult &result) {
 }
 
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto account{addAccountStub(factory, "giraffe")};
-    AccountDeserializationStub deserialization;
-    budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe", 1_cents);
-    assertEqual(result, "giraffe", observer.newAccountName());
-    assertEqual(result, account.get(), observer.newAccount());
-    assertEqual(result, 1_cents,
-                observer.categoryAllocations("giraffe").front());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto account{addAccountStub(factory, "giraffe")};
+        AccountDeserializationStub deserialization;
+        budget.notifyThatExpenseAccountIsReady(deserialization, "giraffe");
+        assertEqual(result, "giraffe", observer.newAccountName());
+        assertEqual(result, account.get(), observer.newAccount());
+      });
 }
 
-static void assertReduced(testcpplite::TestResult &result,
-                          AccountStub &account) {
-  assertTrue(result, account.archivedVerifiedTransactions());
+static void assertAllocationIncreasedByResolvingVerifiedTransactions(
+    testcpplite::TestResult &result, AccountStub &account) {
+  assertTrue(result,
+             account.increasedAllocationByResolvingVerifiedTransactions());
+}
+
+static void assertAllocationDecreasedByResolvingVerifiedTransactions(
+    testcpplite::TestResult &result, AccountStub &account) {
+  assertTrue(result,
+             account.decreasedAllocationByResolvingVerifiedTransactions());
 }
 
 void reducesEachAccount(testcpplite::TestResult &result) {
@@ -490,19 +524,12 @@ void reducesEachAccount(testcpplite::TestResult &result) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    incomeAccount.setBalanceOnTransactionArchive(4_cents);
-    giraffe->setBalanceOnTransactionArchive(5_cents);
-    penguin->setBalanceOnTransactionArchive(6_cents);
-    leopard->setBalanceOnTransactionArchive(7_cents);
     budget.reduce();
-    assertReduced(result, incomeAccount);
-    assertReduced(result, *giraffe);
-    assertReduced(result, *penguin);
-    assertReduced(result, *leopard);
-    assertEqual(result, {4_cents}, observer.unallocatedIncome());
-    assertCategoryAllocations(result, observer, {-5_cents}, "giraffe");
-    assertCategoryAllocations(result, observer, {-6_cents}, "penguin");
-    assertCategoryAllocations(result, observer, {-7_cents}, "leopard");
+    assertAllocationIncreasedByResolvingVerifiedTransactions(result,
+                                                             incomeAccount);
+    assertAllocationDecreasedByResolvingVerifiedTransactions(result, *giraffe);
+    assertAllocationDecreasedByResolvingVerifiedTransactions(result, *penguin);
+    assertAllocationDecreasedByResolvingVerifiedTransactions(result, *leopard);
   });
 }
 
@@ -515,19 +542,18 @@ void notifiesThatNetIncomeHasChangedOnAddedIncome(
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    giraffe->setBalanceOnTransactionArchive(1_cents);
-    penguin->setBalanceOnTransactionArchive(2_cents);
-    leopard->setBalanceOnTransactionArchive(3_cents);
-    incomeAccount.setBalanceOnTransactionArchive(4_cents);
-    budget.reduce();
     giraffe->setBalance(5_cents);
+    giraffe->setAllocated(9_cents);
     penguin->setBalance(6_cents);
+    penguin->setAllocated(10_cents);
     leopard->setBalance(7_cents);
+    leopard->setAllocated(11_cents);
     incomeAccount.setBalance(8_cents);
+    incomeAccount.setAllocated(12_cents);
     addIncome(budget);
     assertEqual(result,
-                8_cents + 4_cents - 5_cents - 6_cents - 7_cents - 1_cents -
-                    2_cents - 3_cents,
+                8_cents - 5_cents - 6_cents - 7_cents + 9_cents + 10_cents +
+                    11_cents + 12_cents,
                 observer.netIncome());
   });
 }
@@ -579,12 +605,11 @@ void removesAccount(testcpplite::TestResult &result) {
     assertTrue(result, giraffe->removed());
     PersistentMemoryStub persistence;
     budget.save(persistence);
-    assertEqual(result, &incomeAccount,
-                persistence.incomeAccountWithFunds().account);
+    assertEqual(result, &incomeAccount, persistence.incomeAccountWithFunds());
     assertEqual(result, leopard.get(),
-                persistence.expenseAccountsWithFunds().at(0).account);
+                persistence.expenseAccountsWithNames().at(0).account);
     assertEqual(result, penguin.get(),
-                persistence.expenseAccountsWithFunds().at(1).account);
+                persistence.expenseAccountsWithNames().at(1).account);
   });
 }
 
@@ -598,93 +623,98 @@ void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
         PersistentMemoryStub persistence;
         budget.save(persistence);
         assertEqual(result, giraffe1.get(),
-                    persistence.expenseAccountsWithFunds().at(0).account);
+                    persistence.expenseAccountsWithNames().at(0).account);
       });
 }
 
 void closesAccount(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-        const auto penguin{createAccountStub(budget, factory, "penguin")};
-        const auto leopard{createAccountStub(budget, factory, "leopard")};
-        budget.allocate("giraffe", 7_cents);
-        giraffe->setBalance(4_cents);
-        budget.closeAccount("giraffe");
-        assertEqual(result, {-7_cents, -4_cents}, observer.unallocatedIncome());
-        assertCategoryAllocations(result, observer, {7_cents}, "giraffe");
-        PersistentMemoryStub persistence;
-        budget.save(persistence);
-        assertEqual(result, leopard.get(),
-                    persistence.expenseAccountsWithFunds().at(0).account);
-        assertEqual(result, penguin.get(),
-                    persistence.expenseAccountsWithFunds().at(1).account);
-      });
-}
-
-void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    giraffe->setBalance(11_cents);
-    budget.allocate("giraffe", 7_cents);
-    budget.closeAccount("giraffe");
-    assertEqual(result, {-7_cents, -11_cents}, observer.unallocatedIncome());
-  });
-}
-
-void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-        budget.createAccount("giraffe");
-        budget.allocate("giraffe", 456_cents);
-        assertCategoryAllocations(result, observer, {456_cents}, "giraffe");
-        assertEqual(result, {-456_cents}, observer.unallocatedIncome());
-      });
-}
-
-void transfersAmountFromAccountAllocatedSufficiently(
-    testcpplite::TestResult &result) {
-  testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
-        BudgetObserverStub observer;
-        budget.attach(&observer);
-        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-        budget.createAccount("giraffe");
-        budget.allocate("giraffe", 101_cents);
-        assertCategoryAllocations(result, observer, {101_cents}, "giraffe");
-        assertEqual(result, {-101_cents}, observer.unallocatedIncome());
-      });
-}
-
-void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
     BudgetObserverStub observer;
     budget.attach(&observer);
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
     const auto leopard{createAccountStub(budget, factory, "leopard")};
-    budget.allocate("giraffe", 1_cents);
-    budget.allocate("penguin", 5_cents);
-    budget.allocate("leopard", 3_cents);
+    giraffe->setBalance(4_cents);
+    giraffe->setAllocated(5_cents);
+    budget.closeAccount("giraffe");
+    assertEqual(result, 1_cents, incomeAccount.increasedAllocationAmount());
+    PersistentMemoryStub persistence;
+    budget.save(persistence);
+    assertEqual(result, leopard.get(),
+                persistence.expenseAccountsWithNames().at(0).account);
+    assertEqual(result, penguin.get(),
+                persistence.expenseAccountsWithNames().at(1).account);
+    assertEqual(result, "leopard",
+                persistence.expenseAccountsWithNames().at(0).name);
+    assertEqual(result, "penguin",
+                persistence.expenseAccountsWithNames().at(1).name);
+    assertEqual(result, std::vector<SerializableAccountWithName>::size_type{2},
+                persistence.expenseAccountsWithNames().size());
+  });
+}
+
+void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    giraffe->setBalance(11_cents);
+    giraffe->setAllocated(7_cents);
+    budget.closeAccount("giraffe");
+    assertEqual(result, 4_cents, incomeAccount.decreasedAllocationAmount());
+  });
+}
+
+void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    giraffe->setAllocated(4_cents);
+    budget.allocate("giraffe", 7_cents);
+    assertEqual(result, 3_cents, incomeAccount.decreasedAllocationAmount());
+    assertEqual(result, 3_cents, giraffe->increasedAllocationAmount());
+  });
+}
+
+void transfersAmountFromAccountAllocatedSufficiently(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    giraffe->setAllocated(7_cents);
+    budget.allocate("giraffe", 4_cents);
+    assertEqual(result, 3_cents, incomeAccount.increasedAllocationAmount());
+    assertEqual(result, 3_cents, giraffe->decreasedAllocationAmount());
+  });
+}
+
+void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount, Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    const auto penguin{createAccountStub(budget, factory, "penguin")};
+    const auto leopard{createAccountStub(budget, factory, "leopard")};
+    giraffe->setAllocated(1_cents);
     giraffe->setBalance(6_cents);
+    penguin->setAllocated(5_cents);
     penguin->setBalance(2_cents);
+    leopard->setAllocated(3_cents);
     leopard->setBalance(4_cents);
     budget.restore();
-    assertEqual(result, {1_cents, 6_cents},
-                observer.categoryAllocations("giraffe"));
-    assertEqual(result, {3_cents, 4_cents},
-                observer.categoryAllocations("leopard"));
-    assertEqual(result, {-1_cents, -6_cents, -9_cents, -14_cents, -15_cents},
-                observer.unallocatedIncome());
+    assertEqual(result, {6_cents - 1_cents, 4_cents - 3_cents},
+                incomeAccount.decreasedAllocationAmounts());
+    assertEqual(result, 6_cents - 1_cents,
+                giraffe->increasedAllocationAmount());
+    assertEqual(result, 4_cents - 3_cents,
+                leopard->increasedAllocationAmount());
   });
 }
 } // namespace sbash64::budget

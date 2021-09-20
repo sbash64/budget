@@ -116,9 +116,13 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
+  auto allocation() -> USD { return allocation_; }
+
   auto balance() -> USD { return balance_; }
 
   void notifyThatBalanceHasChanged(USD balance) override { balance_ = balance; }
+
+  void notifyThatAllocationHasChanged(USD usd) override { allocation_ = usd; }
 
   void notifyThatHasBeenAdded(ObservableTransaction &tr) override {
     newTransactionRecord_ = &tr;
@@ -135,6 +139,7 @@ public:
 private:
   ObservableTransaction *newTransactionRecord_{};
   USD balance_{};
+  USD allocation_{};
   bool willBeRemoved_{};
 };
 
@@ -412,7 +417,7 @@ void notifiesUpdatedBalanceAfterArchivingVerified(
     gorilla->setAmount(2_cents);
     chimp->setAmount(3_cents);
     gorilla->setArchived();
-    account.archiveVerifiedTransactions();
+    account.increaseAllocationByResolvingVerifiedTransactions();
     assertEqual(result, 1_cents + 3_cents, account.balance());
     assertEqual(result, 1_cents + 3_cents, observer.balance());
   });
@@ -428,7 +433,7 @@ void archivesVerifiedTransactions(testcpplite::TestResult &result) {
     add(account);
     add(account);
     gorilla->setVerified();
-    account.archiveVerifiedTransactions();
+    account.increaseAllocationByResolvingVerifiedTransactions();
     assertFalse(result, orangutan->wasArchived());
     assertFalse(result, chimp->wasArchived());
     assertTrue(result, gorilla->wasArchived());
@@ -458,6 +463,25 @@ void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &result) {
     add(account);
     account.clear();
     assertEqual(result, 0_cents, observer.balance());
+  });
+}
+
+void increasesAllocationByAmountArchived(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](InMemoryAccount &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    const auto orangutan{addObservableTransactionInMemory(factory)};
+    const auto gorilla{addObservableTransactionInMemory(factory)};
+    const auto chimp{addObservableTransactionInMemory(factory)};
+    add(account, Transaction{2_cents, "gorilla", Date{2020, Month::June, 2}});
+    add(account, Transaction{3_cents, "chimp", Date{2020, Month::June, 2}});
+    add(account, Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.verify(Transaction{2_cents, "gorilla", Date{2020, Month::June, 2}});
+    account.verify(Transaction{3_cents, "chimp", Date{2020, Month::June, 2}});
+    account.increaseAllocationByResolvingVerifiedTransactions();
+    assertEqual(result, 2_cents + 3_cents, observer.allocation());
+    assertEqual(result, 4_cents, observer.balance());
   });
 }
 } // namespace sbash64::budget::account

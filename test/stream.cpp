@@ -14,16 +14,11 @@ namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
-                                      USD usd) override {
-    unallocatedIncome_ = usd;
-  }
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override {}
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                       std::string_view name,
-                                       USD usd) override {
+                                       std::string_view name) override {
     expenseAccountNames_.emplace_back(name);
-    expenseAccountAllocations_.push_back(usd);
   }
 
   auto expenseAccountNames() -> std::vector<std::string> {
@@ -56,7 +51,7 @@ private:
 
 class AccountSerializationStub : public AccountSerialization {
 public:
-  void save(const std::vector<SerializableTransaction *> &) override {}
+  void save(const std::vector<SerializableTransaction *> &, USD) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -131,6 +126,8 @@ public:
   auto transactions() -> std::vector<ArchivableVerifiableTransaction> {
     return transactions_;
   }
+
+  void notifyThatAllocatedIsReady(USD) override {}
 
 private:
   std::vector<ArchivableVerifiableTransaction> transactions_;
@@ -246,8 +243,9 @@ void fromAccount(testcpplite::TestResult &result) {
   SavesNameTransaction sue{stream, "sue"};
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
-  accountSerialization.save({&steve, &sue, &allen, &john});
-  assertEqual(result, R"(steve
+  accountSerialization.save({&steve, &sue, &allen, &john}, 123_cents);
+  assertEqual(result, R"(1.23
+steve
 sue
 allen
 john
@@ -300,26 +298,23 @@ void fromBudget(testcpplite::TestResult &result) {
   SavesNameAccount steve{*stream, "steve"};
   SavesNameAccount sue{*stream, "sue"};
   SavesNameAccount allen{*stream, "allen"};
-  sessionSerialization.save({&jeff, 4_cents}, {{&steve, 1_cents, "stevey"},
-                                               {&sue, 2_cents, "suzie yo"},
-                                               {&allen, 3_cents, "arod"}});
-  assertEqual(result, R"(0.04
-jeff
-stevey 0.01
+  sessionSerialization.save(
+      &jeff, {{&steve, "stevey"}, {&sue, "suzie yo"}, {&allen, "arod"}});
+  assertEqual(result, R"(jeff
+stevey
 steve
-suzie yo 0.02
+suzie yo
 sue
-arod 0.03
+arod
 allen)",
               stream->str());
 }
 
 void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
-      R"(12.34
-steve 22
-sue is here 33
-allen 4.50)")};
+      R"(steve
+sue is here
+allen)")};
   IoStreamFactoryStub streamFactory{input};
   AccountFromStreamFactoryStub accountDeserializationFactory;
   ReadsBudgetFromStream readsBudget{streamFactory,
@@ -329,9 +324,5 @@ allen 4.50)")};
   assertEqual(result, "steve", observer.expenseAccountNames().at(0));
   assertEqual(result, "sue is here", observer.expenseAccountNames().at(1));
   assertEqual(result, "allen", observer.expenseAccountNames().at(2));
-  assertEqual(result, 2200_cents, observer.expenseAccountAllocations().at(0));
-  assertEqual(result, 3300_cents, observer.expenseAccountAllocations().at(1));
-  assertEqual(result, 450_cents, observer.expenseAccountAllocations().at(2));
-  assertEqual(result, 1234_cents, observer.unallocatedIncome());
 }
 } // namespace sbash64::budget::streams
