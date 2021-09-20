@@ -8,14 +8,21 @@
 #include <vector>
 
 namespace sbash64::budget {
-class InMemoryAccount : public virtual Account {
+class AccountInMemory : public Account {
 public:
-  explicit InMemoryAccount(ObservableTransaction::Factory &);
+  using TransactionsType = std::vector<std::shared_ptr<ObservableTransaction>>;
+
+  explicit AccountInMemory(ObservableTransaction::Factory &);
   void attach(Observer *) override;
   void remove() override;
   void load(AccountDeserialization &) override;
   void clear() override;
-  void reduce() override;
+  void increaseAllocationBy(USD) override;
+  void decreaseAllocationBy(USD) override;
+  auto allocated() -> USD override;
+  void notifyThatAllocatedIsReady(USD) override;
+  void increaseAllocationByResolvingVerifiedTransactions() override;
+  void decreaseAllocationByResolvingVerifiedTransactions() override;
   void notifyThatIsReady(TransactionDeserialization &) override;
   void save(AccountSerialization &) override;
   void add(const Transaction &) override;
@@ -33,9 +40,10 @@ public:
   };
 
 private:
-  std::vector<std::shared_ptr<ObservableTransaction>> transactions;
+  TransactionsType transactions;
   Observer *observer{};
   ObservableTransaction::Factory &factory;
+  USD allocation{};
 };
 } // namespace sbash64::budget
 

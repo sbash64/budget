@@ -6,8 +6,10 @@
 namespace sbash64::budget::streams {
 void fromTransaction(testcpplite::TestResult &);
 void fromVerifiedTransaction(testcpplite::TestResult &);
+void fromArchivedVerifiedTransaction(testcpplite::TestResult &);
 void toTransaction(testcpplite::TestResult &);
 void toVerifiedTransaction(testcpplite::TestResult &);
+void toArchivedVerifiedTransaction(testcpplite::TestResult &);
 void fromAccount(testcpplite::TestResult &);
 void fromBudget(testcpplite::TestResult &);
 void nonfinalToAccount(testcpplite::TestResult &);

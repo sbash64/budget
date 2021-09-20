@@ -13,8 +13,11 @@ public:
   void save(TransactionSerialization &) override;
   void load(TransactionDeserialization &) override;
   auto amount() -> USD override;
-  void ready(const VerifiableTransaction &) override;
+  void ready(const ArchivableVerifiableTransaction &) override;
   void remove() override;
+  void archive() override;
+  auto archived() -> bool override;
+  auto verified() -> bool override;
 
   class Factory : public ObservableTransaction::Factory {
   public:
@@ -22,7 +25,7 @@ public:
   };
 
 private:
-  VerifiableTransaction verifiableTransaction;
+  ArchivableVerifiableTransaction archivableVerifiableTransaction;
   Observer *observer{};
 };
 } // namespace sbash64::budget

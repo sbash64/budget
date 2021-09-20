@@ -29,14 +29,10 @@ void ReadsBudgetFromStream::load(Observer &observer) {
   const auto stream{ioStreamFactory.makeInput()};
   const auto accountDeserialization{
       accountDeserializationFactory.make(*stream)};
-  std::string line;
-  getline(*stream, line);
-  observer.notifyThatIncomeAccountIsReady(*accountDeserialization, usd(line));
-  while (getline(*stream, line)) {
-    const auto lastSpace{line.find_last_of(' ')};
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization,
-                                             line.substr(0, lastSpace),
-                                             usd(line.substr(lastSpace)));
+  observer.notifyThatIncomeAccountIsReady(*accountDeserialization);
+  std::string name;
+  while (getline(*stream, name)) {
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, name);
   }
 }
 
@@ -68,18 +64,15 @@ static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
 }
 
 void WritesBudgetToStream::save(
-    SerializableAccountWithFunds incomeAccountWithFunds,
-    const std::vector<SerializableAccountWithFundsAndName>
-        &expenseAccountsWithFunds) {
+    SerializableAccount *incomeAccount,
+    const std::vector<SerializableAccountWithName> &expenseAccounts) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
-  putNewLine(*stream << incomeAccountWithFunds.funds);
-  incomeAccountWithFunds.account->save(*accountSerialization);
-  for (auto accountWithFunds : expenseAccountsWithFunds) {
+  incomeAccount->save(*accountSerialization);
+  for (auto [account, name] : expenseAccounts) {
     putNewLine(stream);
-    putNewLine(*stream << accountWithFunds.name << ' '
-                       << accountWithFunds.funds);
-    accountWithFunds.account->save(*accountSerialization);
+    putNewLine(*stream << name);
+    account->save(*accountSerialization);
   }
 }
 
@@ -96,6 +89,9 @@ auto ReadsAccountFromStream::Factory::make(std::istream &stream_)
 }
 
 void ReadsAccountFromStream::load(Observer &observer) {
+  std::string allocation;
+  getline(stream, allocation);
+  observer.notifyThatAllocatedIsReady(usd(allocation));
   const auto transactionRecordDeserialization{factory.make(stream)};
   auto next{stream.get()};
   while (stream && next != '\n') {
@@ -118,7 +114,8 @@ auto WritesAccountToStream::Factory::make(std::ostream &stream_)
 }
 
 void WritesAccountToStream::save(
-    const std::vector<SerializableTransaction *> &transactions) {
+    const std::vector<SerializableTransaction *> &transactions, USD allocated) {
+  putNewLine(stream << allocated);
   for (const auto &transaction : transactions) {
     transaction->save(*factory.make(stream));
     putNewLine(stream);
@@ -146,15 +143,21 @@ static auto date(std::string_view s) -> Date {
   return Date{year, Month{month}, day};
 }
 
-static void
-loadTransaction(std::string &line,
-                const std::function<void(const VerifiableTransaction &)>
-                    &onDeserialization) {
+static void loadTransaction(
+    std::string &line,
+    const std::function<void(const ArchivableVerifiableTransaction &)>
+        &onDeserialization) {
   std::stringstream transaction{line};
   auto verified{false};
+  auto archived{false};
   if (transaction.peek() == '^') {
     transaction.get();
     verified = true;
+  }
+  if (transaction.peek() == '%') {
+    transaction.get();
+    verified = true;
+    archived = true;
   }
   std::string next;
   transaction >> next;
@@ -173,14 +176,15 @@ loadTransaction(std::string &line,
   }
   description << next;
   onDeserialization(
-      {{amount, description.str(), date(eventuallyDate)}, verified});
+      {{amount, description.str(), date(eventuallyDate)}, verified, archived});
 }
 
 void ReadsTransactionFromStream::load(Observer &observer) {
   std::string line;
   getline(stream, line);
-  loadTransaction(
-      line, [&observer](const VerifiableTransaction &t) { observer.ready(t); });
+  loadTransaction(line, [&observer](const ArchivableVerifiableTransaction &t) {
+    observer.ready(t);
+  });
 }
 
 WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)
@@ -207,9 +211,12 @@ static void save(std::ostream &stream, const Transaction &transaction) {
          << transaction.date;
 }
 
-void WritesTransactionToStream::save(const VerifiableTransaction &credit) {
-  if (credit.verified)
+void WritesTransactionToStream::save(
+    const ArchivableVerifiableTransaction &transaction) {
+  if (transaction.archived)
+    stream << '%';
+  else if (transaction.verified)
     stream << '^';
-  budget::save(stream, credit.transaction);
+  budget::save(stream, transaction.transaction);
 }
 } // namespace sbash64::budget

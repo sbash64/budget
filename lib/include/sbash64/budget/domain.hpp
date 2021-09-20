@@ -69,17 +69,19 @@ struct Transaction {
   auto operator==(const Transaction &) const -> bool = default;
 };
 
-struct VerifiableTransaction {
+struct ArchivableVerifiableTransaction {
   Transaction transaction;
   bool verified{};
+  bool archived{};
 
-  auto operator==(const VerifiableTransaction &) const -> bool = default;
+  auto operator==(const ArchivableVerifiableTransaction &) const
+      -> bool = default;
 };
 
 class TransactionSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionSerialization);
-  virtual void save(const VerifiableTransaction &) = 0;
+  virtual void save(const ArchivableVerifiableTransaction &) = 0;
 };
 
 class TransactionDeserialization {
@@ -87,7 +89,7 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void ready(const VerifiableTransaction &) = 0;
+    virtual void ready(const ArchivableVerifiableTransaction &) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionDeserialization);
@@ -108,6 +110,7 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatIsVerified() = 0;
+    virtual void notifyThatIsArchived() = 0;
     virtual void notifyThatIs(const Transaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };
@@ -115,8 +118,11 @@ public:
   virtual void attach(Observer *) = 0;
   virtual void initialize(const Transaction &) = 0;
   virtual auto verifies(const Transaction &) -> bool = 0;
+  virtual auto verified() -> bool = 0;
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
+  virtual void archive() = 0;
+  virtual auto archived() -> bool = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {
@@ -129,7 +135,8 @@ public:
 class AccountSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountSerialization);
-  virtual void save(const std::vector<SerializableTransaction *> &) = 0;
+  virtual void save(const std::vector<SerializableTransaction *> &,
+                    USD allocated) = 0;
 };
 
 class AccountDeserialization {
@@ -138,6 +145,7 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatIsReady(TransactionDeserialization &) = 0;
+    virtual void notifyThatAllocatedIsReady(USD) = 0;
   };
 
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountDeserialization);
@@ -158,6 +166,7 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
     virtual void notifyThatBalanceHasChanged(USD) = 0;
+    virtual void notifyThatAllocationHasChanged(USD) = 0;
     virtual void notifyThatHasBeenAdded(ObservableTransaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
   };
@@ -166,8 +175,12 @@ public:
   virtual void add(const Transaction &) = 0;
   virtual void verify(const Transaction &) = 0;
   virtual void remove(const Transaction &) = 0;
-  virtual void reduce() = 0;
+  virtual void increaseAllocationBy(USD) = 0;
+  virtual void decreaseAllocationBy(USD) = 0;
+  virtual auto allocated() -> USD = 0;
   virtual auto balance() -> USD = 0;
+  virtual void increaseAllocationByResolvingVerifiedTransactions() = 0;
+  virtual void decreaseAllocationByResolvingVerifiedTransactions() = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;
 
@@ -178,23 +191,17 @@ public:
   };
 };
 
-struct SerializableAccountWithFunds {
+struct SerializableAccountWithName {
   SerializableAccount *account{};
-  USD funds;
-};
-
-struct SerializableAccountWithFundsAndName {
-  SerializableAccount *account{};
-  USD funds;
   std::string name;
 };
 
 class BudgetSerialization {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetSerialization);
-  virtual void save(SerializableAccountWithFunds incomeAccountWithFunds,
-                    const std::vector<SerializableAccountWithFundsAndName>
-                        &expenseAccountsWithFunds) = 0;
+  virtual void
+  save(SerializableAccount *incomeAccount,
+       const std::vector<SerializableAccountWithName> &expenseAccounts) = 0;
 };
 
 class BudgetDeserialization {
@@ -202,11 +209,9 @@ public:
   class Observer {
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void notifyThatIncomeAccountIsReady(AccountDeserialization &,
-                                                USD unallocated) = 0;
+    virtual void notifyThatIncomeAccountIsReady(AccountDeserialization &) = 0;
     virtual void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                                 std::string_view name,
-                                                 USD allocated) = 0;
+                                                 std::string_view name) = 0;
   };
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetDeserialization);
   virtual void load(Observer &) = 0;
@@ -221,9 +226,6 @@ public:
     notifyThatExpenseAccountHasBeenCreated(Account &,
                                            std::string_view name) = 0;
     virtual void notifyThatNetIncomeHasChanged(USD) = 0;
-    virtual void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                                        USD amount) = 0;
-    virtual void notifyThatUnallocatedIncomeHasChanged(USD) = 0;
   };
 
   virtual void attach(Observer *) = 0;

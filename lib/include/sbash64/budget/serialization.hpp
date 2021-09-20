@@ -47,8 +47,8 @@ public:
 class WritesBudgetToStream : public BudgetSerialization {
 public:
   WritesBudgetToStream(IoStreamFactory &, AccountToStreamFactory &);
-  void save(SerializableAccountWithFunds incomeAccountWithFunds,
-            const std::vector<SerializableAccountWithFundsAndName>
+  void save(SerializableAccount *incomeAccountWithFunds,
+            const std::vector<SerializableAccountWithName>
                 &expenseAccountsWithFunds) override;
 
 private:
@@ -59,7 +59,8 @@ private:
 class WritesAccountToStream : public AccountSerialization {
 public:
   explicit WritesAccountToStream(std::ostream &, TransactionToStreamFactory &);
-  void save(const std::vector<SerializableTransaction *> &) override;
+  void save(const std::vector<SerializableTransaction *> &,
+            USD allocated) override;
 
   class Factory : public AccountToStreamFactory {
   public:
@@ -78,7 +79,7 @@ private:
 class WritesTransactionToStream : public TransactionSerialization {
 public:
   explicit WritesTransactionToStream(std::ostream &);
-  void save(const VerifiableTransaction &) override;
+  void save(const ArchivableVerifiableTransaction &) override;
 
   class Factory : public TransactionToStreamFactory {
   public:

@@ -9,18 +9,11 @@
 #include <string>
 
 namespace sbash64::budget {
-struct AccountWithAllocation {
-  std::shared_ptr<Account> account;
-  USD allocation;
-};
-
-struct StaticAccountWithAllocation {
-  Account &account;
-  USD allocation;
-};
-
 class BudgetInMemory : public Budget {
 public:
+  using ExpenseAccountsType =
+      std::map<std::string, std::shared_ptr<Account>, std::less<>>;
+
   explicit BudgetInMemory(Account &incomeAccount, Account::Factory &);
   void attach(Observer *) override;
   void addIncome(const Transaction &) override;
@@ -41,15 +34,13 @@ public:
   void restore() override;
   void save(BudgetSerialization &) override;
   void load(BudgetDeserialization &) override;
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &, USD) override;
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override;
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                       std::string_view name,
-                                       USD allocated) override;
+                                       std::string_view name) override;
 
 private:
-  std::map<std::string, AccountWithAllocation, std::less<>>
-      expenseAccountsWithAllocations;
-  StaticAccountWithAllocation incomeAccountWithAllocation;
+  ExpenseAccountsType expenseAccounts;
+  Account &incomeAccount;
   Account::Factory &accountFactory;
   Observer *observer{};
 };

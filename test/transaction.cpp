@@ -9,16 +9,16 @@ namespace sbash64::budget::transaction {
 namespace {
 class TransactionSerializationStub : public TransactionSerialization {
 public:
-  void save(const VerifiableTransaction &vt) override {
-    verifiableTransaction_ = vt;
+  void save(const ArchivableVerifiableTransaction &vt) override {
+    archivableVerifiableTransaction_ = vt;
   }
 
-  auto verifiableTransaction() -> VerifiableTransaction {
-    return verifiableTransaction_;
+  auto archivableVerifiableTransaction() -> ArchivableVerifiableTransaction {
+    return archivableVerifiableTransaction_;
   }
 
 private:
-  VerifiableTransaction verifiableTransaction_;
+  ArchivableVerifiableTransaction archivableVerifiableTransaction_;
 };
 
 class TransactionObserverStub : public ObservableTransaction::Observer {
@@ -35,10 +35,21 @@ public:
 
   void notifyThatWillBeRemoved() override { removed_ = true; }
 
+  [[nodiscard]] auto archived() const -> bool { return archived_; }
+
+  void notifyThatIsArchived() override {
+    ++timesArchived_;
+    archived_ = true;
+  }
+
+  [[nodiscard]] auto timesArchived() const -> int { return timesArchived_; }
+
 private:
   Transaction transaction_;
+  int timesArchived_{};
   bool verified_{};
   bool removed_{};
+  bool archived_{};
 };
 
 class TransactionDeserializationStub : public TransactionDeserialization {
@@ -99,7 +110,8 @@ void savesVerificationByQuery(testcpplite::TestResult &result) {
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     TransactionSerializationStub serialization;
     record.save(serialization);
-    assertTrue(result, serialization.verifiableTransaction().verified);
+    assertTrue(result,
+               serialization.archivableVerifiableTransaction().verified);
   });
 }
 
@@ -113,7 +125,7 @@ void savesLoadedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.verifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction().transaction);
   });
 }
 
@@ -126,7 +138,17 @@ void savesInitializedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.verifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction().transaction);
+  });
+}
+
+void savesArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionSerializationStub serialization;
+    record.archive();
+    record.save(serialization);
+    assertTrue(result,
+               serialization.archivableVerifiableTransaction().archived);
   });
 }
 
@@ -160,6 +182,39 @@ void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
     record.removes(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     assertTrue(result, observer.removed());
+  });
+}
+
+void notifiesObserverOfArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.archive();
+    assertTrue(result, observer.archived());
+  });
+}
+
+void doesNotNotifyObserverOfArchivalTwice(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.archive();
+    record.archive();
+    assertEqual(result, 1, observer.timesArchived());
+  });
+}
+
+void isArchived(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.archive();
+    assertTrue(result, record.archived());
+  });
+}
+
+void isVerified(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    record.ready({Transaction{}, true});
+    assertTrue(result, record.verified());
   });
 }
 
@@ -198,6 +253,17 @@ void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
          true});
     assertTrue(result, observer.verified());
+  });
+}
+
+void notifiesObserverOfLoadedArchival(testcpplite::TestResult &result) {
+  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
+    TransactionObserverStub observer;
+    record.attach(&observer);
+    record.ready(
+        {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true,
+         true});
+    assertTrue(result, observer.archived());
   });
 }
 

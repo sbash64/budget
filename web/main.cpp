@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
+#include <utility>
 #include <websocketpp/common/connection_hdl.hpp>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
@@ -100,6 +101,37 @@ public:
   using Parent::index;
 };
 
+void assignMethod(nlohmann::json &json, std::string_view name) {
+  json["method"] = name;
+}
+
+auto json(ParentAndChild &parent, ObservableTransaction::Observer *observer,
+          std::string_view method) -> nlohmann::json {
+  nlohmann::json json;
+  assignMethod(json, method);
+  json["accountIndex"] = parent.index();
+  json["transactionIndex"] = parent.index(observer);
+  return json;
+}
+
+auto json(Parent &parent, Account::Observer *observer) -> nlohmann::json {
+  nlohmann::json json;
+  json["accountIndex"] = parent.index(observer);
+  return json;
+}
+
+void send(websocketpp::server<debug_custom> &server,
+          websocketpp::connection_hdl connection, const nlohmann::json &json) {
+  server.send(std::move(connection), json.dump(),
+              websocketpp::frame::opcode::value::text);
+}
+
+void assign(nlohmann::json &json, USD usd) {
+  std::stringstream stream;
+  stream << usd;
+  json["amount"] = stream.str();
+}
+
 class WebSocketTransactionRecordObserver
     : public ObservableTransaction::Observer {
 public:
@@ -112,37 +144,26 @@ public:
   }
 
   void notifyThatIsVerified() override {
-    nlohmann::json json;
-    json["method"] = "verify transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json(parent, this, "verify transaction"));
+  }
+
+  void notifyThatIsArchived() override {
+    send(server, connection, json(parent, this, "archive transaction"));
+    parent.release(this);
   }
 
   void notifyThatIs(const Transaction &t) override {
-    nlohmann::json json;
+    auto json = budget::json(parent, this, "update transaction");
     json["description"] = t.description;
-    std::stringstream amountStream;
-    amountStream << t.amount;
-    json["amount"] = amountStream.str();
+    assign(json, t.amount);
     std::stringstream dateStream;
     dateStream << t.date;
     json["date"] = dateStream.str();
-    json["method"] = "update transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
-    nlohmann::json json;
-    json["method"] = "remove transaction";
-    json["accountIndex"] = parent.index();
-    json["transactionIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    send(server, connection, json(parent, this, "remove transaction"));
     parent.release(this);
   }
 
@@ -179,33 +200,32 @@ public:
             -> bool { return child.get() == a; }));
   }
 
+  void notifyThatAllocationHasChanged(USD usd) override {
+    auto json = budget::json(parent, this);
+    assignMethod(json, "update account allocation");
+    assign(json, usd);
+    send(server, connection, json);
+  }
+
   void notifyThatBalanceHasChanged(USD usd) override {
-    nlohmann::json json;
-    json["method"] = "update account balance";
-    json["accountIndex"] = parent.index(this);
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    auto json = budget::json(parent, this);
+    assignMethod(json, "update account balance");
+    assign(json, usd);
+    send(server, connection, json);
   }
 
   void notifyThatHasBeenAdded(ObservableTransaction &t) override {
     children.push_back(std::make_shared<WebSocketTransactionRecordObserver>(
         server, connection, t, *this));
-    nlohmann::json json;
-    json["method"] = "add transaction";
-    json["accountIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    auto json = budget::json(parent, this);
+    assignMethod(json, "add transaction");
+    send(server, connection, json);
   }
 
   void notifyThatWillBeRemoved() override {
-    nlohmann::json json;
-    json["method"] = "remove account";
-    json["accountIndex"] = parent.index(this);
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    auto json = budget::json(parent, this);
+    assignMethod(json, "remove account");
+    send(server, connection, json);
     parent.release(this);
   }
 
@@ -244,33 +264,6 @@ public:
                            }));
   }
 
-  void notifyThatCategoryAllocationHasChanged(std::string_view name,
-                                              USD usd) override {
-    nlohmann::json json;
-    json["method"] = "update account allocation";
-    json["accountIndex"] = distance(
-        children.begin(), find_if(children.begin(), children.end(),
-                                  [name](const AccountObserverWithName &child) {
-                                    return child.name == name;
-                                  }));
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
-  }
-
-  void notifyThatUnallocatedIncomeHasChanged(USD usd) override {
-    nlohmann::json json;
-    json["method"] = "update unallocated income";
-    json["accountIndex"] = 0;
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
-  }
-
   void addAccount(Account &account, std::string_view name) {
     children.push_back(
         AccountObserverWithName{std::make_shared<WebSocketAccountObserver>(
@@ -278,9 +271,8 @@ public:
                                 std::string{name}});
     nlohmann::json json;
     json["name"] = name;
-    json["method"] = "add account";
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    assignMethod(json, "add account");
+    send(server, connection, json);
   }
 
   void notifyThatExpenseAccountHasBeenCreated(Account &account,
@@ -290,12 +282,9 @@ public:
 
   void notifyThatNetIncomeHasChanged(USD usd) override {
     nlohmann::json json;
-    std::stringstream amountStream;
-    amountStream << usd;
-    json["amount"] = amountStream.str();
-    json["method"] = "update net income";
-    server.send(connection, json.dump(),
-                websocketpp::frame::opcode::value::text);
+    assign(json, usd);
+    assignMethod(json, "update net income");
+    send(server, connection, json);
   }
 
 private:
@@ -317,8 +306,8 @@ static auto backupDirectory(const std::filesystem::path &parentPath,
 namespace {
 struct App {
   ObservableTransactionInMemory::Factory transactionFactory;
-  InMemoryAccount incomeAccount{transactionFactory};
-  InMemoryAccount::Factory accountFactory{transactionFactory};
+  AccountInMemory incomeAccount{transactionFactory};
+  AccountInMemory::Factory accountFactory{transactionFactory};
   BudgetInMemory budget{incomeAccount, accountFactory};
   FileStreamFactory streamFactory;
   WritesTransactionToStream::Factory transactionRecordSerializationFactory;

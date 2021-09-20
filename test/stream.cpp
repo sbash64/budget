@@ -14,16 +14,11 @@ namespace {
 class BudgetDeserializationObserverStub
     : public BudgetDeserialization::Observer {
 public:
-  void notifyThatIncomeAccountIsReady(AccountDeserialization &,
-                                      USD usd) override {
-    unallocatedIncome_ = usd;
-  }
+  void notifyThatIncomeAccountIsReady(AccountDeserialization &) override {}
 
   void notifyThatExpenseAccountIsReady(AccountDeserialization &,
-                                       std::string_view name,
-                                       USD usd) override {
+                                       std::string_view name) override {
     expenseAccountNames_.emplace_back(name);
-    expenseAccountAllocations_.push_back(usd);
   }
 
   auto expenseAccountNames() -> std::vector<std::string> {
@@ -56,7 +51,7 @@ private:
 
 class AccountSerializationStub : public AccountSerialization {
 public:
-  void save(const std::vector<SerializableTransaction *> &) override {}
+  void save(const std::vector<SerializableTransaction *> &, USD) override {}
 };
 
 class AccountDeserializationStub : public AccountDeserialization {
@@ -95,21 +90,22 @@ public:
 class TransactionDeserializationObserverStub
     : public TransactionDeserialization::Observer {
 public:
-  auto transaction() -> VerifiableTransaction { return transaction_; }
+  auto transaction() -> ArchivableVerifiableTransaction { return transaction_; }
 
-  void ready(const VerifiableTransaction &t) override {
+  void ready(const ArchivableVerifiableTransaction &t) override {
     transaction_ = t;
     if (onReady)
       onReady(t);
   }
 
-  void setOnReady(std::function<void(const VerifiableTransaction &)> f) {
+  void
+  setOnReady(std::function<void(const ArchivableVerifiableTransaction &)> f) {
     onReady = std::move(f);
   }
 
 private:
-  VerifiableTransaction transaction_;
-  std::function<void(const VerifiableTransaction &)> onReady;
+  ArchivableVerifiableTransaction transaction_;
+  std::function<void(const ArchivableVerifiableTransaction &)> onReady;
 };
 
 class AccountDeserializationObserverStub
@@ -121,18 +117,24 @@ public:
   void notifyThatIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
     TransactionDeserializationObserverStub observer;
-    observer.setOnReady(
-        [&](const VerifiableTransaction &t) { transactions_.push_back(t); });
+    observer.setOnReady([&](const ArchivableVerifiableTransaction &t) {
+      transactions_.push_back(t);
+    });
     reads.load(observer);
   }
 
-  auto transactions() -> std::vector<VerifiableTransaction> {
+  auto transactions() -> std::vector<ArchivableVerifiableTransaction> {
     return transactions_;
   }
 
+  void notifyThatAllocatedIsReady(USD usd) override { allocation_ = usd; }
+
+  auto allocation() -> USD { return allocation_; }
+
 private:
-  std::vector<VerifiableTransaction> transactions_;
+  std::vector<ArchivableVerifiableTransaction> transactions_;
   std::istream &stream;
+  USD allocation_{};
 };
 
 class IoStreamFactoryStub : public IoStreamFactory {
@@ -169,12 +171,13 @@ private:
 };
 } // namespace
 
-static void assertEqual(testcpplite::TestResult &result,
-                        const std::vector<VerifiableTransaction> &expected,
-                        const std::vector<VerifiableTransaction> &actual) {
+static void
+assertEqual(testcpplite::TestResult &result,
+            const std::vector<ArchivableVerifiableTransaction> &expected,
+            const std::vector<ArchivableVerifiableTransaction> &actual) {
   assertEqual(result, expected.size(), actual.size());
-  for (std::vector<VerifiableTransaction>::size_type i{0}; i < expected.size();
-       ++i)
+  for (std::vector<ArchivableVerifiableTransaction>::size_type i{0};
+       i < expected.size(); ++i)
     assertEqual(result, expected.at(i), actual.at(i));
 }
 
@@ -194,14 +197,23 @@ void fromVerifiedTransaction(testcpplite::TestResult &result) {
   assertEqual(result, "^0.20 hyvee 2/8/2020", stream.str());
 }
 
+void fromArchivedVerifiedTransaction(testcpplite::TestResult &result) {
+  std::stringstream stream;
+  WritesTransactionToStream writesTransaction{stream};
+  writesTransaction.save(
+      {{20_cents, "hyvee", Date{2020, Month::February, 8}}, true, true});
+  assertEqual(result, "%0.20 hyvee 2/8/2020", stream.str());
+}
+
 void toTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"3.24 hyvee 2/8/2020"};
   ReadsTransactionFromStream readsTransaction{input};
   TransactionDeserializationObserverStub observer;
   readsTransaction.load(observer);
-  assertEqual(result,
-              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false},
-              observer.transaction());
+  assertEqual(
+      result,
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false, false},
+      observer.transaction());
 }
 
 void toVerifiedTransaction(testcpplite::TestResult &result) {
@@ -209,9 +221,21 @@ void toVerifiedTransaction(testcpplite::TestResult &result) {
   ReadsTransactionFromStream readsTransaction{input};
   TransactionDeserializationObserverStub observer;
   readsTransaction.load(observer);
-  assertEqual(result,
-              {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true},
-              observer.transaction());
+  assertEqual(
+      result,
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true, false},
+      observer.transaction());
+}
+
+void toArchivedVerifiedTransaction(testcpplite::TestResult &result) {
+  std::stringstream input{"%3.24 hyvee 2/8/2020"};
+  ReadsTransactionFromStream readsTransaction{input};
+  TransactionDeserializationObserverStub observer;
+  readsTransaction.load(observer);
+  assertEqual(
+      result,
+      {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true, true},
+      observer.transaction());
 }
 
 void fromAccount(testcpplite::TestResult &result) {
@@ -222,8 +246,9 @@ void fromAccount(testcpplite::TestResult &result) {
   SavesNameTransaction sue{stream, "sue"};
   SavesNameTransaction allen{stream, "allen"};
   SavesNameTransaction john{stream, "john"};
-  accountSerialization.save({&steve, &sue, &allen, &john});
-  assertEqual(result, R"(steve
+  accountSerialization.save({&steve, &sue, &allen, &john}, 123_cents);
+  assertEqual(result, R"(1.23
+steve
 sue
 allen
 john
@@ -233,7 +258,8 @@ john
 
 void nonfinalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(^27.34 hyvee 1/12/2021
+      R"(12.34
+^27.34 hyvee 1/12/2021
 9.87 walmart 6/15/2021
 3.24 hyvee 2/8/2020
 
@@ -247,11 +273,13 @@ bobby)"};
                {{987_cents, "walmart", Date{2021, Month::June, 15}}},
                {{324_cents, "hyvee", Date{2020, Month::February, 8}}}},
               observer.transactions());
+  assertEqual(result, 1234_cents, observer.allocation());
 }
 
 void finalToAccount(testcpplite::TestResult &result) {
   std::stringstream input{
-      R"(50 transfer from master 1/10/2021
+      R"(12.34
+50 transfer from master 1/10/2021
 25 transfer from master 4/12/2021
 13.80 transfer from master 2/8/2021)"};
   TransactionFromStreamFactoryStub factory;
@@ -276,26 +304,23 @@ void fromBudget(testcpplite::TestResult &result) {
   SavesNameAccount steve{*stream, "steve"};
   SavesNameAccount sue{*stream, "sue"};
   SavesNameAccount allen{*stream, "allen"};
-  sessionSerialization.save({&jeff, 4_cents}, {{&steve, 1_cents, "stevey"},
-                                               {&sue, 2_cents, "suzie yo"},
-                                               {&allen, 3_cents, "arod"}});
-  assertEqual(result, R"(0.04
-jeff
-stevey 0.01
+  sessionSerialization.save(
+      &jeff, {{&steve, "stevey"}, {&sue, "suzie yo"}, {&allen, "arod"}});
+  assertEqual(result, R"(jeff
+stevey
 steve
-suzie yo 0.02
+suzie yo
 sue
-arod 0.03
+arod
 allen)",
               stream->str());
 }
 
 void toBudget(testcpplite::TestResult &result) {
   const auto input{std::make_shared<std::stringstream>(
-      R"(12.34
-steve 22
-sue is here 33
-allen 4.50)")};
+      R"(steve
+sue is here
+allen)")};
   IoStreamFactoryStub streamFactory{input};
   AccountFromStreamFactoryStub accountDeserializationFactory;
   ReadsBudgetFromStream readsBudget{streamFactory,
@@ -305,9 +330,5 @@ allen 4.50)")};
   assertEqual(result, "steve", observer.expenseAccountNames().at(0));
   assertEqual(result, "sue is here", observer.expenseAccountNames().at(1));
   assertEqual(result, "allen", observer.expenseAccountNames().at(2));
-  assertEqual(result, 2200_cents, observer.expenseAccountAllocations().at(0));
-  assertEqual(result, 3300_cents, observer.expenseAccountAllocations().at(1));
-  assertEqual(result, 450_cents, observer.expenseAccountAllocations().at(2));
-  assertEqual(result, 1234_cents, observer.unallocatedIncome());
 }
 } // namespace sbash64::budget::streams
