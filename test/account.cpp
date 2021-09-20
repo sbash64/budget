@@ -486,6 +486,11 @@ void increasesAllocationByAmountArchived(testcpplite::TestResult &result) {
     account.increaseAllocationByResolvingVerifiedTransactions();
     assertEqual(result, 2_cents + 3_cents, observer.allocation());
     assertEqual(result, 4_cents, observer.balance());
+    account.verify(
+        Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.increaseAllocationByResolvingVerifiedTransactions();
+    assertEqual(result, 2_cents + 3_cents + 4_cents, observer.allocation());
+    assertEqual(result, 0_cents, observer.balance());
   });
 }
 

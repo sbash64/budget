@@ -110,7 +110,7 @@ static void resolveVerifiedTransactions(
                                         &)> &updateAllocation,
     Account::Observer *observer) {
   for (const auto &transaction : transactions)
-    if (transaction->verified()) {
+    if (!transaction->archived() && transaction->verified()) {
       updateAllocation(allocation, transaction);
       transaction->archive();
     }
