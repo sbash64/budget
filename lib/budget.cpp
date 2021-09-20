@@ -44,23 +44,22 @@ callIfObserverExists(BudgetInMemory::Observer *observer,
     f(observer);
 }
 
-static auto leftoverAfterExpenses(Account &accountWithAllocation) -> USD {
-  return accountWithAllocation.allocated() - accountWithAllocation.balance();
+static auto leftoverAfterExpenses(Account &account) -> USD {
+  return account.allocated() - account.balance();
 }
 
 static void notifyThatNetIncomeHasChanged(
-    BudgetInMemory::Observer *observer, Account &incomeAccountWithAllocation,
+    BudgetInMemory::Observer *observer, Account &incomeAccount,
     const std::map<std::string, std::shared_ptr<Account>, std::less<>>
         &expenseAccounts) {
   callIfObserverExists(observer, [&](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatNetIncomeHasChanged(accumulate(
         expenseAccounts.begin(), expenseAccounts.end(),
-        incomeAccountWithAllocation.balance() +
-            incomeAccountWithAllocation.allocated(),
+        incomeAccount.balance() + incomeAccount.allocated(),
         [](USD net, const std::pair<std::string, std::shared_ptr<Account>>
-                        &expenseAccountWithAllocation) {
-          return net +
-                 leftoverAfterExpenses(*expenseAccountWithAllocation.second);
+                        &expenseAccount) {
+          const auto &[name, account] = expenseAccount;
+          return net + leftoverAfterExpenses(*account);
         }));
   });
 }
@@ -72,63 +71,60 @@ contains(std::map<std::string, std::shared_ptr<Account>, std::less<>> &accounts,
 }
 
 static auto collect(const std::map<std::string, std::shared_ptr<Account>,
-                                   std::less<>> &expenseAccountsWithAllocation)
+                                   std::less<>> &expenseAccounts)
     -> std::vector<SerializableAccountWithName> {
   std::vector<SerializableAccountWithName> collected;
-  transform(
-      expenseAccountsWithAllocation.begin(),
-      expenseAccountsWithAllocation.end(), back_inserter(collected),
-      [&](const std::pair<std::string, std::shared_ptr<Account>>
-              &expenseAccountWithAllocation) {
-        const auto &[name, accountWithAllocation] =
-            expenseAccountWithAllocation;
-        return SerializableAccountWithName{accountWithAllocation.get(), name};
-      });
+  transform(expenseAccounts.begin(), expenseAccounts.end(),
+            back_inserter(collected),
+            [&](const std::pair<std::string, std::shared_ptr<Account>>
+                    &expenseAccount) {
+              const auto &[name, account] = expenseAccount;
+              return SerializableAccountWithName{account.get(), name};
+            });
   return collected;
 }
 
 static auto at(const std::map<std::string, std::shared_ptr<Account>,
-                              std::less<>> &accountsWithAllocation,
+                              std::less<>> &expenseAccounts,
                std::string_view name) -> const std::shared_ptr<Account> & {
-  return accountsWithAllocation.find(name)->second;
+  return expenseAccounts.find(name)->second;
 }
 
 static auto allocation(const std::map<std::string, std::shared_ptr<Account>,
-                                      std::less<>> &accountsWithAllocation,
+                                      std::less<>> &expenseAccounts,
                        std::string_view name) -> USD {
-  return at(accountsWithAllocation, name)->allocated();
+  return at(expenseAccounts, name)->allocated();
 }
 
 static void
 makeExpenseAccount(std::map<std::string, std::shared_ptr<Account>, std::less<>>
-                       &accountsWithAllocation,
+                       &expenseAccounts,
                    Account::Factory &accountFactory, std::string_view name,
                    Budget::Observer *observer) {
-  accountsWithAllocation.insert(std::make_pair(name, accountFactory.make()));
-  callIfObserverExists(
-      observer, [&accountsWithAllocation, name](Budget::Observer *observer_) {
-        observer_->notifyThatExpenseAccountHasBeenCreated(
-            *at(accountsWithAllocation, name), name);
-      });
+  expenseAccounts.insert(std::make_pair(name, accountFactory.make()));
+  callIfObserverExists(observer,
+                       [&expenseAccounts, name](Budget::Observer *observer_) {
+                         observer_->notifyThatExpenseAccountHasBeenCreated(
+                             *at(expenseAccounts, name), name);
+                       });
 }
 
 static void makeAndLoadExpenseAccount(
     std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &accountsWithAllocation,
+        &expenseAccounts,
     Account::Factory &factory, AccountDeserialization &deserialization,
     std::string_view name, Budget::Observer *observer) {
-  makeExpenseAccount(accountsWithAllocation, factory, name, observer);
-  at(accountsWithAllocation, name)->load(deserialization);
+  makeExpenseAccount(expenseAccounts, factory, name, observer);
+  at(expenseAccounts, name)->load(deserialization);
 }
 
 static void createExpenseAccountIfNeeded(
     std::map<std::string, std::shared_ptr<Account>, std::less<>>
-        &accountsWithAllocation,
+        &expenseAccounts,
     Account::Factory &accountFactory, std::string_view accountName,
     Budget::Observer *observer) {
-  if (!contains(accountsWithAllocation, accountName))
-    makeExpenseAccount(accountsWithAllocation, accountFactory, accountName,
-                       observer);
+  if (!contains(expenseAccounts, accountName))
+    makeExpenseAccount(expenseAccounts, accountFactory, accountName, observer);
 }
 
 BudgetInMemory::BudgetInMemory(Account &incomeAccount,
