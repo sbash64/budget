@@ -200,7 +200,7 @@ void AccountInMemory::decreaseAllocationBy(USD usd) {
   notifyUpdatedAllocation(observer, allocation);
 }
 
-auto AccountInMemory::allocated() -> USD { return {}; }
+auto AccountInMemory::allocated() -> USD { return allocation; }
 
 void AccountInMemory::notifyThatAllocatedIsReady(USD) {}
 

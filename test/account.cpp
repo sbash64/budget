@@ -510,6 +510,7 @@ void notifiesObserverOfIncreasedAllocation(testcpplite::TestResult &result) {
         AccountObserverStub observer;
         account.attach(&observer);
         account.increaseAllocationBy(1_cents);
+        assertEqual(result, 1_cents, account.allocated());
         assertEqual(result, 1_cents, observer.allocation());
       });
 }
@@ -520,6 +521,7 @@ void notifiesObserverOfDecreasedAllocation(testcpplite::TestResult &result) {
         AccountObserverStub observer;
         account.attach(&observer);
         account.decreaseAllocationBy(1_cents);
+        assertEqual(result, -1_cents, account.allocated());
         assertEqual(result, -1_cents, observer.allocation());
       });
 }
