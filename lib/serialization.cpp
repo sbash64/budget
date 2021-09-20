@@ -30,9 +30,9 @@ void ReadsBudgetFromStream::load(Observer &observer) {
   const auto accountDeserialization{
       accountDeserializationFactory.make(*stream)};
   observer.notifyThatIncomeAccountIsReady(*accountDeserialization);
-  std::string line;
-  while (getline(*stream, line)) {
-    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, line);
+  std::string name;
+  while (getline(*stream, name)) {
+    observer.notifyThatExpenseAccountIsReady(*accountDeserialization, name);
   }
 }
 
@@ -64,15 +64,15 @@ static auto operator<<(std::ostream &stream, USD amount) -> std::ostream & {
 }
 
 void WritesBudgetToStream::save(
-    SerializableAccount *incomeAccountWithFunds,
-    const std::vector<SerializableAccountWithName> &expenseAccountsWithFunds) {
+    SerializableAccount *incomeAccount,
+    const std::vector<SerializableAccountWithName> &expenseAccounts) {
   const auto stream{ioStreamFactory.makeOutput()};
   const auto accountSerialization{accountSerializationFactory.make(*stream)};
-  incomeAccountWithFunds->save(*accountSerialization);
-  for (auto accountWithFunds : expenseAccountsWithFunds) {
+  incomeAccount->save(*accountSerialization);
+  for (auto [account, name] : expenseAccounts) {
     putNewLine(stream);
-    putNewLine(*stream << accountWithFunds.name);
-    accountWithFunds.account->save(*accountSerialization);
+    putNewLine(*stream << name);
+    account->save(*accountSerialization);
   }
 }
 
