@@ -14,7 +14,7 @@ auto usd(std::string_view s) -> USD {
     stream >> dollars;
     usd.cents = dollars * 100;
   }
-  if (stream.get() == '.') {
+  if (stream.get() == '.' && stream.peek() != '-') {
     std::string afterDecimal;
     stream >> afterDecimal;
     afterDecimal.resize(2, '0');
