@@ -23,6 +23,7 @@ static auto runAllTests() -> int {
        {parses::twelveCentsIgnoringThirdDecimalPlace,
         "parses \"0.12X\" as 12¢"},
        {parses::oneCentIgnoringThirdDecimalPlace, "parses \"0.01X\" as 1¢"},
+       {parses::unknownValuesToZero, "parses unknown values as $0"},
        {formats::zeroDollars, "formats 0¢ as \"$0.00\""},
        {formats::oneDollar, "formats $1 as \"$1.00\""},
        {formats::oneCent, "formats 1¢ as \"$0.01\""},

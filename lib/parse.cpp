@@ -9,7 +9,7 @@ auto usd(std::string_view s) -> USD {
   USD usd{};
   std::stringstream stream;
   stream << s;
-  if (stream.peek() != '.') {
+  if (stream.peek() != '.' && stream.peek() != '-') {
     std::int_least64_t dollars = 0;
     stream >> dollars;
     usd.cents = dollars * 100;

@@ -13,6 +13,7 @@ void tenCents(testcpplite::TestResult &);
 void twelveCentsWithoutLeadingZero(testcpplite::TestResult &);
 void twelveCentsIgnoringThirdDecimalPlace(testcpplite::TestResult &);
 void oneCentIgnoringThirdDecimalPlace(testcpplite::TestResult &);
+void unknownValuesToZero(testcpplite::TestResult &);
 } // namespace sbash64::budget::parses
 
 #endif

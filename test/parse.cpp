@@ -44,4 +44,10 @@ void twelveCentsIgnoringThirdDecimalPlace(testcpplite::TestResult &result) {
 void oneCentIgnoringThirdDecimalPlace(testcpplite::TestResult &result) {
   assertEqual(result, 1_cents, ".012");
 }
+
+void unknownValuesToZero(testcpplite::TestResult &result) {
+  assertEqual(result, 0_cents, "?");
+  assertEqual(result, 0_cents, "hello world");
+  assertEqual(result, 0_cents, "-10.23");
+}
 } // namespace sbash64::budget::parses
