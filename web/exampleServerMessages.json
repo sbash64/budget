@@ -1,0 +1,31 @@
+[
+  { "method": "add account", "name": "Car Loans" },
+  { "method": "update net income", "amount": "123.45" },
+  {
+    "method": "update account allocation",
+    "accountIndex": 2,
+    "amount": "32.10"
+  },
+  { "method": "update account balance", "accountIndex": 1, "amount": "42.35" },
+  { "method": "add transaction", "accountIndex": 0 },
+  { "method": "remove account", "accountIndex": 2 },
+  { "method": "verify transaction", "accountIndex": 2, "transactionIndex": 12 },
+  {
+    "method": "archive transaction",
+    "accountIndex": 4,
+    "transactionIndex": 7
+  },
+  {
+    "method": "update transaction",
+    "accountIndex": 2,
+    "transactionIndex": 12,
+    "description": "weekly hyvee groceries",
+    "amount": "75.00",
+    "date": "9/12/21"
+  },
+  {
+    "method": "remove transaction",
+    "accountIndex": 3,
+    "transactionIndex": 3
+  }
+]

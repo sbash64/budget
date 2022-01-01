@@ -370,7 +370,6 @@ function main() {
         ).lastElementChild.textContent = message.amount;
         break;
       case "update account allocation":
-      case "update unallocated income":
         accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
           message.amount;
         break;

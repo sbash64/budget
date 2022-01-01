@@ -1,0 +1,31 @@
+[
+  { "method": "save" },
+  { "method": "reduce" },
+  { "method": "restore" },
+  { "method": "remove account", "name": "Gifts" },
+  { "method": "close account", "name": "Christmas Tree" },
+  { "method": "create account", "name": "Trip Savings" },
+  { "method": "transfer", "name": "Health", "amount": "12.3" },
+  { "method": "allocate", "name": "Savings", "amount": "1000" },
+  {
+    "method": "remove transaction",
+    "name": "Fast Food",
+    "description": "olive garden",
+    "amount": "24.32",
+    "date": "11/20/21"
+  },
+  {
+    "method": "verify transaction",
+    "name": "Groceries",
+    "description": "hyvee",
+    "amount": "45.34",
+    "date": "04/03/19"
+  },
+  {
+    "method": "add transaction",
+    "name": "Gas",
+    "description": "quicktrip",
+    "amount": "41.02",
+    "date": "10/23/14"
+  }
+]
