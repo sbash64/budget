@@ -17,10 +17,14 @@ static auto amount(const Transaction &t) -> std::string {
   return stream.str();
 }
 
+static auto date(const Transaction &t) -> std::string {
+  std::stringstream stream;
+  stream << t.date;
+  return stream.str();
+}
+
 void TransactionPresenter::notifyThatIs(const Transaction &t) {
-  std::stringstream dateStream;
-  dateStream << t.date;
-  view.addTransaction(amount(t), dateStream.str());
+  view.addTransaction(amount(t), date(t));
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {}
