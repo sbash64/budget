@@ -46,12 +46,12 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
 }
 
 void formatsDate(testcpplite::TestResult &result) {
-  AccountViewStub view;
-  AccountPresenter presenter{view};
-  ObservableTransactionInMemory transaction;
-  presenter.notifyThatHasBeenAdded(transaction);
-  transaction.ready(
-      {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
-  assertEqual(result, "06/01/2020", view.transactionAddedDate());
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory transaction;
+    presenter.notifyThatHasBeenAdded(transaction);
+    transaction.ready(
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, "06/01/2020", view.transactionAddedDate());
+  });
 }
 } // namespace sbash64::budget::presentation
