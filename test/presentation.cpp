@@ -1,6 +1,7 @@
 #include "presentation.hpp"
 #include "usd.hpp"
 
+#include <functional>
 #include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/transaction.hpp>
 
@@ -27,14 +28,21 @@ private:
 };
 } // namespace
 
-void formatsTransactionAmount(testcpplite::TestResult &result) {
+static void
+test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
   AccountViewStub view;
   AccountPresenter presenter{view};
-  ObservableTransactionInMemory transaction;
-  presenter.notifyThatHasBeenAdded(transaction);
-  transaction.ready(
-      {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
-  assertEqual(result, "7.89", view.transactionAddedAmount());
+  f(presenter, view);
+}
+
+void formatsTransactionAmount(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory transaction;
+    presenter.notifyThatHasBeenAdded(transaction);
+    transaction.ready(
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, "7.89", view.transactionAddedAmount());
+  });
 }
 
 void formatsDate(testcpplite::TestResult &result) {
