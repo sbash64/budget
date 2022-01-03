@@ -162,8 +162,9 @@ static auto runAllTests() -> int {
         "transaction removesInitializedTransaction"},
        {transaction::doesNotVerifyUnequalInitializedTransaction,
         "transaction doesNotVerifyUnequalInitializedTransaction"},
-       {presentation::tbd,
-        "notifiesObserverOfWhereToInsertNewTransactionByDateOrder"}},
+       {presentation::formatsTransactionAmount,
+        "presentation::formatsTransactionAmount"},
+       {presentation::formatsDate, "presentation::formatsDate"}},
       std::cout);
 }
 } // namespace sbash64::budget

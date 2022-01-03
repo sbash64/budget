@@ -4,7 +4,8 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 namespace sbash64::budget::presentation {
-void tbd(testcpplite::TestResult &);
+void formatsTransactionAmount(testcpplite::TestResult &);
+void formatsDate(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif

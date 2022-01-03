@@ -13,7 +13,8 @@ namespace sbash64::budget {
 class AccountView {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountView);
-  virtual void addTransaction(std::string_view amount) = 0;
+  virtual void addTransaction(std::string_view amount,
+                              std::string_view date) = 0;
 };
 
 class TransactionPresenter : public ObservableTransaction::Observer {
@@ -24,7 +25,9 @@ public:
   void notifyThatIs(const Transaction &t) override {
     std::stringstream stream;
     stream << t.amount;
-    view.addTransaction(stream.str());
+    std::stringstream dateStream;
+    dateStream << t.date;
+    view.addTransaction(stream.str(), dateStream.str());
   }
   void notifyThatWillBeRemoved() override {}
 
