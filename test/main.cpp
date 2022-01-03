@@ -2,6 +2,7 @@
 #include "budget.hpp"
 #include "format.hpp"
 #include "parse.hpp"
+#include "presentation.hpp"
 #include "stream.hpp"
 #include "transaction.hpp"
 
@@ -160,7 +161,9 @@ static auto runAllTests() -> int {
        {transaction::removesInitializedTransaction,
         "transaction removesInitializedTransaction"},
        {transaction::doesNotVerifyUnequalInitializedTransaction,
-        "transaction doesNotVerifyUnequalInitializedTransaction"}},
+        "transaction doesNotVerifyUnequalInitializedTransaction"},
+       {presentation::tbd,
+        "notifiesObserverOfWhereToInsertNewTransactionByDateOrder"}},
       std::cout);
 }
 } // namespace sbash64::budget
