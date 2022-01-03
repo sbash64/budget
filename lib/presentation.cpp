@@ -2,6 +2,7 @@
 #include "format.hpp"
 
 #include <sstream>
+#include <string>
 
 namespace sbash64::budget {
 TransactionPresenter::TransactionPresenter(AccountView &view) : view{view} {}
@@ -10,12 +11,16 @@ void TransactionPresenter::notifyThatIsVerified() {}
 
 void TransactionPresenter::notifyThatIsArchived() {}
 
-void TransactionPresenter::notifyThatIs(const Transaction &t) {
+static auto amount(const Transaction &t) -> std::string {
   std::stringstream stream;
   stream << t.amount;
+  return stream.str();
+}
+
+void TransactionPresenter::notifyThatIs(const Transaction &t) {
   std::stringstream dateStream;
   dateStream << t.date;
-  view.addTransaction(stream.str(), dateStream.str());
+  view.addTransaction(amount(t), dateStream.str());
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {}
