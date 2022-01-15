@@ -166,7 +166,9 @@ static auto runAllTests() -> int {
         "presentation::formatsTransactionAmount"},
        {presentation::formatsDate, "presentation::formatsDate"},
        {presentation::sendsDescriptionOfNewTransaction,
-        "presentation::sendsDescriptionOfNewTransaction"}},
+        "presentation::sendsDescriptionOfNewTransaction"},
+       {presentation::ordersTransactionsByMostRecentDate,
+        "presentation::ordersTransactionsByMostRecentDate"}},
       std::cout);
 }
 } // namespace sbash64::budget

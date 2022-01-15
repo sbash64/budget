@@ -61,6 +61,14 @@ struct Date {
   auto operator==(const Date &) const -> bool = default;
 };
 
+constexpr auto operator<(const Date &a, const Date &b) -> bool {
+  if (a.year != b.year)
+    return a.year < b.year;
+  if (a.month != b.month)
+    return a.month < b.month;
+  return a.day < b.day;
+}
+
 struct Transaction {
   USD amount;
   std::string description;
