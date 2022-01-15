@@ -164,7 +164,9 @@ static auto runAllTests() -> int {
         "transaction doesNotVerifyUnequalInitializedTransaction"},
        {presentation::formatsTransactionAmount,
         "presentation::formatsTransactionAmount"},
-       {presentation::formatsDate, "presentation::formatsDate"}},
+       {presentation::formatsDate, "presentation::formatsDate"},
+       {presentation::sendsDescriptionOfNewTransaction,
+        "presentation::sendsDescriptionOfNewTransaction"}},
       std::cout);
 }
 } // namespace sbash64::budget

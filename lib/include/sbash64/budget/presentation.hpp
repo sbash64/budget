@@ -11,8 +11,8 @@ namespace sbash64::budget {
 class AccountView {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountView);
-  virtual void addTransaction(std::string_view amount,
-                              std::string_view date) = 0;
+  virtual void addTransaction(std::string_view amount, std::string_view date,
+                              std::string_view description) = 0;
 };
 
 class TransactionPresenter : public ObservableTransaction::Observer {

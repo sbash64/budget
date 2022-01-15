@@ -24,7 +24,7 @@ static auto date(const Transaction &t) -> std::string {
 }
 
 void TransactionPresenter::notifyThatIs(const Transaction &t) {
-  view.addTransaction(amount(t), date(t));
+  view.addTransaction(amount(t), date(t), t.description);
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {}

@@ -6,6 +6,7 @@
 namespace sbash64::budget::presentation {
 void formatsTransactionAmount(testcpplite::TestResult &);
 void formatsDate(testcpplite::TestResult &);
+void sendsDescriptionOfNewTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif
