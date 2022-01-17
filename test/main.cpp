@@ -166,6 +166,7 @@ static auto runAllTests() -> int {
         "presentation::formatsTransactionAmount"},
        {presentation::formatsDate, "presentation::formatsDate"},
        {presentation::formatsBalance, "presentation::formatsBalance"},
+       {presentation::formatsAllocation, "presentation::formatsAllocation"},
        {presentation::sendsDescriptionOfNewTransaction,
         "presentation::sendsDescriptionOfNewTransaction"},
        {presentation::ordersTransactionsByMostRecentDate,

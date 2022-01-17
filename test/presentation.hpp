@@ -7,6 +7,7 @@ namespace sbash64::budget::presentation {
 void formatsTransactionAmount(testcpplite::TestResult &);
 void formatsDate(testcpplite::TestResult &);
 void formatsBalance(testcpplite::TestResult &);
+void formatsAllocation(testcpplite::TestResult &);
 void sendsDescriptionOfNewTransaction(testcpplite::TestResult &);
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation

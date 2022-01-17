@@ -39,7 +39,9 @@ void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
   view.updateBalance(format(usd));
 }
 
-void AccountPresenter::notifyThatAllocationHasChanged(USD) {}
+void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
+  view.updateAllocation(format(usd));
+}
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
   transactionPresenters.push_back(
