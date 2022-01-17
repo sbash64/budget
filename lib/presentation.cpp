@@ -47,10 +47,10 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
 
 void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
                                     const Transaction &t) {
-  const auto position{std::upper_bound(transactionDates.begin(),
-                                       transactionDates.end(), t.date)};
+  const auto position{
+      upper_bound(transactionDates.begin(), transactionDates.end(), t.date)};
   view.addTransaction(amount(t), date(t), t.description,
-                      std::distance(position, transactionDates.end()));
+                      distance(position, transactionDates.end()));
   transactionDates.insert(position, t.date);
 }
 
