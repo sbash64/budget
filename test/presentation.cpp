@@ -1,4 +1,5 @@
 #include "presentation.hpp"
+#include "sbash64/budget/domain.hpp"
 #include "usd.hpp"
 
 #include <sbash64/budget/presentation.hpp>
@@ -42,6 +43,12 @@ private:
 };
 } // namespace
 
+static void add(AccountPresenter &presenter, ObservableTransaction &transaction,
+                const ArchivableVerifiableTransaction &t) {
+  presenter.notifyThatHasBeenAdded(transaction);
+  transaction.ready(t);
+}
+
 static void
 test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
   AccountViewStub view;
@@ -52,8 +59,7 @@ test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
 void formatsTransactionAmount(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    presenter.notifyThatHasBeenAdded(transaction);
-    transaction.ready(
+    add(presenter, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "7.89", view.transactionAddedAmount());
   });
@@ -62,8 +68,7 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
 void formatsDate(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    presenter.notifyThatHasBeenAdded(transaction);
-    transaction.ready(
+    add(presenter, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "06/01/2020", view.transactionAddedDate());
   });
@@ -72,8 +77,7 @@ void formatsDate(testcpplite::TestResult &result) {
 void sendsDescriptionOfNewTransaction(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    presenter.notifyThatHasBeenAdded(transaction);
-    transaction.ready(
+    add(presenter, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "chimpanzee", view.transactionAddedDescription());
   });
@@ -82,29 +86,24 @@ void sendsDescriptionOfNewTransaction(testcpplite::TestResult &result) {
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;
-    ObservableTransactionInMemory january3rd2020;
-    ObservableTransactionInMemory june4th2020;
-    ObservableTransactionInMemory january2nd2020;
-
-    presenter.notifyThatHasBeenAdded(june1st2020);
-    june1st2020.ready(
+    add(presenter, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 0, view.transactionIndex());
 
-    presenter.notifyThatHasBeenAdded(january3rd2020);
-    january3rd2020.ready(
+    ObservableTransactionInMemory january3rd2020;
+    add(presenter, january3rd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
          false,
          false});
     assertEqual(result, 1, view.transactionIndex());
 
-    presenter.notifyThatHasBeenAdded(june4th2020);
-    june4th2020.ready(
+    ObservableTransactionInMemory june4th2020;
+    add(presenter, june4th2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
     assertEqual(result, 0, view.transactionIndex());
 
-    presenter.notifyThatHasBeenAdded(january2nd2020);
-    january2nd2020.ready(
+    ObservableTransactionInMemory january2nd2020;
+    add(presenter, january2nd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
          false,
          false});
