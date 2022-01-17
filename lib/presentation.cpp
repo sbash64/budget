@@ -15,9 +15,9 @@ void TransactionPresenter::notifyThatIsVerified() {}
 
 void TransactionPresenter::notifyThatIsArchived() {}
 
-static auto amount(const Transaction &t) -> std::string {
+static auto format(USD usd) -> std::string {
   std::stringstream stream;
-  stream << t.amount;
+  stream << usd;
   return stream.str();
 }
 
@@ -35,7 +35,9 @@ void TransactionPresenter::notifyThatWillBeRemoved() {}
 
 AccountPresenter::AccountPresenter(AccountView &view) : view{view} {}
 
-void AccountPresenter::notifyThatBalanceHasChanged(USD) {}
+void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
+  view.updateBalance(format(usd));
+}
 
 void AccountPresenter::notifyThatAllocationHasChanged(USD) {}
 
@@ -49,7 +51,7 @@ void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
                                     const Transaction &t) {
   const auto position{
       upper_bound(transactionDates.begin(), transactionDates.end(), t.date)};
-  view.addTransaction(amount(t), date(t), t.description,
+  view.addTransaction(format(t.amount), date(t), t.description,
                       distance(position, transactionDates.end()));
   transactionDates.insert(position, t.date);
 }

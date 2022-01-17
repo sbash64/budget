@@ -13,6 +13,10 @@ namespace sbash64::budget::presentation {
 namespace {
 class AccountViewStub : public AccountView {
 public:
+  void updateBalance(std::string_view s) { balance_ = s; }
+
+  auto balance() -> std::string { return balance_; }
+
   [[nodiscard]] auto transactionIndex() const -> int {
     return transactionIndex_;
   }
@@ -36,6 +40,7 @@ public:
   }
 
 private:
+  std::string balance_;
   std::string transactionAddedAmount_;
   std::string transactionAddedDate_;
   std::string transactionAddedDescription_;
@@ -54,6 +59,13 @@ test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
   AccountViewStub view;
   AccountPresenter presenter{view};
   f(presenter, view);
+}
+
+void formatsBalance(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    presenter.notifyThatBalanceHasChanged(123_cents);
+    assertEqual(result, "1.23", view.balance());
+  });
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
