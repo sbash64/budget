@@ -1,7 +1,7 @@
 #include "presentation.hpp"
-#include "sbash64/budget/domain.hpp"
 #include "usd.hpp"
 
+#include <sbash64/budget/domain.hpp>
 #include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/transaction.hpp>
 
@@ -13,7 +13,7 @@ namespace sbash64::budget::presentation {
 namespace {
 class AccountViewStub : public AccountView {
 public:
-  void updateAllocation(std::string_view s) { allocation_ = s; }
+  void updateAllocation(std::string_view s) override { allocation_ = s; }
 
   auto allocation() -> std::string { return allocation_; }
 
