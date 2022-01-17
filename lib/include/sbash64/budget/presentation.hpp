@@ -11,6 +11,7 @@ namespace sbash64::budget {
 class AccountView {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(AccountView);
+  virtual void putCheckmarkNextToTransaction(int index) = 0;
   virtual void updateBalance(std::string_view) = 0;
   virtual void updateAllocation(std::string_view) = 0;
   virtual void addTransaction(std::string_view amount, std::string_view date,
@@ -28,6 +29,7 @@ public:
   void notifyThatWillBeRemoved() override;
 
 private:
+  Date date;
   AccountView &view;
   AccountPresenter &parent;
 };
@@ -40,6 +42,7 @@ public:
   void notifyThatHasBeenAdded(ObservableTransaction &t) override;
   void notifyThatWillBeRemoved() override;
   void notifyThatIs(const TransactionPresenter *, const Transaction &);
+  auto index(const Date &) -> int;
 
 private:
   AccountView &view;

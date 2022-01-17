@@ -170,7 +170,9 @@ static auto runAllTests() -> int {
        {presentation::sendsDescriptionOfNewTransaction,
         "presentation::sendsDescriptionOfNewTransaction"},
        {presentation::ordersTransactionsByMostRecentDate,
-        "presentation::ordersTransactionsByMostRecentDate"}},
+        "presentation::ordersTransactionsByMostRecentDate"},
+       {presentation::putsCheckmarkNextToVerifiedTransaction,
+        "presentation::putsCheckmarkNextToVerifiedTransaction"}},
       std::cout);
 }
 } // namespace sbash64::budget

@@ -11,7 +11,9 @@ TransactionPresenter::TransactionPresenter(AccountView &view,
                                            AccountPresenter &parent)
     : view{view}, parent{parent} {}
 
-void TransactionPresenter::notifyThatIsVerified() {}
+void TransactionPresenter::notifyThatIsVerified() {
+  view.putCheckmarkNextToTransaction(parent.index(date));
+}
 
 void TransactionPresenter::notifyThatIsArchived() {}
 
@@ -28,6 +30,7 @@ static auto date(const Transaction &t) -> std::string {
 }
 
 void TransactionPresenter::notifyThatIs(const Transaction &t) {
+  date = t.date;
   parent.notifyThatIs(this, t);
 }
 
@@ -56,6 +59,12 @@ void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
   view.addTransaction(format(t.amount), date(t), t.description,
                       distance(position, transactionDates.end()));
   transactionDates.insert(position, t.date);
+}
+
+auto AccountPresenter::index(const Date &date) -> int {
+  return distance(
+      upper_bound(transactionDates.begin(), transactionDates.end(), date),
+      transactionDates.end());
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}

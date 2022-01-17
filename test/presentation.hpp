@@ -10,6 +10,7 @@ void formatsBalance(testcpplite::TestResult &);
 void formatsAllocation(testcpplite::TestResult &);
 void sendsDescriptionOfNewTransaction(testcpplite::TestResult &);
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &);
+void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif

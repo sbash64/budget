@@ -21,6 +21,14 @@ public:
 
   auto balance() -> std::string { return balance_; }
 
+  void putCheckmarkNextToTransaction(int index) override {
+    checkmarkTransactionIndex_ = index;
+  }
+
+  [[nodiscard]] auto checkmarkTransactionIndex() const -> int {
+    return checkmarkTransactionIndex_;
+  }
+
   [[nodiscard]] auto transactionIndex() const -> int {
     return transactionIndex_;
   }
@@ -50,6 +58,7 @@ private:
   std::string transactionAddedDate_;
   std::string transactionAddedDescription_;
   int transactionIndex_{-1};
+  int checkmarkTransactionIndex_{-1};
 };
 } // namespace
 
@@ -132,6 +141,34 @@ void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
          false,
          false});
     assertEqual(result, 3, view.transactionIndex());
+  });
+}
+
+void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory june1st2020;
+    add(presenter, june1st2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+
+    ObservableTransactionInMemory january3rd2020;
+    add(presenter, january3rd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
+         false,
+         false});
+
+    ObservableTransactionInMemory june4th2020;
+    add(presenter, june4th2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
+
+    ObservableTransactionInMemory january2nd2020;
+    add(presenter, january2nd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
+         false,
+         false});
+
+    january3rd2020.verifies(
+        {789_cents, "chimpanzee", Date{2020, Month::January, 3}});
+    assertEqual(result, 2, view.checkmarkTransactionIndex());
   });
 }
 } // namespace sbash64::budget::presentation
