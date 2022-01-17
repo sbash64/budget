@@ -52,19 +52,21 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
   t.attach(transactionPresenters.back().get());
 }
 
+static auto index(const std::vector<Date> &dates, const Date &date) -> int {
+  return distance(upper_bound(dates.begin(), dates.end(), date), dates.end());
+}
+
 void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
                                     const Transaction &t) {
-  const auto position{
-      upper_bound(transactionDates.begin(), transactionDates.end(), t.date)};
   view.addTransaction(format(t.amount), date(t), t.description,
-                      distance(position, transactionDates.end()));
-  transactionDates.insert(position, t.date);
+                      budget::index(transactionDates, t.date));
+  transactionDates.insert(
+      upper_bound(transactionDates.begin(), transactionDates.end(), t.date),
+      t.date);
 }
 
 auto AccountPresenter::index(const Date &date) -> int {
-  return distance(
-      upper_bound(transactionDates.begin(), transactionDates.end(), date),
-      transactionDates.end());
+  return budget::index(transactionDates, date);
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}
