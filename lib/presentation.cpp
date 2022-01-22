@@ -48,16 +48,17 @@ void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
-  childrenMemory.push_back(std::make_unique<TransactionPresenter>(view, *this));
-  t.attach(childrenMemory.back().get());
+  auto child{std::make_unique<TransactionPresenter>(view, *this)};
+  t.attach(child.get());
+  childrenMemory.push_back(move(child));
 }
 
 static auto
-upperBound(const std::vector<const TransactionPresenter *> &transactions,
-           const TransactionPresenter *t)
+upperBound(const std::vector<const TransactionPresenter *> &orderedChildren,
+           const TransactionPresenter *child)
     -> std::vector<const TransactionPresenter *>::const_iterator {
   return upper_bound(
-      transactions.begin(), transactions.end(), t,
+      orderedChildren.begin(), orderedChildren.end(), child,
       [](const TransactionPresenter *a, const TransactionPresenter *b) {
         if (a->get().date != b->get().date)
           return !(a->get().date < b->get().date);
@@ -66,9 +67,9 @@ upperBound(const std::vector<const TransactionPresenter *> &transactions,
 }
 
 static auto
-placement(const std::vector<const TransactionPresenter *> &transactions,
+placement(const std::vector<const TransactionPresenter *> &orderedChildren,
           const TransactionPresenter *child) -> gsl::index {
-  return distance(transactions.begin(), upperBound(transactions, child));
+  return distance(orderedChildren.begin(), upperBound(orderedChildren, child));
 }
 
 void AccountPresenter::ready(const TransactionPresenter *child) {
@@ -87,6 +88,11 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
   view.deleteTransaction(index(child));
   orderedChildren.erase(
       find(orderedChildren.begin(), orderedChildren.end(), child));
+  childrenMemory.erase(
+      find_if(childrenMemory.begin(), childrenMemory.end(),
+              [child](const std::unique_ptr<TransactionPresenter> &a) {
+                return a.get() == child;
+              }));
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}
