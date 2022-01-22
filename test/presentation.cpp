@@ -144,6 +144,30 @@ void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
   });
 }
 
+void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory ape;
+    add(presenter, ape,
+        {{789_cents, "ape", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, 0, view.transactionIndex());
+
+    ObservableTransactionInMemory chimpanzee;
+    add(presenter, chimpanzee,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, 1, view.transactionIndex());
+
+    ObservableTransactionInMemory baboon;
+    add(presenter, baboon,
+        {{789_cents, "baboon", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, 1, view.transactionIndex());
+
+    ObservableTransactionInMemory dog;
+    add(presenter, dog,
+        {{789_cents, "dog", Date{2020, Month::June, 1}}, false, false});
+    assertEqual(result, 3, view.transactionIndex());
+  });
+}
+
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;

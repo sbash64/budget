@@ -172,6 +172,8 @@ static auto runAllTests() -> int {
         "presentation::sendsDescriptionOfNewTransaction"},
        {presentation::ordersTransactionsByMostRecentDate,
         "presentation::ordersTransactionsByMostRecentDate"},
+       {presentation::ordersSameDateTransactionsByDescription,
+        "presentation::ordersSameDateTransactionsByDescription"},
        {presentation::putsCheckmarkNextToVerifiedTransaction,
         "presentation::putsCheckmarkNextToVerifiedTransaction"}},
       std::cout);

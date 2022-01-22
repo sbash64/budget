@@ -10,6 +10,7 @@ void formatsAccountBalance(testcpplite::TestResult &);
 void formatsAccountAllocation(testcpplite::TestResult &);
 void passesDescriptionOfNewTransaction(testcpplite::TestResult &);
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &);
+void ordersSameDateTransactionsByDescription(testcpplite::TestResult &);
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 

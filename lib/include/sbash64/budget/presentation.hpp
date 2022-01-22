@@ -29,7 +29,7 @@ public:
   void notifyThatWillBeRemoved() override;
 
 private:
-  Date date;
+  Transaction transaction;
   AccountView &view;
   AccountPresenter &parent;
 };
@@ -42,12 +42,12 @@ public:
   void notifyThatHasBeenAdded(ObservableTransaction &t) override;
   void notifyThatWillBeRemoved() override;
   void notifyThatIs(const TransactionPresenter *, const Transaction &);
-  auto index(const Date &) -> int;
+  auto index(const Transaction &) -> int;
 
 private:
   AccountView &view;
   std::vector<std::unique_ptr<TransactionPresenter>> transactionPresenters;
-  std::vector<Date> transactionDates;
+  std::vector<Transaction> transactions;
 };
 } // namespace sbash64::budget
 
