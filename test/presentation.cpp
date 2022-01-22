@@ -75,14 +75,14 @@ test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
   f(presenter, view);
 }
 
-void formatsBalance(testcpplite::TestResult &result) {
+void formatsAccountBalance(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     presenter.notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
   });
 }
 
-void formatsAllocation(testcpplite::TestResult &result) {
+void formatsAccountAllocation(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     presenter.notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
@@ -98,7 +98,7 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
   });
 }
 
-void formatsDate(testcpplite::TestResult &result) {
+void formatsTransactionDate(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(presenter, transaction,
@@ -107,7 +107,7 @@ void formatsDate(testcpplite::TestResult &result) {
   });
 }
 
-void sendsDescriptionOfNewTransaction(testcpplite::TestResult &result) {
+void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
   test([&result](AccountPresenter &presenter, AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(presenter, transaction,

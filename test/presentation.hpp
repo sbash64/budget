@@ -5,10 +5,10 @@
 
 namespace sbash64::budget::presentation {
 void formatsTransactionAmount(testcpplite::TestResult &);
-void formatsDate(testcpplite::TestResult &);
-void formatsBalance(testcpplite::TestResult &);
-void formatsAllocation(testcpplite::TestResult &);
-void sendsDescriptionOfNewTransaction(testcpplite::TestResult &);
+void formatsTransactionDate(testcpplite::TestResult &);
+void formatsAccountBalance(testcpplite::TestResult &);
+void formatsAccountAllocation(testcpplite::TestResult &);
+void passesDescriptionOfNewTransaction(testcpplite::TestResult &);
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &);
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
