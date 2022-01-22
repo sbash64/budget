@@ -41,10 +41,10 @@ private:
 
 class AccountPresenter : public Account::Observer {
 public:
-  explicit AccountPresenter(AccountView &view);
+  explicit AccountPresenter(AccountView &);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
-  void notifyThatHasBeenAdded(ObservableTransaction &t) override;
+  void notifyThatHasBeenAdded(ObservableTransaction &) override;
   void notifyThatWillBeRemoved() override;
   void ready(const TransactionPresenter *);
   auto index(const TransactionPresenter *) -> gsl::index;
@@ -52,8 +52,8 @@ public:
 
 private:
   AccountView &view;
-  std::vector<std::unique_ptr<TransactionPresenter>> transactionPresenters;
-  std::vector<const TransactionPresenter *> transactions;
+  std::vector<std::unique_ptr<TransactionPresenter>> childrenMemory;
+  std::vector<const TransactionPresenter *> orderedChildren;
 };
 } // namespace sbash64::budget
 

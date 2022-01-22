@@ -48,45 +48,45 @@ void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
-  transactionPresenters.push_back(
-      std::make_unique<TransactionPresenter>(view, *this));
-  t.attach(transactionPresenters.back().get());
+  childrenMemory.push_back(std::make_unique<TransactionPresenter>(view, *this));
+  t.attach(childrenMemory.back().get());
 }
 
 static auto
 upperBound(const std::vector<const TransactionPresenter *> &transactions,
-           const Transaction &t)
+           const TransactionPresenter *t)
     -> std::vector<const TransactionPresenter *>::const_iterator {
-  return upper_bound(transactions.begin(), transactions.end(), t,
-                     [](const Transaction &a, const TransactionPresenter *b) {
-                       if (a.date != b->get().date)
-                         return !(a.date < b->get().date);
-                       return a.description < b->get().description;
-                     });
+  return upper_bound(
+      transactions.begin(), transactions.end(), t,
+      [](const TransactionPresenter *a, const TransactionPresenter *b) {
+        if (a->get().date != b->get().date)
+          return !(a->get().date < b->get().date);
+        return a->get().description < b->get().description;
+      });
 }
 
 static auto
 placement(const std::vector<const TransactionPresenter *> &transactions,
-          const Transaction &transaction) -> gsl::index {
-  return distance(transactions.begin(), upperBound(transactions, transaction));
+          const TransactionPresenter *child) -> gsl::index {
+  return distance(transactions.begin(), upperBound(transactions, child));
 }
 
 void AccountPresenter::ready(const TransactionPresenter *child) {
   view.addTransaction(format(child->get().amount), date(child->get()),
                       child->get().description,
-                      budget::placement(transactions, child->get()));
-  transactions.insert(upperBound(transactions, child->get()), child);
+                      budget::placement(orderedChildren, child));
+  orderedChildren.insert(upperBound(orderedChildren, child), child);
 }
 
-auto AccountPresenter::index(const TransactionPresenter *transaction)
-    -> gsl::index {
-  return distance(transactions.begin(),
-                  find(transactions.begin(), transactions.end(), transaction));
+auto AccountPresenter::index(const TransactionPresenter *child) -> gsl::index {
+  return distance(orderedChildren.begin(),
+                  find(orderedChildren.begin(), orderedChildren.end(), child));
 }
 
-void AccountPresenter::remove(const TransactionPresenter *t) {
-  view.deleteTransaction(index(t));
-  transactions.erase(find(transactions.begin(), transactions.end(), t));
+void AccountPresenter::remove(const TransactionPresenter *child) {
+  view.deleteTransaction(index(child));
+  orderedChildren.erase(
+      find(orderedChildren.begin(), orderedChildren.end(), child));
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}
