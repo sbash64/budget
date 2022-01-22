@@ -31,7 +31,7 @@ public:
   void notifyThatIsArchived() override;
   void notifyThatIs(const Transaction &t) override;
   void notifyThatWillBeRemoved() override;
-  [[nodiscard]] auto get() const -> Transaction { return transaction; }
+  [[nodiscard]] auto get() const -> const Transaction & { return transaction; }
 
 private:
   Transaction transaction;
