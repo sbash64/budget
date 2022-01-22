@@ -175,7 +175,9 @@ static auto runAllTests() -> int {
        {presentation::ordersSameDateTransactionsByDescription,
         "presentation::ordersSameDateTransactionsByDescription"},
        {presentation::putsCheckmarkNextToVerifiedTransaction,
-        "presentation::putsCheckmarkNextToVerifiedTransaction"}},
+        "presentation::putsCheckmarkNextToVerifiedTransaction"},
+       {presentation::deletesRemovedTransactionRow,
+        "presentation::deletesRemovedTransactionRow"}},
       std::cout);
 }
 } // namespace sbash64::budget

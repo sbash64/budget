@@ -25,6 +25,10 @@ public:
     checkmarkTransactionIndex_ = index;
   }
 
+  void deleteTransaction(gsl::index index) { transactionDeleted_ = index; }
+
+  auto transactionDeleted() -> int { return transactionDeleted_; }
+
   [[nodiscard]] auto checkmarkTransactionIndex() const -> int {
     return checkmarkTransactionIndex_;
   }
@@ -59,6 +63,7 @@ private:
   std::string transactionAddedDescription_;
   int transactionIndex_{-1};
   int checkmarkTransactionIndex_{-1};
+  int transactionDeleted_{-1};
 };
 } // namespace
 
@@ -193,6 +198,42 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
     january3rd2020.verifies(
         {789_cents, "chimpanzee", Date{2020, Month::January, 3}});
     assertEqual(result, 2, view.checkmarkTransactionIndex());
+  });
+}
+
+void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory june1st2020;
+    add(presenter, june1st2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+
+    ObservableTransactionInMemory january3rd2020;
+    add(presenter, january3rd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
+         false,
+         false});
+
+    ObservableTransactionInMemory june4th2020;
+    add(presenter, june4th2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
+
+    ObservableTransactionInMemory january2nd2020;
+    add(presenter, january2nd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
+         false,
+         false});
+
+    january3rd2020.remove();
+    assertEqual(result, 2, view.transactionDeleted());
+
+    january2nd2020.remove();
+    assertEqual(result, 2, view.transactionDeleted());
+
+    june1st2020.remove();
+    assertEqual(result, 1, view.transactionDeleted());
+
+    june4th2020.remove();
+    assertEqual(result, 0, view.transactionDeleted());
   });
 }
 } // namespace sbash64::budget::presentation

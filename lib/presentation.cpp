@@ -35,7 +35,9 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
   parent.notifyThatIs(this, t);
 }
 
-void TransactionPresenter::notifyThatWillBeRemoved() {}
+void TransactionPresenter::notifyThatWillBeRemoved() {
+  parent.remove(transaction);
+}
 
 AccountPresenter::AccountPresenter(AccountView &view) : view{view} {}
 
@@ -79,6 +81,11 @@ void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
 auto AccountPresenter::index(const Transaction &transaction) -> gsl::index {
   return distance(transactions.begin(),
                   find(transactions.begin(), transactions.end(), transaction));
+}
+
+void AccountPresenter::remove(const Transaction &t) {
+  view.deleteTransaction(index(t));
+  transactions.erase(find(transactions.begin(), transactions.end(), t));
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}

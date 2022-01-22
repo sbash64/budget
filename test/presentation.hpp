@@ -12,6 +12,7 @@ void passesDescriptionOfNewTransaction(testcpplite::TestResult &);
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &);
 void ordersSameDateTransactionsByDescription(testcpplite::TestResult &);
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
+void deletesRemovedTransactionRow(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif

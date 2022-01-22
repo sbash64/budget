@@ -19,6 +19,7 @@ public:
   virtual void addTransaction(std::string_view amount, std::string_view date,
                               std::string_view description,
                               gsl::index index) = 0;
+  virtual void deleteTransaction(gsl::index) = 0;
 };
 
 class AccountPresenter;
@@ -46,6 +47,7 @@ public:
   void notifyThatWillBeRemoved() override;
   void notifyThatIs(const TransactionPresenter *, const Transaction &);
   auto index(const Transaction &) -> gsl::index;
+  void remove(const Transaction &);
 
 private:
   AccountView &view;
