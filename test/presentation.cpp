@@ -21,7 +21,7 @@ public:
 
   auto balance() -> std::string { return balance_; }
 
-  void putCheckmarkNextToTransaction(int index) override {
+  void putCheckmarkNextToTransaction(gsl::index index) override {
     checkmarkTransactionIndex_ = index;
   }
 
@@ -44,7 +44,7 @@ public:
   }
 
   void addTransaction(std::string_view amount, std::string_view date,
-                      std::string_view description, int index) override {
+                      std::string_view description, gsl::index index) override {
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;

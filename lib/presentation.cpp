@@ -65,7 +65,7 @@ static auto upperBound(const std::vector<Transaction> &transactions,
 }
 
 static auto placement(const std::vector<Transaction> &transactions,
-                      const Transaction &transaction) -> int {
+                      const Transaction &transaction) -> gsl::index {
   return distance(transactions.begin(), upperBound(transactions, transaction));
 }
 
@@ -76,7 +76,7 @@ void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
   transactions.insert(upperBound(transactions, t), t);
 }
 
-auto AccountPresenter::index(const Transaction &transaction) -> int {
+auto AccountPresenter::index(const Transaction &transaction) -> gsl::index {
   return distance(transactions.begin(),
                   find(transactions.begin(), transactions.end(), transaction));
 }
