@@ -13,7 +13,7 @@ TransactionPresenter::TransactionPresenter(AccountView &view,
     : view{view}, parent{parent} {}
 
 void TransactionPresenter::notifyThatIsVerified() {
-  view.putCheckmarkNextToTransaction(parent.index(transaction));
+  view.putCheckmarkNextToTransaction(parent.index(this));
 }
 
 void TransactionPresenter::notifyThatIsArchived() {}
@@ -32,12 +32,10 @@ static auto date(const Transaction &t) -> std::string {
 
 void TransactionPresenter::notifyThatIs(const Transaction &t) {
   transaction = t;
-  parent.notifyThatIs(this, t);
+  parent.ready(this);
 }
 
-void TransactionPresenter::notifyThatWillBeRemoved() {
-  parent.remove(transaction);
-}
+void TransactionPresenter::notifyThatWillBeRemoved() { parent.remove(this); }
 
 AccountPresenter::AccountPresenter(AccountView &view) : view{view} {}
 
@@ -55,35 +53,38 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
   t.attach(transactionPresenters.back().get());
 }
 
-static auto upperBound(const std::vector<Transaction> &transactions,
-                       const Transaction &t)
-    -> std::vector<Transaction>::const_iterator {
+static auto
+upperBound(const std::vector<const TransactionPresenter *> &transactions,
+           const Transaction &t)
+    -> std::vector<const TransactionPresenter *>::const_iterator {
   return upper_bound(transactions.begin(), transactions.end(), t,
-                     [](const Transaction &a, const Transaction &b) {
-                       if (a.date != b.date)
-                         return !(a.date < b.date);
-                       return a.description < b.description;
+                     [](const Transaction &a, const TransactionPresenter *b) {
+                       if (a.date != b->get().date)
+                         return !(a.date < b->get().date);
+                       return a.description < b->get().description;
                      });
 }
 
-static auto placement(const std::vector<Transaction> &transactions,
-                      const Transaction &transaction) -> gsl::index {
+static auto
+placement(const std::vector<const TransactionPresenter *> &transactions,
+          const Transaction &transaction) -> gsl::index {
   return distance(transactions.begin(), upperBound(transactions, transaction));
 }
 
-void AccountPresenter::notifyThatIs(const TransactionPresenter *child,
-                                    const Transaction &t) {
-  view.addTransaction(format(t.amount), date(t), t.description,
-                      budget::placement(transactions, t));
-  transactions.insert(upperBound(transactions, t), t);
+void AccountPresenter::ready(const TransactionPresenter *child) {
+  view.addTransaction(format(child->get().amount), date(child->get()),
+                      child->get().description,
+                      budget::placement(transactions, child->get()));
+  transactions.insert(upperBound(transactions, child->get()), child);
 }
 
-auto AccountPresenter::index(const Transaction &transaction) -> gsl::index {
+auto AccountPresenter::index(const TransactionPresenter *transaction)
+    -> gsl::index {
   return distance(transactions.begin(),
                   find(transactions.begin(), transactions.end(), transaction));
 }
 
-void AccountPresenter::remove(const Transaction &t) {
+void AccountPresenter::remove(const TransactionPresenter *t) {
   view.deleteTransaction(index(t));
   transactions.erase(find(transactions.begin(), transactions.end(), t));
 }

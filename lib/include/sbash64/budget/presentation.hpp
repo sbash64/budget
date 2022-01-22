@@ -31,6 +31,7 @@ public:
   void notifyThatIsArchived() override;
   void notifyThatIs(const Transaction &t) override;
   void notifyThatWillBeRemoved() override;
+  [[nodiscard]] auto get() const -> Transaction { return transaction; }
 
 private:
   Transaction transaction;
@@ -45,14 +46,14 @@ public:
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &t) override;
   void notifyThatWillBeRemoved() override;
-  void notifyThatIs(const TransactionPresenter *, const Transaction &);
-  auto index(const Transaction &) -> gsl::index;
-  void remove(const Transaction &);
+  void ready(const TransactionPresenter *);
+  auto index(const TransactionPresenter *) -> gsl::index;
+  void remove(const TransactionPresenter *);
 
 private:
   AccountView &view;
   std::vector<std::unique_ptr<TransactionPresenter>> transactionPresenters;
-  std::vector<Transaction> transactions;
+  std::vector<const TransactionPresenter *> transactions;
 };
 } // namespace sbash64::budget
 
