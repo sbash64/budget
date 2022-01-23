@@ -75,9 +75,9 @@ placement(const std::vector<const TransactionPresenter *> &orderedChildren,
 }
 
 void AccountPresenter::ready(const TransactionPresenter *child) {
-  view.addTransaction(format(child->get().amount), date(child->get()),
-                      child->get().description,
-                      budget::placement(orderedChildren, child));
+  view.addTransactionRow(format(child->get().amount), date(child->get()),
+                         child->get().description,
+                         budget::placement(orderedChildren, child));
   orderedChildren.insert(upperBound(orderedChildren, child), child);
 }
 

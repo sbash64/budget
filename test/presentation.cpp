@@ -51,8 +51,9 @@ public:
     return transactionAddedDescription_;
   }
 
-  void addTransaction(std::string_view amount, std::string_view date,
-                      std::string_view description, gsl::index index) override {
+  void addTransactionRow(std::string_view amount, std::string_view date,
+                         std::string_view description,
+                         gsl::index index) override {
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;

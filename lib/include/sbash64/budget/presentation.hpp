@@ -17,9 +17,9 @@ public:
   virtual void removeTransactionSelection(gsl::index index) = 0;
   virtual void updateBalance(std::string_view) = 0;
   virtual void updateAllocation(std::string_view) = 0;
-  virtual void addTransaction(std::string_view amount, std::string_view date,
-                              std::string_view description,
-                              gsl::index index) = 0;
+  virtual void addTransactionRow(std::string_view amount, std::string_view date,
+                                 std::string_view description,
+                                 gsl::index index) = 0;
   virtual void deleteTransaction(gsl::index) = 0;
 };
 
