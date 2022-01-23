@@ -14,11 +14,17 @@ namespace sbash64::budget::presentation {
 namespace {
 class BudgetViewStub : public BudgetView {
 public:
-  auto newAccountIndex() -> int { return newAccountIndex_; }
+  [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
 
-  void addNewAccountTable(gsl::index index) { newAccountIndex_ = index; }
+  void addNewAccountTable(std::string_view name, gsl::index index) override {
+    newAccountIndex_ = index;
+    newAccountName_ = name;
+  }
+
+  auto newAccountName() -> std::string { return newAccountName_; }
 
 private:
+  std::string newAccountName_;
   int newAccountIndex_{-1};
 };
 
@@ -296,6 +302,7 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
   AccountStub bob;
   presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
   assertEqual(result, 1, view.newAccountIndex());
+  assertEqual(result, "bob", view.newAccountName());
   AccountStub dale;
   presenter.notifyThatExpenseAccountHasBeenCreated(dale, "dale");
   assertEqual(result, 2, view.newAccountIndex());

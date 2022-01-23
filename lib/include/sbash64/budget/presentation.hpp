@@ -61,7 +61,7 @@ private:
 class BudgetView {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetView);
-  virtual void addNewAccountTable(gsl::index) = 0;
+  virtual void addNewAccountTable(std::string_view name, gsl::index) = 0;
 };
 
 class BudgetPresenter : public Budget::Observer {

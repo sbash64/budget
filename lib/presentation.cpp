@@ -114,7 +114,7 @@ BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &, std::string_view name) {
-  view.addNewAccountTable(budget::placement(orderedNames, name) + 1);
+  view.addNewAccountTable(name, budget::placement(orderedNames, name) + 1);
   orderedNames.insert(
       upper_bound(orderedNames.begin(), orderedNames.end(), name),
       std::string{name});
