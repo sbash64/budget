@@ -41,9 +41,12 @@ private:
   AccountPresenter &parent;
 };
 
+class BudgetPresenter;
+
 class AccountPresenter : public Account::Observer {
 public:
-  AccountPresenter(Account &, AccountView &, std::string_view name = "");
+  AccountPresenter(Account &, AccountView &, std::string_view name = "",
+                   BudgetPresenter *parent = nullptr);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -58,6 +61,7 @@ private:
   std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> childrenMemory;
   std::vector<const TransactionPresenter *> orderedChildren;
+  BudgetPresenter *parent;
 };
 
 class BudgetView {

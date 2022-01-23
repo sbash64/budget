@@ -43,8 +43,9 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 void TransactionPresenter::notifyThatWillBeRemoved() { parent.remove(this); }
 
 AccountPresenter::AccountPresenter(Account &account, AccountView &view,
-                                   std::string_view name)
-    : view{view}, name_{name} {
+                                   std::string_view name,
+                                   BudgetPresenter *parent)
+    : view{view}, name_{name}, parent{parent} {
   account.attach(this);
 }
 
@@ -103,7 +104,7 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
               }));
 }
 
-void AccountPresenter::notifyThatWillBeRemoved() {}
+void AccountPresenter::notifyThatWillBeRemoved() { parent->remove(this); }
 
 static auto upperBound(
     const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
