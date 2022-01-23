@@ -15,6 +15,7 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
 void deletesRemovedTransactionRow(testcpplite::TestResult &);
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &);
 void ordersAccountsByName(testcpplite::TestResult &);
+void formatsNetIncome(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif

@@ -120,5 +120,7 @@ void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
       std::string{name});
 }
 
-void BudgetPresenter::notifyThatNetIncomeHasChanged(USD) {}
+void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
+  view.updateNetIncome(format(usd));
+}
 } // namespace sbash64::budget

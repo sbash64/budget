@@ -23,8 +23,13 @@ public:
 
   auto newAccountName() -> std::string { return newAccountName_; }
 
+  auto netIncome() -> std::string { return netIncome_; }
+
+  void updateNetIncome(std::string_view s) { netIncome_ = s; }
+
 private:
   std::string newAccountName_;
+  std::string netIncome_;
   int newAccountIndex_{-1};
 };
 
@@ -312,5 +317,12 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
   AccountStub andy;
   presenter.notifyThatExpenseAccountHasBeenCreated(andy, "andy");
   assertEqual(result, 1, view.newAccountIndex());
+}
+
+void formatsNetIncome(testcpplite::TestResult &result) {
+  BudgetViewStub view;
+  BudgetPresenter presenter{view};
+  presenter.notifyThatNetIncomeHasChanged(1234_cents);
+  assertEqual(result, "12.34", view.netIncome());
 }
 } // namespace sbash64::budget::presentation
