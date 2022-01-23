@@ -1,7 +1,6 @@
 #include "presentation.hpp"
 #include "usd.hpp"
 
-#include <gsl/gsl_util>
 #include <sbash64/budget/domain.hpp>
 #include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/transaction.hpp>
@@ -23,12 +22,16 @@ public:
   auto balance() -> std::string { return balance_; }
 
   void putCheckmarkNextToTransaction(gsl::index index) override {
-    checkmarkTransactionIndex_ = index;
+    checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
-  void deleteTransaction(gsl::index index) { transactionDeleted_ = index; }
+  void deleteTransaction(gsl::index index) override {
+    transactionDeleted_ = static_cast<int>(index);
+  }
 
-  auto transactionDeleted() -> int { return transactionDeleted_; }
+  [[nodiscard]] auto transactionDeleted() const -> int {
+    return transactionDeleted_;
+  }
 
   [[nodiscard]] auto checkmarkTransactionIndex() const -> int {
     return checkmarkTransactionIndex_;
@@ -53,15 +56,15 @@ public:
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;
-    transactionIndex_ = index;
+    transactionIndex_ = static_cast<int>(index);
   }
 
-  auto removedTransactionSelectionIndex() -> int {
+  [[nodiscard]] auto removedTransactionSelectionIndex() const -> int {
     return removedTransactionSelectionIndex_;
   }
 
-  void removeTransactionSelection(gsl::index index) {
-    removedTransactionSelectionIndex_ = index;
+  void removeTransactionSelection(gsl::index index) override {
+    removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
 private:
