@@ -64,23 +64,12 @@ public:
   virtual void addNewAccountTable(gsl::index) = 0;
 };
 
-static auto placement(const std::vector<std::string> &orderedNames,
-                      std::string_view name) -> gsl::index {
-  return distance(orderedNames.begin(),
-                  upper_bound(orderedNames.begin(), orderedNames.end(), name));
-}
-
 class BudgetPresenter : public Budget::Observer {
 public:
-  explicit BudgetPresenter(BudgetView &view) : view{view} {}
+  explicit BudgetPresenter(BudgetView &view);
   void notifyThatExpenseAccountHasBeenCreated(Account &,
-                                              std::string_view name) override {
-    view.addNewAccountTable(budget::placement(orderedNames, name) + 1);
-    orderedNames.insert(
-        upper_bound(orderedNames.begin(), orderedNames.end(), name),
-        std::string{name});
-  }
-  void notifyThatNetIncomeHasChanged(USD) override {}
+                                              std::string_view name) override;
+  void notifyThatNetIncomeHasChanged(USD) override;
 
 private:
   BudgetView &view;

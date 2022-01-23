@@ -100,4 +100,22 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {}
+
+static auto placement(const std::vector<std::string> &orderedNames,
+                      std::string_view name) -> gsl::index {
+  return distance(orderedNames.begin(),
+                  upper_bound(orderedNames.begin(), orderedNames.end(), name));
+}
+
+BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
+
+void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
+    Account &, std::string_view name) {
+  view.addNewAccountTable(budget::placement(orderedNames, name) + 1);
+  orderedNames.insert(
+      upper_bound(orderedNames.begin(), orderedNames.end(), name),
+      std::string{name});
+}
+
+void BudgetPresenter::notifyThatNetIncomeHasChanged(USD) {}
 } // namespace sbash64::budget
