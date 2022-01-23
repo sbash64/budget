@@ -1,6 +1,7 @@
 #include "presentation.hpp"
 #include "usd.hpp"
 
+#include <gsl/gsl_util>
 #include <sbash64/budget/domain.hpp>
 #include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/transaction.hpp>
@@ -55,6 +56,14 @@ public:
     transactionIndex_ = index;
   }
 
+  auto removedTransactionSelectionIndex() -> int {
+    return removedTransactionSelectionIndex_;
+  }
+
+  void removeTransactionSelection(gsl::index index) {
+    removedTransactionSelectionIndex_ = index;
+  }
+
 private:
   std::string allocation_;
   std::string balance_;
@@ -64,6 +73,7 @@ private:
   int transactionIndex_{-1};
   int checkmarkTransactionIndex_{-1};
   int transactionDeleted_{-1};
+  int removedTransactionSelectionIndex_{-1};
 };
 } // namespace
 
@@ -234,6 +244,33 @@ void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
 
     june4th2020.remove();
     assertEqual(result, 0, view.transactionDeleted());
+  });
+}
+
+void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
+  test([&result](AccountPresenter &presenter, AccountViewStub &view) {
+    ObservableTransactionInMemory june1st2020;
+    add(presenter, june1st2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
+
+    ObservableTransactionInMemory january3rd2020;
+    add(presenter, january3rd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
+         false,
+         false});
+
+    ObservableTransactionInMemory june4th2020;
+    add(presenter, june4th2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
+
+    ObservableTransactionInMemory january2nd2020;
+    add(presenter, january2nd2020,
+        {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
+         false,
+         false});
+
+    january3rd2020.archive();
+    assertEqual(result, 2, view.removedTransactionSelectionIndex());
   });
 }
 } // namespace sbash64::budget::presentation

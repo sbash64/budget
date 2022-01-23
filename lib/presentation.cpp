@@ -16,7 +16,9 @@ void TransactionPresenter::notifyThatIsVerified() {
   view.putCheckmarkNextToTransaction(parent.index(this));
 }
 
-void TransactionPresenter::notifyThatIsArchived() {}
+void TransactionPresenter::notifyThatIsArchived() {
+  view.removeTransactionSelection(parent.index(this));
+}
 
 static auto format(USD usd) -> std::string {
   std::stringstream stream;
