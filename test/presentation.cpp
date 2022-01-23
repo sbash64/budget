@@ -1,4 +1,5 @@
 #include "presentation.hpp"
+#include "account-stub.hpp"
 #include "usd.hpp"
 
 #include <sbash64/budget/domain.hpp>
@@ -11,6 +12,16 @@
 
 namespace sbash64::budget::presentation {
 namespace {
+class BudgetViewStub : public BudgetView {
+public:
+  auto newAccountIndex() -> int { return newAccountIndex_; }
+
+  void addNewAccountTable(gsl::index index) { newAccountIndex_ = index; }
+
+private:
+  int newAccountIndex_{-1};
+};
+
 class AccountViewStub : public AccountView {
 public:
   void updateAllocation(std::string_view s) override { allocation_ = s; }
@@ -276,5 +287,22 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
     january3rd2020.archive();
     assertEqual(result, 2, view.removedTransactionSelectionIndex());
   });
+}
+
+void ordersAccountsByName(testcpplite::TestResult &result) {
+  BudgetViewStub view;
+  BudgetPresenter presenter{view};
+  AccountStub bob;
+  presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
+  assertEqual(result, 1, view.newAccountIndex());
+  AccountStub dale;
+  presenter.notifyThatExpenseAccountHasBeenCreated(dale, "dale");
+  assertEqual(result, 2, view.newAccountIndex());
+  AccountStub carl;
+  presenter.notifyThatExpenseAccountHasBeenCreated(carl, "carl");
+  assertEqual(result, 2, view.newAccountIndex());
+  AccountStub andy;
+  presenter.notifyThatExpenseAccountHasBeenCreated(andy, "andy");
+  assertEqual(result, 1, view.newAccountIndex());
 }
 } // namespace sbash64::budget::presentation

@@ -179,7 +179,9 @@ static auto runAllTests() -> int {
        {presentation::deletesRemovedTransactionRow,
         "presentation::deletesRemovedTransactionRow"},
        {presentation::removesSelectionFromArchivedTransaction,
-        "presentation::removesSelectionFromArchivedTransaction"}},
+        "presentation::removesSelectionFromArchivedTransaction"},
+       {presentation::ordersAccountsByName,
+        "presentation::ordersAccountsByName"}},
       std::cout);
 }
 } // namespace sbash64::budget

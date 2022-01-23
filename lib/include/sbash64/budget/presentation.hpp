@@ -56,6 +56,35 @@ private:
   std::vector<std::unique_ptr<TransactionPresenter>> childrenMemory;
   std::vector<const TransactionPresenter *> orderedChildren;
 };
+
+class BudgetView {
+public:
+  SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetView);
+  virtual void addNewAccountTable(gsl::index) = 0;
+};
+
+static auto placement(const std::vector<std::string> &orderedNames,
+                      std::string_view name) -> gsl::index {
+  return distance(orderedNames.begin(),
+                  upper_bound(orderedNames.begin(), orderedNames.end(), name));
+}
+
+class BudgetPresenter : public Budget::Observer {
+public:
+  explicit BudgetPresenter(BudgetView &view) : view{view} {}
+  void notifyThatExpenseAccountHasBeenCreated(Account &,
+                                              std::string_view name) override {
+    view.addNewAccountTable(budget::placement(orderedNames, name) + 1);
+    orderedNames.insert(
+        upper_bound(orderedNames.begin(), orderedNames.end(), name),
+        std::string{name});
+  }
+  void notifyThatNetIncomeHasChanged(USD) override {}
+
+private:
+  BudgetView &view;
+  std::vector<std::string> orderedNames;
+};
 } // namespace sbash64::budget
 
 #endif
