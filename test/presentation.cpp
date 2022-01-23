@@ -100,8 +100,9 @@ static void add(AccountPresenter &presenter, ObservableTransaction &transaction,
 
 static void
 test(const std::function<void(AccountPresenter &, AccountViewStub &)> &f) {
+  AccountStub account;
   AccountViewStub view;
-  AccountPresenter presenter{view};
+  AccountPresenter presenter{account, view};
   f(presenter, view);
 }
 

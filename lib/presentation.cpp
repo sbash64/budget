@@ -42,7 +42,10 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 
 void TransactionPresenter::notifyThatWillBeRemoved() { parent.remove(this); }
 
-AccountPresenter::AccountPresenter(AccountView &view) : view{view} {}
+AccountPresenter::AccountPresenter(Account &account, AccountView &view)
+    : view{view} {
+  account.attach(this);
+}
 
 void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
   view.updateBalance(format(usd));

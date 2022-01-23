@@ -43,7 +43,7 @@ private:
 
 class AccountPresenter : public Account::Observer {
 public:
-  explicit AccountPresenter(AccountView &);
+  AccountPresenter(Account &, AccountView &);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
