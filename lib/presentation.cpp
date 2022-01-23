@@ -8,9 +8,12 @@
 #include <string>
 
 namespace sbash64::budget {
-TransactionPresenter::TransactionPresenter(AccountView &view,
+TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
+                                           AccountView &view,
                                            AccountPresenter &parent)
-    : view{view}, parent{parent} {}
+    : view{view}, parent{parent} {
+  transaction.attach(this);
+}
 
 void TransactionPresenter::notifyThatIsVerified() {
   view.putCheckmarkNextToTransaction(parent.index(this));
@@ -50,8 +53,7 @@ void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
-  auto child{std::make_unique<TransactionPresenter>(view, *this)};
-  t.attach(child.get());
+  auto child{std::make_unique<TransactionPresenter>(t, view, *this)};
   childrenMemory.push_back(move(child));
 }
 

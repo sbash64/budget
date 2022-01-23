@@ -27,7 +27,8 @@ class AccountPresenter;
 
 class TransactionPresenter : public ObservableTransaction::Observer {
 public:
-  TransactionPresenter(AccountView &, AccountPresenter &);
+  TransactionPresenter(ObservableTransaction &, AccountView &,
+                       AccountPresenter &);
   void notifyThatIsVerified() override;
   void notifyThatIsArchived() override;
   void notifyThatIs(const Transaction &t) override;
