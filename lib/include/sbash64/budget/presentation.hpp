@@ -43,7 +43,7 @@ private:
 
 class AccountPresenter : public Account::Observer {
 public:
-  AccountPresenter(Account &, AccountView &);
+  AccountPresenter(Account &, AccountView &, std::string_view name = "");
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -51,9 +51,11 @@ public:
   void ready(const TransactionPresenter *);
   auto index(const TransactionPresenter *) -> gsl::index;
   void remove(const TransactionPresenter *);
+  [[nodiscard]] auto name() const -> std::string { return name_; }
 
 private:
   AccountView &view;
+  std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> childrenMemory;
   std::vector<const TransactionPresenter *> orderedChildren;
 };
@@ -61,7 +63,8 @@ private:
 class BudgetView {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetView);
-  virtual void addNewAccountTable(std::string_view name, gsl::index) = 0;
+  virtual auto addNewAccountTable(std::string_view name, gsl::index)
+      -> AccountView & = 0;
   virtual void updateNetIncome(std::string_view amount) = 0;
 };
 
@@ -71,10 +74,11 @@ public:
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
+  void remove(const AccountPresenter *);
 
 private:
   BudgetView &view;
-  std::vector<std::string> orderedNames;
+  std::vector<std::unique_ptr<AccountPresenter>> orderedChildren;
 };
 } // namespace sbash64::budget
 

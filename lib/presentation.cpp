@@ -42,8 +42,9 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 
 void TransactionPresenter::notifyThatWillBeRemoved() { parent.remove(this); }
 
-AccountPresenter::AccountPresenter(Account &account, AccountView &view)
-    : view{view} {
+AccountPresenter::AccountPresenter(Account &account, AccountView &view,
+                                   std::string_view name)
+    : view{view}, name_{name} {
   account.attach(this);
 }
 
@@ -104,23 +105,46 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 
 void AccountPresenter::notifyThatWillBeRemoved() {}
 
-static auto placement(const std::vector<std::string> &orderedNames,
-                      std::string_view name) -> gsl::index {
-  return distance(orderedNames.begin(),
-                  upper_bound(orderedNames.begin(), orderedNames.end(), name));
+static auto upperBound(
+    const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
+    std::string_view name)
+    -> std::vector<std::unique_ptr<AccountPresenter>>::const_iterator {
+  return upper_bound(
+      orderedChildren.begin(), orderedChildren.end(), name,
+      [](std::string_view a, const std::unique_ptr<AccountPresenter> &b) {
+        return a < b->name();
+      });
+}
+
+static auto
+placement(const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
+          std::string_view name) -> gsl::index {
+  return distance(orderedChildren.begin(), upperBound(orderedChildren, name));
 }
 
 BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
-    Account &, std::string_view name) {
-  view.addNewAccountTable(name, budget::placement(orderedNames, name) + 1);
-  orderedNames.insert(
-      upper_bound(orderedNames.begin(), orderedNames.end(), name),
-      std::string{name});
+    Account &account, std::string_view name) {
+  orderedChildren.insert(
+      upperBound(orderedChildren, name),
+      std::make_unique<AccountPresenter>(
+          account,
+          view.addNewAccountTable(name,
+                                  budget::placement(orderedChildren, name) + 1),
+          name));
 }
 
 void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
   view.updateNetIncome(format(usd));
+}
+
+void BudgetPresenter::remove(const AccountPresenter *child) {
+  // view.deleteAccountTable(index(child));
+  orderedChildren.erase(
+      find_if(orderedChildren.begin(), orderedChildren.end(),
+              [child](const std::unique_ptr<AccountPresenter> &a) {
+                return a.get() == child;
+              }));
 }
 } // namespace sbash64::budget

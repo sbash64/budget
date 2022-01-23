@@ -12,27 +12,6 @@
 
 namespace sbash64::budget::presentation {
 namespace {
-class BudgetViewStub : public BudgetView {
-public:
-  [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
-
-  void addNewAccountTable(std::string_view name, gsl::index index) override {
-    newAccountIndex_ = index;
-    newAccountName_ = name;
-  }
-
-  auto newAccountName() -> std::string { return newAccountName_; }
-
-  auto netIncome() -> std::string { return netIncome_; }
-
-  void updateNetIncome(std::string_view s) { netIncome_ = s; }
-
-private:
-  std::string newAccountName_;
-  std::string netIncome_;
-  int newAccountIndex_{-1};
-};
-
 class AccountViewStub : public AccountView {
 public:
   void updateAllocation(std::string_view s) override { allocation_ = s; }
@@ -100,6 +79,30 @@ private:
   int checkmarkTransactionIndex_{-1};
   int transactionDeleted_{-1};
   int removedTransactionSelectionIndex_{-1};
+};
+
+class BudgetViewStub : public BudgetView {
+public:
+  [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
+
+  auto addNewAccountTable(std::string_view name, gsl::index index)
+      -> AccountView & override {
+    newAccountIndex_ = index;
+    newAccountName_ = name;
+    return accountView;
+  }
+
+  auto newAccountName() -> std::string { return newAccountName_; }
+
+  auto netIncome() -> std::string { return netIncome_; }
+
+  void updateNetIncome(std::string_view s) override { netIncome_ = s; }
+
+private:
+  AccountViewStub accountView;
+  std::string newAccountName_;
+  std::string netIncome_;
+  int newAccountIndex_{-1};
 };
 } // namespace
 
