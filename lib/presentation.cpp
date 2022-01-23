@@ -53,8 +53,8 @@ void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
-  auto child{std::make_unique<TransactionPresenter>(t, view, *this)};
-  childrenMemory.push_back(move(child));
+  childrenMemory.push_back(
+      std::make_unique<TransactionPresenter>(t, view, *this));
 }
 
 static auto
