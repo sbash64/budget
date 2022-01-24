@@ -40,7 +40,7 @@ private:
   Transaction transaction;
   AccountView &view;
   AccountPresenter &parent;
-  gsl::index index;
+  gsl::index index{-1};
 };
 
 class BudgetPresenter;
@@ -60,7 +60,7 @@ public:
 private:
   AccountView &view;
   std::string name_;
-  std::vector<std::unique_ptr<TransactionPresenter>> childrenMemory;
+  std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
   BudgetPresenter *parent;
 };

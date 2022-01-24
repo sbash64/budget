@@ -61,7 +61,7 @@ void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
-  childrenMemory.push_back(
+  unorderedChildren.push_back(
       std::make_unique<TransactionPresenter>(t, view, *this));
 }
 
@@ -88,28 +88,28 @@ void AccountPresenter::ready(TransactionPresenter *child) {
   const auto placement{budget::placement(orderedChildren, child)};
   view.addTransactionRow(format(child->get().amount), date(child->get()),
                          child->get().description, placement);
-  auto originalIterator{
-      find_if(childrenMemory.begin(), childrenMemory.end(),
+  const auto unorderedChild{
+      find_if(unorderedChildren.begin(), unorderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  orderedChildren.insert(upperBound(orderedChildren, child),
-                         move(*originalIterator));
+  orderedChildren.insert(next(orderedChildren.begin(), placement),
+                         move(*unorderedChild));
   for (auto i{placement}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
-  childrenMemory.erase(originalIterator);
+  unorderedChildren.erase(unorderedChild);
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
-  auto originalIterator{
+  auto orderedChild{
       find_if(orderedChildren.begin(), orderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  for (auto i{distance(orderedChildren.begin(), next(originalIterator))};
+  for (auto i{distance(orderedChildren.begin(), next(orderedChild))};
        i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i - 1);
-  orderedChildren.erase(originalIterator);
+  orderedChildren.erase(orderedChild);
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() { parent->remove(this); }
