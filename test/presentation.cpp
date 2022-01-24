@@ -106,12 +106,6 @@ private:
 };
 } // namespace
 
-static void add(AccountPresenter &presenter, ObservableTransaction &transaction,
-                const ArchivableVerifiableTransaction &t) {
-  presenter.notifyThatHasBeenAdded(transaction);
-  transaction.ready(t);
-}
-
 static void add(AccountStub &account, ObservableTransaction &transaction,
                 const ArchivableVerifiableTransaction &t) {
   account.observer()->notifyThatHasBeenAdded(transaction);
@@ -227,24 +221,24 @@ void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
 }
 
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;
-    add(presenter, june1st2020,
+    add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
 
     ObservableTransactionInMemory january3rd2020;
-    add(presenter, january3rd2020,
+    add(account, january3rd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
          false,
          false});
 
     ObservableTransactionInMemory june4th2020;
-    add(presenter, june4th2020,
+    add(account, june4th2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
 
     ObservableTransactionInMemory january2nd2020;
-    add(presenter, january2nd2020,
+    add(account, january2nd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
          false,
          false});
@@ -256,24 +250,24 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
 }
 
 void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;
-    add(presenter, june1st2020,
+    add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
 
     ObservableTransactionInMemory january3rd2020;
-    add(presenter, january3rd2020,
+    add(account, january3rd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
          false,
          false});
 
     ObservableTransactionInMemory june4th2020;
-    add(presenter, june4th2020,
+    add(account, june4th2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
 
     ObservableTransactionInMemory january2nd2020;
-    add(presenter, january2nd2020,
+    add(account, january2nd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
          false,
          false});
@@ -293,24 +287,24 @@ void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
 }
 
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;
-    add(presenter, june1st2020,
+    add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
 
     ObservableTransactionInMemory january3rd2020;
-    add(presenter, january3rd2020,
+    add(account, january3rd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
          false,
          false});
 
     ObservableTransactionInMemory june4th2020;
-    add(presenter, june4th2020,
+    add(account, june4th2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
 
     ObservableTransactionInMemory january2nd2020;
-    add(presenter, january2nd2020,
+    add(account, january2nd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
          false,
          false});
