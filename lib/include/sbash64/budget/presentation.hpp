@@ -44,11 +44,13 @@ private:
 };
 
 class BudgetPresenter;
+class BudgetView;
 
 class AccountPresenter : public Account::Observer {
 public:
   AccountPresenter(Account &, AccountView &, std::string_view name = "",
-                   BudgetPresenter *parent = nullptr);
+                   BudgetPresenter *parent = nullptr,
+                   BudgetView *parentView = nullptr);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -64,6 +66,7 @@ private:
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
   BudgetPresenter *parent;
+  BudgetView *parentView;
   gsl::index index{-1};
 };
 
@@ -72,6 +75,7 @@ public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(BudgetView);
   virtual auto addNewAccountTable(std::string_view name, gsl::index)
       -> AccountView & = 0;
+  virtual void deleteAccountTable(gsl::index) = 0;
   virtual void updateNetIncome(std::string_view amount) = 0;
 };
 

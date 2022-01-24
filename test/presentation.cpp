@@ -92,6 +92,8 @@ public:
     return accountView;
   }
 
+  void deleteAccountTable(gsl::index) override {}
+
   auto newAccountName() -> std::string { return newAccountName_; }
 
   auto netIncome() -> std::string { return netIncome_; }

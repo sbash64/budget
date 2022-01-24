@@ -47,8 +47,9 @@ void TransactionPresenter::notifyThatWillBeRemoved() {
 
 AccountPresenter::AccountPresenter(Account &account, AccountView &view,
                                    std::string_view name,
-                                   BudgetPresenter *parent)
-    : view{view}, name_{name}, parent{parent} {
+                                   BudgetPresenter *parent,
+                                   BudgetView *parentView)
+    : view{view}, name_{name}, parent{parent}, parentView{parentView} {
   account.attach(this);
 }
 
@@ -112,7 +113,10 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
   orderedChildren.erase(orderedChild);
 }
 
-void AccountPresenter::notifyThatWillBeRemoved() { parent->remove(this); }
+void AccountPresenter::notifyThatWillBeRemoved() {
+  parentView->deleteAccountTable(index);
+  parent->remove(this);
+}
 
 static auto upperBound(
     const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
@@ -149,7 +153,6 @@ void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
 }
 
 void BudgetPresenter::remove(const AccountPresenter *child) {
-  // view.deleteAccountTable(index(child));
   const auto orderedChild{
       find_if(orderedChildren.begin(), orderedChildren.end(),
               [child](const std::unique_ptr<AccountPresenter> &a) {
