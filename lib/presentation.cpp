@@ -16,11 +16,11 @@ TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
 }
 
 void TransactionPresenter::notifyThatIsVerified() {
-  view.putCheckmarkNextToTransaction(parent.index(this));
+  view.putCheckmarkNextToTransaction(index);
 }
 
 void TransactionPresenter::notifyThatIsArchived() {
-  view.removeTransactionSelection(parent.index(this));
+  view.removeTransactionSelection(index);
 }
 
 static auto format(USD usd) -> std::string {
@@ -40,7 +40,10 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
   parent.ready(this);
 }
 
-void TransactionPresenter::notifyThatWillBeRemoved() { parent.remove(this); }
+void TransactionPresenter::notifyThatWillBeRemoved() {
+  view.deleteTransaction(index);
+  parent.remove(this);
+}
 
 AccountPresenter::AccountPresenter(Account &account, AccountView &view,
                                    std::string_view name,
@@ -62,46 +65,51 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
       std::make_unique<TransactionPresenter>(t, view, *this));
 }
 
-static auto
-upperBound(const std::vector<const TransactionPresenter *> &orderedChildren,
-           const TransactionPresenter *child)
-    -> std::vector<const TransactionPresenter *>::const_iterator {
-  return upper_bound(
-      orderedChildren.begin(), orderedChildren.end(), child,
-      [](const TransactionPresenter *a, const TransactionPresenter *b) {
-        if (a->get().date != b->get().date)
-          return !(a->get().date < b->get().date);
-        return a->get().description < b->get().description;
-      });
+static auto upperBound(
+    const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
+    const TransactionPresenter *child)
+    -> std::vector<std::unique_ptr<TransactionPresenter>>::const_iterator {
+  return upper_bound(orderedChildren.begin(), orderedChildren.end(), child,
+                     [](const TransactionPresenter *a,
+                        const std::unique_ptr<TransactionPresenter> &b) {
+                       if (a->get().date != b->get().date)
+                         return !(a->get().date < b->get().date);
+                       return a->get().description < b->get().description;
+                     });
 }
 
-static auto
-placement(const std::vector<const TransactionPresenter *> &orderedChildren,
-          const TransactionPresenter *child) -> gsl::index {
+static auto placement(
+    const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
+    const TransactionPresenter *child) -> gsl::index {
   return distance(orderedChildren.begin(), upperBound(orderedChildren, child));
 }
 
-void AccountPresenter::ready(const TransactionPresenter *child) {
+void AccountPresenter::ready(TransactionPresenter *child) {
+  const auto placement{budget::placement(orderedChildren, child)};
   view.addTransactionRow(format(child->get().amount), date(child->get()),
-                         child->get().description,
-                         budget::placement(orderedChildren, child));
-  orderedChildren.insert(upperBound(orderedChildren, child), child);
-}
-
-auto AccountPresenter::index(const TransactionPresenter *child) -> gsl::index {
-  return distance(orderedChildren.begin(),
-                  find(orderedChildren.begin(), orderedChildren.end(), child));
-}
-
-void AccountPresenter::remove(const TransactionPresenter *child) {
-  view.deleteTransaction(index(child));
-  orderedChildren.erase(
-      find(orderedChildren.begin(), orderedChildren.end(), child));
-  childrenMemory.erase(
+                         child->get().description, placement);
+  auto originalIterator{
       find_if(childrenMemory.begin(), childrenMemory.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
-              }));
+              })};
+  orderedChildren.insert(upperBound(orderedChildren, child),
+                         move(*originalIterator));
+  for (auto i{placement}; i < orderedChildren.size(); ++i)
+    orderedChildren.at(i)->setIndex(i);
+  childrenMemory.erase(originalIterator);
+}
+
+void AccountPresenter::remove(const TransactionPresenter *child) {
+  auto originalIterator{
+      find_if(orderedChildren.begin(), orderedChildren.end(),
+              [child](const std::unique_ptr<TransactionPresenter> &a) {
+                return a.get() == child;
+              })};
+  for (auto i{distance(orderedChildren.begin(), next(originalIterator))};
+       i < orderedChildren.size(); ++i)
+    orderedChildren.at(i)->setIndex(i - 1);
+  orderedChildren.erase(originalIterator);
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() { parent->remove(this); }
