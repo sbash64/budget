@@ -78,26 +78,26 @@ static auto upperBound(
                      });
 }
 
-static auto placement(
-    const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
-    const TransactionPresenter *child) -> gsl::index {
+static auto
+index(const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
+      const TransactionPresenter *child) -> gsl::index {
   return distance(orderedChildren.begin(), upperBound(orderedChildren, child));
 }
 
 void AccountPresenter::ready(TransactionPresenter *child) {
-  const auto placement{budget::placement(orderedChildren, child)};
-  view.addTransactionRow(format(child->get().amount), date(child->get()),
-                         child->get().description, placement);
+  const auto index{budget::index(orderedChildren, child)};
   const auto unorderedChild{
       find_if(unorderedChildren.begin(), unorderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  orderedChildren.insert(next(orderedChildren.begin(), placement),
+  orderedChildren.insert(next(orderedChildren.begin(), index),
                          move(*unorderedChild));
-  for (auto i{placement}; i < orderedChildren.size(); ++i)
+  for (auto i{index}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
   unorderedChildren.erase(unorderedChild);
+  view.addTransactionRow(format(child->get().amount), date(child->get()),
+                         child->get().description, index);
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
