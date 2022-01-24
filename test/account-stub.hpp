@@ -33,7 +33,7 @@ public:
 
   auto allocated() -> USD override { return allocated_; }
 
-  void attach(Observer *) override {}
+  void attach(Observer *a) override { observer_ = a; }
 
   void save(AccountSerialization &) override {}
 
@@ -90,12 +90,15 @@ public:
 
   auto removedTransaction() -> Transaction { return removedTransaction_; }
 
+  auto observer() -> Observer * { return observer_; }
+
 private:
   Transaction verifiedTransaction_;
   Transaction addedTransaction_;
   Transaction removedTransaction_;
   std::vector<USD> decreasedAllocationAmounts_;
   const AccountDeserialization *deserialization_{};
+  Observer *observer_{};
   USD balance_{};
   USD balanceOnTransactionArchive{};
   USD increasedAllocationAmount_{};
