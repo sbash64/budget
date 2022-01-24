@@ -66,27 +66,22 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
       std::make_unique<TransactionPresenter>(t, view, *this));
 }
 
-static auto upperBound(
+static auto newChildIndex(
     const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
-    const TransactionPresenter *child)
-    -> std::vector<std::unique_ptr<TransactionPresenter>>::const_iterator {
-  return upper_bound(orderedChildren.begin(), orderedChildren.end(), child,
-                     [](const TransactionPresenter *a,
-                        const std::unique_ptr<TransactionPresenter> &b) {
-                       if (a->get().date != b->get().date)
-                         return !(a->get().date < b->get().date);
-                       return a->get().description < b->get().description;
-                     });
-}
-
-static auto
-index(const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
-      const TransactionPresenter *child) -> gsl::index {
-  return distance(orderedChildren.begin(), upperBound(orderedChildren, child));
+    const TransactionPresenter *child) -> gsl::index {
+  return distance(
+      orderedChildren.begin(),
+      upper_bound(orderedChildren.begin(), orderedChildren.end(), child,
+                  [](const TransactionPresenter *a,
+                     const std::unique_ptr<TransactionPresenter> &b) {
+                    if (a->get().date != b->get().date)
+                      return !(a->get().date < b->get().date);
+                    return a->get().description < b->get().description;
+                  }));
 }
 
 void AccountPresenter::ready(const TransactionPresenter *child) {
-  const auto childIndex{budget::index(orderedChildren, child)};
+  const auto childIndex{budget::newChildIndex(orderedChildren, child)};
   const auto unorderedChild{
       find_if(unorderedChildren.begin(), unorderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
@@ -118,28 +113,23 @@ void AccountPresenter::notifyThatWillBeRemoved() {
   parent->remove(this);
 }
 
-static auto upperBound(
+static auto newChildIndex(
     const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
-    std::string_view name)
-    -> std::vector<std::unique_ptr<AccountPresenter>>::const_iterator {
-  return upper_bound(
-      orderedChildren.begin(), orderedChildren.end(), name,
-      [](std::string_view a, const std::unique_ptr<AccountPresenter> &b) {
-        return a < b->name();
-      });
-}
-
-static auto
-index(const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
-      std::string_view name) -> gsl::index {
-  return distance(orderedChildren.begin(), upperBound(orderedChildren, name));
+    std::string_view name) -> gsl::index {
+  return distance(orderedChildren.begin(),
+                  upper_bound(orderedChildren.begin(), orderedChildren.end(),
+                              name,
+                              [](std::string_view a,
+                                 const std::unique_ptr<AccountPresenter> &b) {
+                                return a < b->name();
+                              }));
 }
 
 BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
-  const auto childIndex{budget::index(orderedChildren, name)};
+  const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
       std::make_unique<AccountPresenter>(
