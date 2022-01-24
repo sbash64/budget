@@ -112,6 +112,12 @@ static void add(AccountPresenter &presenter, ObservableTransaction &transaction,
   transaction.ready(t);
 }
 
+static void add(AccountStub &account, ObservableTransaction &transaction,
+                const ArchivableVerifiableTransaction &t) {
+  account.observer()->notifyThatHasBeenAdded(transaction);
+  transaction.ready(t);
+}
+
 static void test(const std::function<void(AccountPresenter &, AccountStub &,
                                           AccountViewStub &)> &f) {
   AccountStub account;
@@ -121,7 +127,7 @@ static void test(const std::function<void(AccountPresenter &, AccountStub &,
 }
 
 void formatsAccountBalance(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &account,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     account.observer()->notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
@@ -129,65 +135,65 @@ void formatsAccountBalance(testcpplite::TestResult &result) {
 }
 
 void formatsAccountAllocation(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
-    presenter.notifyThatAllocationHasChanged(4680_cents);
+    account.observer()->notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
   });
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    add(presenter, transaction,
+    add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "7.89", view.transactionAddedAmount());
   });
 }
 
 void formatsTransactionDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    add(presenter, transaction,
+    add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "06/01/2020", view.transactionAddedDate());
   });
 }
 
 void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory transaction;
-    add(presenter, transaction,
+    add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "chimpanzee", view.transactionAddedDescription());
   });
 }
 
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory june1st2020;
-    add(presenter, june1st2020,
+    add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 0, view.transactionIndex());
 
     ObservableTransactionInMemory january3rd2020;
-    add(presenter, january3rd2020,
+    add(account, january3rd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 3}},
          false,
          false});
     assertEqual(result, 1, view.transactionIndex());
 
     ObservableTransactionInMemory june4th2020;
-    add(presenter, june4th2020,
+    add(account, june4th2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 4}}, false, false});
     assertEqual(result, 0, view.transactionIndex());
 
     ObservableTransactionInMemory january2nd2020;
-    add(presenter, january2nd2020,
+    add(account, january2nd2020,
         {{789_cents, "chimpanzee", Date{2020, Month::January, 2}},
          false,
          false});
@@ -196,25 +202,25 @@ void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
 }
 
 void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &,
+  test([&result](AccountPresenter &, AccountStub &account,
                  AccountViewStub &view) {
     ObservableTransactionInMemory ape;
-    add(presenter, ape,
+    add(account, ape,
         {{789_cents, "ape", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 0, view.transactionIndex());
 
     ObservableTransactionInMemory chimpanzee;
-    add(presenter, chimpanzee,
+    add(account, chimpanzee,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 1, view.transactionIndex());
 
     ObservableTransactionInMemory baboon;
-    add(presenter, baboon,
+    add(account, baboon,
         {{789_cents, "baboon", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 1, view.transactionIndex());
 
     ObservableTransactionInMemory dog;
-    add(presenter, dog,
+    add(account, dog,
         {{789_cents, "dog", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, 3, view.transactionIndex());
   });
