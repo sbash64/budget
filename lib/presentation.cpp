@@ -84,20 +84,20 @@ index(const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
   return distance(orderedChildren.begin(), upperBound(orderedChildren, child));
 }
 
-void AccountPresenter::ready(TransactionPresenter *child) {
-  const auto index{budget::index(orderedChildren, child)};
+void AccountPresenter::ready(const TransactionPresenter *child) {
+  const auto childIndex{budget::index(orderedChildren, child)};
   const auto unorderedChild{
       find_if(unorderedChildren.begin(), unorderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  orderedChildren.insert(next(orderedChildren.begin(), index),
+  orderedChildren.insert(next(orderedChildren.begin(), childIndex),
                          move(*unorderedChild));
-  for (auto i{index}; i < orderedChildren.size(); ++i)
+  for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
   unorderedChildren.erase(unorderedChild);
   view.addTransactionRow(format(child->get().amount), date(child->get()),
-                         child->get().description, index);
+                         child->get().description, childIndex);
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
@@ -126,8 +126,8 @@ static auto upperBound(
 }
 
 static auto
-placement(const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
-          std::string_view name) -> gsl::index {
+index(const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
+      std::string_view name) -> gsl::index {
   return distance(orderedChildren.begin(), upperBound(orderedChildren, name));
 }
 
@@ -135,13 +135,13 @@ BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
+  const auto childIndex{budget::index(orderedChildren, name)};
   orderedChildren.insert(
-      upperBound(orderedChildren, name),
+      next(orderedChildren.begin(), childIndex),
       std::make_unique<AccountPresenter>(
-          account,
-          view.addNewAccountTable(name,
-                                  budget::placement(orderedChildren, name) + 1),
-          name));
+          account, view.addNewAccountTable(name, childIndex + 1), name));
+  for (auto i{childIndex}; i < orderedChildren.size(); ++i)
+    orderedChildren.at(i)->setIndex(i + 1);
 }
 
 void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
@@ -150,10 +150,14 @@ void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
 
 void BudgetPresenter::remove(const AccountPresenter *child) {
   // view.deleteAccountTable(index(child));
-  orderedChildren.erase(
+  const auto orderedChild{
       find_if(orderedChildren.begin(), orderedChildren.end(),
               [child](const std::unique_ptr<AccountPresenter> &a) {
                 return a.get() == child;
-              }));
+              })};
+  for (auto i{distance(orderedChildren.begin(), next(orderedChild))};
+       i < orderedChildren.size(); ++i)
+    orderedChildren.at(i)->setIndex(i);
+  orderedChildren.erase(orderedChild);
 }
 } // namespace sbash64::budget

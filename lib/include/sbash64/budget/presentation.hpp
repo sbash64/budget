@@ -53,9 +53,10 @@ public:
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
   void notifyThatWillBeRemoved() override;
-  void ready(TransactionPresenter *);
+  void ready(const TransactionPresenter *);
   void remove(const TransactionPresenter *);
   [[nodiscard]] auto name() const -> std::string { return name_; }
+  void setIndex(gsl::index i) { index = i; }
 
 private:
   AccountView &view;
@@ -63,6 +64,7 @@ private:
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
   BudgetPresenter *parent;
+  gsl::index index{-1};
 };
 
 class BudgetView {
