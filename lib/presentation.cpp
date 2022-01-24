@@ -9,18 +9,17 @@
 
 namespace sbash64::budget {
 TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
-                                           AccountView &view,
-                                           AccountPresenter &parent)
+                                           View &view, AccountPresenter &parent)
     : view{view}, parent{parent} {
   transaction.attach(this);
 }
 
 void TransactionPresenter::notifyThatIsVerified() {
-  view.putCheckmarkNextToTransaction(index);
+  view.putCheckmarkNextToTransactionRow(index);
 }
 
 void TransactionPresenter::notifyThatIsArchived() {
-  view.removeTransactionSelection(index);
+  view.removeTransactionRowSelection(index);
 }
 
 static auto format(USD usd) -> std::string {
@@ -41,24 +40,23 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {
-  view.deleteTransaction(index);
+  view.deleteTransactionRow(index);
   parent.remove(this);
 }
 
-AccountPresenter::AccountPresenter(Account &account, AccountView &view,
+AccountPresenter::AccountPresenter(Account &account, View &view,
                                    std::string_view name,
-                                   BudgetPresenter *parent,
-                                   BudgetView *parentView)
-    : view{view}, name_{name}, parent{parent}, parentView{parentView} {
+                                   BudgetPresenter *parent)
+    : view{view}, name_{name}, parent{parent} {
   account.attach(this);
 }
 
 void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
-  view.updateBalance(format(usd));
+  view.updateAccountBalance(format(usd));
 }
 
 void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
-  view.updateAllocation(format(usd));
+  view.updateAccountAllocation(format(usd));
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
@@ -109,7 +107,7 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {
-  parentView->deleteAccountTable(index);
+  view.deleteAccountTable(index);
   parent->remove(this);
 }
 
@@ -125,17 +123,17 @@ static auto newChildIndex(
                               }));
 }
 
-BudgetPresenter::BudgetPresenter(BudgetView &view) : view{view} {}
+BudgetPresenter::BudgetPresenter(View &view) : view{view} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
   const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(
-          account, view.addNewAccountTable(name, childIndex + 1), name));
+      std::make_unique<AccountPresenter>(account, view, name));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i + 1);
+  view.addNewAccountTable(name, childIndex + 1);
 }
 
 void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {

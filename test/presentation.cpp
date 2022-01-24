@@ -12,21 +12,21 @@
 
 namespace sbash64::budget::presentation {
 namespace {
-class AccountViewStub : public AccountView {
+class ViewStub : public View {
 public:
-  void updateAllocation(std::string_view s) override { allocation_ = s; }
+  void updateAccountAllocation(std::string_view s) override { allocation_ = s; }
 
   auto allocation() -> std::string { return allocation_; }
 
-  void updateBalance(std::string_view s) override { balance_ = s; }
+  void updateAccountBalance(std::string_view s) override { balance_ = s; }
 
   auto balance() -> std::string { return balance_; }
 
-  void putCheckmarkNextToTransaction(gsl::index index) override {
+  void putCheckmarkNextToTransactionRow(gsl::index index) override {
     checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
-  void deleteTransaction(gsl::index index) override {
+  void deleteTransactionRow(gsl::index index) override {
     transactionDeleted_ = static_cast<int>(index);
   }
 
@@ -65,31 +65,15 @@ public:
     return removedTransactionSelectionIndex_;
   }
 
-  void removeTransactionSelection(gsl::index index) override {
+  void removeTransactionRowSelection(gsl::index index) override {
     removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
-private:
-  std::string allocation_;
-  std::string balance_;
-  std::string transactionAddedAmount_;
-  std::string transactionAddedDate_;
-  std::string transactionAddedDescription_;
-  int transactionIndex_{-1};
-  int checkmarkTransactionIndex_{-1};
-  int transactionDeleted_{-1};
-  int removedTransactionSelectionIndex_{-1};
-};
-
-class BudgetViewStub : public BudgetView {
-public:
   [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
 
-  auto addNewAccountTable(std::string_view name, gsl::index index)
-      -> AccountView & override {
+  void addNewAccountTable(std::string_view name, gsl::index index) override {
     newAccountIndex_ = index;
     newAccountName_ = name;
-    return accountView;
   }
 
   void deleteAccountTable(gsl::index) override {}
@@ -101,7 +85,15 @@ public:
   void updateNetIncome(std::string_view s) override { netIncome_ = s; }
 
 private:
-  AccountViewStub accountView;
+  std::string allocation_;
+  std::string balance_;
+  std::string transactionAddedAmount_;
+  std::string transactionAddedDate_;
+  std::string transactionAddedDescription_;
+  int transactionIndex_{-1};
+  int checkmarkTransactionIndex_{-1};
+  int transactionDeleted_{-1};
+  int removedTransactionSelectionIndex_{-1};
   std::string newAccountName_;
   std::string netIncome_;
   int newAccountIndex_{-1};
@@ -115,32 +107,29 @@ static void add(AccountStub &account, ObservableTransaction &transaction,
 }
 
 static void test(const std::function<void(AccountPresenter &, AccountStub &,
-                                          AccountViewStub &)> &f) {
+                                          ViewStub &)> &f) {
   AccountStub account;
-  AccountViewStub view;
+  ViewStub view;
   AccountPresenter presenter{account, view};
   f(presenter, account, view);
 }
 
 void formatsAccountBalance(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     account.observer()->notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
   });
 }
 
 void formatsAccountAllocation(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     account.observer()->notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
   });
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -149,8 +138,7 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
 }
 
 void formatsTransactionDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -159,8 +147,7 @@ void formatsTransactionDate(testcpplite::TestResult &result) {
 }
 
 void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -169,8 +156,7 @@ void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
 }
 
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -198,8 +184,7 @@ void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
 }
 
 void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory ape;
     add(account, ape,
         {{789_cents, "ape", Date{2020, Month::June, 1}}, false, false});
@@ -223,8 +208,7 @@ void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
 }
 
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -252,8 +236,7 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
 }
 
 void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -289,8 +272,7 @@ void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
 }
 
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account,
-                 AccountViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -317,7 +299,7 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
 }
 
 void ordersAccountsByName(testcpplite::TestResult &result) {
-  BudgetViewStub view;
+  ViewStub view;
   BudgetPresenter presenter{view};
   AccountStub bob;
   presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
@@ -335,7 +317,7 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
 }
 
 void formatsNetIncome(testcpplite::TestResult &result) {
-  BudgetViewStub view;
+  ViewStub view;
   BudgetPresenter presenter{view};
   presenter.notifyThatNetIncomeHasChanged(1234_cents);
   assertEqual(result, "12.34", view.netIncome());

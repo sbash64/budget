@@ -2,6 +2,7 @@
 #include <sbash64/budget/budget.hpp>
 #include <sbash64/budget/format.hpp>
 #include <sbash64/budget/parse.hpp>
+#include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/serialization.hpp>
 #include <sbash64/budget/transaction.hpp>
 
