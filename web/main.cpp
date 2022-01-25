@@ -293,6 +293,100 @@ private:
   websocketpp::server<debug_custom> &server;
   std::vector<AccountObserverWithName> children;
 };
+
+class BrowserView : public View {
+public:
+  void updateAccountAllocation(gsl::index accountIndex,
+                               std::string_view s) override {
+    nlohmann::json json;
+    json["accountIndex"] = accountIndex;
+    json["amount"] = s;
+    assignMethod(json, "update account allocation");
+    send(server, connection, json);
+  }
+
+  void updateAccountBalance(gsl::index accountIndex,
+                            std::string_view s) override {
+    nlohmann::json json;
+    json["accountIndex"] = accountIndex;
+    json["amount"] = s;
+    assignMethod(json, "update account balance");
+    send(server, connection, json);
+  }
+
+  void putCheckmarkNextToTransactionRow(gsl::index accountIndex,
+                                        gsl::index index) override {
+    nlohmann::json json;
+    json["accountIndex"] = accountIndex;
+    json["transactionIndex"] = index;
+    assignMethod(json, "verify transaction");
+    send(server, connection, json);
+  }
+
+  void deleteTransactionRow(gsl::index accountIndex,
+                            gsl::index index) override {
+    nlohmann::json json;
+    json["accountIndex"] = accountIndex;
+    json["transactionIndex"] = index;
+    assignMethod(json, "remove transaction");
+    send(server, connection, json);
+  }
+
+  void addTransactionRow(gsl::index accountIndex, std::string_view amount,
+                         std::string_view date, std::string_view description,
+                         gsl::index index) override {
+    {
+      nlohmann::json json;
+      json["accountIndex"] = accountIndex;
+      assignMethod(json, "add transaction");
+      send(server, connection, json);
+    }
+    {
+      nlohmann::json json;
+      json["accountIndex"] = accountIndex;
+      json["transactionIndex"] = index;
+      json["description"] = description;
+      json["amount"] = amount;
+      json["date"] = date;
+      send(server, connection, json);
+    }
+  }
+
+  void removeTransactionRowSelection(gsl::index accountIndex,
+                                     gsl::index index) override {
+    nlohmann::json json;
+    json["accountIndex"] = accountIndex;
+    json["transactionIndex"] = index;
+    assignMethod(json, "archive transaction");
+    send(server, connection, json);
+  }
+
+  void addNewAccountTable(std::string_view name, gsl::index index) override {
+    nlohmann::json json;
+    json["name"] = name;
+    json["accountIndex"] = index;
+    assignMethod(json, "add account");
+    send(server, connection, json);
+  }
+
+  void deleteAccountTable(gsl::index index) override {
+    nlohmann::json json;
+    json["accountIndex"] = index;
+    assignMethod(json, "remove account");
+    send(server, connection, json);
+  }
+
+  void updateNetIncome(std::string_view s) override {
+    nlohmann::json json;
+    json["amount"] = s;
+    assignMethod(json, "update net income");
+    send(server, connection, json);
+  }
+
+private:
+  websocketpp::connection_hdl connection;
+  websocketpp::server<debug_custom> &server;
+};
 } // namespace
 
 static auto backupDirectory(const std::filesystem::path &parentPath,

@@ -15,11 +15,11 @@ TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
 }
 
 void TransactionPresenter::notifyThatIsVerified() {
-  view.putCheckmarkNextToTransactionRow(index);
+  view.putCheckmarkNextToTransactionRow(parent.index(), index);
 }
 
 void TransactionPresenter::notifyThatIsArchived() {
-  view.removeTransactionRowSelection(index);
+  view.removeTransactionRowSelection(parent.index(), index);
 }
 
 static auto format(USD usd) -> std::string {
@@ -40,7 +40,7 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {
-  view.deleteTransactionRow(index);
+  view.deleteTransactionRow(parent.index(), index);
   parent.remove(this);
 }
 
@@ -52,11 +52,11 @@ AccountPresenter::AccountPresenter(Account &account, View &view,
 }
 
 void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
-  view.updateAccountBalance(format(usd));
+  view.updateAccountBalance(index_, format(usd));
 }
 
 void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
-  view.updateAccountAllocation(format(usd));
+  view.updateAccountAllocation(index_, format(usd));
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
@@ -90,8 +90,9 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
   unorderedChildren.erase(unorderedChild);
-  view.addTransactionRow(format(child->get().amount), date(child->get()),
-                         child->get().description, childIndex);
+  view.addTransactionRow(index_, format(child->get().amount),
+                         date(child->get()), child->get().description,
+                         childIndex);
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
@@ -107,7 +108,7 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {
-  view.deleteAccountTable(index);
+  view.deleteAccountTable(index_);
   parent->remove(this);
 }
 

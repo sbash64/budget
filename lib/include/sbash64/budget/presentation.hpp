@@ -13,16 +13,24 @@ namespace sbash64::budget {
 class View {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
-  virtual void putCheckmarkNextToTransactionRow(gsl::index index) = 0;
-  virtual void removeTransactionRowSelection(gsl::index index) = 0;
-  virtual void updateAccountBalance(std::string_view) = 0;
-  virtual void updateAccountAllocation(std::string_view) = 0;
-  virtual void addTransactionRow(std::string_view amount, std::string_view date,
+  virtual void
+  putCheckmarkNextToTransactionRow(gsl::index accountIndex,
+                                   gsl::index transactionIndex) = 0;
+  virtual void removeTransactionRowSelection(gsl::index accountIndex,
+                                             gsl::index transactionIndex) = 0;
+  virtual void updateAccountBalance(gsl::index accountIndex,
+                                    std::string_view) = 0;
+  virtual void updateAccountAllocation(gsl::index accountIndex,
+                                       std::string_view) = 0;
+  virtual void addTransactionRow(gsl::index accountIndex,
+                                 std::string_view amount, std::string_view date,
                                  std::string_view description,
-                                 gsl::index index) = 0;
-  virtual void deleteTransactionRow(gsl::index) = 0;
-  virtual void addNewAccountTable(std::string_view name, gsl::index) = 0;
-  virtual void deleteAccountTable(gsl::index) = 0;
+                                 gsl::index transactionIndex) = 0;
+  virtual void deleteTransactionRow(gsl::index accountIndex,
+                                    gsl::index transactionIndex) = 0;
+  virtual void addNewAccountTable(std::string_view name,
+                                  gsl::index accountIndex) = 0;
+  virtual void deleteAccountTable(gsl::index accountIndex) = 0;
   virtual void updateNetIncome(std::string_view amount) = 0;
 };
 
@@ -59,7 +67,8 @@ public:
   void ready(const TransactionPresenter *);
   void remove(const TransactionPresenter *);
   [[nodiscard]] auto name() const -> std::string { return name_; }
-  void setIndex(gsl::index i) { index = i; }
+  void setIndex(gsl::index i) { index_ = i; }
+  auto index() -> gsl::index { return index_; }
 
 private:
   View &view;
@@ -67,7 +76,7 @@ private:
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
   BudgetPresenter *parent;
-  gsl::index index{-1};
+  gsl::index index_{-1};
 };
 
 class BudgetPresenter : public Budget::Observer {

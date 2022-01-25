@@ -14,19 +14,27 @@ namespace sbash64::budget::presentation {
 namespace {
 class ViewStub : public View {
 public:
-  void updateAccountAllocation(std::string_view s) override { allocation_ = s; }
+  void updateAccountAllocation(gsl::index accountIndex,
+                               std::string_view s) override {
+    allocation_ = s;
+  }
 
   auto allocation() -> std::string { return allocation_; }
 
-  void updateAccountBalance(std::string_view s) override { balance_ = s; }
+  void updateAccountBalance(gsl::index accountIndex,
+                            std::string_view s) override {
+    balance_ = s;
+  }
 
   auto balance() -> std::string { return balance_; }
 
-  void putCheckmarkNextToTransactionRow(gsl::index index) override {
+  void putCheckmarkNextToTransactionRow(gsl::index accountIndex,
+                                        gsl::index index) override {
     checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
-  void deleteTransactionRow(gsl::index index) override {
+  void deleteTransactionRow(gsl::index accountIndex,
+                            gsl::index index) override {
     transactionDeleted_ = static_cast<int>(index);
   }
 
@@ -52,8 +60,8 @@ public:
     return transactionAddedDescription_;
   }
 
-  void addTransactionRow(std::string_view amount, std::string_view date,
-                         std::string_view description,
+  void addTransactionRow(gsl::index accountIndex, std::string_view amount,
+                         std::string_view date, std::string_view description,
                          gsl::index index) override {
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
@@ -65,7 +73,8 @@ public:
     return removedTransactionSelectionIndex_;
   }
 
-  void removeTransactionRowSelection(gsl::index index) override {
+  void removeTransactionRowSelection(gsl::index accountIndex,
+                                     gsl::index index) override {
     removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
