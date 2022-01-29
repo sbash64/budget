@@ -146,9 +146,12 @@ void formatsAccountBalance(testcpplite::TestResult &result) {
 }
 
 void formatsAccountAllocation(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(42);
     account.observer()->notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
+    assertEqual(result, 42, view.accountIndex());
   });
 }
 
