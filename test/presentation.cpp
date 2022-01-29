@@ -168,14 +168,11 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
 }
 
 void formatsTransactionDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &account,
-                 ViewStub &view) {
-    presenter.setIndex(23);
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "06/01/2020", view.transactionAddedDate());
-    assertEqual(result, 23, view.accountIndex());
   });
 }
 
