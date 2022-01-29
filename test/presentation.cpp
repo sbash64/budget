@@ -156,11 +156,14 @@ void formatsAccountAllocation(testcpplite::TestResult &result) {
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(3);
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "7.89", view.transactionAddedAmount());
+    assertEqual(result, 3, view.accountIndex());
   });
 }
 
