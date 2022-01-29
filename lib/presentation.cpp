@@ -46,7 +46,7 @@ void TransactionPresenter::notifyThatWillBeRemoved() {
 
 AccountPresenter::AccountPresenter(Account &account, View &view,
                                    std::string_view name,
-                                   BudgetPresenter *parent)
+                                   BudgetPresenter &parent)
     : view{view}, name_{name}, parent{parent} {
   account.attach(this);
 }
@@ -109,7 +109,7 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 
 void AccountPresenter::notifyThatWillBeRemoved() {
   view.deleteAccountTable(index_);
-  parent->remove(this);
+  parent.remove(this);
 }
 
 static auto newChildIndex(
@@ -125,7 +125,7 @@ static auto newChildIndex(
 }
 
 BudgetPresenter::BudgetPresenter(View &view, Account &incomeAccount)
-    : view{view}, incomeAccountPresenter{incomeAccount, view, "Income", this} {
+    : view{view}, incomeAccountPresenter{incomeAccount, view, "Income", *this} {
   incomeAccountPresenter.setIndex(0);
   view.addNewAccountTable("Income", 0);
 }
@@ -135,7 +135,7 @@ void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
   const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(account, view, name, this));
+      std::make_unique<AccountPresenter>(account, view, name, *this));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i + 1);
   view.addNewAccountTable(name, childIndex + 1);

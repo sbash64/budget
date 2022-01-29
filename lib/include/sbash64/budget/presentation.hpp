@@ -58,8 +58,8 @@ class BudgetView;
 
 class AccountPresenter : public Account::Observer {
 public:
-  AccountPresenter(Account &, View &, std::string_view name = "",
-                   BudgetPresenter *parent = nullptr);
+  AccountPresenter(Account &, View &, std::string_view name,
+                   BudgetPresenter &parent);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -68,20 +68,20 @@ public:
   void remove(const TransactionPresenter *);
   [[nodiscard]] auto name() const -> std::string { return name_; }
   void setIndex(gsl::index i) { index_ = i; }
-  auto index() -> gsl::index { return index_; }
+  [[nodiscard]] auto index() const -> gsl::index { return index_; }
 
 private:
   View &view;
   std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
-  BudgetPresenter *parent;
+  BudgetPresenter &parent;
   gsl::index index_{-1};
 };
 
 class BudgetPresenter : public Budget::Observer {
 public:
-  BudgetPresenter(View &view, Account &);
+  BudgetPresenter(View &view, Account &incomeAccount);
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;

@@ -117,9 +117,12 @@ static void add(AccountStub &account, ObservableTransaction &transaction,
 
 static void test(const std::function<void(AccountPresenter &, AccountStub &,
                                           ViewStub &)> &f) {
-  AccountStub account;
+
+  AccountStub incomeAccount;
   ViewStub view;
-  AccountPresenter presenter{account, view};
+  BudgetPresenter parent{view, incomeAccount};
+  AccountStub account;
+  AccountPresenter presenter{account, view, "", parent};
   f(presenter, account, view);
 }
 
