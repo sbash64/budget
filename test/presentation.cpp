@@ -16,6 +16,7 @@ class ViewStub : public View {
 public:
   void updateAccountAllocation(gsl::index accountIndex,
                                std::string_view s) override {
+    accountIndex_ = accountIndex;
     allocation_ = s;
   }
 
@@ -23,6 +24,7 @@ public:
 
   void updateAccountBalance(gsl::index accountIndex,
                             std::string_view s) override {
+    accountIndex_ = accountIndex;
     balance_ = s;
   }
 
@@ -30,11 +32,13 @@ public:
 
   void putCheckmarkNextToTransactionRow(gsl::index accountIndex,
                                         gsl::index index) override {
+    accountIndex_ = accountIndex;
     checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
   void deleteTransactionRow(gsl::index accountIndex,
                             gsl::index index) override {
+    accountIndex_ = accountIndex;
     transactionDeleted_ = static_cast<int>(index);
   }
 
@@ -63,6 +67,7 @@ public:
   void addTransactionRow(gsl::index accountIndex, std::string_view amount,
                          std::string_view date, std::string_view description,
                          gsl::index index) override {
+    accountIndex_ = accountIndex;
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;
@@ -75,6 +80,7 @@ public:
 
   void removeTransactionRowSelection(gsl::index accountIndex,
                                      gsl::index index) override {
+    accountIndex_ = accountIndex;
     removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
@@ -93,6 +99,8 @@ public:
 
   void updateNetIncome(std::string_view s) override { netIncome_ = s; }
 
+  [[nodiscard]] auto accountIndex() const -> int { return accountIndex_; }
+
 private:
   std::string allocation_;
   std::string balance_;
@@ -100,6 +108,7 @@ private:
   std::string transactionAddedDate_;
   std::string transactionAddedDescription_;
   int transactionIndex_{-1};
+  int accountIndex_{-1};
   int checkmarkTransactionIndex_{-1};
   int transactionDeleted_{-1};
   int removedTransactionSelectionIndex_{-1};
@@ -127,9 +136,12 @@ static void test(const std::function<void(AccountPresenter &, AccountStub &,
 }
 
 void formatsAccountBalance(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(1);
     account.observer()->notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
+    assertEqual(result, 1, view.accountIndex());
   });
 }
 
