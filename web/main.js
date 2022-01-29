@@ -42,8 +42,8 @@ function transactionRow(accountTableBodies, message) {
   ];
 }
 
-function accountSummaryRow(accountSummaryRows, message) {
-  return accountSummaryRows[message.accountIndex];
+function accountSummaryRow(accountSummaryTableBody, message) {
+  return accountSummaryTableBody.rows[message.accountIndex];
 }
 
 function sendOnClick(button, websocket, messageFunctor) {
@@ -278,12 +278,9 @@ function main() {
   allocateButton.textContent = "allocate";
 
   let selectedAccountTransactionTableBody = null;
-  let selectedAccountArchiveTableBody = null;
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
   const accountTableBodies = [];
-  const accountSummaryRows = [];
-  const archivedTableBodies = [];
   const websocket = new WebSocket(`ws://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -292,8 +289,12 @@ function main() {
         netIncome.textContent = message.amount;
         break;
       }
-      case "add account": {
-        const row = createChild(accountSummaryTableBody, "tr");
+      case "add account table": {
+        const row = accountSummaryTableBody.insertRow(
+          message.accountIndex >= accountSummaryTableBody.rows.length
+            ? -1
+            : message.accountIndex
+        );
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "account selection";
         selection.type = "radio";
@@ -301,50 +302,46 @@ function main() {
         name.textContent = message.name;
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "right";
-        accountSummaryRows.push(row);
 
         const transactionTableBody = createChild(transactionTable, "tbody");
-        accountTableBodies.push(transactionTableBody);
-
-        const archivedTableBody = createChild(transactionTable, "tbody");
-        archivedTableBodies.push(archivedTableBody);
+        accountTableBodies.splice(
+          message.accountIndex,
+          0,
+          transactionTableBody
+        );
 
         if (selectedAccountTransactionTableBody) {
           selectedAccountTransactionTableBody.style.display = "none";
-          selectedAccountArchiveTableBody.style.display = "none";
         }
         rightHandContentHeader.textContent = message.name;
         selectedAccountTransactionTableBody = transactionTableBody;
-        selectedAccountArchiveTableBody = archivedTableBody;
         selectedAccountSummaryRow = row;
         selection.checked = true;
 
         selection.addEventListener("change", () => {
           if (selectedAccountTransactionTableBody) {
             selectedAccountTransactionTableBody.style.display = "none";
-            selectedAccountArchiveTableBody.style.display = "none";
           }
           transactionTableBody.style.display = "";
-          archivedTableBody.style.display = "";
           rightHandContentHeader.textContent = accountName(row);
           selectedAccountTransactionTableBody = transactionTableBody;
-          selectedAccountArchiveTableBody = archivedTableBody;
           selectedAccountSummaryRow = row;
         });
 
         break;
       }
-      case "remove account": {
+      case "delete account table": {
         const [body] = accountTableBodies.splice(message.accountIndex, 1);
         body.parentNode.removeChild(body);
-        const [row] = accountSummaryRows.splice(message.accountIndex, 1);
-        row.parentNode.removeChild(row);
+        accountSummaryTableBody.deleteRow(message.transactionIndex);
         break;
       }
-      case "add transaction": {
-        const row = createChild(
-          accountTableBody(accountTableBodies, message),
-          "tr"
+      case "add transaction row": {
+        const parent = accountTableBody(accountTableBodies, message);
+        const row = parent.insertRow(
+          message.transactionIndex >= parent.rows.length
+            ? -1
+            : message.transactionIndex
         );
         const selection = createChild(createChild(row, "td"), "input");
         selection.name = "transaction selection";
@@ -356,34 +353,33 @@ function main() {
         selection.addEventListener("change", () => {
           selectedTransactionRow = row;
         });
+        updateTransaction(row, message);
         break;
       }
-      case "remove transaction":
+      case "delete transaction row":
         accountTableBody(accountTableBodies, message).deleteRow(
           message.transactionIndex
         );
         break;
       case "update account balance":
         accountSummaryRow(
-          accountSummaryRows,
+          accountSummaryTableBody,
           message
         ).lastElementChild.textContent = message.amount;
         break;
       case "update account allocation":
-        accountSummaryRow(accountSummaryRows, message).cells[2].textContent =
-          message.amount;
+        accountSummaryRow(
+          accountSummaryTableBody,
+          message
+        ).cells[2].textContent = message.amount;
         break;
-      case "update transaction":
-        updateTransaction(transactionRow(accountTableBodies, message), message);
-        break;
-      case "verify transaction":
+      case "check transaction row":
         transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
-      case "archive transaction": {
+      case "remove transaction row selection": {
         const row = transactionRow(accountTableBodies, message);
         const selectionContainer = row.cells[0];
         selectionContainer.removeChild(selectionContainer.firstChild);
-        archivedTableBodies[message.accountIndex].appendChild(row);
         break;
       }
       default:

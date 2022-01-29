@@ -2,3 +2,6 @@
 /.vscode/
 /build/
 /.clang-tidy
+/node_modules/
+/package.json
+/.gitignore

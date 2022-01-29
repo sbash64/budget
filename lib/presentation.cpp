@@ -124,14 +124,18 @@ static auto newChildIndex(
                               }));
 }
 
-BudgetPresenter::BudgetPresenter(View &view) : view{view} {}
+BudgetPresenter::BudgetPresenter(View &view, Account &incomeAccount)
+    : view{view}, incomeAccountPresenter{incomeAccount, view, "Income", this} {
+  incomeAccountPresenter.setIndex(0);
+  view.addNewAccountTable("Income", 0);
+}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
   const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(account, view, name));
+      std::make_unique<AccountPresenter>(account, view, name, this));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i + 1);
   view.addNewAccountTable(name, childIndex + 1);

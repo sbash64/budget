@@ -81,7 +81,7 @@ private:
 
 class BudgetPresenter : public Budget::Observer {
 public:
-  explicit BudgetPresenter(View &view);
+  BudgetPresenter(View &view, Account &);
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
@@ -89,6 +89,7 @@ public:
 
 private:
   View &view;
+  AccountPresenter incomeAccountPresenter;
   std::vector<std::unique_ptr<AccountPresenter>> orderedChildren;
 };
 } // namespace sbash64::budget

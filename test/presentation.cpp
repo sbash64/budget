@@ -309,7 +309,8 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
 
 void ordersAccountsByName(testcpplite::TestResult &result) {
   ViewStub view;
-  BudgetPresenter presenter{view};
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
   AccountStub bob;
   presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
   assertEqual(result, 1, view.newAccountIndex());
@@ -327,7 +328,8 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
 
 void formatsNetIncome(testcpplite::TestResult &result) {
   ViewStub view;
-  BudgetPresenter presenter{view};
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
   presenter.notifyThatNetIncomeHasChanged(1234_cents);
   assertEqual(result, "12.34", view.netIncome());
 }
