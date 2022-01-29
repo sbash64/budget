@@ -1,6 +1,5 @@
 #include <sbash64/budget/account.hpp>
 #include <sbash64/budget/budget.hpp>
-#include <sbash64/budget/format.hpp>
 #include <sbash64/budget/parse.hpp>
 #include <sbash64/budget/presentation.hpp>
 #include <sbash64/budget/serialization.hpp>
@@ -87,6 +86,18 @@ void assignMethod(nlohmann::json &json, std::string_view name) {
   json["method"] = name;
 }
 
+void assignAccountIndex(nlohmann::json &json, gsl::index i) {
+  json["accountIndex"] = i;
+}
+
+void assignAmount(nlohmann::json &json, std::string_view x) {
+  json["amount"] = x;
+}
+
+void assignTransactionIndex(nlohmann::json &json, gsl::index i) {
+  json["transactionIndex"] = i;
+}
+
 void send(websocketpp::server<debug_custom> &server,
           websocketpp::connection_hdl connection, const nlohmann::json &json) {
   server.send(std::move(connection), json.dump(),
@@ -103,8 +114,8 @@ public:
                                std::string_view s) override {
     nlohmann::json json;
     assignMethod(json, "update account allocation");
-    json["accountIndex"] = accountIndex;
-    json["amount"] = s;
+    assignAccountIndex(json, accountIndex);
+    assignAmount(json, s);
     send(server, connection, json);
   }
 
@@ -112,8 +123,8 @@ public:
                             std::string_view s) override {
     nlohmann::json json;
     assignMethod(json, "update account balance");
-    json["accountIndex"] = accountIndex;
-    json["amount"] = s;
+    assignAccountIndex(json, accountIndex);
+    assignAmount(json, s);
     send(server, connection, json);
   }
 
@@ -121,8 +132,8 @@ public:
                                         gsl::index index) override {
     nlohmann::json json;
     assignMethod(json, "check transaction row");
-    json["accountIndex"] = accountIndex;
-    json["transactionIndex"] = index;
+    assignAccountIndex(json, accountIndex);
+    assignTransactionIndex(json, index);
     send(server, connection, json);
   }
 
@@ -130,8 +141,8 @@ public:
                             gsl::index index) override {
     nlohmann::json json;
     assignMethod(json, "delete transaction row");
-    json["accountIndex"] = accountIndex;
-    json["transactionIndex"] = index;
+    assignAccountIndex(json, accountIndex);
+    assignTransactionIndex(json, index);
     send(server, connection, json);
   }
 
@@ -140,10 +151,10 @@ public:
                          gsl::index index) override {
     nlohmann::json json;
     assignMethod(json, "add transaction row");
-    json["accountIndex"] = accountIndex;
-    json["transactionIndex"] = index;
+    assignAccountIndex(json, accountIndex);
+    assignTransactionIndex(json, index);
     json["description"] = description;
-    json["amount"] = amount;
+    assignAmount(json, amount);
     json["date"] = date;
     send(server, connection, json);
   }
@@ -152,8 +163,8 @@ public:
                                      gsl::index index) override {
     nlohmann::json json;
     assignMethod(json, "remove transaction row selection");
-    json["accountIndex"] = accountIndex;
-    json["transactionIndex"] = index;
+    assignAccountIndex(json, accountIndex);
+    assignTransactionIndex(json, index);
     send(server, connection, json);
   }
 
@@ -161,21 +172,21 @@ public:
     nlohmann::json json;
     assignMethod(json, "add account table");
     json["name"] = name;
-    json["accountIndex"] = index;
+    assignAccountIndex(json, index);
     send(server, connection, json);
   }
 
   void deleteAccountTable(gsl::index index) override {
     nlohmann::json json;
     assignMethod(json, "delete account table");
-    json["accountIndex"] = index;
+    assignAccountIndex(json, index);
     send(server, connection, json);
   }
 
   void updateNetIncome(std::string_view s) override {
     nlohmann::json json;
     assignMethod(json, "update net income");
-    json["amount"] = s;
+    assignAmount(json, s);
     send(server, connection, json);
   }
 
