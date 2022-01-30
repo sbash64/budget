@@ -116,6 +116,11 @@ private:
   int removedTransactionSelectionIndex_{-1};
   int newAccountIndex_{-1};
 };
+
+class AccountPresenterParentStub : public AccountPresenter::Parent {
+public:
+  void remove(const AccountPresenter *) override {}
+};
 } // namespace
 
 static void add(AccountStub &account, ObservableTransaction &transaction,
@@ -126,11 +131,9 @@ static void add(AccountStub &account, ObservableTransaction &transaction,
 
 static void test(const std::function<void(AccountPresenter &, AccountStub &,
                                           ViewStub &)> &f) {
-
-  AccountStub incomeAccount;
-  ViewStub view;
-  BudgetPresenter parent{view, incomeAccount};
   AccountStub account;
+  ViewStub view;
+  AccountPresenterParentStub parent;
   AccountPresenter presenter{account, view, "", parent};
   f(presenter, account, view);
 }
