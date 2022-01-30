@@ -333,7 +333,7 @@ function main() {
       case "delete account table": {
         const [body] = accountTableBodies.splice(message.accountIndex, 1);
         body.parentNode.removeChild(body);
-        accountSummaryTableBody.deleteRow(message.transactionIndex);
+        accountSummaryTableBody.deleteRow(message.accountIndex);
         break;
       }
       case "add transaction row": {
