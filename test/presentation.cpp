@@ -16,7 +16,7 @@ class ViewStub : public View {
 public:
   void updateAccountAllocation(gsl::index accountIndex,
                                std::string_view s) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     allocation_ = s;
   }
 
@@ -24,7 +24,7 @@ public:
 
   void updateAccountBalance(gsl::index accountIndex,
                             std::string_view s) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     balance_ = s;
   }
 
@@ -32,13 +32,13 @@ public:
 
   void putCheckmarkNextToTransactionRow(gsl::index accountIndex,
                                         gsl::index index) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
   void deleteTransactionRow(gsl::index accountIndex,
                             gsl::index index) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     transactionDeleted_ = static_cast<int>(index);
   }
 
@@ -67,7 +67,7 @@ public:
   void addTransactionRow(gsl::index accountIndex, std::string_view amount,
                          std::string_view date, std::string_view description,
                          gsl::index index) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;
@@ -80,14 +80,14 @@ public:
 
   void removeTransactionRowSelection(gsl::index accountIndex,
                                      gsl::index index) override {
-    accountIndex_ = accountIndex;
+    accountIndex_ = static_cast<int>(accountIndex);
     removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
   [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
 
   void addNewAccountTable(std::string_view name, gsl::index index) override {
-    newAccountIndex_ = index;
+    newAccountIndex_ = static_cast<int>(index);
     newAccountName_ = name;
   }
 
@@ -107,13 +107,13 @@ private:
   std::string transactionAddedAmount_;
   std::string transactionAddedDate_;
   std::string transactionAddedDescription_;
+  std::string newAccountName_;
+  std::string netIncome_;
   int transactionIndex_{-1};
   int accountIndex_{-1};
   int checkmarkTransactionIndex_{-1};
   int transactionDeleted_{-1};
   int removedTransactionSelectionIndex_{-1};
-  std::string newAccountName_;
-  std::string netIncome_;
   int newAccountIndex_{-1};
 };
 } // namespace
