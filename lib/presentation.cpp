@@ -45,8 +45,7 @@ void TransactionPresenter::notifyThatWillBeRemoved() {
 }
 
 AccountPresenter::AccountPresenter(Account &account, View &view,
-                                   std::string_view name,
-                                   BudgetPresenter &parent)
+                                   std::string_view name, Parent &parent)
     : view{view}, name_{name}, parent{parent} {
   account.attach(this);
 }
