@@ -8,7 +8,6 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
-#include <utility>
 #include <websocketpp/common/connection_hdl.hpp>
 #include <websocketpp/config/debug_asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>

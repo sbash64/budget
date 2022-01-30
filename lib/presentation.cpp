@@ -95,7 +95,7 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
-  auto orderedChild{
+  const auto orderedChild{
       find_if(orderedChildren.begin(), orderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
