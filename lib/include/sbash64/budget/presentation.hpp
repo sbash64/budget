@@ -53,9 +53,6 @@ private:
   gsl::index index{-1};
 };
 
-class BudgetPresenter;
-class BudgetView;
-
 class AccountPresenter : public Account::Observer {
 public:
   class Parent {
