@@ -13,25 +13,25 @@ namespace sbash64::budget {
 class View {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(View);
-  virtual void
-  putCheckmarkNextToTransactionRow(gsl::index accountIndex,
-                                   gsl::index transactionIndex) = 0;
-  virtual void removeTransactionRowSelection(gsl::index accountIndex,
-                                             gsl::index transactionIndex) = 0;
-  virtual void updateAccountBalance(gsl::index accountIndex,
-                                    std::string_view) = 0;
+  virtual void updateNetIncome(std::string_view amount) = 0;
+  virtual void addNewAccountTable(std::string_view name,
+                                  gsl::index accountIndex) = 0;
+  virtual void deleteAccountTable(gsl::index accountIndex) = 0;
   virtual void updateAccountAllocation(gsl::index accountIndex,
                                        std::string_view) = 0;
+  virtual void updateAccountBalance(gsl::index accountIndex,
+                                    std::string_view) = 0;
   virtual void addTransactionRow(gsl::index accountIndex,
                                  std::string_view amount, std::string_view date,
                                  std::string_view description,
                                  gsl::index transactionIndex) = 0;
   virtual void deleteTransactionRow(gsl::index accountIndex,
                                     gsl::index transactionIndex) = 0;
-  virtual void addNewAccountTable(std::string_view name,
-                                  gsl::index accountIndex) = 0;
-  virtual void deleteAccountTable(gsl::index accountIndex) = 0;
-  virtual void updateNetIncome(std::string_view amount) = 0;
+  virtual void
+  putCheckmarkNextToTransactionRow(gsl::index accountIndex,
+                                   gsl::index transactionIndex) = 0;
+  virtual void removeTransactionRowSelection(gsl::index accountIndex,
+                                             gsl::index transactionIndex) = 0;
 };
 
 class AccountPresenter;
@@ -53,13 +53,15 @@ private:
   gsl::index index{-1};
 };
 
-class BudgetPresenter;
-class BudgetView;
-
 class AccountPresenter : public Account::Observer {
 public:
-  AccountPresenter(Account &, View &, std::string_view name = "",
-                   BudgetPresenter *parent = nullptr);
+  class Parent {
+  public:
+    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Parent);
+    virtual void remove(const AccountPresenter *) = 0;
+  };
+
+  AccountPresenter(Account &, View &, std::string_view name, Parent &);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -68,27 +70,29 @@ public:
   void remove(const TransactionPresenter *);
   [[nodiscard]] auto name() const -> std::string { return name_; }
   void setIndex(gsl::index i) { index_ = i; }
-  auto index() -> gsl::index { return index_; }
+  [[nodiscard]] auto index() const -> gsl::index { return index_; }
 
 private:
   View &view;
   std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
-  BudgetPresenter *parent;
+  Parent &parent;
   gsl::index index_{-1};
 };
 
-class BudgetPresenter : public Budget::Observer {
+class BudgetPresenter : public Budget::Observer,
+                        public AccountPresenter::Parent {
 public:
-  explicit BudgetPresenter(View &view);
+  BudgetPresenter(View &, Account &incomeAccount);
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
-  void remove(const AccountPresenter *);
+  void remove(const AccountPresenter *) override;
 
 private:
   View &view;
+  AccountPresenter incomeAccountPresenter;
   std::vector<std::unique_ptr<AccountPresenter>> orderedChildren;
 };
 } // namespace sbash64::budget

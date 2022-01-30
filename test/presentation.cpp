@@ -16,6 +16,7 @@ class ViewStub : public View {
 public:
   void updateAccountAllocation(gsl::index accountIndex,
                                std::string_view s) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     allocation_ = s;
   }
 
@@ -23,6 +24,7 @@ public:
 
   void updateAccountBalance(gsl::index accountIndex,
                             std::string_view s) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     balance_ = s;
   }
 
@@ -30,11 +32,13 @@ public:
 
   void putCheckmarkNextToTransactionRow(gsl::index accountIndex,
                                         gsl::index index) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     checkmarkTransactionIndex_ = static_cast<int>(index);
   }
 
   void deleteTransactionRow(gsl::index accountIndex,
                             gsl::index index) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     transactionDeleted_ = static_cast<int>(index);
   }
 
@@ -63,6 +67,7 @@ public:
   void addTransactionRow(gsl::index accountIndex, std::string_view amount,
                          std::string_view date, std::string_view description,
                          gsl::index index) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     transactionAddedAmount_ = amount;
     transactionAddedDate_ = date;
     transactionAddedDescription_ = description;
@@ -75,13 +80,14 @@ public:
 
   void removeTransactionRowSelection(gsl::index accountIndex,
                                      gsl::index index) override {
+    accountIndex_ = static_cast<int>(accountIndex);
     removedTransactionSelectionIndex_ = static_cast<int>(index);
   }
 
   [[nodiscard]] auto newAccountIndex() const -> int { return newAccountIndex_; }
 
   void addNewAccountTable(std::string_view name, gsl::index index) override {
-    newAccountIndex_ = index;
+    newAccountIndex_ = static_cast<int>(index);
     newAccountName_ = name;
   }
 
@@ -93,19 +99,27 @@ public:
 
   void updateNetIncome(std::string_view s) override { netIncome_ = s; }
 
+  [[nodiscard]] auto accountIndex() const -> int { return accountIndex_; }
+
 private:
   std::string allocation_;
   std::string balance_;
   std::string transactionAddedAmount_;
   std::string transactionAddedDate_;
   std::string transactionAddedDescription_;
+  std::string newAccountName_;
+  std::string netIncome_;
   int transactionIndex_{-1};
+  int accountIndex_{-1};
   int checkmarkTransactionIndex_{-1};
   int transactionDeleted_{-1};
   int removedTransactionSelectionIndex_{-1};
-  std::string newAccountName_;
-  std::string netIncome_;
   int newAccountIndex_{-1};
+};
+
+class AccountPresenterParentStub : public AccountPresenter::Parent {
+public:
+  void remove(const AccountPresenter *) override {}
 };
 } // namespace
 
@@ -119,30 +133,40 @@ static void test(const std::function<void(AccountPresenter &, AccountStub &,
                                           ViewStub &)> &f) {
   AccountStub account;
   ViewStub view;
-  AccountPresenter presenter{account, view};
+  AccountPresenterParentStub parent;
+  AccountPresenter presenter{account, view, "", parent};
   f(presenter, account, view);
 }
 
 void formatsAccountBalance(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(1);
     account.observer()->notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
+    assertEqual(result, 1, view.accountIndex());
   });
 }
 
 void formatsAccountAllocation(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(42);
     account.observer()->notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
+    assertEqual(result, 42, view.accountIndex());
   });
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &presenter, AccountStub &account,
+                 ViewStub &view) {
+    presenter.setIndex(3);
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
     assertEqual(result, "7.89", view.transactionAddedAmount());
+    assertEqual(result, 3, view.accountIndex());
   });
 }
 
@@ -309,7 +333,8 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
 
 void ordersAccountsByName(testcpplite::TestResult &result) {
   ViewStub view;
-  BudgetPresenter presenter{view};
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
   AccountStub bob;
   presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
   assertEqual(result, 1, view.newAccountIndex());
@@ -327,7 +352,8 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
 
 void formatsNetIncome(testcpplite::TestResult &result) {
   ViewStub view;
-  BudgetPresenter presenter{view};
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
   presenter.notifyThatNetIncomeHasChanged(1234_cents);
   assertEqual(result, "12.34", view.netIncome());
 }

@@ -45,8 +45,7 @@ void TransactionPresenter::notifyThatWillBeRemoved() {
 }
 
 AccountPresenter::AccountPresenter(Account &account, View &view,
-                                   std::string_view name,
-                                   BudgetPresenter *parent)
+                                   std::string_view name, Parent &parent)
     : view{view}, name_{name}, parent{parent} {
   account.attach(this);
 }
@@ -96,7 +95,7 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
-  auto orderedChild{
+  const auto orderedChild{
       find_if(orderedChildren.begin(), orderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
@@ -109,7 +108,7 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 
 void AccountPresenter::notifyThatWillBeRemoved() {
   view.deleteAccountTable(index_);
-  parent->remove(this);
+  parent.remove(this);
 }
 
 static auto newChildIndex(
@@ -124,14 +123,18 @@ static auto newChildIndex(
                               }));
 }
 
-BudgetPresenter::BudgetPresenter(View &view) : view{view} {}
+BudgetPresenter::BudgetPresenter(View &view, Account &incomeAccount)
+    : view{view}, incomeAccountPresenter{incomeAccount, view, "Income", *this} {
+  incomeAccountPresenter.setIndex(0);
+  view.addNewAccountTable("Income", 0);
+}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
   const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(account, view, name));
+      std::make_unique<AccountPresenter>(account, view, name, *this));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i + 1);
   view.addNewAccountTable(name, childIndex + 1);
