@@ -27,6 +27,7 @@
 #include <memory>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <utility>
 
 struct debug_custom : public websocketpp::config::debug_asio {
@@ -357,11 +358,12 @@ handleMessage(const std::unique_ptr<App> &application,
 } // namespace sbash64::budget
 
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
+  if (argc < 4) {
     return EXIT_FAILURE;
   }
   const std::string budgetFilePath{argv[1]};
   const std::filesystem::path backupParentPath{argv[2]};
+  const auto port{std::stoi(argv[3])};
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   websocketpp::server<debug_custom> server;
   try {
@@ -420,7 +422,7 @@ int main(int argc, char *argv[]) {
       }
       con->set_status(websocketpp::http::status_code::ok);
     });
-    server.listen(9012);
+    server.listen(port);
     server.start_accept();
     server.run();
   } catch (websocketpp::exception const &e) {

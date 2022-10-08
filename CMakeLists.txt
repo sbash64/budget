@@ -15,8 +15,8 @@ option(SBASH64_BUDGET_ENABLE_WEB "Enable web implementation" OFF)
 if(${SBASH64_BUDGET_ENABLE_WEB})
   FetchContent_Declare(
     websocketpp
-    GIT_REPOSITORY https://github.com/zaphoyd/websocketpp
-    GIT_TAG 0.8.2)
+    GIT_REPOSITORY https://github.com/sbash64/websocketpp
+    GIT_TAG 6503e01b34f3f73265bf68c8b7dd88b38e77297d)
   FetchContent_MakeAvailable(websocketpp)
   find_program(MAKE_EXE NAMES gmake nmake make)
   FetchContent_Declare(
