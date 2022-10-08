@@ -22,7 +22,7 @@ jobs:
         with:
           name: release-assets 
           path: sbash64-budget-web-linux-x86_64.zip 
-   build-raspberry-pi-zero:
+  build-raspberry-pi-zero:
     name: build for raspberry pi zero 
     runs-on: ubuntu-latest
     steps:
