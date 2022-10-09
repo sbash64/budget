@@ -18,7 +18,6 @@ if(${SBASH64_BUDGET_ENABLE_WEB})
     GIT_REPOSITORY https://github.com/sbash64/websocketpp
     GIT_TAG 6503e01b34f3f73265bf68c8b7dd88b38e77297d)
   FetchContent_MakeAvailable(websocketpp)
-  find_program(MAKE_EXE NAMES gmake nmake make)
   FetchContent_Declare(
     asio
     URL https://sourceforge.net/projects/asio/files/asio/1.18.2%20%28Stable%29/asio-1.18.2.zip/download
