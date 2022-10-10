@@ -21,8 +21,7 @@ if(${SBASH64_BUDGET_ENABLE_WEB})
   FetchContent_Declare(
     asio
     URL https://sourceforge.net/projects/asio/files/asio/1.18.2%20%28Stable%29/asio-1.18.2.zip/download
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND "")
+  )
   FetchContent_MakeAvailable(asio)
   FetchContent_Declare(
     nlohmann_json
