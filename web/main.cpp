@@ -333,13 +333,10 @@ int main(int argc, char *argv[]) {
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   websocketpp::server<websocketpp::config::asio> server;
   try {
-    // Set logging settings
     server.set_access_channels(websocketpp::log::alevel::all);
     server.clear_access_channels(websocketpp::log::alevel::frame_payload);
 
-    // Initialize ASIO
     server.init_asio();
-    server.set_reuse_addr(true);
 
     server.set_open_handler(
         [&server, &applications, &budgetFilePath,
