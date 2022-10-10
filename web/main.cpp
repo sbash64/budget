@@ -8,9 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
-#include <websocketpp/common/connection_hdl.hpp>
-#include <websocketpp/config/debug_asio_no_tls.hpp>
-#include <websocketpp/logger/syslog.hpp>
+#include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
 #include <algorithm>
@@ -29,39 +27,6 @@
 #include <sstream>
 #include <string>
 #include <utility>
-
-struct debug_custom : public websocketpp::config::debug_asio {
-  using type = debug_custom;
-  using base = debug_asio;
-
-  using concurrency_type = base::concurrency_type;
-
-  using request_type = base::request_type;
-  using response_type = base::response_type;
-
-  using message_type = base::message_type;
-  using con_msg_manager_type = base::con_msg_manager_type;
-  using endpoint_msg_manager_type = base::endpoint_msg_manager_type;
-
-  using alog_type = base::alog_type;
-  using elog_type = base::elog_type;
-
-  using rng_type = base::rng_type;
-
-  struct transport_config : public base::transport_config {
-    using concurrency_type = type::concurrency_type;
-    using alog_type = type::alog_type;
-    using elog_type = type::elog_type;
-    using request_type = type::request_type;
-    using response_type = type::response_type;
-    using socket_type = websocketpp::transport::asio::basic_socket::endpoint;
-  };
-
-  using transport_type =
-      websocketpp::transport::asio::endpoint<transport_config>;
-
-  static const long timeout_open_handshake = 0;
-};
 
 namespace sbash64::budget {
 namespace {
@@ -98,7 +63,7 @@ void assignTransactionIndex(nlohmann::json &json, gsl::index i) {
   json["transactionIndex"] = i;
 }
 
-void send(websocketpp::server<debug_custom> &server,
+void send(websocketpp::server<websocketpp::config::asio> &server,
           websocketpp::connection_hdl connection, const nlohmann::json &json) {
   server.send(std::move(connection), json.dump(),
               websocketpp::frame::opcode::value::text);
@@ -106,7 +71,7 @@ void send(websocketpp::server<debug_custom> &server,
 
 class BrowserView : public View {
 public:
-  BrowserView(websocketpp::server<debug_custom> &server,
+  BrowserView(websocketpp::server<websocketpp::config::asio> &server,
               websocketpp::connection_hdl connection)
       : connection{std::move(connection)}, server{server} {}
 
@@ -192,7 +157,7 @@ public:
 
 private:
   websocketpp::connection_hdl connection;
-  websocketpp::server<debug_custom> &server;
+  websocketpp::server<websocketpp::config::asio> &server;
 };
 } // namespace
 
@@ -228,7 +193,7 @@ struct App {
   std::string budgetFilePath;
   std::uintmax_t backupCount = 0;
 
-  App(websocketpp::server<debug_custom> &server,
+  App(websocketpp::server<websocketpp::config::asio> &server,
       websocketpp::connection_hdl connection, const std::string &budgetFilePath,
       const std::filesystem::path &backupParentPath)
       : streamFactory{budgetFilePath},
@@ -295,7 +260,8 @@ static auto accountIsMaster(const nlohmann::json &json) -> bool {
 
 static void
 handleMessage(const std::unique_ptr<App> &application,
-              const websocketpp::server<debug_custom>::message_ptr &message) {
+              const websocketpp::server<websocketpp::config::asio>::message_ptr
+                  &message) {
   // brace-initialization seems to fail here
   const auto json = nlohmann::json::parse(message->get_payload());
   if (methodIs(json, "add transaction"))
@@ -365,7 +331,7 @@ int main(int argc, char *argv[]) {
   const std::filesystem::path backupParentPath{argv[2]};
   const auto port{std::stoi(argv[3])};
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
-  websocketpp::server<debug_custom> server;
+  websocketpp::server<websocketpp::config::asio> server;
   try {
     // Set logging settings
     server.set_access_channels(websocketpp::log::alevel::all);
@@ -384,7 +350,7 @@ int main(int argc, char *argv[]) {
         });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<debug_custom>::connection_ptr con =
+      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
 
       std::cout << "Fail handler: " << con->get_ec() << " "
@@ -399,13 +365,14 @@ int main(int argc, char *argv[]) {
     server.set_message_handler(
         [&applications](
             const websocketpp::connection_hdl &connection,
-            const websocketpp::server<debug_custom>::message_ptr &message) {
+            const websocketpp::server<websocketpp::config::asio>::message_ptr
+                &message) {
           sbash64::budget::handleMessage(
               applications.at(connection.lock().get()), message);
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<debug_custom>::connection_ptr con =
+      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
       if (con->get_resource() == "/") {
         std::ifstream response{"index.html"};
