@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #define ASIO_STANDALONE
-#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
 
 #include <algorithm>
@@ -63,7 +63,7 @@ void assignTransactionIndex(nlohmann::json &json, gsl::index i) {
   json["transactionIndex"] = i;
 }
 
-void send(websocketpp::server<websocketpp::config::asio> &server,
+void send(websocketpp::server<websocketpp::config::asio_tls> &server,
           websocketpp::connection_hdl connection, const nlohmann::json &json) {
   server.send(std::move(connection), json.dump(),
               websocketpp::frame::opcode::value::text);
@@ -71,7 +71,7 @@ void send(websocketpp::server<websocketpp::config::asio> &server,
 
 class BrowserView : public View {
 public:
-  BrowserView(websocketpp::server<websocketpp::config::asio> &server,
+  BrowserView(websocketpp::server<websocketpp::config::asio_tls> &server,
               websocketpp::connection_hdl connection)
       : connection{std::move(connection)}, server{server} {}
 
@@ -157,7 +157,7 @@ public:
 
 private:
   websocketpp::connection_hdl connection;
-  websocketpp::server<websocketpp::config::asio> &server;
+  websocketpp::server<websocketpp::config::asio_tls> &server;
 };
 } // namespace
 
@@ -193,7 +193,7 @@ struct App {
   std::string budgetFilePath;
   std::uintmax_t backupCount = 0;
 
-  App(websocketpp::server<websocketpp::config::asio> &server,
+  App(websocketpp::server<websocketpp::config::asio_tls> &server,
       websocketpp::connection_hdl connection, const std::string &budgetFilePath,
       const std::filesystem::path &backupParentPath)
       : streamFactory{budgetFilePath},
@@ -258,10 +258,10 @@ static auto accountIsMaster(const nlohmann::json &json) -> bool {
   return accountName(json) == "Income";
 }
 
-static void
-handleMessage(const std::unique_ptr<App> &application,
-              const websocketpp::server<websocketpp::config::asio>::message_ptr
-                  &message) {
+static void handleMessage(
+    const std::unique_ptr<App> &application,
+    const websocketpp::server<websocketpp::config::asio_tls>::message_ptr
+        &message) {
   // brace-initialization seems to fail here
   const auto json = nlohmann::json::parse(message->get_payload());
   if (methodIs(json, "add transaction"))
@@ -331,7 +331,7 @@ int main(int argc, char *argv[]) {
   const std::filesystem::path backupParentPath{argv[2]};
   const auto port{std::stoi(argv[3])};
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
-  websocketpp::server<websocketpp::config::asio> server;
+  websocketpp::server<websocketpp::config::asio_tls> server;
   try {
     server.set_access_channels(websocketpp::log::alevel::all);
     server.clear_access_channels(websocketpp::log::alevel::frame_payload);
@@ -347,7 +347,7 @@ int main(int argc, char *argv[]) {
         });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
+      websocketpp::server<websocketpp::config::asio_tls>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
 
       std::cout << "Fail handler: " << con->get_ec() << " "
@@ -362,14 +362,14 @@ int main(int argc, char *argv[]) {
     server.set_message_handler(
         [&applications](
             const websocketpp::connection_hdl &connection,
-            const websocketpp::server<websocketpp::config::asio>::message_ptr
-                &message) {
+            const websocketpp::server<
+                websocketpp::config::asio_tls>::message_ptr &message) {
           sbash64::budget::handleMessage(
               applications.at(connection.lock().get()), message);
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
+      websocketpp::server<websocketpp::config::asio_tls>::connection_ptr con =
           server.get_con_from_hdl(std::move(connection));
       if (con->get_resource() == "/") {
         std::ifstream response{"index.html"};

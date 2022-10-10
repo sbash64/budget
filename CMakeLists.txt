@@ -24,6 +24,7 @@ if(${SBASH64_BUDGET_ENABLE_WEB})
     CONFIGURE_COMMAND ""
     BUILD_COMMAND "")
   FetchContent_MakeAvailable(asio)
+  include(FindOpenSSL)
   FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY
