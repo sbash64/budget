@@ -386,6 +386,33 @@ int main(int argc, char *argv[]) {
       }
       con->set_status(websocketpp::http::status_code::ok);
     });
+    server.set_tls_init_handler(
+        [&server](websocketpp::connection_hdl connection) {
+          websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context>
+              context = websocketpp::lib::make_shared<asio::ssl::context>(
+                  asio::ssl::context::sslv23);
+          context->set_options(
+              asio::ssl::context::default_workarounds |
+              asio::ssl::context::no_sslv2 | asio::ssl::context::no_sslv3 |
+              asio::ssl::context::no_tlsv1 | asio::ssl::context::single_dh_use);
+          context->use_certificate_chain_file("cert.pem");
+          context->use_private_key_file("key.pem", asio::ssl::context::pem);
+          context->use_tmp_dh_file("dh.pem");
+          std::string ciphers =
+              "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-"
+              "RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-"
+              "AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-"
+              "RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-"
+              "SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-"
+              "AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-"
+              "RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-"
+              "RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!"
+              "eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK";
+          if (SSL_CTX_set_cipher_list(context->native_handle(),
+                                      ciphers.c_str()) != 1)
+            throw std::runtime_error{"error setting cipher list"};
+          return context;
+        });
     server.listen(port);
     server.start_accept();
     server.run();
