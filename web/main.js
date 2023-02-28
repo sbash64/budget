@@ -281,7 +281,7 @@ function main() {
   let selectedTransactionRow = null;
   let selectedAccountSummaryRow = null;
   const accountTableBodies = [];
-  const websocket = new WebSocket(`ws://${window.location.host}`);
+  const websocket = new WebSocket(`wss://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {

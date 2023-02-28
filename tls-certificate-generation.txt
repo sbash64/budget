@@ -1,0 +1,17 @@
+https://www.ibm.com/docs/en/license-metric-tool?topic=communication-step-1-creating-private-keys-certificates
+
+openssl genrsa -des3 -out private_key.key 2048
+
+openssl req -new -key private_key.key -out CSR.csr
+openssl req -new -key private_key.key -addext "subjectAltName = DNS:raspberrypi.local,DNS:localhost" -out CSR.csr
+
+openssl req -new -newkey rsa:2048 -nodes -out CA_CSR.csr -keyout CA_private_key.key -sha256
+
+openssl x509 -signkey CA_private_key.key -days 90 -req -in CA_CSR.csr -out CA_certificate.arm -sha256
+
+openssl x509 -req -days 90 -in CSR.csr -CA CA_certificate.arm -CAkey CA_private_key.key -out certificate.arm -set_serial 01 -sha256
+
+openssl dhparam -out dh.pem 2048
+
+mv private_key.key key.pem
+mv certificate.arm cert.pem

@@ -323,6 +323,8 @@ static void handleMessage(
 }
 } // namespace sbash64::budget
 
+static std::string get_password() { return "idontknow"; }
+
 int main(int argc, char *argv[]) {
   if (argc < 4) {
     return EXIT_FAILURE;
@@ -395,6 +397,7 @@ int main(int argc, char *argv[]) {
               asio::ssl::context::default_workarounds |
               asio::ssl::context::no_sslv2 | asio::ssl::context::no_sslv3 |
               asio::ssl::context::no_tlsv1 | asio::ssl::context::single_dh_use);
+          context->set_password_callback(bind(&get_password));
           context->use_certificate_chain_file("cert.pem");
           context->use_private_key_file("key.pem", asio::ssl::context::pem);
           context->use_tmp_dh_file("dh.pem");
