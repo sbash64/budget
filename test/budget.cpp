@@ -54,8 +54,6 @@ public:
     newAccount_ = &account;
   }
 
-  auto unallocatedIncome() -> std::vector<USD> { return unallocatedIncome_; }
-
   auto categoryAllocations(std::string_view s) -> std::vector<USD> {
     return categoryAllocations_.at(std::string{s});
   }
@@ -66,12 +64,17 @@ public:
 
   auto netIncome() -> USD { return netIncome_; }
 
+  void notifyThatHasBeenSaved() { saved_ = true; }
+
+  auto saved() -> bool { return saved_; }
+
 private:
   std::map<std::string, std::vector<USD>> categoryAllocations_;
   std::vector<USD> unallocatedIncome_;
   std::string newAccountName_;
   const Account *newAccount_{};
   USD netIncome_{};
+  bool saved_{};
 };
 } // namespace
 
@@ -225,6 +228,17 @@ void savesAccounts(testcpplite::TestResult &result) {
     assertEqual(result, penguin.get(),
                 persistence.expenseAccountsWithNames().at(2).account);
   });
+}
+
+void notifiesThatHasBeenSavedWhenSaved(testcpplite::TestResult &result) {
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        PersistentMemoryStub persistence;
+        budget.save(persistence);
+        assertTrue(result, observer.saved());
+      });
 }
 
 static void assertDeserializes(

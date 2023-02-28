@@ -9,6 +9,7 @@ void addsExpenseToExpenseAccount(testcpplite::TestResult &);
 void addsExpenseToExistingAccount(testcpplite::TestResult &);
 void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
+void notifiesThatHasBeenSavedWhenSaved(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 void clearsOldAccounts(testcpplite::TestResult &);
 void removesExpenseFromAccount(testcpplite::TestResult &);

@@ -220,6 +220,9 @@ void BudgetInMemory::removeAccount(std::string_view name) {
 
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
   persistentMemory.save(&incomeAccount, collect(expenseAccounts));
+  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
+    observer_->notifyThatHasBeenSaved();
+  });
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {

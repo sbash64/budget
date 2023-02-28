@@ -88,6 +88,7 @@ public:
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
+  void notifyThatHasBeenSaved() override {}
   void remove(const AccountPresenter *) override;
 
 private:

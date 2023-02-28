@@ -234,6 +234,7 @@ public:
     notifyThatExpenseAccountHasBeenCreated(Account &,
                                            std::string_view name) = 0;
     virtual void notifyThatNetIncomeHasChanged(USD) = 0;
+    virtual void notifyThatHasBeenSaved() = 0;
   };
 
   virtual void attach(Observer *) = 0;

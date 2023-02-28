@@ -60,6 +60,7 @@ static auto runAllTests() -> int {
        {transfersFromIncomeToExpenseAccount,
         "transfersFromIncomeToExpenseAccount"},
        {savesAccounts, "save saves accounts"},
+       {notifiesThatHasBeenSavedWhenSaved, "save notifies that has been saved"},
        {loadsAccounts, "load loads accounts"},
        {renamesAccount, "rename account"},
        {notifiesObserverOfDeserializedAccount,
