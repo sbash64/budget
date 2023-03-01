@@ -155,6 +155,12 @@ public:
     send(server, connection, json);
   }
 
+  void markAsSaved() override {
+    nlohmann::json json;
+    assignMethod(json, "mark as saved");
+    send(server, connection, json);
+  }
+
 private:
   websocketpp::connection_hdl connection;
   websocketpp::server<websocketpp::config::asio> &server;
