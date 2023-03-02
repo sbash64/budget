@@ -161,6 +161,7 @@ void BudgetInMemory::removeExpense(std::string_view accountName,
 
 void BudgetInMemory::verifyIncome(const Transaction &transaction) {
   verify(incomeAccount, transaction);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::verifyExpense(std::string_view accountName,

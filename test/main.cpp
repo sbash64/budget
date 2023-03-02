@@ -96,6 +96,8 @@ static auto runAllTests() -> int {
         "notifiesThatHasUnsavedChangesWhenRemovingIncome"},
        {notifiesThatHasUnsavedChangesWhenVerifyingExpense,
         "notifiesThatHasUnsavedChangesWhenVerifyingExpense"},
+       {notifiesThatHasUnsavedChangesWhenVerifyingIncome,
+        "notifiesThatHasUnsavedChangesWhenVerifyingIncome"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,

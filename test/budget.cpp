@@ -465,6 +465,15 @@ void verifiesIncome(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenVerifyingIncome(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
+                               BudgetObserverStub &observer, Budget &budget) {
+    budget.verifyIncome({1_cents, "hi", Date{2020, Month::April, 1}});
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {

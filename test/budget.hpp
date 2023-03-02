@@ -41,6 +41,8 @@ void notifiesThatHasUnsavedChangesWhenRemovingExpense(
 void notifiesThatHasUnsavedChangesWhenRemovingIncome(testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
     testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenVerifyingIncome(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif
