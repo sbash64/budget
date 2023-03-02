@@ -180,6 +180,7 @@ void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
   transfer(expenseAccounts, accountName, incomeAccount, amount);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {

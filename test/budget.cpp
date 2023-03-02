@@ -244,6 +244,16 @@ void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenTransferring(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto giraffe{addAccountStub(factory, "giraffe")};
+    budget.transferTo("giraffe", 456_cents);
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void savesAccounts(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
