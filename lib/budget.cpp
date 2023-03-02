@@ -215,6 +215,7 @@ void BudgetInMemory::closeAccount(std::string_view name) {
     else if (amount.cents < 0)
       incomeAccount.decreaseAllocationBy(-amount);
     remove(expenseAccounts, name);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 

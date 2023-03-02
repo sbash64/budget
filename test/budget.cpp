@@ -661,6 +661,18 @@ void closesAccount(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenClosingAccount(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    const auto penguin{createAccountStub(budget, factory, "penguin")};
+    const auto leopard{createAccountStub(budget, factory, "leopard")};
+    budget.closeAccount("giraffe");
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
                                AccountStub &incomeAccount, Budget &budget) {
