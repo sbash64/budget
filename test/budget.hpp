@@ -36,6 +36,8 @@ void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenAddingIncome(testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenAddingExpense(testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenTransferring(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenRemovingExpense(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

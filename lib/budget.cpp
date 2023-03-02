@@ -154,6 +154,7 @@ void BudgetInMemory::removeExpense(std::string_view accountName,
   if (contains(expenseAccounts, accountName)) {
     remove(at(expenseAccounts, accountName), transaction);
     notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 

@@ -381,6 +381,16 @@ void removesExpenseFromAccount(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenRemovingExpense(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto account{createAccountStub(budget, factory, "giraffe")};
+    budget.removeExpense("giraffe", Transaction{});
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void doesNotRemoveExpenseFromNonexistentAccount(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
