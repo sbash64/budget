@@ -117,6 +117,12 @@ static void createExpenseAccountIfNeeded(
     makeExpenseAccount(expenseAccounts, accountFactory, accountName, observer);
 }
 
+static void notifyThatHasUnsavedChanges(BudgetInMemory::Observer *observer) {
+  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
+    observer_->notifyThatHasUnsavedChanges();
+  });
+}
+
 BudgetInMemory::BudgetInMemory(Account &incomeAccount,
                                Account::Factory &accountFactory)
     : incomeAccount{incomeAccount}, accountFactory{accountFactory} {}
@@ -126,9 +132,7 @@ void BudgetInMemory::attach(Observer *a) { observer = a; }
 void BudgetInMemory::addIncome(const Transaction &transaction) {
   add(incomeAccount, transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
-  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
-    observer_->notifyThatHasUnsavedChanges();
-  });
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::addExpense(std::string_view accountName,
@@ -137,9 +141,7 @@ void BudgetInMemory::addExpense(std::string_view accountName,
                                observer);
   add(at(expenseAccounts, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
-  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
-    observer_->notifyThatHasUnsavedChanges();
-  });
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::removeIncome(const Transaction &transaction) {
