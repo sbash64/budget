@@ -33,6 +33,7 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &);
 void transfersAmountFromAccountAllocatedSufficiently(testcpplite::TestResult &);
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenAddingIncome(testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

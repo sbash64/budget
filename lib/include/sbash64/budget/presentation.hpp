@@ -90,6 +90,7 @@ public:
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
   void notifyThatHasBeenSaved() override;
+  void notifyThatHasUnsavedChanges() override {}
   void remove(const AccountPresenter *) override;
 
 private:

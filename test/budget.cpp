@@ -54,19 +54,19 @@ public:
     newAccount_ = &account;
   }
 
-  auto categoryAllocations(std::string_view s) -> std::vector<USD> {
-    return categoryAllocations_.at(std::string{s});
-  }
-
   auto newAccount() -> const Account * { return newAccount_; }
 
   void notifyThatNetIncomeHasChanged(USD b) override { netIncome_ = b; }
 
   auto netIncome() -> USD { return netIncome_; }
 
-  void notifyThatHasBeenSaved() { saved_ = true; }
+  void notifyThatHasBeenSaved() override { saved_ = true; }
 
   auto saved() -> bool { return saved_; }
+
+  auto hasUnsavedChanges() -> bool { return hasUnsavedChanges_; }
+
+  void notifyThatHasUnsavedChanges() override { hasUnsavedChanges_ = true; }
 
 private:
   std::map<std::string, std::vector<USD>> categoryAllocations_;
@@ -75,6 +75,7 @@ private:
   const Account *newAccount_{};
   USD netIncome_{};
   bool saved_{};
+  bool hasUnsavedChanges_{};
 };
 } // namespace
 
@@ -158,13 +159,6 @@ static void assertRemoved(testcpplite::TestResult &result,
   assertRemoved(result, *account, t);
 }
 
-static void assertCategoryAllocations(testcpplite::TestResult &result,
-                                      BudgetObserverStub &observer,
-                                      const std::vector<USD> &expected,
-                                      std::string_view name) {
-  assertEqual(result, expected, observer.categoryAllocations(name));
-}
-
 void addsIncomeToIncomeAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
                                Budget &budget) {
@@ -172,6 +166,18 @@ void addsIncomeToIncomeAccount(testcpplite::TestResult &result) {
               Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
     assertAdded(result, incomeAccount,
                 Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+  });
+}
+
+void notifiesThatHasUnsavedChangesWhenAddingIncome(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &,
+                               Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    addIncome(budget,
+              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
+    assertTrue(result, observer.hasUnsavedChanges());
   });
 }
 

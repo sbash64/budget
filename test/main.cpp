@@ -84,6 +84,8 @@ static auto runAllTests() -> int {
         "transfersAmountFromAccountAllocatedSufficiently"},
        {restoresAccountsHavingNegativeBalances,
         "restoresAccountsHavingNegativeBalances"},
+       {notifiesThatHasUnsavedChangesWhenAddingIncome,
+        "notifiesThatHasUnsavedChangesWhenAddingIncome"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,
