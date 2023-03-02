@@ -186,7 +186,8 @@ static auto runAllTests() -> int {
        {presentation::ordersAccountsByName,
         "presentation::ordersAccountsByName"},
        {presentation::formatsNetIncome, "presentation::formatsNetIncome"},
-       {presentation::marksAsSaved, "presentation::marksAsSaved"}},
+       {presentation::marksAsSaved, "presentation::marksAsSaved"},
+       {presentation::marksAsUnsaved, "presentation::marksAsUnsaved"}},
       std::cout);
 }
 } // namespace sbash64::budget

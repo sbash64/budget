@@ -157,4 +157,6 @@ void BudgetPresenter::remove(const AccountPresenter *child) {
 }
 
 void BudgetPresenter::notifyThatHasBeenSaved() { view.markAsSaved(); }
+
+void BudgetPresenter::notifyThatHasUnsavedChanges() { view.markAsUnsaved(); }
 } // namespace sbash64::budget
