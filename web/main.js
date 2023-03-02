@@ -289,6 +289,10 @@ function main() {
         saveButton.style.backgroundColor = "green";
         break;
       }
+      case "mark as unsaved": {
+        saveButton.style.backgroundColor = "red";
+        break;
+      }
       case "update net income": {
         netIncome.textContent = message.amount;
         break;
