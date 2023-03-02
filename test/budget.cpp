@@ -161,6 +161,11 @@ static void assertRemoved(testcpplite::TestResult &result,
   assertRemoved(result, *account, t);
 }
 
+static void assertHasUnsavedChanges(testcpplite::TestResult &result,
+                                    BudgetObserverStub &observer) {
+  assertTrue(result, observer.hasUnsavedChanges());
+}
+
 void addsIncomeToIncomeAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
                                Budget &budget) {
@@ -173,14 +178,13 @@ void addsIncomeToIncomeAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenAddingIncome(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    addIncome(budget,
-              Transaction{123_cents, "raccoon", Date{2013, Month::April, 3}});
-    assertTrue(result, observer.hasUnsavedChanges());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        addIncome(budget);
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void addsExpenseToExpenseAccount(testcpplite::TestResult &result) {
@@ -196,15 +200,14 @@ void addsExpenseToExpenseAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenAddingExpense(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               Budget &budget) {
-    BudgetObserverStub observer;
-    budget.attach(&observer);
-    const auto account{addAccountStub(factory, "giraffe")};
-    addExpense(budget, "giraffe",
-               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
-    assertTrue(result, observer.hasUnsavedChanges());
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        const auto account{addAccountStub(factory, "giraffe")};
+        addExpense(budget, "giraffe", Transaction{});
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void addsExpenseToExistingAccount(testcpplite::TestResult &result) {
