@@ -86,6 +86,8 @@ static auto runAllTests() -> int {
         "restoresAccountsHavingNegativeBalances"},
        {notifiesThatHasUnsavedChangesWhenAddingIncome,
         "notifiesThatHasUnsavedChangesWhenAddingIncome"},
+       {notifiesThatHasUnsavedChangesWhenAddingExpense,
+        "notifiesThatHasUnsavedChangesWhenAddingExpense"},
        {account::notifiesObserverOfUpdatedBalanceAfterAddingTransactions,
         "notifiesObserverOfUpdatedBalanceAfterAddingTransactions"},
        {account::notifiesObserverOfUpdatedBalanceAfterRemovingTransactions,

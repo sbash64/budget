@@ -62,9 +62,11 @@ public:
 
   void notifyThatHasBeenSaved() override { saved_ = true; }
 
-  auto saved() -> bool { return saved_; }
+  [[nodiscard]] auto saved() const -> bool { return saved_; }
 
-  auto hasUnsavedChanges() -> bool { return hasUnsavedChanges_; }
+  [[nodiscard]] auto hasUnsavedChanges() const -> bool {
+    return hasUnsavedChanges_;
+  }
 
   void notifyThatHasUnsavedChanges() override { hasUnsavedChanges_ = true; }
 
@@ -189,6 +191,19 @@ void addsExpenseToExpenseAccount(testcpplite::TestResult &result) {
                Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
     assertAdded(result, account,
                 Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+  });
+}
+
+void notifiesThatHasUnsavedChangesWhenAddingExpense(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               Budget &budget) {
+    BudgetObserverStub observer;
+    budget.attach(&observer);
+    const auto account{addAccountStub(factory, "giraffe")};
+    addExpense(budget, "giraffe",
+               Transaction{456_cents, "mouse", Date{2024, Month::August, 23}});
+    assertTrue(result, observer.hasUnsavedChanges());
   });
 }
 

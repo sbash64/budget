@@ -137,6 +137,9 @@ void BudgetInMemory::addExpense(std::string_view accountName,
                                observer);
   add(at(expenseAccounts, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
+    observer_->notifyThatHasUnsavedChanges();
+  });
 }
 
 void BudgetInMemory::removeIncome(const Transaction &transaction) {
