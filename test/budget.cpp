@@ -467,7 +467,7 @@ void verifiesIncome(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenVerifyingIncome(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &,
                                BudgetObserverStub &observer, Budget &budget) {
     budget.verifyIncome({1_cents, "hi", Date{2020, Month::April, 1}});
     assertHasUnsavedChanges(result, observer);
@@ -513,6 +513,19 @@ void reducesEachAccount(testcpplite::TestResult &result) {
     assertAllocationDecreasedByResolvingVerifiedTransactions(result, *giraffe);
     assertAllocationDecreasedByResolvingVerifiedTransactions(result, *penguin);
     assertAllocationDecreasedByResolvingVerifiedTransactions(result, *leopard);
+  });
+}
+
+void notifiesThatHasUnsavedChangesWhenReducing(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory,
+                               AccountStub &incomeAccount,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    const auto penguin{createAccountStub(budget, factory, "penguin")};
+    const auto leopard{createAccountStub(budget, factory, "leopard")};
+    budget.reduce();
+    assertHasUnsavedChanges(result, observer);
   });
 }
 

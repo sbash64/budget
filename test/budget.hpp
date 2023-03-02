@@ -43,6 +43,7 @@ void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
     testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenVerifyingIncome(
     testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenReducing(testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

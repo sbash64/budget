@@ -262,6 +262,7 @@ void BudgetInMemory::reduce() {
   incomeAccount.increaseAllocationByResolvingVerifiedTransactions();
   for (auto &[name, account] : expenseAccounts)
     account->decreaseAllocationByResolvingVerifiedTransactions();
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::restore() {
