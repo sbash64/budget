@@ -413,6 +413,15 @@ void removesIncomeFromAccount(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenRemovingIncome(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &, AccountStub &incomeAccount,
+                               BudgetObserverStub &observer, Budget &budget) {
+    budget.removeIncome(Transaction{});
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void renamesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
