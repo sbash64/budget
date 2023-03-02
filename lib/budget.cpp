@@ -228,6 +228,7 @@ void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
     remove(expenseAccounts, name);
     notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 

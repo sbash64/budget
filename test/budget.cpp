@@ -518,8 +518,7 @@ void reducesEachAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenReducing(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory,
-                               AccountStub &incomeAccount,
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                BudgetObserverStub &observer, Budget &budget) {
     const auto giraffe{createAccountStub(budget, factory, "giraffe")};
     const auto penguin{createAccountStub(budget, factory, "penguin")};
@@ -606,6 +605,18 @@ void removesAccount(testcpplite::TestResult &result) {
                 persistence.expenseAccountsWithNames().at(0).account);
     assertEqual(result, penguin.get(),
                 persistence.expenseAccountsWithNames().at(1).account);
+  });
+}
+
+void notifiesThatHasUnsavedChangesWhenRemovingAccount(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    const auto penguin{createAccountStub(budget, factory, "penguin")};
+    const auto leopard{createAccountStub(budget, factory, "leopard")};
+    budget.removeAccount("giraffe");
+    assertHasUnsavedChanges(result, observer);
   });
 }
 
