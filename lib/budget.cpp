@@ -195,6 +195,7 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
     transfer(expenseAccounts, accountName, incomeAccount, amount);
   else if (amount.cents < 0)
     transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {

@@ -699,6 +699,16 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenAllocating(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+    budget.allocate("giraffe", 7_cents);
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void transfersAmountFromAccountAllocatedSufficiently(
     testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory,
