@@ -218,6 +218,16 @@ void notifiesThatHasUnsavedChangesWhenAddingExpense(
   });
 }
 
+void notifiesThatHasUnsavedChangesWhenCreatingAccount(
+    testcpplite::TestResult &result) {
+  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
+                               BudgetObserverStub &observer, Budget &budget) {
+    const auto account{addAccountStub(factory, "giraffe")};
+    createAccount(budget, "giraffe");
+    assertHasUnsavedChanges(result, observer);
+  });
+}
+
 void addsExpenseToExistingAccount(testcpplite::TestResult &result) {
   testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
                                Budget &budget) {

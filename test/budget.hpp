@@ -48,6 +48,8 @@ void notifiesThatHasUnsavedChangesWhenRemovingAccount(
     testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenClosingAccount(testcpplite::TestResult &);
 void notifiesThatHasUnsavedChangesWhenAllocating(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenCreatingAccount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

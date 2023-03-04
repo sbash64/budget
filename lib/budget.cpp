@@ -109,18 +109,20 @@ makeAndLoadExpenseAccount(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
   at(expenseAccounts, name)->load(deserialization);
 }
 
-static void createExpenseAccountIfNeeded(
-    BudgetInMemory::ExpenseAccountsType &expenseAccounts,
-    Account::Factory &accountFactory, std::string_view accountName,
-    Budget::Observer *observer) {
-  if (!contains(expenseAccounts, accountName))
-    makeExpenseAccount(expenseAccounts, accountFactory, accountName, observer);
-}
-
 static void notifyThatHasUnsavedChanges(BudgetInMemory::Observer *observer) {
   callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
     observer_->notifyThatHasUnsavedChanges();
   });
+}
+
+static void createExpenseAccountIfNeeded(
+    BudgetInMemory::ExpenseAccountsType &expenseAccounts,
+    Account::Factory &accountFactory, std::string_view accountName,
+    Budget::Observer *observer) {
+  if (!contains(expenseAccounts, accountName)) {
+    makeExpenseAccount(expenseAccounts, accountFactory, accountName, observer);
+    notifyThatHasUnsavedChanges(observer);
+  }
 }
 
 BudgetInMemory::BudgetInMemory(Account &incomeAccount,
