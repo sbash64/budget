@@ -178,15 +178,16 @@ static void transfer(Account &from, Account &to, USD amount) {
 }
 
 static void transfer(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
-                     std::string_view name, Account &from, USD amount) {
+                     std::string_view name, Account &from, USD amount,
+                     BudgetInMemory::Observer *observer) {
   transfer(from, *at(expenseAccounts, name), amount);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
-  transfer(expenseAccounts, accountName, incomeAccount, amount);
-  notifyThatHasUnsavedChanges(observer);
+  transfer(expenseAccounts, accountName, incomeAccount, amount, observer);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
@@ -194,10 +195,9 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
                                observer);
   const auto amount{amountNeeded - allocation(expenseAccounts, accountName)};
   if (amount.cents > 0)
-    transfer(expenseAccounts, accountName, incomeAccount, amount);
+    transfer(expenseAccounts, accountName, incomeAccount, amount, observer);
   else if (amount.cents < 0)
     transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
-  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::createAccount(std::string_view name) {
@@ -274,7 +274,7 @@ void BudgetInMemory::restore() {
   for (auto [name, account] : expenseAccounts) {
     const auto amount{leftoverAfterExpenses(*account)};
     if (amount.cents < 0)
-      transfer(expenseAccounts, name, incomeAccount, -amount);
+      transfer(expenseAccounts, name, incomeAccount, -amount, observer);
   }
 }
 } // namespace sbash64::budget
