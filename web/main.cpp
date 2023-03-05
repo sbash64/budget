@@ -155,6 +155,18 @@ public:
     send(server, connection, json);
   }
 
+  void markAsSaved() override {
+    nlohmann::json json;
+    assignMethod(json, "mark as saved");
+    send(server, connection, json);
+  }
+
+  void markAsUnsaved() override {
+    nlohmann::json json;
+    assignMethod(json, "mark as unsaved");
+    send(server, connection, json);
+  }
+
 private:
   websocketpp::connection_hdl connection;
   websocketpp::server<websocketpp::config::asio> &server;
@@ -333,9 +345,6 @@ int main(int argc, char *argv[]) {
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   websocketpp::server<websocketpp::config::asio> server;
   try {
-    server.set_access_channels(websocketpp::log::alevel::all);
-    server.clear_access_channels(websocketpp::log::alevel::frame_payload);
-
     server.init_asio();
 
     server.set_open_handler(

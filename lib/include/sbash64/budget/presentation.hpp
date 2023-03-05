@@ -32,6 +32,8 @@ public:
                                    gsl::index transactionIndex) = 0;
   virtual void removeTransactionRowSelection(gsl::index accountIndex,
                                              gsl::index transactionIndex) = 0;
+  virtual void markAsSaved() = 0;
+  virtual void markAsUnsaved() = 0;
 };
 
 class AccountPresenter;
@@ -88,6 +90,8 @@ public:
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
+  void notifyThatHasBeenSaved() override;
+  void notifyThatHasUnsavedChanges() override;
   void remove(const AccountPresenter *) override;
 
 private:

@@ -285,6 +285,14 @@ function main() {
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
+      case "mark as saved": {
+        saveButton.style.backgroundColor = "green";
+        break;
+      }
+      case "mark as unsaved": {
+        saveButton.style.backgroundColor = "red";
+        break;
+      }
       case "update net income": {
         netIncome.textContent = message.amount;
         break;

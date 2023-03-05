@@ -101,6 +101,14 @@ public:
 
   [[nodiscard]] auto accountIndex() const -> int { return accountIndex_; }
 
+  auto markedAsSaved() -> bool { return markedAsSaved_; }
+
+  void markAsSaved() override { markedAsSaved_ = true; }
+
+  auto markedAsUnsaved() -> bool { return markedAsUnsaved_; }
+
+  void markAsUnsaved() override { markedAsUnsaved_ = true; }
+
 private:
   std::string allocation_;
   std::string balance_;
@@ -115,6 +123,8 @@ private:
   int transactionDeleted_{-1};
   int removedTransactionSelectionIndex_{-1};
   int newAccountIndex_{-1};
+  bool markedAsSaved_{};
+  bool markedAsUnsaved_{};
 };
 
 class AccountPresenterParentStub : public AccountPresenter::Parent {
@@ -356,5 +366,21 @@ void formatsNetIncome(testcpplite::TestResult &result) {
   BudgetPresenter presenter{view, incomeAccount};
   presenter.notifyThatNetIncomeHasChanged(1234_cents);
   assertEqual(result, "12.34", view.netIncome());
+}
+
+void marksAsSaved(testcpplite::TestResult &result) {
+  ViewStub view;
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
+  presenter.notifyThatHasBeenSaved();
+  assertTrue(result, view.markedAsSaved());
+}
+
+void marksAsUnsaved(testcpplite::TestResult &result) {
+  ViewStub view;
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{view, incomeAccount};
+  presenter.notifyThatHasUnsavedChanges();
+  assertTrue(result, view.markedAsUnsaved());
 }
 } // namespace sbash64::budget::presentation
