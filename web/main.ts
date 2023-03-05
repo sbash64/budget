@@ -1,54 +1,88 @@
-function createChild(parent, tagName) {
+function createChild(parent: HTMLElement, tagName: string): HTMLElement {
   const child = document.createElement(tagName);
   parent.append(child);
   return child;
 }
 
-function sendMessage(websocket, message) {
+interface OutgoingMessage {
+  method: string;
+  name?: string;
+  amount?: string;
+  description?: string;
+  date?: string;
+}
+
+function sendMessage(websocket: WebSocket, message: OutgoingMessage) {
   websocket.send(JSON.stringify(message));
 }
 
-function accountName(selectedAccountSummaryRow) {
-  return selectedAccountSummaryRow.cells[1].textContent;
+function accountName(selectedAccountSummaryRow: HTMLTableRowElement): string {
+  return selectedAccountSummaryRow.cells[1].textContent || "";
 }
 
 function transactionMessage(
-  selectedAccountSummaryRow,
-  selectedTransactionRow,
-  method
+  selectedAccountSummaryRow: HTMLTableRowElement,
+  selectedTransactionRow: HTMLTableRowElement,
+  method: string
 ) {
   return {
     method,
     name: accountName(selectedAccountSummaryRow),
-    description: selectedTransactionRow.cells[1].textContent,
-    amount: selectedTransactionRow.cells[2].textContent,
-    date: selectedTransactionRow.cells[3].textContent,
+    description: selectedTransactionRow.cells[1].textContent || "",
+    amount: selectedTransactionRow.cells[2].textContent || "",
+    date: selectedTransactionRow.cells[3].textContent || "",
   };
 }
 
-function updateTransaction(row, message) {
+interface IncomingMessage {
+  description: string;
+  amount: string;
+  date: string;
+  accountIndex: number;
+  transactionIndex: number;
+}
+
+function updateTransaction(row: HTMLTableRowElement, message: IncomingMessage) {
   row.cells[1].textContent = message.description;
   row.cells[2].textContent = message.amount;
   row.cells[3].textContent = message.date;
 }
 
-function accountTableBody(accountTableBodies, message) {
+function accountTableBody(
+  accountTableBodies: HTMLTableSectionElement[],
+  message: IncomingMessage
+): HTMLTableSectionElement {
   return accountTableBodies[message.accountIndex];
 }
 
-function transactionRow(accountTableBodies, message) {
+function transactionRow(
+  accountTableBodies: HTMLTableSectionElement[],
+  message: IncomingMessage
+) {
   return accountTableBody(accountTableBodies, message).rows[
     message.transactionIndex
   ];
 }
 
-function accountSummaryRow(accountSummaryTableBody, message) {
+function accountSummaryRow(
+  accountSummaryTableBody: HTMLTableSectionElement,
+  message: IncomingMessage
+): HTMLTableRowElement {
   return accountSummaryTableBody.rows[message.accountIndex];
 }
 
-function sendOnClick(button, websocket, messageFunctor) {
+function sendOnClick(
+  button: HTMLElement,
+  websocket: WebSocket,
+  messageFunctor: () => OutgoingMessage,
+  sendFilter: () => boolean = function () {
+    return true;
+  }
+) {
   button.addEventListener("click", () => {
-    sendMessage(websocket, messageFunctor());
+    if (sendFilter()) {
+      sendMessage(websocket, messageFunctor());
+    }
   });
 }
 
@@ -56,18 +90,18 @@ function main() {
   const page = createChild(document.body, "div");
   page.style.display = "grid";
   const topPage = createChild(page, "div");
-  topPage.style.gridRow = 1;
+  topPage.style.gridRow = "1";
   topPage.style.display = "grid";
 
   const netIncomeLabel = createChild(topPage, "label");
   netIncomeLabel.textContent = "Net Income";
-  netIncomeLabel.gridRow = 1;
+  netIncomeLabel.style.gridRow = "1";
 
   const netIncome = createChild(netIncomeLabel, "strong");
   netIncome.style.margin = "1ch";
 
   const topPageButtons = createChild(topPage, "div");
-  topPageButtons.gridRow = 2;
+  topPageButtons.style.gridRow = "2";
 
   const saveButton = createChild(topPageButtons, "button");
   saveButton.textContent = "save";
@@ -78,10 +112,10 @@ function main() {
 
   const pageBody = createChild(page, "div");
   pageBody.style.display = "grid";
-  pageBody.style.gridRow = 2;
+  pageBody.style.gridRow = "2";
 
   const tableViews = createChild(pageBody, "div");
-  tableViews.style.gridRow = 2;
+  tableViews.style.gridRow = "2";
   tableViews.style.display = "flex";
   tableViews.style.flexDirection = "row";
 
@@ -101,18 +135,18 @@ function main() {
   rightHandTableView.style.justifyItems = "end";
 
   const leftHandTableViewButtons = createChild(leftHandTableView, "div");
-  leftHandTableView.style.gridRow = 1;
+  leftHandTableView.style.gridRow = "1";
 
   const rightHandTableViewButtons = createChild(rightHandTableView, "div");
-  rightHandTableViewButtons.style.gridRow = 1;
+  rightHandTableViewButtons.style.gridRow = "1";
 
   const accountSummaryTableWrapper = createChild(leftHandTableView, "div");
-  accountSummaryTableWrapper.style.gridRow = 2;
+  accountSummaryTableWrapper.style.gridRow = "2";
   accountSummaryTableWrapper.style.height = "20em";
   accountSummaryTableWrapper.style.overflowY = "scroll";
 
   const transactionTableWrapper = createChild(rightHandTableView, "div");
-  transactionTableWrapper.style.gridRow = 2;
+  transactionTableWrapper.style.gridRow = "2";
   transactionTableWrapper.style.height = "20em";
   transactionTableWrapper.style.overflowY = "scroll";
 
@@ -165,7 +199,10 @@ function main() {
   );
   accountSummaryBalanceHeaderElement.textContent = "Balance";
   accountSummaryBalanceHeaderElement.style.width = "9ch";
-  const accountSummaryTableBody = createChild(accountSummaryTable, "tbody");
+  const accountSummaryTableBody = createChild(
+    accountSummaryTable,
+    "tbody"
+  ) as HTMLTableSectionElement;
 
   const transactionTableHead = createChild(transactionTable, "thead");
   const transactionTableHeader = createChild(transactionTableHead, "tr");
@@ -191,19 +228,22 @@ function main() {
   createChild(transactionTableHeader, "th").textContent = "Verified";
 
   const formControls = createChild(pageBody, "div");
-  formControls.style.gridRow = 3;
+  formControls.style.gridRow = "3";
   formControls.style.display = "grid";
 
   const leftHandFormControls = createChild(formControls, "div");
-  leftHandFormControls.style.gridColumn = 1;
+  leftHandFormControls.style.gridColumn = "1";
   const rightHandFormControls = createChild(formControls, "div");
-  rightHandFormControls.style.gridColumn = 2;
+  rightHandFormControls.style.gridColumn = "2";
 
   const createAccountControls = createChild(leftHandFormControls, "section");
   createChild(createAccountControls, "h4").textContent = "Create Account";
   const newAccountNameLabel = createChild(createAccountControls, "label");
   newAccountNameLabel.textContent = "name";
-  const newAccountNameInput = createChild(newAccountNameLabel, "input");
+  const newAccountNameInput = createChild(
+    newAccountNameLabel,
+    "input"
+  ) as HTMLInputElement;
   newAccountNameInput.type = "text";
   newAccountNameInput.style.margin = "1ch";
   const createAccountButton = createChild(createAccountControls, "button");
@@ -223,7 +263,7 @@ function main() {
   const addTransactionDescriptionInput = createChild(
     addTransactionDescriptionLabel,
     "input"
-  );
+  ) as HTMLInputElement;
   addTransactionDescriptionInput.type = "text";
   addTransactionDescriptionInput.style.margin = "1ch";
   const addTransactionAmountLabel = createChild(
@@ -234,14 +274,17 @@ function main() {
   const addTransactionAmountInput = createChild(
     addTransactionAmountLabel,
     "input"
-  );
+  ) as HTMLInputElement;
   addTransactionAmountInput.type = "number";
-  addTransactionAmountInput.min = 0;
+  addTransactionAmountInput.min = "0";
   addTransactionAmountInput.step = "any";
   addTransactionAmountInput.style.margin = "1ch";
   const addTransactionDateLabel = createChild(addTransactionControls, "label");
   addTransactionDateLabel.textContent = "date";
-  const addTransactionDateInput = createChild(addTransactionDateLabel, "input");
+  const addTransactionDateInput = createChild(
+    addTransactionDateLabel,
+    "input"
+  ) as HTMLInputElement;
   addTransactionDateInput.type = "date";
   addTransactionDateInput.style.margin = "1ch";
   const addTransactionButton = createChild(addTransactionControls, "button");
@@ -254,9 +297,12 @@ function main() {
   transferControls.style.alignItems = "flex-start";
   const transferAmountLabel = createChild(transferControls, "label");
   transferAmountLabel.textContent = "amount";
-  const transferAmountInput = createChild(transferAmountLabel, "input");
+  const transferAmountInput = createChild(
+    transferAmountLabel,
+    "input"
+  ) as HTMLInputElement;
   transferAmountInput.type = "number";
-  transferAmountInput.min = 0;
+  transferAmountInput.min = "0";
   transferAmountInput.step = "any";
   transferAmountInput.style.margin = "1ch";
   const transferButton = createChild(transferControls, "button");
@@ -269,18 +315,22 @@ function main() {
   allocateControls.style.alignItems = "flex-start";
   const allocateAmountLabel = createChild(allocateControls, "label");
   allocateAmountLabel.textContent = "amount";
-  const allocateAmountInput = createChild(allocateAmountLabel, "input");
+  const allocateAmountInput = createChild(
+    allocateAmountLabel,
+    "input"
+  ) as HTMLInputElement;
   allocateAmountInput.type = "number";
-  allocateAmountInput.min = 0;
+  allocateAmountInput.min = "0";
   allocateAmountInput.step = "any";
   allocateAmountInput.style.margin = "1ch";
   const allocateButton = createChild(allocateControls, "button");
   allocateButton.textContent = "allocate";
 
-  let selectedAccountTransactionTableBody = null;
-  let selectedTransactionRow = null;
-  let selectedAccountSummaryRow = null;
-  const accountTableBodies = [];
+  let selectedAccountTransactionTableBody: HTMLTableSectionElement | null =
+    null;
+  let selectedTransactionRow: HTMLTableRowElement | null = null;
+  let selectedAccountSummaryRow: HTMLTableRowElement | null = null;
+  const accountTableBodies: HTMLTableSectionElement[] = [];
   const websocket = new WebSocket(`ws://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -303,7 +353,10 @@ function main() {
             ? -1
             : message.accountIndex
         );
-        const selection = createChild(createChild(row, "td"), "input");
+        const selection = createChild(
+          createChild(row, "td"),
+          "input"
+        ) as HTMLInputElement;
         selection.name = "account selection";
         selection.type = "radio";
         const name = createChild(row, "td");
@@ -311,7 +364,10 @@ function main() {
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "right";
 
-        const transactionTableBody = createChild(transactionTable, "tbody");
+        const transactionTableBody = createChild(
+          transactionTable,
+          "tbody"
+        ) as HTMLTableSectionElement;
         accountTableBodies.splice(
           message.accountIndex,
           0,
@@ -340,7 +396,7 @@ function main() {
       }
       case "delete account table": {
         const [body] = accountTableBodies.splice(message.accountIndex, 1);
-        body.parentNode.removeChild(body);
+        body.parentNode!.removeChild(body);
         accountSummaryTableBody.deleteRow(message.accountIndex);
         break;
       }
@@ -351,7 +407,10 @@ function main() {
             ? -1
             : message.transactionIndex
         );
-        const selection = createChild(createChild(row, "td"), "input");
+        const selection = createChild(
+          createChild(row, "td"),
+          "input"
+        ) as HTMLInputElement;
         selection.name = "transaction selection";
         selection.type = "radio";
         createChild(row, "td");
@@ -373,7 +432,7 @@ function main() {
         accountSummaryRow(
           accountSummaryTableBody,
           message
-        ).lastElementChild.textContent = message.amount;
+        ).lastElementChild!.textContent = message.amount;
         break;
       case "update account allocation":
         accountSummaryRow(
@@ -387,7 +446,7 @@ function main() {
       case "remove transaction row selection": {
         const row = transactionRow(accountTableBodies, message);
         const selectionContainer = row.cells[0];
-        selectionContainer.removeChild(selectionContainer.firstChild);
+        selectionContainer.removeChild(selectionContainer.firstChild!);
         break;
       }
       default:
@@ -403,27 +462,57 @@ function main() {
   sendOnClick(restoreButton, websocket, () => ({
     method: "restore",
   }));
-  sendOnClick(removeAccountButton, websocket, () => ({
-    method: "remove account",
-    name: accountName(selectedAccountSummaryRow),
-  }));
-  sendOnClick(closeAccountButton, websocket, () => ({
-    method: "close account",
-    name: accountName(selectedAccountSummaryRow),
-  }));
-  sendOnClick(removeTransactionButton, websocket, () =>
-    transactionMessage(
-      selectedAccountSummaryRow,
-      selectedTransactionRow,
-      "remove transaction"
-    )
+  sendOnClick(
+    removeAccountButton,
+    websocket,
+    () => ({
+      method: "remove account",
+      name: accountName(selectedAccountSummaryRow!),
+    }),
+    () => {
+      return selectedAccountSummaryRow !== null;
+    }
   );
-  sendOnClick(verifyTransactionButton, websocket, () =>
-    transactionMessage(
-      selectedAccountSummaryRow,
-      selectedTransactionRow,
-      "verify transaction"
-    )
+  sendOnClick(
+    closeAccountButton,
+    websocket,
+    () => ({
+      method: "close account",
+      name: accountName(selectedAccountSummaryRow!),
+    }),
+    () => {
+      return selectedAccountSummaryRow !== null;
+    }
+  );
+  sendOnClick(
+    removeTransactionButton,
+    websocket,
+    () =>
+      transactionMessage(
+        selectedAccountSummaryRow!,
+        selectedTransactionRow!,
+        "remove transaction"
+      ),
+    () => {
+      return (
+        selectedAccountSummaryRow !== null && selectedTransactionRow !== null
+      );
+    }
+  );
+  sendOnClick(
+    verifyTransactionButton,
+    websocket,
+    () =>
+      transactionMessage(
+        selectedAccountSummaryRow!,
+        selectedTransactionRow!,
+        "verify transaction"
+      ),
+    () => {
+      return (
+        selectedAccountSummaryRow !== null && selectedTransactionRow !== null
+      );
+    }
   );
   createAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {
@@ -433,32 +522,38 @@ function main() {
     newAccountNameInput.value = "";
   });
   transferButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "transfer",
-      name: accountName(selectedAccountSummaryRow),
-      amount: transferAmountInput.value,
-    });
-    transferAmountInput.value = "";
+    if (selectedAccountSummaryRow !== null) {
+      sendMessage(websocket, {
+        method: "transfer",
+        name: accountName(selectedAccountSummaryRow),
+        amount: transferAmountInput.value,
+      });
+      transferAmountInput.value = "";
+    }
   });
   allocateButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "allocate",
-      name: accountName(selectedAccountSummaryRow),
-      amount: allocateAmountInput.value,
-    });
-    allocateAmountInput.value = "";
+    if (selectedAccountSummaryRow !== null) {
+      sendMessage(websocket, {
+        method: "allocate",
+        name: accountName(selectedAccountSummaryRow),
+        amount: allocateAmountInput.value,
+      });
+      allocateAmountInput.value = "";
+    }
   });
   addTransactionButton.addEventListener("click", () => {
-    sendMessage(websocket, {
-      method: "add transaction",
-      name: accountName(selectedAccountSummaryRow),
-      description: addTransactionDescriptionInput.value,
-      amount: addTransactionAmountInput.value,
-      date: addTransactionDateInput.value,
-    });
-    addTransactionDescriptionInput.value = "";
-    addTransactionAmountInput.value = "";
-    addTransactionDateInput.value = "";
+    if (selectedAccountSummaryRow !== null) {
+      sendMessage(websocket, {
+        method: "add transaction",
+        name: accountName(selectedAccountSummaryRow),
+        description: addTransactionDescriptionInput.value,
+        amount: addTransactionAmountInput.value,
+        date: addTransactionDateInput.value,
+      });
+      addTransactionDescriptionInput.value = "";
+      addTransactionAmountInput.value = "";
+      addTransactionDateInput.value = "";
+    }
   });
 }
 
