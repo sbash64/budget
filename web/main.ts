@@ -1,3 +1,5 @@
+import "./styles.css";
+
 function createChild(parent: HTMLElement, tagName: string): HTMLElement {
   const child = document.createElement(tagName);
   parent.append(child);
@@ -290,40 +292,31 @@ function main() {
   const addTransactionButton = createChild(addTransactionControls, "button");
   addTransactionButton.textContent = "add";
 
-  const transferControls = createChild(leftHandFormControls, "section");
-  createChild(transferControls, "h4").textContent = "Transfer to Account";
-  transferControls.style.display = "flex";
-  transferControls.style.flexDirection = "column";
-  transferControls.style.alignItems = "flex-start";
-  const transferAmountLabel = createChild(transferControls, "label");
-  transferAmountLabel.textContent = "amount";
-  const transferAmountInput = createChild(
-    transferAmountLabel,
+  const transferAndAllocateControls = createChild(
+    leftHandFormControls,
+    "section"
+  );
+  createChild(transferAndAllocateControls, "h4").textContent =
+    "Transfer to/Allocate Account";
+  transferAndAllocateControls.style.display = "flex";
+  transferAndAllocateControls.style.flexDirection = "column";
+  transferAndAllocateControls.style.alignItems = "flex-start";
+  const transferAndAllocateAmountLabel = createChild(
+    transferAndAllocateControls,
+    "label"
+  );
+  transferAndAllocateAmountLabel.textContent = "amount";
+  const transferAndAllocateInput = createChild(
+    transferAndAllocateAmountLabel,
     "input"
   ) as HTMLInputElement;
-  transferAmountInput.type = "number";
-  transferAmountInput.min = "0";
-  transferAmountInput.step = "any";
-  transferAmountInput.style.margin = "1ch";
-  const transferButton = createChild(transferControls, "button");
+  transferAndAllocateInput.type = "number";
+  transferAndAllocateInput.min = "0";
+  transferAndAllocateInput.step = "any";
+  transferAndAllocateInput.style.margin = "1ch";
+  const transferButton = createChild(transferAndAllocateControls, "button");
   transferButton.textContent = "transfer";
-
-  const allocateControls = createChild(leftHandFormControls, "section");
-  createChild(allocateControls, "h4").textContent = "Allocate Account";
-  allocateControls.style.display = "flex";
-  allocateControls.style.flexDirection = "column";
-  allocateControls.style.alignItems = "flex-start";
-  const allocateAmountLabel = createChild(allocateControls, "label");
-  allocateAmountLabel.textContent = "amount";
-  const allocateAmountInput = createChild(
-    allocateAmountLabel,
-    "input"
-  ) as HTMLInputElement;
-  allocateAmountInput.type = "number";
-  allocateAmountInput.min = "0";
-  allocateAmountInput.step = "any";
-  allocateAmountInput.style.margin = "1ch";
-  const allocateButton = createChild(allocateControls, "button");
+  const allocateButton = createChild(transferAndAllocateControls, "button");
   allocateButton.textContent = "allocate";
 
   let selectedAccountTransactionTableBody: HTMLTableSectionElement | null =
@@ -331,6 +324,19 @@ function main() {
   let selectedTransactionRow: HTMLTableRowElement | null = null;
   let selectedAccountSummaryRow: HTMLTableRowElement | null = null;
   const accountTableBodies: HTMLTableSectionElement[] = [];
+
+  function transactionRowSelectionHandler(row: HTMLTableRowElement) {
+    return () => {
+      if (selectedTransactionRow !== null) {
+        selectedTransactionRow.style.color = "";
+        selectedTransactionRow.style.backgroundColor = "";
+      }
+      row.style.color = "white";
+      row.style.backgroundColor = "blue";
+      selectedTransactionRow = row;
+    };
+  }
+
   const websocket = new WebSocket(`ws://${window.location.host}`);
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -353,12 +359,7 @@ function main() {
             ? -1
             : message.accountIndex
         );
-        const selection = createChild(
-          createChild(row, "td"),
-          "input"
-        ) as HTMLInputElement;
-        selection.name = "account selection";
-        selection.type = "radio";
+        createChild(row, "td");
         const name = createChild(row, "td");
         name.textContent = message.name;
         createChild(row, "td").style.textAlign = "right";
@@ -373,17 +374,16 @@ function main() {
           0,
           transactionTableBody
         );
+        transactionTableBody.style.display = "none";
 
-        if (selectedAccountTransactionTableBody) {
-          selectedAccountTransactionTableBody.style.display = "none";
-        }
-        rightHandContentHeader.textContent = message.name;
-        selectedAccountTransactionTableBody = transactionTableBody;
-        selectedAccountSummaryRow = row;
-        selection.checked = true;
-
-        selection.addEventListener("change", () => {
-          if (selectedAccountTransactionTableBody) {
+        row.addEventListener("click", () => {
+          if (selectedAccountSummaryRow !== null) {
+            selectedAccountSummaryRow.style.backgroundColor = "";
+            selectedAccountSummaryRow.style.color = "";
+          }
+          row.style.backgroundColor = "blue";
+          row.style.color = "white";
+          if (selectedAccountTransactionTableBody !== null) {
             selectedAccountTransactionTableBody.style.display = "none";
           }
           transactionTableBody.style.display = "";
@@ -391,7 +391,6 @@ function main() {
           selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountSummaryRow = row;
         });
-
         break;
       }
       case "delete account table": {
@@ -407,19 +406,11 @@ function main() {
             ? -1
             : message.transactionIndex
         );
-        const selection = createChild(
-          createChild(row, "td"),
-          "input"
-        ) as HTMLInputElement;
-        selection.name = "transaction selection";
-        selection.type = "radio";
-        createChild(row, "td");
+        createChild(row, "td"), createChild(row, "td");
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "center";
         createChild(row, "td").style.textAlign = "center";
-        selection.addEventListener("change", () => {
-          selectedTransactionRow = row;
-        });
+        row.onclick = transactionRowSelectionHandler(row);
         updateTransaction(row, message);
         break;
       }
@@ -445,8 +436,8 @@ function main() {
         break;
       case "remove transaction row selection": {
         const row = transactionRow(accountTableBodies, message);
-        const selectionContainer = row.cells[0];
-        selectionContainer.removeChild(selectionContainer.firstChild!);
+        row.style.color = "grey";
+        row.onclick = null;
         break;
       }
       default:
@@ -526,9 +517,9 @@ function main() {
       sendMessage(websocket, {
         method: "transfer",
         name: accountName(selectedAccountSummaryRow),
-        amount: transferAmountInput.value,
+        amount: transferAndAllocateInput.value,
       });
-      transferAmountInput.value = "";
+      transferAndAllocateInput.value = "";
     }
   });
   allocateButton.addEventListener("click", () => {
@@ -536,9 +527,9 @@ function main() {
       sendMessage(websocket, {
         method: "allocate",
         name: accountName(selectedAccountSummaryRow),
-        amount: allocateAmountInput.value,
+        amount: transferAndAllocateInput.value,
       });
-      allocateAmountInput.value = "";
+      transferAndAllocateInput.value = "";
     }
   });
   addTransactionButton.addEventListener("click", () => {
