@@ -1,3 +1,11 @@
+body {
+  font-family: Inter, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  font-size: 20px;
+  color: white;
+  background-color: #1b1b1b;
+}
 button {
   display: inline-block;
   outline: 0;

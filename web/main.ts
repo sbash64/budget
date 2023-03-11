@@ -1,5 +1,9 @@
 import "./styles.css";
 
+function adoptChild(parent: HTMLElement, child: HTMLElement) {
+  parent.append(child);
+}
+
 function createChild(parent: HTMLElement, tagName: string): HTMLElement {
   const child = document.createElement(tagName);
   parent.append(child);
@@ -89,234 +93,216 @@ function sendOnClick(
 }
 
 function main() {
-  const page = createChild(document.body, "div");
-  page.style.display = "grid";
-  const topPage = createChild(page, "div");
-  topPage.style.gridRow = "1";
-  topPage.style.display = "grid";
+  const topPageButtons = document.createElement("div");
+  adoptChild(document.body, topPageButtons);
 
-  const netIncomeLabel = createChild(topPage, "label");
-  netIncomeLabel.textContent = "Net Income";
-  netIncomeLabel.style.gridRow = "1";
-
-  const netIncome = createChild(netIncomeLabel, "strong");
-  netIncome.style.margin = "1ch";
-
-  const topPageButtons = createChild(topPage, "div");
-  topPageButtons.style.gridRow = "2";
-
-  const saveButton = createChild(topPageButtons, "button");
+  const saveButton = document.createElement("button");
+  adoptChild(topPageButtons, saveButton);
   saveButton.textContent = "save";
-  const reduceButton = createChild(topPageButtons, "button");
+  const reduceButton = document.createElement("button");
+  adoptChild(topPageButtons, reduceButton);
   reduceButton.textContent = "reduce";
-  const restoreButton = createChild(topPageButtons, "button");
+  const restoreButton = document.createElement("button");
+  adoptChild(topPageButtons, restoreButton);
   restoreButton.textContent = "restore";
 
-  const pageBody = createChild(page, "div");
-  pageBody.style.display = "grid";
-  pageBody.style.gridRow = "2";
+  const netIncomeLabel = document.createElement("label");
+  adoptChild(document.body, netIncomeLabel);
+  netIncomeLabel.textContent = "Net Income";
 
-  const tableViews = createChild(pageBody, "div");
-  tableViews.style.gridRow = "2";
-  tableViews.style.display = "flex";
-  tableViews.style.flexDirection = "row";
+  const netIncome = document.createElement("strong");
+  adoptChild(netIncomeLabel, netIncome);
+  netIncome.style.margin = "1ch";
 
-  const leftHandContent = createChild(tableViews, "div");
-  const leftHandContentHeader = createChild(leftHandContent, "h3");
-  leftHandContentHeader.textContent = "Account Summaries";
+  const tableViews = document.createElement("div");
+  adoptChild(document.body, tableViews);
+  tableViews.style.display = "grid";
+  tableViews.style.gridTemplateColumns = "1fr 2fr";
+  tableViews.style.columnGap = "20px";
 
-  const rightHandContent = createChild(tableViews, "div");
-  const rightHandContentHeader = createChild(rightHandContent, "h3");
+  const leftHandContent = document.createElement("div");
+  adoptChild(tableViews, leftHandContent);
+  leftHandContent.style.gridColumn = "1";
+  const rightHandContent = document.createElement("div");
+  adoptChild(tableViews, rightHandContent);
+  rightHandContent.style.gridColumn = "2";
 
-  const leftHandTableView = createChild(leftHandContent, "div");
-  leftHandTableView.style.display = "grid";
-  leftHandTableView.style.justifyItems = "end";
+  const aboveLeftHandTable = document.createElement("div");
+  adoptChild(leftHandContent, aboveLeftHandTable);
+  aboveLeftHandTable.style.display = "flex";
 
-  const rightHandTableView = createChild(rightHandContent, "div");
-  rightHandTableView.style.display = "grid";
-  rightHandTableView.style.justifyItems = "end";
+  const leftHandTableTitle = document.createElement("div");
+  adoptChild(aboveLeftHandTable, leftHandTableTitle);
+  leftHandTableTitle.textContent = "Account Summaries";
+  leftHandTableTitle.style.fontSize = "28px";
+  leftHandTableTitle.style.fontWeight = "bold";
+  leftHandTableTitle.style.marginRight = "auto";
 
-  const leftHandTableViewButtons = createChild(leftHandTableView, "div");
-  leftHandTableView.style.gridRow = "1";
+  const leftHandTableViewButtons = document.createElement("div");
+  adoptChild(aboveLeftHandTable, leftHandTableViewButtons);
 
-  const rightHandTableViewButtons = createChild(rightHandTableView, "div");
-  rightHandTableViewButtons.style.gridRow = "1";
+  const aboveRightHandTable = document.createElement("div");
+  adoptChild(rightHandContent, aboveRightHandTable);
+  aboveRightHandTable.style.display = "flex";
 
-  const accountSummaryTableWrapper = createChild(leftHandTableView, "div");
-  accountSummaryTableWrapper.style.gridRow = "2";
-  accountSummaryTableWrapper.style.height = "20em";
+  const rightHandTableTitle = document.createElement("div");
+  adoptChild(aboveRightHandTable, rightHandTableTitle);
+  rightHandTableTitle.style.fontSize = "28px";
+  rightHandTableTitle.style.fontWeight = "bold";
+  rightHandTableTitle.style.marginRight = "auto";
+
+  const rightHandTableViewButtons = document.createElement("div");
+  adoptChild(aboveRightHandTable, rightHandTableViewButtons);
+
+  const accountSummaryTableWrapper = document.createElement("div");
+  adoptChild(leftHandContent, accountSummaryTableWrapper);
+  accountSummaryTableWrapper.style.height = "24em";
   accountSummaryTableWrapper.style.overflowY = "scroll";
 
-  const transactionTableWrapper = createChild(rightHandTableView, "div");
-  transactionTableWrapper.style.gridRow = "2";
-  transactionTableWrapper.style.height = "20em";
+  const transactionTableWrapper = document.createElement("div");
+  adoptChild(rightHandContent, transactionTableWrapper);
+  transactionTableWrapper.style.height = "24em";
   transactionTableWrapper.style.overflowY = "scroll";
 
-  const removeAccountButton = createChild(leftHandTableViewButtons, "button");
+  const removeAccountButton = document.createElement("button");
+  adoptChild(leftHandTableViewButtons, removeAccountButton);
   removeAccountButton.textContent = "remove";
-  const closeAccountButton = createChild(leftHandTableViewButtons, "button");
+  const closeAccountButton = document.createElement("button");
+  adoptChild(leftHandTableViewButtons, closeAccountButton);
   closeAccountButton.textContent = "close";
 
-  const removeTransactionButton = createChild(
-    rightHandTableViewButtons,
-    "button"
-  );
+  const removeTransactionButton = document.createElement("button");
+  adoptChild(rightHandTableViewButtons, removeTransactionButton);
   removeTransactionButton.textContent = "remove";
-  const verifyTransactionButton = createChild(
-    rightHandTableViewButtons,
-    "button"
-  );
+  const verifyTransactionButton = document.createElement("button");
+  adoptChild(rightHandTableViewButtons, verifyTransactionButton);
   verifyTransactionButton.textContent = "verify";
 
-  const accountSummaryTable = createChild(accountSummaryTableWrapper, "table");
+  const accountSummaryTable = document.createElement("table");
+  adoptChild(accountSummaryTableWrapper, accountSummaryTable);
   accountSummaryTable.style.border = "2px solid";
   accountSummaryTable.style.margin = "5px";
   accountSummaryTable.style.tableLayout = "fixed";
   accountSummaryTable.style.borderCollapse = "collapse";
 
-  const transactionTable = createChild(transactionTableWrapper, "table");
+  const transactionTable = document.createElement("table");
+  adoptChild(transactionTableWrapper, transactionTable);
   transactionTable.style.border = "2px solid";
   transactionTable.style.margin = "5px";
   transactionTable.style.tableLayout = "fixed";
   transactionTable.style.borderCollapse = "collapse";
 
-  const accountSummaryTableHead = createChild(accountSummaryTable, "thead");
-  const accountSummaryTableHeadRow = createChild(accountSummaryTableHead, "tr");
+  const accountSummaryTableHead = document.createElement("thead");
+  adoptChild(accountSummaryTable, accountSummaryTableHead);
+  const accountSummaryTableHeadRow = document.createElement("tr");
+  adoptChild(accountSummaryTableHead, accountSummaryTableHeadRow);
   createChild(accountSummaryTableHeadRow, "th");
-  const accountSummaryNameHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
+  const accountSummaryNameHeaderElement = document.createElement("th");
+  adoptChild(accountSummaryTableHeadRow, accountSummaryNameHeaderElement);
   accountSummaryNameHeaderElement.textContent = "Name";
   accountSummaryNameHeaderElement.style.width = "20ch";
-  const accountSummaryAllocationHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
+  const accountSummaryAllocationHeaderElement = document.createElement("th");
+  adoptChild(accountSummaryTableHeadRow, accountSummaryAllocationHeaderElement);
   accountSummaryAllocationHeaderElement.textContent = "Allocation";
   accountSummaryAllocationHeaderElement.style.width = "9ch";
-  const accountSummaryBalanceHeaderElement = createChild(
-    accountSummaryTableHeadRow,
-    "th"
-  );
+  const accountSummaryBalanceHeaderElement = document.createElement("th");
+  adoptChild(accountSummaryTableHeadRow, accountSummaryBalanceHeaderElement);
   accountSummaryBalanceHeaderElement.textContent = "Balance";
   accountSummaryBalanceHeaderElement.style.width = "9ch";
-  const accountSummaryTableBody = createChild(
-    accountSummaryTable,
-    "tbody"
-  ) as HTMLTableSectionElement;
+  const accountSummaryTableBody = document.createElement("tbody");
+  adoptChild(accountSummaryTable, accountSummaryTableBody);
 
-  const transactionTableHead = createChild(transactionTable, "thead");
-  const transactionTableHeader = createChild(transactionTableHead, "tr");
+  const transactionTableHead = document.createElement("thead");
+  adoptChild(transactionTable, transactionTableHead);
+  const transactionTableHeader = document.createElement("tr");
+  adoptChild(transactionTableHead, transactionTableHeader);
   createChild(transactionTableHeader, "th");
-  const transactionDescriptionHeaderElement = createChild(
-    transactionTableHeader,
-    "th"
-  );
+  const transactionDescriptionHeaderElement = document.createElement("th");
+  adoptChild(transactionTableHeader, transactionDescriptionHeaderElement);
   transactionDescriptionHeaderElement.textContent = "Description";
-  transactionDescriptionHeaderElement.style.width = "30ch";
-  const transactionAmountHeaderElement = createChild(
-    transactionTableHeader,
-    "th"
-  );
+  transactionDescriptionHeaderElement.style.width = "40ch";
+  const transactionAmountHeaderElement = document.createElement("th");
+  adoptChild(transactionTableHeader, transactionAmountHeaderElement);
   transactionAmountHeaderElement.textContent = "Amount";
   transactionAmountHeaderElement.style.width = "9ch";
-  const transactionDateHeaderElement = createChild(
-    transactionTableHeader,
-    "th"
-  );
+  const transactionDateHeaderElement = document.createElement("th");
+  adoptChild(transactionTableHeader, transactionDateHeaderElement);
   transactionDateHeaderElement.textContent = "Date";
   transactionDateHeaderElement.style.width = "12ch";
   createChild(transactionTableHeader, "th").textContent = "Verified";
 
-  const formControls = createChild(pageBody, "div");
-  formControls.style.gridRow = "3";
-  formControls.style.display = "grid";
-
-  const leftHandFormControls = createChild(formControls, "div");
+  const leftHandFormControls = document.createElement("div");
+  adoptChild(leftHandContent, leftHandFormControls);
   leftHandFormControls.style.gridColumn = "1";
-  const rightHandFormControls = createChild(formControls, "div");
-  rightHandFormControls.style.gridColumn = "2";
+  const rightHandFormControls = document.createElement("div");
+  adoptChild(rightHandContent, rightHandFormControls);
 
-  const createAccountControls = createChild(leftHandFormControls, "section");
+  const createAccountControls = document.createElement("section");
+  adoptChild(leftHandFormControls, createAccountControls);
   createChild(createAccountControls, "h4").textContent = "Create Account";
-  const newAccountNameLabel = createChild(createAccountControls, "label");
+  const newAccountNameLabel = document.createElement("label");
+  adoptChild(createAccountControls, newAccountNameLabel);
   newAccountNameLabel.textContent = "name";
-  const newAccountNameInput = createChild(
-    newAccountNameLabel,
-    "input"
-  ) as HTMLInputElement;
+  const newAccountNameInput = document.createElement("input");
+  adoptChild(newAccountNameLabel, newAccountNameInput);
   newAccountNameInput.type = "text";
   newAccountNameInput.style.margin = "1ch";
-  const createAccountButton = createChild(createAccountControls, "button");
+  const createAccountButton = document.createElement("button");
+  adoptChild(createAccountControls, createAccountButton);
   createAccountButton.textContent = "create";
 
-  const addTransactionControls = createChild(rightHandFormControls, "section");
+  const addTransactionControls = document.createElement("section");
+  adoptChild(rightHandFormControls, addTransactionControls);
   createChild(addTransactionControls, "h4").textContent =
     "Add Transaction to Account";
   addTransactionControls.style.display = "flex";
   addTransactionControls.style.flexDirection = "column";
   addTransactionControls.style.alignItems = "flex-start";
-  const addTransactionDescriptionLabel = createChild(
-    addTransactionControls,
-    "label"
-  );
+  const addTransactionDescriptionLabel = document.createElement("label");
+  adoptChild(addTransactionControls, addTransactionDescriptionLabel);
   addTransactionDescriptionLabel.textContent = "description";
-  const addTransactionDescriptionInput = createChild(
-    addTransactionDescriptionLabel,
-    "input"
-  ) as HTMLInputElement;
+  const addTransactionDescriptionInput = document.createElement("input");
+  adoptChild(addTransactionDescriptionLabel, addTransactionDescriptionInput);
   addTransactionDescriptionInput.type = "text";
   addTransactionDescriptionInput.style.margin = "1ch";
-  const addTransactionAmountLabel = createChild(
-    addTransactionControls,
-    "label"
-  );
+  const addTransactionAmountLabel = document.createElement("label");
+  adoptChild(addTransactionControls, addTransactionAmountLabel);
   addTransactionAmountLabel.textContent = "amount";
-  const addTransactionAmountInput = createChild(
-    addTransactionAmountLabel,
-    "input"
-  ) as HTMLInputElement;
+  const addTransactionAmountInput = document.createElement("input");
+  adoptChild(addTransactionAmountLabel, addTransactionAmountInput);
   addTransactionAmountInput.type = "number";
   addTransactionAmountInput.min = "0";
   addTransactionAmountInput.step = "any";
   addTransactionAmountInput.style.margin = "1ch";
-  const addTransactionDateLabel = createChild(addTransactionControls, "label");
+  const addTransactionDateLabel = document.createElement("label");
+  adoptChild(addTransactionControls, addTransactionDateLabel);
   addTransactionDateLabel.textContent = "date";
-  const addTransactionDateInput = createChild(
-    addTransactionDateLabel,
-    "input"
-  ) as HTMLInputElement;
+  const addTransactionDateInput = document.createElement("input");
+  adoptChild(addTransactionDateLabel, addTransactionDateInput);
   addTransactionDateInput.type = "date";
   addTransactionDateInput.style.margin = "1ch";
-  const addTransactionButton = createChild(addTransactionControls, "button");
+  const addTransactionButton = document.createElement("button");
+  adoptChild(addTransactionControls, addTransactionButton);
   addTransactionButton.textContent = "add";
 
-  const transferAndAllocateControls = createChild(
-    leftHandFormControls,
-    "section"
-  );
+  const transferAndAllocateControls = document.createElement("section");
+  adoptChild(leftHandFormControls, transferAndAllocateControls);
   createChild(transferAndAllocateControls, "h4").textContent =
     "Transfer to/Allocate Account";
-  transferAndAllocateControls.style.display = "flex";
-  transferAndAllocateControls.style.flexDirection = "column";
-  transferAndAllocateControls.style.alignItems = "flex-start";
-  const transferAndAllocateAmountLabel = createChild(
-    transferAndAllocateControls,
-    "label"
-  );
+  const transferAndAllocateAmountLabel = document.createElement("label");
+  adoptChild(transferAndAllocateControls, transferAndAllocateAmountLabel);
   transferAndAllocateAmountLabel.textContent = "amount";
-  const transferAndAllocateInput = createChild(
-    transferAndAllocateAmountLabel,
-    "input"
-  ) as HTMLInputElement;
+  const transferAndAllocateInput = document.createElement("input");
+  adoptChild(transferAndAllocateAmountLabel, transferAndAllocateInput);
   transferAndAllocateInput.type = "number";
   transferAndAllocateInput.min = "0";
   transferAndAllocateInput.step = "any";
   transferAndAllocateInput.style.margin = "1ch";
-  const transferButton = createChild(transferAndAllocateControls, "button");
+  const transferButton = document.createElement("button");
+  adoptChild(transferAndAllocateControls, transferButton);
   transferButton.textContent = "transfer";
-  const allocateButton = createChild(transferAndAllocateControls, "button");
+  const allocateButton = document.createElement("button");
+  adoptChild(transferAndAllocateControls, allocateButton);
   allocateButton.textContent = "allocate";
 
   let selectedAccountTransactionTableBody: HTMLTableSectionElement | null =
@@ -328,11 +314,9 @@ function main() {
   function transactionRowSelectionHandler(row: HTMLTableRowElement) {
     return () => {
       if (selectedTransactionRow !== null) {
-        selectedTransactionRow.style.color = "";
         selectedTransactionRow.style.backgroundColor = "";
       }
-      row.style.color = "white";
-      row.style.backgroundColor = "blue";
+      row.style.backgroundColor = "#8cb4ff";
       selectedTransactionRow = row;
     };
   }
@@ -360,15 +344,14 @@ function main() {
             : message.accountIndex
         );
         createChild(row, "td");
-        const name = createChild(row, "td");
+        const name = document.createElement("td");
+        adoptChild(row, name);
         name.textContent = message.name;
         createChild(row, "td").style.textAlign = "right";
         createChild(row, "td").style.textAlign = "right";
 
-        const transactionTableBody = createChild(
-          transactionTable,
-          "tbody"
-        ) as HTMLTableSectionElement;
+        const transactionTableBody = document.createElement("tbody");
+        adoptChild(transactionTable, transactionTableBody);
         accountTableBodies.splice(
           message.accountIndex,
           0,
@@ -379,15 +362,13 @@ function main() {
         row.addEventListener("click", () => {
           if (selectedAccountSummaryRow !== null) {
             selectedAccountSummaryRow.style.backgroundColor = "";
-            selectedAccountSummaryRow.style.color = "";
           }
-          row.style.backgroundColor = "blue";
-          row.style.color = "white";
+          row.style.backgroundColor = "#8cb4ff";
           if (selectedAccountTransactionTableBody !== null) {
             selectedAccountTransactionTableBody.style.display = "none";
           }
           transactionTableBody.style.display = "";
-          rightHandContentHeader.textContent = accountName(row);
+          rightHandTableTitle.textContent = accountName(row);
           selectedAccountTransactionTableBody = transactionTableBody;
           selectedAccountSummaryRow = row;
         });
