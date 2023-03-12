@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-linux-x86_64:
-    name: build for linux x86_64 
+    name: build for linux x86_64
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -15,15 +15,19 @@ jobs:
         run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_WEB=1 -DCMAKE_BUILD_TYPE=Release
       - name: build app
         run: cmake --build build --config Release --target sbash64-budget-web
+      - name: webpack
+        run: |
+          npm install
+          npx webpack
       - name: zip files
-        run: zip -j sbash64-budget-web-linux-x86_64.zip build/web/sbash64-budget-web web/index.html web/main.js
-      - name: upload release asset 
+        run: zip -j sbash64-budget-web-linux-x86_64.zip build/web/sbash64-budget-web dist/index.html dist/main.js
+      - name: upload release asset
         uses: actions/upload-artifact@v3
         with:
-          name: release-assets 
-          path: sbash64-budget-web-linux-x86_64.zip 
+          name: release-assets
+          path: sbash64-budget-web-linux-x86_64.zip
   build-raspberry-pi-zero:
-    name: build for raspberry pi zero 
+    name: build for raspberry pi zero
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,13 +42,17 @@ jobs:
         run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_WEB=1 -DCMAKE_BUILD_TYPE=Release
       - name: build app
         run: cmake --build build --config Release --target sbash64-budget-web
+      - name: webpack
+        run: |
+          npm install
+          npx webpack
       - name: zip files
-        run: zip -j sbash64-budget-web-linux-armv6.zip build/web/sbash64-budget-web web/index.html web/main.js
-      - name: upload release asset 
+        run: zip -j sbash64-budget-web-linux-armv6.zip build/web/sbash64-budget-web dist/index.html dist/main.js
+      - name: upload release asset
         uses: actions/upload-artifact@v3
         with:
-          name: release-assets 
-          path: sbash64-budget-web-linux-armv6.zip 
+          name: release-assets
+          path: sbash64-budget-web-linux-armv6.zip
   create-release:
     name: create github release
     needs: [build-linux-x86_64, build-raspberry-pi-zero]
@@ -57,7 +65,7 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: download release assets 
+      - name: download release assets
         uses: actions/download-artifact@v3
         with:
           name: release-assets
