@@ -154,16 +154,6 @@ function main() {
   const rightHandTableViewButtons = document.createElement("div");
   adoptChild(aboveRightHandTable, rightHandTableViewButtons);
 
-  const accountSummaryTableWrapper = document.createElement("div");
-  adoptChild(leftHandContent, accountSummaryTableWrapper);
-  accountSummaryTableWrapper.style.height = "24em";
-  accountSummaryTableWrapper.style.overflowY = "scroll";
-
-  const transactionTableWrapper = document.createElement("div");
-  adoptChild(rightHandContent, transactionTableWrapper);
-  transactionTableWrapper.style.height = "24em";
-  transactionTableWrapper.style.overflowY = "scroll";
-
   const removeAccountButton = document.createElement("button");
   adoptChild(leftHandTableViewButtons, removeAccountButton);
   removeAccountButton.textContent = "remove";
@@ -179,14 +169,20 @@ function main() {
   verifyTransactionButton.textContent = "verify";
 
   const accountSummaryTable = document.createElement("table");
-  adoptChild(accountSummaryTableWrapper, accountSummaryTable);
+  adoptChild(leftHandContent, accountSummaryTable);
+  accountSummaryTable.style.display = "block";
+  accountSummaryTable.style.height = "24em";
+  accountSummaryTable.style.overflowY = "scroll";
   accountSummaryTable.style.border = "2px solid";
   accountSummaryTable.style.margin = "5px";
   accountSummaryTable.style.tableLayout = "fixed";
   accountSummaryTable.style.borderCollapse = "collapse";
 
   const transactionTable = document.createElement("table");
-  adoptChild(transactionTableWrapper, transactionTable);
+  adoptChild(rightHandContent, transactionTable);
+  transactionTable.style.display = "block";
+  transactionTable.style.height = "24em";
+  transactionTable.style.overflowY = "scroll";
   transactionTable.style.border = "2px solid";
   transactionTable.style.margin = "5px";
   transactionTable.style.tableLayout = "fixed";
