@@ -1,0 +1,47 @@
+body {
+  font-family: Inter, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  font-size: 20px;
+  color: white;
+  background-color: #1b1b1b;
+}
+button {
+  display: inline-block;
+  outline: 0;
+  cursor: pointer;
+  padding: 4px 12px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  vertical-align: middle;
+  border: 1px solid;
+  border-radius: 6px;
+  color: #24292e;
+  background-color: #fafbfc;
+  border-color: #1b1f2326;
+  transition: 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+  transition-property: color, background-color, border-color;
+}
+button:hover {
+  background-color: #f3f4f6;
+  border-color: #1b1f2326;
+  transition-duration: 0.1s;
+}
+input {
+  padding: 5px 12px;
+  font-size: 20px;
+  line-height: 24px;
+  color: white;
+  vertical-align: middle;
+  background-color: #1b1b1b;
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  border: 1px solid #858585;
+  border-radius: 6px;
+  outline: none;
+}
+input:focus {
+  border-color: #8cb4ff;
+  outline: none;
+}
