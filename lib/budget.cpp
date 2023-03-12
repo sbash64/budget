@@ -109,12 +109,20 @@ makeAndLoadExpenseAccount(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
   at(expenseAccounts, name)->load(deserialization);
 }
 
+static void notifyThatHasUnsavedChanges(BudgetInMemory::Observer *observer) {
+  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
+    observer_->notifyThatHasUnsavedChanges();
+  });
+}
+
 static void createExpenseAccountIfNeeded(
     BudgetInMemory::ExpenseAccountsType &expenseAccounts,
     Account::Factory &accountFactory, std::string_view accountName,
     Budget::Observer *observer) {
-  if (!contains(expenseAccounts, accountName))
+  if (!contains(expenseAccounts, accountName)) {
     makeExpenseAccount(expenseAccounts, accountFactory, accountName, observer);
+    notifyThatHasUnsavedChanges(observer);
+  }
 }
 
 BudgetInMemory::BudgetInMemory(Account &incomeAccount,
@@ -126,6 +134,7 @@ void BudgetInMemory::attach(Observer *a) { observer = a; }
 void BudgetInMemory::addIncome(const Transaction &transaction) {
   add(incomeAccount, transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::addExpense(std::string_view accountName,
@@ -134,11 +143,13 @@ void BudgetInMemory::addExpense(std::string_view accountName,
                                observer);
   add(at(expenseAccounts, accountName), transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::removeIncome(const Transaction &transaction) {
   remove(incomeAccount, transaction);
   notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::removeExpense(std::string_view accountName,
@@ -146,16 +157,19 @@ void BudgetInMemory::removeExpense(std::string_view accountName,
   if (contains(expenseAccounts, accountName)) {
     remove(at(expenseAccounts, accountName), transaction);
     notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 
 void BudgetInMemory::verifyIncome(const Transaction &transaction) {
   verify(incomeAccount, transaction);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::verifyExpense(std::string_view accountName,
                                    const Transaction &transaction) {
   verify(at(expenseAccounts, accountName), transaction);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 static void transfer(Account &from, Account &to, USD amount) {
@@ -164,14 +178,16 @@ static void transfer(Account &from, Account &to, USD amount) {
 }
 
 static void transfer(BudgetInMemory::ExpenseAccountsType &expenseAccounts,
-                     std::string_view name, Account &from, USD amount) {
+                     std::string_view name, Account &from, USD amount,
+                     BudgetInMemory::Observer *observer) {
   transfer(from, *at(expenseAccounts, name), amount);
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::transferTo(std::string_view accountName, USD amount) {
   createExpenseAccountIfNeeded(expenseAccounts, accountFactory, accountName,
                                observer);
-  transfer(expenseAccounts, accountName, incomeAccount, amount);
+  transfer(expenseAccounts, accountName, incomeAccount, amount, observer);
 }
 
 void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
@@ -179,7 +195,7 @@ void BudgetInMemory::allocate(std::string_view accountName, USD amountNeeded) {
                                observer);
   const auto amount{amountNeeded - allocation(expenseAccounts, accountName)};
   if (amount.cents > 0)
-    transfer(expenseAccounts, accountName, incomeAccount, amount);
+    transfer(expenseAccounts, accountName, incomeAccount, amount, observer);
   else if (amount.cents < 0)
     transfer(*at(expenseAccounts, accountName), incomeAccount, -amount);
 }
@@ -202,6 +218,7 @@ void BudgetInMemory::closeAccount(std::string_view name) {
     else if (amount.cents < 0)
       incomeAccount.decreaseAllocationBy(-amount);
     remove(expenseAccounts, name);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 
@@ -215,11 +232,15 @@ void BudgetInMemory::removeAccount(std::string_view name) {
   if (contains(expenseAccounts, name)) {
     remove(expenseAccounts, name);
     notifyThatNetIncomeHasChanged(observer, incomeAccount, expenseAccounts);
+    notifyThatHasUnsavedChanges(observer);
   }
 }
 
 void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
   persistentMemory.save(&incomeAccount, collect(expenseAccounts));
+  callIfObserverExists(observer, [](BudgetInMemory::Observer *observer_) {
+    observer_->notifyThatHasBeenSaved();
+  });
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
@@ -246,13 +267,14 @@ void BudgetInMemory::reduce() {
   incomeAccount.increaseAllocationByResolvingVerifiedTransactions();
   for (auto &[name, account] : expenseAccounts)
     account->decreaseAllocationByResolvingVerifiedTransactions();
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::restore() {
   for (auto [name, account] : expenseAccounts) {
     const auto amount{leftoverAfterExpenses(*account)};
     if (amount.cents < 0)
-      transfer(expenseAccounts, name, incomeAccount, -amount);
+      transfer(expenseAccounts, name, incomeAccount, -amount, observer);
   }
 }
 } // namespace sbash64::budget

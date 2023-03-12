@@ -155,4 +155,8 @@ void BudgetPresenter::remove(const AccountPresenter *child) {
     orderedChildren.at(i)->setIndex(i);
   orderedChildren.erase(orderedChild);
 }
+
+void BudgetPresenter::notifyThatHasBeenSaved() { view.markAsSaved(); }
+
+void BudgetPresenter::notifyThatHasUnsavedChanges() { view.markAsUnsaved(); }
 } // namespace sbash64::budget

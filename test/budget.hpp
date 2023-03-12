@@ -9,6 +9,7 @@ void addsExpenseToExpenseAccount(testcpplite::TestResult &);
 void addsExpenseToExistingAccount(testcpplite::TestResult &);
 void transfersFromIncomeToExpenseAccount(testcpplite::TestResult &);
 void savesAccounts(testcpplite::TestResult &);
+void notifiesThatHasBeenSavedWhenSaved(testcpplite::TestResult &);
 void loadsAccounts(testcpplite::TestResult &);
 void clearsOldAccounts(testcpplite::TestResult &);
 void removesExpenseFromAccount(testcpplite::TestResult &);
@@ -32,6 +33,23 @@ void closesAccountHavingNegativeBalance(testcpplite::TestResult &);
 void transfersAmountNeededToReachAllocation(testcpplite::TestResult &);
 void transfersAmountFromAccountAllocatedSufficiently(testcpplite::TestResult &);
 void restoresAccountsHavingNegativeBalances(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenAddingIncome(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenAddingExpense(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenTransferring(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenRemovingExpense(
+    testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenRemovingIncome(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
+    testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenVerifyingIncome(
+    testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenReducing(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenRemovingAccount(
+    testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenClosingAccount(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenAllocating(testcpplite::TestResult &);
+void notifiesThatHasUnsavedChangesWhenCreatingAccount(
+    testcpplite::TestResult &);
 } // namespace sbash64::budget
 
 #endif

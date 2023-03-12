@@ -16,6 +16,8 @@ void deletesRemovedTransactionRow(testcpplite::TestResult &);
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &);
 void ordersAccountsByName(testcpplite::TestResult &);
 void formatsNetIncome(testcpplite::TestResult &);
+void marksAsSaved(testcpplite::TestResult &);
+void marksAsUnsaved(testcpplite::TestResult &);
 } // namespace sbash64::budget::presentation
 
 #endif
