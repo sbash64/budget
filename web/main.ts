@@ -93,6 +93,15 @@ function sendOnClick(
 }
 
 function main() {
+  const netIncomeLabel = document.createElement("label");
+  adoptChild(document.body, netIncomeLabel);
+  netIncomeLabel.textContent = "Net Income";
+  netIncomeLabel.style.fontSize = "24px";
+
+  const netIncome = document.createElement("strong");
+  adoptChild(netIncomeLabel, netIncome);
+  netIncome.style.margin = "1ch";
+
   const topPageButtons = document.createElement("div");
   adoptChild(document.body, topPageButtons);
 
@@ -105,14 +114,6 @@ function main() {
   const restoreButton = document.createElement("button");
   adoptChild(topPageButtons, restoreButton);
   restoreButton.textContent = "restore";
-
-  const netIncomeLabel = document.createElement("label");
-  adoptChild(document.body, netIncomeLabel);
-  netIncomeLabel.textContent = "Net Income";
-
-  const netIncome = document.createElement("strong");
-  adoptChild(netIncomeLabel, netIncome);
-  netIncome.style.margin = "1ch";
 
   const tableViews = document.createElement("div");
   adoptChild(document.body, tableViews);
@@ -229,13 +230,16 @@ function main() {
 
   const leftHandFormControls = document.createElement("div");
   adoptChild(leftHandContent, leftHandFormControls);
-  leftHandFormControls.style.gridColumn = "1";
   const rightHandFormControls = document.createElement("div");
   adoptChild(rightHandContent, rightHandFormControls);
 
   const createAccountControls = document.createElement("section");
   adoptChild(leftHandFormControls, createAccountControls);
-  createChild(createAccountControls, "h4").textContent = "Create Account";
+  const createAccountTitle = document.createElement("div");
+  adoptChild(createAccountControls, createAccountTitle);
+  createAccountTitle.textContent = "Create Account";
+  createAccountTitle.style.fontSize = "24px";
+  createAccountTitle.style.fontWeight = "bold";
   const newAccountNameLabel = document.createElement("label");
   adoptChild(createAccountControls, newAccountNameLabel);
   newAccountNameLabel.textContent = "name";
@@ -249,8 +253,12 @@ function main() {
 
   const addTransactionControls = document.createElement("section");
   adoptChild(rightHandFormControls, addTransactionControls);
-  createChild(addTransactionControls, "h4").textContent =
-    "Add Transaction to Account";
+  const addTransactionTitle = document.createElement("div");
+  adoptChild(addTransactionControls, addTransactionTitle);
+  addTransactionTitle.textContent = "Add Transaction to Account";
+  addTransactionTitle.style.fontSize = "24px";
+  addTransactionTitle.style.fontWeight = "bold";
+
   addTransactionControls.style.display = "flex";
   addTransactionControls.style.flexDirection = "column";
   addTransactionControls.style.alignItems = "flex-start";
@@ -283,8 +291,12 @@ function main() {
 
   const transferAndAllocateControls = document.createElement("section");
   adoptChild(leftHandFormControls, transferAndAllocateControls);
-  createChild(transferAndAllocateControls, "h4").textContent =
-    "Transfer to/Allocate Account";
+  const transferAndAllocateTitle = document.createElement("div");
+  adoptChild(transferAndAllocateControls, transferAndAllocateTitle);
+  transferAndAllocateTitle.textContent = "Transfer to/Allocate Account";
+  transferAndAllocateTitle.style.fontSize = "24px";
+  transferAndAllocateTitle.style.fontWeight = "bold";
+
   const transferAndAllocateAmountLabel = document.createElement("label");
   adoptChild(transferAndAllocateControls, transferAndAllocateAmountLabel);
   transferAndAllocateAmountLabel.textContent = "amount";
