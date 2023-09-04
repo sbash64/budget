@@ -9,6 +9,7 @@
 
 #define ASIO_STANDALONE
 #include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/logger/levels.hpp>
 #include <websocketpp/server.hpp>
 
 #include <algorithm>
@@ -209,8 +210,8 @@ struct App {
       websocketpp::connection_hdl connection, const std::string &budgetFilePath,
       const std::filesystem::path &backupParentPath)
       : streamFactory{budgetFilePath},
-        browserView{server, std::move(connection)}, presenter{browserView,
-                                                              incomeAccount},
+        browserView{server, std::move(connection)},
+        presenter{browserView, incomeAccount},
         backupDirectory{budget::backupDirectory(
             backupParentPath, std::chrono::system_clock::now())},
         budgetFilePath{budgetFilePath} {
@@ -344,6 +345,8 @@ int main(int argc, char *argv[]) {
   const auto port{std::stoi(argv[3])};
   std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
   websocketpp::server<websocketpp::config::asio> server;
+  server.clear_access_channels(websocketpp::log::alevel::all);
+  server.set_access_channels(websocketpp::log::alevel::access_core);
   try {
     server.init_asio();
 
