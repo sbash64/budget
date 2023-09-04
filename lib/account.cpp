@@ -83,7 +83,8 @@ static void remove(AccountInMemory::TransactionsType &transactions,
                    Account::Observer *observer, const Transaction &toRemove) {
   if (const auto found = find_if(transactions.begin(), transactions.end(),
                                  [&toRemove](const auto &transaction) {
-                                   return transaction->removes(toRemove);
+                                   return !transaction->archived() &&
+                                          transaction->removes(toRemove);
                                  });
       found != transactions.end()) {
     transactions.erase(found);
