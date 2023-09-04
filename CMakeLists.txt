@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.24)
 cmake_policy(SET CMP0048 NEW)
+cmake_policy(SET CMP0135 NEW)
 project(sbash64-budget LANGUAGES CXX)
 
 include(FetchContent)
@@ -20,14 +21,13 @@ if(${SBASH64_BUDGET_ENABLE_WEB})
   FetchContent_MakeAvailable(websocketpp)
   FetchContent_Declare(
     asio
-    URL https://sourceforge.net/projects/asio/files/asio/1.18.2%20%28Stable%29/asio-1.18.2.zip/download
+    URL https://sourceforge.net/projects/asio/files/asio/1.28.0%20%28Stable%29/asio-1.28.0.zip/download
   )
   FetchContent_MakeAvailable(asio)
   FetchContent_Declare(
     nlohmann_json
-    GIT_REPOSITORY
-      https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-    GIT_TAG v3.9.1)
+    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+  )
   FetchContent_MakeAvailable(nlohmann_json)
 
   add_subdirectory(web)
