@@ -149,6 +149,8 @@ static auto runAllTests() -> int {
         "account::notifiesObserverOfIncreasedAllocation"},
        {account::notifiesObserverOfLoadedAllocation,
         "account::notifiesObserverOfLoadedAllocation"},
+       {account::doesNotRemoveArchivedTransaction,
+        "account:doesNotRemoveArchivedTransaction"},
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
        {transaction::savesLoadedTransaction, "savesWhatWasLoaded"},
        {transaction::observesDeserialization,

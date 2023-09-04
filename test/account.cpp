@@ -494,6 +494,26 @@ void increasesAllocationByAmountArchived(testcpplite::TestResult &result) {
   });
 }
 
+void doesNotRemoveArchivedTransaction(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](AccountInMemory &account,
+                                ObservableTransactionFactoryStub &factory) {
+    AccountObserverStub observer;
+    account.attach(&observer);
+    const auto orangutan1{addObservableTransactionInMemory(factory)};
+    add(account, Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.verify(
+        Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.increaseAllocationByResolvingVerifiedTransactions();
+    assertEqual(result, 4_cents, observer.allocation());
+    assertEqual(result, 0_cents, observer.balance());
+    const auto orangutan2{addObservableTransactionInMemory(factory)};
+    add(account, Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    account.remove(
+        Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
+    assertEqual(result, 0_cents, observer.balance());
+  });
+}
+
 void decreasesAllocationByAmountArchived(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {

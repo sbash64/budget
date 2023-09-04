@@ -36,6 +36,7 @@ void decreasesAllocationByAmountArchived(testcpplite::TestResult &);
 void notifiesObserverOfIncreasedAllocation(testcpplite::TestResult &);
 void notifiesObserverOfDecreasedAllocation(testcpplite::TestResult &);
 void notifiesObserverOfLoadedAllocation(testcpplite::TestResult &);
+void doesNotRemoveArchivedTransaction(testcpplite::TestResult &);
 } // namespace sbash64::budget::account
 
 #endif
