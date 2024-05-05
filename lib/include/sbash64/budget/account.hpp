@@ -4,7 +4,6 @@
 #include "domain.hpp"
 
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace sbash64::budget {

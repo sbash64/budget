@@ -125,7 +125,7 @@ void savesLoadedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.archivableVerifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction());
   });
 }
 
@@ -138,7 +138,7 @@ void savesInitializedTransaction(testcpplite::TestResult &result) {
     assertEqual(
         result,
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
-        serialization.archivableVerifiableTransaction().transaction);
+        serialization.archivableVerifiableTransaction());
   });
 }
 

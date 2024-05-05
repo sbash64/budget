@@ -12,7 +12,6 @@
 #include <websocketpp/logger/levels.hpp>
 #include <websocketpp/server.hpp>
 
-#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -21,7 +20,6 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
-#include <iterator>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -363,7 +361,7 @@ int main(int argc, char *argv[]) {
           server.get_con_from_hdl(std::move(connection));
 
       std::cout << "Fail handler: " << con->get_ec() << " "
-                << con->get_ec().message() << std::endl;
+                << con->get_ec().message() << '\n';
     });
 
     server.set_close_handler(
@@ -402,10 +400,10 @@ int main(int argc, char *argv[]) {
     server.start_accept();
     server.run();
   } catch (websocketpp::exception const &e) {
-    std::cout << e.what() << std::endl;
+    std::cout << e.what() << '\n';
   } catch (const std::exception &e) {
-    std::cout << e.what() << std::endl;
+    std::cout << e.what() << '\n';
   } catch (...) {
-    std::cout << "other exception" << std::endl;
+    std::cout << "other exception" << '\n';
   }
 }

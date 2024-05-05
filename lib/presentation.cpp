@@ -85,7 +85,7 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
                 return a.get() == child;
               })};
   orderedChildren.insert(next(orderedChildren.begin(), childIndex),
-                         move(*unorderedChild));
+                         std::move(*unorderedChild));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
   unorderedChildren.erase(unorderedChild);

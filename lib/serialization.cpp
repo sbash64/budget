@@ -9,8 +9,8 @@ namespace sbash64::budget {
 ReadsBudgetFromStream::ReadsBudgetFromStream(
     IoStreamFactory &ioStreamFactory,
     AccountFromStreamFactory &accountDeserializationFactory)
-    : ioStreamFactory{ioStreamFactory}, accountDeserializationFactory{
-                                            accountDeserializationFactory} {}
+    : ioStreamFactory{ioStreamFactory},
+      accountDeserializationFactory{accountDeserializationFactory} {}
 
 static auto usd(std::string_view s) -> USD {
   USD usd{};
@@ -39,8 +39,8 @@ void ReadsBudgetFromStream::load(Observer &observer) {
 WritesBudgetToStream::WritesBudgetToStream(
     IoStreamFactory &ioStreamFactory,
     AccountToStreamFactory &accountSerializationFactory)
-    : ioStreamFactory{ioStreamFactory}, accountSerializationFactory{
-                                            accountSerializationFactory} {}
+    : ioStreamFactory{ioStreamFactory},
+      accountSerializationFactory{accountSerializationFactory} {}
 
 static auto putNewLine(std::ostream &stream) -> std::ostream & {
   return stream << '\n';
@@ -195,9 +195,8 @@ auto WritesTransactionToStream::Factory::make(std::ostream &stream_)
   return std::make_shared<WritesTransactionToStream>(stream_);
 }
 
-constexpr auto to_integral(Month e) ->
-    typename std::underlying_type<Month>::type {
-  return static_cast<typename std::underlying_type<Month>::type>(e);
+constexpr auto to_integral(Month e) -> std::underlying_type_t<Month> {
+  return static_cast<std::underlying_type_t<Month>>(e);
 }
 
 static auto operator<<(std::ostream &stream, const Date &date)
@@ -217,6 +216,6 @@ void WritesTransactionToStream::save(
     stream << '%';
   else if (transaction.verified)
     stream << '^';
-  budget::save(stream, transaction.transaction);
+  budget::save(stream, transaction);
 }
 } // namespace sbash64::budget
