@@ -5,8 +5,6 @@
 
 #include <functional>
 #include <map>
-#include <string_view>
-#include <utility>
 
 namespace sbash64::budget {
 class PersistentMemoryStub : public BudgetDeserialization,

@@ -101,11 +101,13 @@ public:
 
   [[nodiscard]] auto accountIndex() const -> int { return accountIndex_; }
 
-  auto markedAsSaved() -> bool { return markedAsSaved_; }
+  [[nodiscard]] auto markedAsSaved() const -> bool { return markedAsSaved_; }
 
   void markAsSaved() override { markedAsSaved_ = true; }
 
-  auto markedAsUnsaved() -> bool { return markedAsUnsaved_; }
+  [[nodiscard]] auto markedAsUnsaved() const -> bool {
+    return markedAsUnsaved_;
+  }
 
   void markAsUnsaved() override { markedAsUnsaved_ = true; }
 

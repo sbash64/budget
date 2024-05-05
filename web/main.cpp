@@ -265,7 +265,7 @@ static auto accountName(const nlohmann::json &json) -> std::string {
   return json["name"].get<std::string>();
 }
 
-static auto accountIsMaster(const nlohmann::json &json) -> bool {
+static auto accountIsIncome(const nlohmann::json &json) -> bool {
   return accountName(json) == "Income";
 }
 
@@ -277,21 +277,21 @@ handleMessage(const std::unique_ptr<App> &application,
   const auto json = nlohmann::json::parse(message->get_payload());
   if (methodIs(json, "add transaction"))
     call(application, [&json](Budget &budget) {
-      if (accountIsMaster(json))
+      if (accountIsIncome(json))
         budget.addIncome(transaction(json));
       else
         budget.addExpense(accountName(json), transaction(json));
     });
   else if (methodIs(json, "remove transaction"))
     call(application, [&json](Budget &budget) {
-      if (accountIsMaster(json))
+      if (accountIsIncome(json))
         budget.removeIncome(transaction(json));
       else
         budget.removeExpense(accountName(json), transaction(json));
     });
   else if (methodIs(json, "verify transaction"))
     call(application, [&json](Budget &budget) {
-      if (accountIsMaster(json))
+      if (accountIsIncome(json))
         budget.verifyIncome(transaction(json));
       else
         budget.verifyExpense(accountName(json), transaction(json));
@@ -357,8 +357,7 @@ int main(int argc, char *argv[]) {
         });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
-          server.get_con_from_hdl(std::move(connection));
+      const auto con = server.get_con_from_hdl(std::move(connection));
 
       std::cout << "Fail handler: " << con->get_ec() << " "
                 << con->get_ec().message() << '\n';
@@ -379,8 +378,7 @@ int main(int argc, char *argv[]) {
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
-      websocketpp::server<websocketpp::config::asio>::connection_ptr con =
-          server.get_con_from_hdl(std::move(connection));
+      const auto con = server.get_con_from_hdl(std::move(connection));
       if (con->get_resource() == "/") {
         std::ifstream response{"index.html"};
         std::ostringstream stream;
