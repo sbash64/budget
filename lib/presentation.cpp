@@ -9,17 +9,22 @@
 
 namespace sbash64::budget {
 TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
-                                           View &view, AccountPresenter &parent)
-    : view{view}, parent{parent} {
+                                           const std::set<View *> &views,
+                                           AccountPresenter &parent)
+    : views{views}, parent{parent} {
   transaction.attach(this);
 }
 
 void TransactionPresenter::notifyThatIsVerified() {
-  view.putCheckmarkNextToTransactionRow(parent.index(), index);
+  verified = true;
+  for (const auto &view : views)
+    view->putCheckmarkNextToTransactionRow(parent.index(), index);
 }
 
 void TransactionPresenter::notifyThatIsArchived() {
-  view.removeTransactionRowSelection(parent.index(), index);
+  archived = true;
+  for (const auto &view : views)
+    view->removeTransactionRowSelection(parent.index(), index);
 }
 
 static auto format(USD usd) -> std::string {
@@ -40,27 +45,40 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 }
 
 void TransactionPresenter::notifyThatWillBeRemoved() {
-  view.deleteTransactionRow(parent.index(), index);
+  for (const auto &view : views)
+    view->deleteTransactionRow(parent.index(), index);
   parent.remove(this);
 }
 
-AccountPresenter::AccountPresenter(Account &account, View &view,
+void TransactionPresenter::catchUp(View *view) {
+  if (verified)
+    view->putCheckmarkNextToTransactionRow(parent.index(), index);
+  if (archived)
+    view->removeTransactionRowSelection(parent.index(), index);
+}
+
+AccountPresenter::AccountPresenter(Account &account,
+                                   const std::set<View *> &views,
                                    std::string_view name, Parent &parent)
-    : view{view}, name_{name}, parent{parent} {
+    : name_{name}, views{views}, parent{parent} {
   account.attach(this);
 }
 
 void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
-  view.updateAccountBalance(index_, format(usd));
+  balance = usd;
+  for (const auto &view : views)
+    view->updateAccountBalance(index_, format(usd));
 }
 
 void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
-  view.updateAccountAllocation(index_, format(usd));
+  allocation = usd;
+  for (const auto &view : views)
+    view->updateAccountAllocation(index_, format(usd));
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
   unorderedChildren.push_back(
-      std::make_unique<TransactionPresenter>(t, view, *this));
+      std::make_unique<TransactionPresenter>(t, views, *this));
 }
 
 static auto newChildIndex(
@@ -89,9 +107,10 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i);
   unorderedChildren.erase(unorderedChild);
-  view.addTransactionRow(index_, format(child->get().amount),
-                         date(child->get()), child->get().description,
-                         childIndex);
+  for (const auto &view : views)
+    view->addTransactionRow(index_, format(child->get().amount),
+                            date(child->get()), child->get().description,
+                            childIndex);
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
@@ -107,8 +126,23 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {
-  view.deleteAccountTable(index_);
+  for (const auto &view : views)
+    view->deleteAccountTable(index_);
   parent.remove(this);
+}
+
+void AccountPresenter::catchUp(View *view) {
+  view->updateAccountBalance(index_, format(balance));
+  view->updateAccountAllocation(index_, format(allocation));
+  gsl::index i{0};
+  for (const auto &child : orderedChildren) {
+    {
+      view->addTransactionRow(index_, format(child->get().amount),
+                              date(child->get()), child->get().description,
+                              i++);
+      child->catchUp(view);
+    }
+  }
 }
 
 static auto newChildIndex(
@@ -123,10 +157,9 @@ static auto newChildIndex(
                               }));
 }
 
-BudgetPresenter::BudgetPresenter(View &view, Account &incomeAccount)
-    : view{view}, incomeAccountPresenter{incomeAccount, view, "Income", *this} {
+BudgetPresenter::BudgetPresenter(Account &incomeAccount)
+    : incomeAccountPresenter{incomeAccount, views, incomeAccountName, *this} {
   incomeAccountPresenter.setIndex(0);
-  view.addNewAccountTable("Income", 0);
 }
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
@@ -134,14 +167,17 @@ void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
   const auto childIndex{budget::newChildIndex(orderedChildren, name)};
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(account, view, name, *this));
+      std::make_unique<AccountPresenter>(account, views, name, *this));
   for (auto i{childIndex}; i < orderedChildren.size(); ++i)
     orderedChildren.at(i)->setIndex(i + 1);
-  view.addNewAccountTable(name, childIndex + 1);
+  for (const auto &view : views)
+    view->addNewAccountTable(name, childIndex + 1);
 }
 
 void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
-  view.updateNetIncome(format(usd));
+  netIncome = usd;
+  for (const auto &view : views)
+    view->updateNetIncome(format(usd));
 }
 
 void BudgetPresenter::remove(const AccountPresenter *child) {
@@ -156,7 +192,26 @@ void BudgetPresenter::remove(const AccountPresenter *child) {
   orderedChildren.erase(orderedChild);
 }
 
-void BudgetPresenter::notifyThatHasBeenSaved() { view.markAsSaved(); }
+void BudgetPresenter::notifyThatHasBeenSaved() {
+  for (const auto &view : views)
+    view->markAsSaved();
+}
 
-void BudgetPresenter::notifyThatHasUnsavedChanges() { view.markAsUnsaved(); }
+void BudgetPresenter::notifyThatHasUnsavedChanges() {
+  for (const auto &view : views)
+    view->markAsUnsaved();
+}
+
+void BudgetPresenter::add(View *view) {
+  view->updateNetIncome(format(netIncome));
+  view->addNewAccountTable(incomeAccountName, 0);
+  gsl::index i{0};
+  for (const auto &account : orderedChildren) {
+    view->addNewAccountTable(account->name(), ++i);
+    account->catchUp(view);
+  }
+  views.insert(view);
+}
+
+void BudgetPresenter::remove(View *view) { views.erase(view); }
 } // namespace sbash64::budget

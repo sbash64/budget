@@ -18,7 +18,6 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -208,8 +207,7 @@ struct App {
       websocketpp::connection_hdl connection, const std::string &budgetFilePath,
       const std::filesystem::path &backupParentPath)
       : streamFactory{budgetFilePath},
-        browserView{server, std::move(connection)},
-        presenter{browserView, incomeAccount},
+        browserView{server, std::move(connection)}, presenter{incomeAccount},
         backupDirectory{budget::backupDirectory(
             backupParentPath, std::chrono::system_clock::now())},
         budgetFilePath{budgetFilePath} {
@@ -251,11 +249,6 @@ static auto transaction(const nlohmann::json &json) -> Transaction {
           date(json["date"].get<std::string>())};
 }
 
-static void call(const std::unique_ptr<App> &application,
-                 const std::function<void(Budget &)> &f) {
-  f(application->budget);
-}
-
 static auto methodIs(const nlohmann::json &json, std::string_view method)
     -> bool {
   return json["method"].get<std::string>() == method;
@@ -270,66 +263,52 @@ static auto accountIsIncome(const nlohmann::json &json) -> bool {
 }
 
 static void
-handleMessage(const std::unique_ptr<App> &application,
+handleMessage(Budget &budget, std::uintmax_t &backupCount,
+              std::string_view budgetFilePath,
+              const std::filesystem::path &backupDirectory,
+              WritesBudgetToStream &sessionSerialization,
               const websocketpp::server<websocketpp::config::asio>::message_ptr
                   &message) {
   // brace-initialization seems to fail here
   const auto json = nlohmann::json::parse(message->get_payload());
   if (methodIs(json, "add transaction"))
-    call(application, [&json](Budget &budget) {
-      if (accountIsIncome(json))
-        budget.addIncome(transaction(json));
-      else
-        budget.addExpense(accountName(json), transaction(json));
-    });
+    if (accountIsIncome(json))
+      budget.addIncome(transaction(json));
+    else
+      budget.addExpense(accountName(json), transaction(json));
   else if (methodIs(json, "remove transaction"))
-    call(application, [&json](Budget &budget) {
-      if (accountIsIncome(json))
-        budget.removeIncome(transaction(json));
-      else
-        budget.removeExpense(accountName(json), transaction(json));
-    });
+    if (accountIsIncome(json))
+      budget.removeIncome(transaction(json));
+    else
+      budget.removeExpense(accountName(json), transaction(json));
   else if (methodIs(json, "verify transaction"))
-    call(application, [&json](Budget &budget) {
-      if (accountIsIncome(json))
-        budget.verifyIncome(transaction(json));
-      else
-        budget.verifyExpense(accountName(json), transaction(json));
-    });
+    if (accountIsIncome(json))
+      budget.verifyIncome(transaction(json));
+    else
+      budget.verifyExpense(accountName(json), transaction(json));
   else if (methodIs(json, "transfer"))
-    call(application, [&json](Budget &budget) {
-      budget.transferTo(accountName(json),
-                        usd(json["amount"].get<std::string>()));
-    });
-  else if (methodIs(json, "reduce"))
-    call(application, [](Budget &budget) { budget.reduce(); });
-  else if (methodIs(json, "restore"))
-    call(application, [](Budget &budget) { budget.restore(); });
-  else if (methodIs(json, "allocate"))
-    call(application, [&json](Budget &budget) {
-      budget.allocate(accountName(json),
+    budget.transferTo(accountName(json),
                       usd(json["amount"].get<std::string>()));
-    });
+  else if (methodIs(json, "reduce"))
+    budget.reduce();
+  else if (methodIs(json, "restore"))
+    budget.restore();
+  else if (methodIs(json, "allocate"))
+    budget.allocate(accountName(json), usd(json["amount"].get<std::string>()));
   else if (methodIs(json, "rename account"))
-    call(application, [&json](Budget &budget) {
-      budget.renameAccount(accountName(json),
-                           json["newName"].get<std::string>());
-    });
+    budget.renameAccount(accountName(json), json["newName"].get<std::string>());
   else if (methodIs(json, "create account"))
-    call(application,
-         [&json](Budget &budget) { budget.createAccount(accountName(json)); });
+    budget.createAccount(accountName(json));
   else if (methodIs(json, "remove account"))
-    call(application,
-         [&json](Budget &budget) { budget.removeAccount(accountName(json)); });
+    budget.removeAccount(accountName(json));
   else if (methodIs(json, "close account"))
-    call(application,
-         [&json](Budget &budget) { budget.closeAccount(accountName(json)); });
+    budget.closeAccount(accountName(json));
   else if (methodIs(json, "save")) {
     std::stringstream backupFileName;
-    backupFileName << ++application->backupCount << ".txt";
-    std::filesystem::copy(application->budgetFilePath,
-                          application->backupDirectory / backupFileName.str());
-    application->budget.save(application->sessionSerialization);
+    backupFileName << ++backupCount << ".txt";
+    std::filesystem::copy(budgetFilePath,
+                          backupDirectory / backupFileName.str());
+    budget.save(sessionSerialization);
   }
 }
 } // namespace sbash64::budget
@@ -341,40 +320,75 @@ int main(int argc, char *argv[]) {
   const std::string budgetFilePath{argv[1]};
   const std::filesystem::path backupParentPath{argv[2]};
   const auto port{std::stoi(argv[3])};
-  std::map<void *, std::unique_ptr<sbash64::budget::App>> applications;
+
+  sbash64::budget::ObservableTransactionInMemory::Factory transactionFactory;
+  sbash64::budget::AccountInMemory incomeAccount{transactionFactory};
+  sbash64::budget::AccountInMemory::Factory accountFactory{transactionFactory};
+  sbash64::budget::BudgetInMemory budget{incomeAccount, accountFactory};
+  sbash64::budget::FileStreamFactory streamFactory{budgetFilePath};
+  sbash64::budget::WritesTransactionToStream::Factory
+      transactionRecordSerializationFactory;
+  sbash64::budget::WritesAccountToStream::Factory accountSerializationFactory{
+      transactionRecordSerializationFactory};
+  sbash64::budget::WritesBudgetToStream sessionSerialization{
+      streamFactory, accountSerializationFactory};
+  sbash64::budget::ReadsTransactionFromStream::Factory
+      transactionRecordDeserializationFactory;
+  sbash64::budget::ReadsAccountFromStream::Factory
+      accountDeserializationFactory{transactionRecordDeserializationFactory};
+  sbash64::budget::ReadsBudgetFromStream budgetDeserialization{
+      streamFactory, accountDeserializationFactory};
+  sbash64::budget::BudgetPresenter presenter{incomeAccount};
+  std::filesystem::path backupDirectory{sbash64::budget::backupDirectory(
+      backupParentPath, std::chrono::system_clock::now())};
+  std::uintmax_t backupCount = 0;
+  budget.attach(&presenter);
+  budget.load(budgetDeserialization);
+  std::filesystem::create_directory(backupDirectory);
+
+  std::map<void *, std::unique_ptr<sbash64::budget::BrowserView>> views;
+
+  std::mutex budgetMutex;
+
   websocketpp::server<websocketpp::config::asio> server;
   server.clear_access_channels(websocketpp::log::alevel::all);
   server.set_access_channels(websocketpp::log::alevel::access_core);
   try {
     server.init_asio();
 
-    server.set_open_handler(
-        [&server, &applications, &budgetFilePath,
-         &backupParentPath](const websocketpp::connection_hdl &connection) {
-          applications[connection.lock().get()] =
-              std::make_unique<sbash64::budget::App>(
-                  server, connection, budgetFilePath, backupParentPath);
-        });
+    server.set_open_handler([&server, &presenter, &views, &budgetMutex](
+                                const websocketpp::connection_hdl &connection) {
+      std::lock_guard lock{budgetMutex};
+      auto view =
+          std::make_unique<sbash64::budget::BrowserView>(server, connection);
+      presenter.add(view.get());
+      views[connection.lock().get()] = std::move(view);
+    });
 
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
       const auto con = server.get_con_from_hdl(std::move(connection));
-
       std::cout << "Fail handler: " << con->get_ec() << " "
                 << con->get_ec().message() << '\n';
     });
 
     server.set_close_handler(
-        [&applications](const websocketpp::connection_hdl &connection) {
-          applications.at(connection.lock().get()).reset();
+        [&views, &presenter,
+         &budgetMutex](const websocketpp::connection_hdl &connection) {
+          std::lock_guard lock{budgetMutex};
+          auto node{views.extract(connection.lock().get())};
+          presenter.remove(node.mapped().get());
         });
 
     server.set_message_handler(
-        [&applications](
-            const websocketpp::connection_hdl &connection,
+        [&budget, &backupCount, &budgetFilePath, &backupDirectory,
+         &sessionSerialization, &budgetMutex](
+            const websocketpp::connection_hdl &,
             const websocketpp::server<websocketpp::config::asio>::message_ptr
                 &message) {
-          sbash64::budget::handleMessage(
-              applications.at(connection.lock().get()), message);
+          std::lock_guard lock{budgetMutex};
+          sbash64::budget::handleMessage(budget, backupCount, budgetFilePath,
+                                         backupDirectory, sessionSerialization,
+                                         message);
         });
 
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
