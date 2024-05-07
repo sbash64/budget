@@ -404,7 +404,7 @@ int main(int argc, char *argv[]) {
     });
     server.listen(port);
     server.start_accept();
-    std::cout << "Listening to port " << port << "...";
+    std::cout << "Listening on port " << port << "..." << '\n';
     server.run();
   } catch (websocketpp::exception const &e) {
     std::cout << e.what() << '\n';
