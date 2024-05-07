@@ -347,7 +347,6 @@ int main(int argc, char *argv[]) {
   std::filesystem::create_directory(backupDirectory);
 
   std::map<void *, std::unique_ptr<sbash64::budget::BrowserView>> views;
-
   std::mutex budgetMutex;
 
   websocketpp::server<websocketpp::config::asio> server;
@@ -355,7 +354,6 @@ int main(int argc, char *argv[]) {
   server.set_access_channels(websocketpp::log::alevel::access_core);
   try {
     server.init_asio();
-
     server.set_open_handler([&server, &presenter, &views, &budgetMutex](
                                 const websocketpp::connection_hdl &connection) {
       std::lock_guard lock{budgetMutex};
@@ -364,13 +362,11 @@ int main(int argc, char *argv[]) {
       presenter.add(view.get());
       views[connection.lock().get()] = std::move(view);
     });
-
     server.set_fail_handler([&server](websocketpp::connection_hdl connection) {
       const auto con = server.get_con_from_hdl(std::move(connection));
       std::cout << "Fail handler: " << con->get_ec() << " "
                 << con->get_ec().message() << '\n';
     });
-
     server.set_close_handler(
         [&views, &presenter,
          &budgetMutex](const websocketpp::connection_hdl &connection) {
@@ -378,7 +374,6 @@ int main(int argc, char *argv[]) {
           auto node{views.extract(connection.lock().get())};
           presenter.remove(node.mapped().get());
         });
-
     server.set_message_handler(
         [&budget, &backupCount, &budgetFilePath, &backupDirectory,
          &sessionSerialization, &budgetMutex](
@@ -390,7 +385,6 @@ int main(int argc, char *argv[]) {
                                          backupDirectory, sessionSerialization,
                                          message);
         });
-
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       const auto con = server.get_con_from_hdl(std::move(connection));
       if (con->get_resource() == "/") {
@@ -410,6 +404,7 @@ int main(int argc, char *argv[]) {
     });
     server.listen(port);
     server.start_accept();
+    std::cout << "Listening to port " << port << "...";
     server.run();
   } catch (websocketpp::exception const &e) {
     std::cout << e.what() << '\n';

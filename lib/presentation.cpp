@@ -104,8 +104,10 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
               })};
   orderedChildren.insert(next(orderedChildren.begin(), childIndex),
                          std::move(*unorderedChild));
-  for (auto i{childIndex}; i < orderedChildren.size(); ++i)
-    orderedChildren.at(i)->setIndex(i);
+  auto i{childIndex};
+  auto it{std::next(orderedChildren.begin(), i)};
+  for (; it != orderedChildren.end(); ++it, ++i)
+    (*it)->setIndex(i);
   unorderedChildren.erase(unorderedChild);
   for (const auto &view : views)
     view->addTransactionRow(index_, format(child->get().amount),
@@ -119,9 +121,10 @@ void AccountPresenter::remove(const TransactionPresenter *child) {
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  for (auto i{distance(orderedChildren.begin(), next(orderedChild))};
-       i < orderedChildren.size(); ++i)
-    orderedChildren.at(i)->setIndex(i - 1);
+  auto i{distance(orderedChildren.begin(), next(orderedChild))};
+  auto it{std::next(orderedChildren.begin(), i)};
+  for (; it != orderedChildren.end(); ++it, ++i)
+    (*it)->setIndex(i - 1);
   orderedChildren.erase(orderedChild);
 }
 
@@ -136,12 +139,9 @@ void AccountPresenter::catchUp(View *view) {
   view->updateAccountAllocation(index_, format(allocation));
   gsl::index i{0};
   for (const auto &child : orderedChildren) {
-    {
-      view->addTransactionRow(index_, format(child->get().amount),
-                              date(child->get()), child->get().description,
-                              i++);
-      child->catchUp(view);
-    }
+    view->addTransactionRow(index_, format(child->get().amount),
+                            date(child->get()), child->get().description, i++);
+    child->catchUp(view);
   }
 }
 
@@ -168,8 +168,10 @@ void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
   orderedChildren.insert(
       next(orderedChildren.begin(), childIndex),
       std::make_unique<AccountPresenter>(account, views, name, *this));
-  for (auto i{childIndex}; i < orderedChildren.size(); ++i)
-    orderedChildren.at(i)->setIndex(i + 1);
+  auto i{childIndex};
+  auto it{std::next(orderedChildren.begin(), i)};
+  for (; it != orderedChildren.end(); ++it, ++i)
+    (*it)->setIndex(i + 1);
   for (const auto &view : views)
     view->addNewAccountTable(name, childIndex + 1);
 }
@@ -186,9 +188,10 @@ void BudgetPresenter::remove(const AccountPresenter *child) {
               [child](const std::unique_ptr<AccountPresenter> &a) {
                 return a.get() == child;
               })};
-  for (auto i{distance(orderedChildren.begin(), next(orderedChild))};
-       i < orderedChildren.size(); ++i)
-    orderedChildren.at(i)->setIndex(i);
+  auto i{distance(orderedChildren.begin(), next(orderedChild))};
+  auto it{std::next(orderedChildren.begin(), i)};
+  for (; it != orderedChildren.end(); ++it, ++i)
+    (*it)->setIndex(i);
   orderedChildren.erase(orderedChild);
 }
 
