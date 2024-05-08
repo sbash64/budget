@@ -208,6 +208,7 @@ void BudgetPresenter::notifyThatHasUnsavedChanges() {
 void BudgetPresenter::add(View *view) {
   view->updateNetIncome(format(netIncome));
   view->addNewAccountTable(incomeAccountName, 0);
+  incomeAccountPresenter.catchUp(view);
   gsl::index i{0};
   for (const auto &account : orderedChildren) {
     view->addNewAccountTable(account->name(), ++i);
