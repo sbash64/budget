@@ -8,7 +8,6 @@
 #include <sbash64/testcpplite/testcpplite.hpp>
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <utility>
 

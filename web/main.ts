@@ -29,7 +29,7 @@ function accountName(selectedAccountSummaryRow: HTMLTableRowElement): string {
 function transactionMessage(
   selectedAccountSummaryRow: HTMLTableRowElement,
   selectedTransactionRow: HTMLTableRowElement,
-  method: string
+  method: string,
 ) {
   return {
     method,
@@ -56,14 +56,14 @@ function updateTransaction(row: HTMLTableRowElement, message: IncomingMessage) {
 
 function accountTableBody(
   accountTableBodies: HTMLTableSectionElement[],
-  message: IncomingMessage
+  message: IncomingMessage,
 ): HTMLTableSectionElement {
   return accountTableBodies[message.accountIndex];
 }
 
 function transactionRow(
   accountTableBodies: HTMLTableSectionElement[],
-  message: IncomingMessage
+  message: IncomingMessage,
 ) {
   return accountTableBody(accountTableBodies, message).rows[
     message.transactionIndex
@@ -72,7 +72,7 @@ function transactionRow(
 
 function accountSummaryRow(
   accountSummaryTableBody: HTMLTableSectionElement,
-  message: IncomingMessage
+  message: IncomingMessage,
 ): HTMLTableRowElement {
   return accountSummaryTableBody.rows[message.accountIndex];
 }
@@ -83,7 +83,7 @@ function sendOnClick(
   messageFunctor: () => OutgoingMessage,
   sendFilter: () => boolean = function () {
     return true;
-  }
+  },
 ) {
   button.addEventListener("click", () => {
     if (sendFilter()) {
@@ -349,7 +349,7 @@ function main() {
         const row = accountSummaryTableBody.insertRow(
           message.accountIndex >= accountSummaryTableBody.rows.length
             ? -1
-            : message.accountIndex
+            : message.accountIndex,
         );
         createChild(row, "td");
         const name = document.createElement("td");
@@ -363,7 +363,7 @@ function main() {
         accountTableBodies.splice(
           message.accountIndex,
           0,
-          transactionTableBody
+          transactionTableBody,
         );
         transactionTableBody.style.display = "none";
 
@@ -393,7 +393,7 @@ function main() {
         const row = parent.insertRow(
           message.transactionIndex >= parent.rows.length
             ? -1
-            : message.transactionIndex
+            : message.transactionIndex,
         );
         createChild(row, "td"), createChild(row, "td");
         createChild(row, "td").style.textAlign = "right";
@@ -405,19 +405,19 @@ function main() {
       }
       case "delete transaction row":
         accountTableBody(accountTableBodies, message).deleteRow(
-          message.transactionIndex
+          message.transactionIndex,
         );
         break;
       case "update account balance":
         accountSummaryRow(
           accountSummaryTableBody,
-          message
+          message,
         ).lastElementChild!.textContent = message.amount;
         break;
       case "update account allocation":
         accountSummaryRow(
           accountSummaryTableBody,
-          message
+          message,
         ).cells[2].textContent = message.amount;
         break;
       case "check transaction row":
@@ -451,7 +451,7 @@ function main() {
     }),
     () => {
       return selectedAccountSummaryRow !== null;
-    }
+    },
   );
   sendOnClick(
     closeAccountButton,
@@ -462,7 +462,7 @@ function main() {
     }),
     () => {
       return selectedAccountSummaryRow !== null;
-    }
+    },
   );
   sendOnClick(
     removeTransactionButton,
@@ -471,13 +471,13 @@ function main() {
       transactionMessage(
         selectedAccountSummaryRow!,
         selectedTransactionRow!,
-        "remove transaction"
+        "remove transaction",
       ),
     () => {
       return (
         selectedAccountSummaryRow !== null && selectedTransactionRow !== null
       );
-    }
+    },
   );
   sendOnClick(
     verifyTransactionButton,
@@ -486,13 +486,13 @@ function main() {
       transactionMessage(
         selectedAccountSummaryRow!,
         selectedTransactionRow!,
-        "verify transaction"
+        "verify transaction",
       ),
     () => {
       return (
         selectedAccountSummaryRow !== null && selectedTransactionRow !== null
       );
-    }
+    },
   );
   createAccountButton.addEventListener("click", () => {
     sendMessage(websocket, {

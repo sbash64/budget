@@ -11,7 +11,6 @@
 #include <functional>
 #include <map>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 namespace sbash64::budget {
@@ -311,7 +310,6 @@ void loadsAccounts(testcpplite::TestResult &result) {
 
     AccountDeserializationStub deserialization;
     budget.notifyThatIncomeAccountIsReady(deserialization);
-    // assertEqual(result, 1_cents, observer.unallocatedIncome().front());
     assertEqual(result, &deserialization, incomeAccount.deserialization());
     assertDeserializes(
         result, budget,

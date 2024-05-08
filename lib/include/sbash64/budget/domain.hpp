@@ -12,8 +12,8 @@
   a() = default;                                                               \
   a(const a &) = delete;                                                       \
   a(a &&) = delete;                                                            \
-  auto operator=(const a &)->a & = delete;                                     \
-  auto operator=(a &&)->a & = delete
+  auto operator=(const a &) -> a & = delete;                                   \
+  auto operator=(a &&) -> a & = delete
 
 namespace sbash64::budget {
 struct USD {
@@ -77,8 +77,7 @@ struct Transaction {
   auto operator==(const Transaction &) const -> bool = default;
 };
 
-struct ArchivableVerifiableTransaction {
-  Transaction transaction;
+struct ArchivableVerifiableTransaction : Transaction {
   bool verified{};
   bool archived{};
 

@@ -3,9 +3,8 @@
 #include <iomanip>
 
 namespace sbash64::budget {
-constexpr auto to_integral(Month e) ->
-    typename std::underlying_type<Month>::type {
-  return static_cast<typename std::underlying_type<Month>::type>(e);
+constexpr auto to_integral(Month e) -> std::underlying_type_t<Month> {
+  return static_cast<std::underlying_type_t<Month>>(e);
 }
 
 static auto prepareLengthTwoInteger(std::ostream &stream) -> std::ostream & {

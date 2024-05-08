@@ -6,6 +6,7 @@
 #include <gsl/gsl>
 
 #include <memory>
+#include <set>
 #include <string_view>
 #include <vector>
 
@@ -40,19 +41,23 @@ class AccountPresenter;
 
 class TransactionPresenter : public ObservableTransaction::Observer {
 public:
-  TransactionPresenter(ObservableTransaction &, View &, AccountPresenter &);
+  TransactionPresenter(ObservableTransaction &, const std::set<View *> &,
+                       AccountPresenter &);
   void notifyThatIsVerified() override;
   void notifyThatIsArchived() override;
   void notifyThatIs(const Transaction &t) override;
   void notifyThatWillBeRemoved() override;
   [[nodiscard]] auto get() const -> const Transaction & { return transaction; }
   void setIndex(gsl::index i) { index = i; }
+  void catchUp(View *);
 
 private:
   Transaction transaction;
-  View &view;
+  const std::set<View *> &views;
   AccountPresenter &parent;
   gsl::index index{-1};
+  bool verified{};
+  bool archived{};
 };
 
 class AccountPresenter : public Account::Observer {
@@ -63,7 +68,8 @@ public:
     virtual void remove(const AccountPresenter *) = 0;
   };
 
-  AccountPresenter(Account &, View &, std::string_view name, Parent &);
+  AccountPresenter(Account &, const std::set<View *> &, std::string_view name,
+                   Parent &);
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
@@ -73,31 +79,39 @@ public:
   [[nodiscard]] auto name() const -> std::string { return name_; }
   void setIndex(gsl::index i) { index_ = i; }
   [[nodiscard]] auto index() const -> gsl::index { return index_; }
+  void catchUp(View *);
 
 private:
-  View &view;
   std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
+  const std::set<View *> &views;
   Parent &parent;
   gsl::index index_{-1};
+  USD balance{};
+  USD allocation{};
 };
+
+constexpr auto incomeAccountName{"Income"};
 
 class BudgetPresenter : public Budget::Observer,
                         public AccountPresenter::Parent {
 public:
-  BudgetPresenter(View &, Account &incomeAccount);
+  BudgetPresenter(Account &incomeAccount);
   void notifyThatExpenseAccountHasBeenCreated(Account &,
                                               std::string_view name) override;
   void notifyThatNetIncomeHasChanged(USD) override;
   void notifyThatHasBeenSaved() override;
   void notifyThatHasUnsavedChanges() override;
   void remove(const AccountPresenter *) override;
+  void add(View *);
+  void remove(View *);
 
 private:
-  View &view;
-  AccountPresenter incomeAccountPresenter;
   std::vector<std::unique_ptr<AccountPresenter>> orderedChildren;
+  std::set<View *> views;
+  AccountPresenter incomeAccountPresenter;
+  USD netIncome{};
 };
 } // namespace sbash64::budget
 

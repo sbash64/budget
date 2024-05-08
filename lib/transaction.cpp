@@ -13,7 +13,7 @@ static void callIfObserverExists(
 void ObservableTransactionInMemory::attach(Observer *a) { observer = a; }
 
 void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
-  archivableVerifiableTransaction.transaction = transaction;
+  static_cast<Transaction &>(archivableVerifiableTransaction) = transaction;
   callIfObserverExists(observer, [&transaction](Observer *observer_) {
     observer_->notifyThatIs(transaction);
   });
@@ -21,7 +21,7 @@ void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
 
 auto ObservableTransactionInMemory::verifies(const Transaction &match) -> bool {
   if (!archivableVerifiableTransaction.verified &&
-      archivableVerifiableTransaction.transaction == match) {
+      static_cast<Transaction &>(archivableVerifiableTransaction) == match) {
     archivableVerifiableTransaction.verified = true;
     callIfObserverExists(observer,
                          [](ObservableTransaction::Observer *observer_) {
@@ -40,7 +40,7 @@ static void remove(ObservableTransaction::Observer *observer) {
 }
 
 auto ObservableTransactionInMemory::removes(const Transaction &match) -> bool {
-  if (archivableVerifiableTransaction.transaction == match) {
+  if (static_cast<Transaction &>(archivableVerifiableTransaction) == match) {
     budget::remove(observer);
     return true;
   }
@@ -78,20 +78,20 @@ void ObservableTransactionInMemory::load(
 }
 
 auto ObservableTransactionInMemory::amount() -> USD {
-  return archivableVerifiableTransaction.transaction.amount;
+  return archivableVerifiableTransaction.amount;
 }
 
 void ObservableTransactionInMemory::ready(
     const ArchivableVerifiableTransaction &loadedVerifiableTransaction) {
   archivableVerifiableTransaction = loadedVerifiableTransaction;
-  callIfObserverExists(
-      observer, [&loadedVerifiableTransaction](Observer *observer_) {
-        observer_->notifyThatIs(loadedVerifiableTransaction.transaction);
-        if (loadedVerifiableTransaction.verified)
-          observer_->notifyThatIsVerified();
-        if (loadedVerifiableTransaction.archived)
-          observer_->notifyThatIsArchived();
-      });
+  callIfObserverExists(observer,
+                       [&loadedVerifiableTransaction](Observer *observer_) {
+                         observer_->notifyThatIs(loadedVerifiableTransaction);
+                         if (loadedVerifiableTransaction.verified)
+                           observer_->notifyThatIsVerified();
+                         if (loadedVerifiableTransaction.archived)
+                           observer_->notifyThatIsArchived();
+                       });
 }
 
 auto ObservableTransactionInMemory::Factory::make()

@@ -7,9 +7,8 @@ auto operator"" _cents(unsigned long long cents) -> USD {
   return USD{gsl::narrow<int_least64_t>(cents)};
 }
 
-constexpr auto to_integral(Month e) ->
-    typename std::underlying_type<Month>::type {
-  return static_cast<typename std::underlying_type<Month>::type>(e);
+constexpr auto to_integral(Month e) -> std::underlying_type_t<Month> {
+  return static_cast<std::underlying_type_t<Month>>(e);
 }
 
 void assertEqual(testcpplite::TestResult &result, USD expected, USD actual) {
@@ -33,7 +32,8 @@ void assertEqual(testcpplite::TestResult &result, const Transaction &expected,
 void assertEqual(testcpplite::TestResult &result,
                  const ArchivableVerifiableTransaction &expected,
                  const ArchivableVerifiableTransaction &actual) {
-  assertEqual(result, expected.transaction, actual.transaction);
+  assertEqual(result, static_cast<const Transaction &>(expected),
+              static_cast<const Transaction &>(actual));
   assertEqual(result, static_cast<int>(expected.verified),
               static_cast<int>(actual.verified));
   assertEqual(result, static_cast<int>(expected.archived),

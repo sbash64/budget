@@ -3,7 +3,6 @@
 
 #include <sbash64/budget/format.hpp>
 
-#include <functional>
 #include <sstream>
 
 namespace sbash64::budget {

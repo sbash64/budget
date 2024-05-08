@@ -101,11 +101,13 @@ public:
 
   [[nodiscard]] auto accountIndex() const -> int { return accountIndex_; }
 
-  auto markedAsSaved() -> bool { return markedAsSaved_; }
+  [[nodiscard]] auto markedAsSaved() const -> bool { return markedAsSaved_; }
 
   void markAsSaved() override { markedAsSaved_ = true; }
 
-  auto markedAsUnsaved() -> bool { return markedAsUnsaved_; }
+  [[nodiscard]] auto markedAsUnsaved() const -> bool {
+    return markedAsUnsaved_;
+  }
 
   void markAsUnsaved() override { markedAsUnsaved_ = true; }
 
@@ -143,8 +145,9 @@ static void test(const std::function<void(AccountPresenter &, AccountStub &,
                                           ViewStub &)> &f) {
   AccountStub account;
   ViewStub view;
+  std::set<View *> views{&view};
   AccountPresenterParentStub parent;
-  AccountPresenter presenter{account, view, "", parent};
+  AccountPresenter presenter{account, views, "", parent};
   f(presenter, account, view);
 }
 
@@ -344,7 +347,8 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
 void ordersAccountsByName(testcpplite::TestResult &result) {
   ViewStub view;
   AccountStub incomeAccount;
-  BudgetPresenter presenter{view, incomeAccount};
+  BudgetPresenter presenter{incomeAccount};
+  presenter.add(&view);
   AccountStub bob;
   presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
   assertEqual(result, 1, view.newAccountIndex());
@@ -363,7 +367,8 @@ void ordersAccountsByName(testcpplite::TestResult &result) {
 void formatsNetIncome(testcpplite::TestResult &result) {
   ViewStub view;
   AccountStub incomeAccount;
-  BudgetPresenter presenter{view, incomeAccount};
+  BudgetPresenter presenter{incomeAccount};
+  presenter.add(&view);
   presenter.notifyThatNetIncomeHasChanged(1234_cents);
   assertEqual(result, "12.34", view.netIncome());
 }
@@ -371,7 +376,8 @@ void formatsNetIncome(testcpplite::TestResult &result) {
 void marksAsSaved(testcpplite::TestResult &result) {
   ViewStub view;
   AccountStub incomeAccount;
-  BudgetPresenter presenter{view, incomeAccount};
+  BudgetPresenter presenter{incomeAccount};
+  presenter.add(&view);
   presenter.notifyThatHasBeenSaved();
   assertTrue(result, view.markedAsSaved());
 }
@@ -379,7 +385,8 @@ void marksAsSaved(testcpplite::TestResult &result) {
 void marksAsUnsaved(testcpplite::TestResult &result) {
   ViewStub view;
   AccountStub incomeAccount;
-  BudgetPresenter presenter{view, incomeAccount};
+  BudgetPresenter presenter{incomeAccount};
+  presenter.add(&view);
   presenter.notifyThatHasUnsavedChanges();
   assertTrue(result, view.markedAsUnsaved());
 }
