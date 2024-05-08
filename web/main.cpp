@@ -392,6 +392,7 @@ int main(int argc, char *argv[]) {
         std::ostringstream stream;
         stream << response.rdbuf();
         con->set_body(stream.str());
+        con->append_header("Content-Type", "text/html");
       }
       if (con->get_resource() == "/main.js") {
         std::ifstream response{"main.js"};
@@ -399,6 +400,13 @@ int main(int argc, char *argv[]) {
         stream << response.rdbuf();
         con->set_body(stream.str());
         con->append_header("Content-Type", "text/javascript");
+      }
+      if (con->get_resource() == "/styles.css") {
+        std::ifstream response{"styles.css"};
+        std::ostringstream stream;
+        stream << response.rdbuf();
+        con->set_body(stream.str());
+        con->append_header("Content-Type", "text/css");
       }
       con->set_status(websocketpp::http::status_code::ok);
     });
