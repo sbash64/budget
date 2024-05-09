@@ -24,6 +24,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace sbash64::budget {
@@ -180,44 +181,6 @@ static auto backupDirectory(const std::filesystem::path &parentPath,
   return parentPath / backupDirectory.str();
 }
 
-namespace {
-struct App {
-  ObservableTransactionInMemory::Factory transactionFactory;
-  AccountInMemory incomeAccount{transactionFactory};
-  AccountInMemory::Factory accountFactory{transactionFactory};
-  BudgetInMemory budget{incomeAccount, accountFactory};
-  FileStreamFactory streamFactory;
-  WritesTransactionToStream::Factory transactionRecordSerializationFactory;
-  WritesAccountToStream::Factory accountSerializationFactory{
-      transactionRecordSerializationFactory};
-  WritesBudgetToStream sessionSerialization{streamFactory,
-                                            accountSerializationFactory};
-  ReadsTransactionFromStream::Factory transactionRecordDeserializationFactory;
-  ReadsAccountFromStream::Factory accountDeserializationFactory{
-      transactionRecordDeserializationFactory};
-  ReadsBudgetFromStream budgetDeserialization{streamFactory,
-                                              accountDeserializationFactory};
-  BrowserView browserView;
-  BudgetPresenter presenter;
-  std::filesystem::path backupDirectory;
-  std::string budgetFilePath;
-  std::uintmax_t backupCount = 0;
-
-  App(websocketpp::server<websocketpp::config::asio> &server,
-      websocketpp::connection_hdl connection, const std::string &budgetFilePath,
-      const std::filesystem::path &backupParentPath)
-      : streamFactory{budgetFilePath},
-        browserView{server, std::move(connection)}, presenter{incomeAccount},
-        backupDirectory{budget::backupDirectory(
-            backupParentPath, std::chrono::system_clock::now())},
-        budgetFilePath{budgetFilePath} {
-    budget.attach(&presenter);
-    budget.load(budgetDeserialization);
-    std::filesystem::create_directory(backupDirectory);
-  }
-};
-} // namespace
-
 static auto date(std::string_view s) -> Date {
   Date date{};
   std::stringstream stream{std::string{s}};
@@ -313,6 +276,19 @@ handleMessage(Budget &budget, std::uintmax_t &backupCount,
 }
 } // namespace sbash64::budget
 
+static void setBody(
+    const std::string &filePath,
+    const std::shared_ptr<websocketpp::connection<websocketpp::config::asio>>
+        &con,
+    const std::string &contentType = {}) {
+  std::ifstream response{filePath};
+  std::ostringstream stream;
+  stream << response.rdbuf();
+  con->set_body(stream.str());
+  if (!contentType.empty())
+    con->append_header("Content-Type", contentType);
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 4) {
     return EXIT_FAILURE;
@@ -387,27 +363,12 @@ int main(int argc, char *argv[]) {
         });
     server.set_http_handler([&server](websocketpp::connection_hdl connection) {
       const auto con = server.get_con_from_hdl(std::move(connection));
-      if (con->get_resource() == "/") {
-        std::ifstream response{"index.html"};
-        std::ostringstream stream;
-        stream << response.rdbuf();
-        con->set_body(stream.str());
-        con->append_header("Content-Type", "text/html");
-      }
-      if (con->get_resource() == "/main.js") {
-        std::ifstream response{"main.js"};
-        std::ostringstream stream;
-        stream << response.rdbuf();
-        con->set_body(stream.str());
-        con->append_header("Content-Type", "text/javascript");
-      }
-      if (con->get_resource() == "/styles.css") {
-        std::ifstream response{"styles.css"};
-        std::ostringstream stream;
-        stream << response.rdbuf();
-        con->set_body(stream.str());
-        con->append_header("Content-Type", "text/css");
-      }
+      if (con->get_resource() == "/" || con->get_resource() == "/index.html")
+        setBody("index.html", con);
+      else if (con->get_resource() == "/main.js")
+        setBody("main.js", con, "text/javascript");
+      else if (con->get_resource() == "/styles.css")
+        setBody("styles.css", con, "text/css");
       con->set_status(websocketpp::http::status_code::ok);
     });
     server.listen(port);
