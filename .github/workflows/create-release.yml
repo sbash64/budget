@@ -1,76 +1,26 @@
 on:
   push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
-  build-linux-x86_64:
-    name: build for linux x86_64
+  release:
+    name: build for linux x86_64 and release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
       - name: generate buildsystem
         env:
-          CXX: g++-10
+          CXX: g++
         run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_WEB=1 -DCMAKE_BUILD_TYPE=Release
-      - name: build app
+      - name: build backend
         run: cmake --build build --config Release --target sbash64-budget-web
-      - name: webpack
-        run: |
-          npm install
-          npx webpack
+      - name: build frontend
+        run: bun build web/main.ts --outdir dist
       - name: zip files
-        run: zip -j sbash64-budget-web-linux-x86_64.zip build/web/sbash64-budget-web dist/index.html dist/main.js
-      - name: upload release asset
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-assets
-          path: sbash64-budget-web-linux-x86_64.zip
-  build-raspberry-pi-zero:
-    name: build for raspberry pi zero
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: download cross compiler
-        run: |
-          wget https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bullseye/GCC%2010.3.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-10.3.0-pi_0-1.tar.gz/download
-          tar xzf download
-      - name: generate buildsystem
-        env:
-          CXX: cross-pi-gcc-10.3.0-0/bin/arm-linux-gnueabihf-g++
-          CC: cross-pi-gcc-10.3.0-0/bin/arm-linux-gnueabihf-gcc
-        run: cmake -S . -B build -DSBASH64_BUDGET_ENABLE_WEB=1 -DCMAKE_BUILD_TYPE=Release
-      - name: build app
-        run: cmake --build build --config Release --target sbash64-budget-web
-      - name: webpack
-        run: |
-          npm install
-          npx webpack
-      - name: zip files
-        run: zip -j sbash64-budget-web-linux-armv6.zip build/web/sbash64-budget-web dist/index.html dist/main.js
-      - name: upload release asset
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-assets
-          path: sbash64-budget-web-linux-armv6.zip
-  create-release:
-    name: create github release
-    needs: [build-linux-x86_64, build-raspberry-pi-zero]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      # https://github.community/t/how-to-get-just-the-tag-name/16241/7
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-
-      - name: download release assets
-        uses: actions/download-artifact@v3
-        with:
-          name: release-assets
+        run: zip -j sbash64-budget-web-linux-x86_64.zip build/web/sbash64-budget-web web/index.html web/styles.css dist/main.js LICENSE NOTICE.txt
       - name: create GitHub release
-        run: |
-          gh release create ${{ steps.get_version.outputs.VERSION }} -n "" -t ${{ steps.get_version.outputs.VERSION }} *.zip
+        run: gh release create "${{ github.ref_name }}" *.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

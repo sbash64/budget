@@ -11,13 +11,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            cpp-compiler: g++-10
+            cpp-compiler: g++
           - os: macOS-latest
             cpp-compiler: clang++
           - os: windows-latest
             cpp-compiler: cl
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: generate buildsystem
         env:
           CXX: ${{ matrix.cpp-compiler }}
