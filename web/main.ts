@@ -239,23 +239,25 @@ function main() {
   const rightHandFormControls = document.createElement("div");
   adoptChild(rightHandContent, rightHandFormControls);
 
-  const createAccountControls = document.createElement("section");
-  adoptChild(leftHandFormControls, createAccountControls);
+  const createAccountForm = document.createElement("form");
+  adoptChild(leftHandFormControls, createAccountForm);
   const createAccountTitle = document.createElement("div");
-  adoptChild(createAccountControls, createAccountTitle);
   createAccountTitle.textContent = "Create Account";
   createAccountTitle.style.fontSize = "24px";
   createAccountTitle.style.fontWeight = "bold";
+  adoptChild(createAccountForm, createAccountTitle);
   const newAccountNameLabel = document.createElement("label");
-  adoptChild(createAccountControls, newAccountNameLabel);
-  newAccountNameLabel.textContent = "name";
+  newAccountNameLabel.textContent = "Name:";
+  adoptChild(createAccountForm, divWrapped(newAccountNameLabel));
   const newAccountNameInput = document.createElement("input");
-  adoptChild(newAccountNameLabel, newAccountNameInput);
+  newAccountNameInput.required = true;
   newAccountNameInput.type = "text";
   newAccountNameInput.style.margin = "1ch";
-  const createAccountButton = document.createElement("button");
-  adoptChild(createAccountControls, createAccountButton);
-  createAccountButton.textContent = "create";
+  adoptChild(newAccountNameLabel, divWrapped(newAccountNameInput));
+  const createAccountButton = document.createElement("input");
+  createAccountButton.type = "submit";
+  createAccountButton.value = "create";
+  adoptChild(createAccountForm, divWrapped(createAccountButton));
 
   const addTransactionForm = document.createElement("form");
   adoptChild(rightHandFormControls, addTransactionForm);
@@ -264,13 +266,9 @@ function main() {
   addTransactionTitle.textContent = "Add Transaction to Account";
   addTransactionTitle.style.fontSize = "24px";
   addTransactionTitle.style.fontWeight = "bold";
-
-  //addTransactionControls.style.display = "flex";
-  //addTransactionControls.style.flexDirection = "column";
-  //addTransactionControls.style.alignItems = "flex-start";
   const addTransactionDescriptionLabel = document.createElement("label");
   adoptChild(addTransactionForm, divWrapped(addTransactionDescriptionLabel));
-  addTransactionDescriptionLabel.textContent = "description";
+  addTransactionDescriptionLabel.textContent = "Description:";
   const addTransactionDescriptionInput = document.createElement("input");
   addTransactionDescriptionInput.required = true;
   adoptChild(addTransactionDescriptionLabel, addTransactionDescriptionInput);
@@ -278,7 +276,7 @@ function main() {
   addTransactionDescriptionInput.style.margin = "1ch";
   const addTransactionAmountLabel = document.createElement("label");
   adoptChild(addTransactionForm, divWrapped(addTransactionAmountLabel));
-  addTransactionAmountLabel.textContent = "amount";
+  addTransactionAmountLabel.textContent = "Amount:";
   const addTransactionAmountInput = document.createElement("input");
   addTransactionAmountInput.required = true;
   adoptChild(addTransactionAmountLabel, addTransactionAmountInput);
@@ -288,7 +286,7 @@ function main() {
   addTransactionAmountInput.style.margin = "1ch";
   const addTransactionDateLabel = document.createElement("label");
   adoptChild(addTransactionForm, divWrapped(addTransactionDateLabel));
-  addTransactionDateLabel.textContent = "date";
+  addTransactionDateLabel.textContent = "Date:";
   const addTransactionDateInput = document.createElement("input");
   addTransactionDateInput.required = true;
   adoptChild(addTransactionDateLabel, addTransactionDateInput);
@@ -297,7 +295,7 @@ function main() {
   const addTransactionButton = document.createElement("input");
   addTransactionButton.type = "submit";
   adoptChild(addTransactionForm, divWrapped(addTransactionButton));
-  addTransactionButton.value = "add";
+  addTransactionButton.value = "Add";
 
   const transferAndAllocateControls = document.createElement("section");
   adoptChild(leftHandFormControls, transferAndAllocateControls);
@@ -504,7 +502,8 @@ function main() {
       );
     },
   );
-  createAccountButton.addEventListener("click", () => {
+  createAccountForm.addEventListener("submit", (event) => {
+    event.preventDefault();
     sendMessage(websocket, {
       method: "create account",
       name: newAccountNameInput.value,
