@@ -1,6 +1,7 @@
 #include "account.hpp"
 #include "domain.hpp"
 
+#include <algorithm>
 #include <functional>
 #include <numeric>
 
@@ -81,11 +82,11 @@ static void addTransaction(AccountInMemory::TransactionsType &transactions,
 
 static void remove(AccountInMemory::TransactionsType &transactions,
                    Account::Observer *observer, const Transaction &toRemove) {
-  if (const auto found = find_if(transactions.begin(), transactions.end(),
-                                 [&toRemove](const auto &transaction) {
-                                   return !transaction->archived() &&
-                                          transaction->removes(toRemove);
-                                 });
+  if (const auto found = std::find_if(transactions.begin(), transactions.end(),
+                                      [&toRemove](const auto &transaction) {
+                                        return !transaction->archived() &&
+                                               transaction->removes(toRemove);
+                                      });
       found != transactions.end()) {
     transactions.erase(found);
     notifyUpdatedBalance(transactions, observer);
