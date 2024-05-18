@@ -1,4 +1,4 @@
-import "./styles.css";
+main();
 
 function adoptChild(parent: HTMLElement, child: HTMLElement) {
   parent.append(child);
@@ -536,7 +536,3 @@ function main() {
     }
   });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  main();
-});
