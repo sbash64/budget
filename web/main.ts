@@ -10,6 +10,12 @@ function createChild(parent: HTMLElement, tagName: string): HTMLElement {
   return child;
 }
 
+function divWrapped(e: HTMLElement): HTMLElement {
+  const div = document.createElement("div");
+  adoptChild(div, e);
+  return div;
+}
+
 interface OutgoingMessage {
   method: string;
   name?: string;
@@ -251,43 +257,47 @@ function main() {
   adoptChild(createAccountControls, createAccountButton);
   createAccountButton.textContent = "create";
 
-  const addTransactionControls = document.createElement("section");
-  adoptChild(rightHandFormControls, addTransactionControls);
+  const addTransactionForm = document.createElement("form");
+  adoptChild(rightHandFormControls, addTransactionForm);
   const addTransactionTitle = document.createElement("div");
-  adoptChild(addTransactionControls, addTransactionTitle);
+  adoptChild(addTransactionForm, addTransactionTitle);
   addTransactionTitle.textContent = "Add Transaction to Account";
   addTransactionTitle.style.fontSize = "24px";
   addTransactionTitle.style.fontWeight = "bold";
 
-  addTransactionControls.style.display = "flex";
-  addTransactionControls.style.flexDirection = "column";
-  addTransactionControls.style.alignItems = "flex-start";
+  //addTransactionControls.style.display = "flex";
+  //addTransactionControls.style.flexDirection = "column";
+  //addTransactionControls.style.alignItems = "flex-start";
   const addTransactionDescriptionLabel = document.createElement("label");
-  adoptChild(addTransactionControls, addTransactionDescriptionLabel);
+  adoptChild(addTransactionForm, divWrapped(addTransactionDescriptionLabel));
   addTransactionDescriptionLabel.textContent = "description";
   const addTransactionDescriptionInput = document.createElement("input");
+  addTransactionDescriptionInput.required = true;
   adoptChild(addTransactionDescriptionLabel, addTransactionDescriptionInput);
   addTransactionDescriptionInput.type = "text";
   addTransactionDescriptionInput.style.margin = "1ch";
   const addTransactionAmountLabel = document.createElement("label");
-  adoptChild(addTransactionControls, addTransactionAmountLabel);
+  adoptChild(addTransactionForm, divWrapped(addTransactionAmountLabel));
   addTransactionAmountLabel.textContent = "amount";
   const addTransactionAmountInput = document.createElement("input");
+  addTransactionAmountInput.required = true;
   adoptChild(addTransactionAmountLabel, addTransactionAmountInput);
   addTransactionAmountInput.type = "number";
   addTransactionAmountInput.min = "0";
   addTransactionAmountInput.step = "any";
   addTransactionAmountInput.style.margin = "1ch";
   const addTransactionDateLabel = document.createElement("label");
-  adoptChild(addTransactionControls, addTransactionDateLabel);
+  adoptChild(addTransactionForm, divWrapped(addTransactionDateLabel));
   addTransactionDateLabel.textContent = "date";
   const addTransactionDateInput = document.createElement("input");
+  addTransactionDateInput.required = true;
   adoptChild(addTransactionDateLabel, addTransactionDateInput);
   addTransactionDateInput.type = "date";
   addTransactionDateInput.style.margin = "1ch";
-  const addTransactionButton = document.createElement("button");
-  adoptChild(addTransactionControls, addTransactionButton);
-  addTransactionButton.textContent = "add";
+  const addTransactionButton = document.createElement("input");
+  addTransactionButton.type = "submit";
+  adoptChild(addTransactionForm, divWrapped(addTransactionButton));
+  addTransactionButton.value = "add";
 
   const transferAndAllocateControls = document.createElement("section");
   adoptChild(leftHandFormControls, transferAndAllocateControls);
@@ -521,7 +531,8 @@ function main() {
       transferAndAllocateInput.value = "";
     }
   });
-  addTransactionButton.addEventListener("click", () => {
+  addTransactionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
     if (selectedAccountSummaryRow !== null) {
       sendMessage(websocket, {
         method: "add transaction",
