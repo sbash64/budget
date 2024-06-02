@@ -51,14 +51,12 @@ public:
   void notifyThatIs(const Transaction &t) override;
   void notifyThatWillBeRemoved() override;
   [[nodiscard]] auto get() const -> const Transaction & { return transaction; }
-  void setIndex(gsl::index i) { index = i; }
   void catchUp(View *);
 
 private:
   Transaction transaction;
   const std::set<View *> &views;
   AccountPresenter &parent;
-  gsl::index index{-1};
   bool verified{};
   bool archived{};
 };
@@ -84,13 +82,14 @@ public:
   void ready(const TransactionPresenter *);
   void remove(const TransactionPresenter *);
   void catchUp(View *);
+  auto index(const TransactionPresenter *) -> gsl::index;
 
   std::string name;
   Parent &parent;
 
 private:
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
-  std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
+  std::set<std::unique_ptr<TransactionPresenter>, std::less<>> orderedChildren;
   const std::set<View *> &views;
   USD balance{};
   USD allocation{};
