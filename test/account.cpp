@@ -115,6 +115,8 @@ private:
 
 class AccountObserverStub : public Account::Observer {
 public:
+  void notifyThatNameHasChanged(std::string_view) override {}
+
   auto allocation() -> USD { return allocation_; }
 
   auto balance() -> USD { return balance_; }

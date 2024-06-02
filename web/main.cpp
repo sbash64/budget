@@ -74,6 +74,22 @@ public:
               websocketpp::connection_hdl connection)
       : connection{std::move(connection)}, server{server} {}
 
+  void setAccountName(gsl::index accountIndex, std::string_view s) override {
+    nlohmann::json json;
+    assignMethod(json, "update account name");
+    assignAccountIndex(json, accountIndex);
+    json["name"] = s;
+    send(server, connection, json);
+  }
+
+  void reorderAccountIndex(gsl::index from, gsl::index to) override {
+    nlohmann::json json;
+    assignMethod(json, "reorder account");
+    assignAccountIndex(json, from);
+    json["newIndex"] = to;
+    send(server, connection, json);
+  }
+
   void updateAccountAllocation(gsl::index accountIndex,
                                std::string_view s) override {
     nlohmann::json json;
@@ -261,7 +277,7 @@ handleMessage(Budget &budget, std::uintmax_t &backupCount,
   else if (methodIs(json, "rename account"))
     budget.renameAccount(accountName(json), json["newName"].get<std::string>());
   else if (methodIs(json, "create account"))
-    budget.createAccount(accountName(json));
+    budget.createAccount(json["newName"].get<std::string>());
   else if (methodIs(json, "remove account"))
     budget.removeAccount(accountName(json));
   else if (methodIs(json, "close account"))

@@ -14,6 +14,8 @@ namespace sbash64::budget::presentation {
 namespace {
 class ViewStub : public View {
 public:
+  void setAccountName(gsl::index, std::string_view) override {}
+
   void updateAccountAllocation(gsl::index accountIndex,
                                std::string_view s) override {
     accountIndex_ = static_cast<int>(accountIndex);
@@ -111,6 +113,14 @@ public:
 
   void markAsUnsaved() override { markedAsUnsaved_ = true; }
 
+  void reorderAccountIndex(gsl::index from, gsl::index to) override {
+    reorderedAccountFromIndex = from;
+    reorderedAccountToIndex = to;
+  }
+
+  gsl::index reorderedAccountFromIndex{-1};
+  gsl::index reorderedAccountToIndex{-1};
+
 private:
   std::string allocation_;
   std::string balance_;
@@ -132,6 +142,9 @@ private:
 class AccountPresenterParentStub : public AccountPresenter::Parent {
 public:
   void remove(const AccountPresenter *) override {}
+  void reorder(const AccountPresenter *, std::string_view) override {}
+  auto index(const AccountPresenter *) -> gsl::index override { return index_; }
+  gsl::index index_{-1};
 };
 } // namespace
 
@@ -141,20 +154,21 @@ static void add(AccountStub &account, ObservableTransaction &transaction,
   transaction.ready(t);
 }
 
-static void test(const std::function<void(AccountPresenter &, AccountStub &,
-                                          ViewStub &)> &f) {
+static void
+test(const std::function<void(AccountPresenter &, AccountStub &, ViewStub &,
+                              AccountPresenterParentStub &)> &f) {
   AccountStub account;
   ViewStub view;
   std::set<View *> views{&view};
   AccountPresenterParentStub parent;
   AccountPresenter presenter{account, views, "", parent};
-  f(presenter, account, view);
+  f(presenter, account, view, parent);
 }
 
 void formatsAccountBalance(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &account,
-                 ViewStub &view) {
-    presenter.setIndex(1);
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &parent) {
+    parent.index_ = 1;
     account.observer()->notifyThatBalanceHasChanged(123_cents);
     assertEqual(result, "1.23", view.balance());
     assertEqual(result, 1, view.accountIndex());
@@ -162,9 +176,9 @@ void formatsAccountBalance(testcpplite::TestResult &result) {
 }
 
 void formatsAccountAllocation(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &account,
-                 ViewStub &view) {
-    presenter.setIndex(42);
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &parent) {
+    parent.index_ = 42;
     account.observer()->notifyThatAllocationHasChanged(4680_cents);
     assertEqual(result, "46.80", view.allocation());
     assertEqual(result, 42, view.accountIndex());
@@ -172,9 +186,9 @@ void formatsAccountAllocation(testcpplite::TestResult &result) {
 }
 
 void formatsTransactionAmount(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &presenter, AccountStub &account,
-                 ViewStub &view) {
-    presenter.setIndex(3);
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &parent) {
+    parent.index_ = 3;
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -184,7 +198,8 @@ void formatsTransactionAmount(testcpplite::TestResult &result) {
 }
 
 void formatsTransactionDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -193,7 +208,8 @@ void formatsTransactionDate(testcpplite::TestResult &result) {
 }
 
 void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory transaction;
     add(account, transaction,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -202,7 +218,8 @@ void passesDescriptionOfNewTransaction(testcpplite::TestResult &result) {
 }
 
 void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -230,7 +247,8 @@ void ordersTransactionsByMostRecentDate(testcpplite::TestResult &result) {
 }
 
 void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory ape;
     add(account, ape,
         {{789_cents, "ape", Date{2020, Month::June, 1}}, false, false});
@@ -254,7 +272,8 @@ void ordersSameDateTransactionsByDescription(testcpplite::TestResult &result) {
 }
 
 void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -282,7 +301,8 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &result) {
 }
 
 void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -318,7 +338,8 @@ void deletesRemovedTransactionRow(testcpplite::TestResult &result) {
 }
 
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
-  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view) {
+  test([&result](AccountPresenter &, AccountStub &account, ViewStub &view,
+                 AccountPresenterParentStub &) {
     ObservableTransactionInMemory june1st2020;
     add(account, june1st2020,
         {{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, false, false});
@@ -342,6 +363,25 @@ void removesSelectionFromArchivedTransaction(testcpplite::TestResult &result) {
     january3rd2020.archive();
     assertEqual(result, 2, view.removedTransactionSelectionIndex());
   });
+}
+
+void reordersAccountsByName(testcpplite::TestResult &result) {
+  ViewStub view;
+  AccountStub incomeAccount;
+  BudgetPresenter presenter{incomeAccount};
+  presenter.add(&view);
+  AccountStub bob;
+  presenter.notifyThatExpenseAccountHasBeenCreated(bob, "bob");
+  AccountStub daleOrAdam;
+  presenter.notifyThatExpenseAccountHasBeenCreated(daleOrAdam, "dale");
+  AccountStub carlOrPeggy;
+  presenter.notifyThatExpenseAccountHasBeenCreated(carlOrPeggy, "carl");
+  carlOrPeggy.observer()->notifyThatNameHasChanged("peggy");
+  assertEqual(result, 2L, view.reorderedAccountFromIndex);
+  assertEqual(result, 3L, view.reorderedAccountToIndex);
+  daleOrAdam.observer()->notifyThatNameHasChanged("adam");
+  assertEqual(result, 2L, view.reorderedAccountFromIndex);
+  assertEqual(result, 1L, view.reorderedAccountToIndex);
 }
 
 void ordersAccountsByName(testcpplite::TestResult &result) {

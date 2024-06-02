@@ -19,6 +19,7 @@ function divWrapped(e: HTMLElement): HTMLElement {
 interface OutgoingMessage {
   method: string;
   name?: string;
+  newName?: string;
   amount?: string;
   description?: string;
   date?: string;
@@ -239,87 +240,90 @@ function main() {
   const rightHandFormControls = document.createElement("div");
   adoptChild(rightHandContent, rightHandFormControls);
 
-  const createAccountForm = document.createElement("form");
-  adoptChild(leftHandFormControls, createAccountForm);
-  const createAccountTitle = document.createElement("div");
-  createAccountTitle.textContent = "Create Account";
-  createAccountTitle.style.fontSize = "24px";
-  createAccountTitle.style.fontWeight = "bold";
-  adoptChild(createAccountForm, createAccountTitle);
+  const createOrRenameAccountForm = document.createElement("form");
+  adoptChild(leftHandFormControls, createOrRenameAccountForm);
   const newAccountNameLabel = document.createElement("label");
   newAccountNameLabel.textContent = "Name:";
-  adoptChild(createAccountForm, divWrapped(newAccountNameLabel));
+  adoptChild(createOrRenameAccountForm, divWrapped(newAccountNameLabel));
   const newAccountNameInput = document.createElement("input");
   newAccountNameInput.required = true;
   newAccountNameInput.type = "text";
   newAccountNameInput.style.margin = "1ch";
-  adoptChild(newAccountNameLabel, divWrapped(newAccountNameInput));
+  adoptChild(newAccountNameLabel, newAccountNameInput);
   const createAccountButton = document.createElement("input");
   createAccountButton.type = "submit";
-  createAccountButton.value = "create";
-  adoptChild(createAccountForm, divWrapped(createAccountButton));
+  createAccountButton.value = "Create";
+  createAccountButton.title = "Create New Account";
+  createAccountButton.name = "create";
+  adoptChild(createOrRenameAccountForm, createAccountButton);
+  const renameAccountButton = document.createElement("input");
+  renameAccountButton.type = "submit";
+  renameAccountButton.value = "Rename";
+  renameAccountButton.title = "Rename Selected Account";
+  renameAccountButton.name = "rename";
+  adoptChild(createOrRenameAccountForm, renameAccountButton);
 
-  const addTransactionForm = document.createElement("form");
-  adoptChild(rightHandFormControls, addTransactionForm);
-  const addTransactionTitle = document.createElement("div");
-  adoptChild(addTransactionForm, addTransactionTitle);
-  addTransactionTitle.textContent = "Add Transaction to Account";
-  addTransactionTitle.style.fontSize = "24px";
-  addTransactionTitle.style.fontWeight = "bold";
-  const addTransactionDescriptionLabel = document.createElement("label");
-  adoptChild(addTransactionForm, divWrapped(addTransactionDescriptionLabel));
-  addTransactionDescriptionLabel.textContent = "Description:";
-  const addTransactionDescriptionInput = document.createElement("input");
-  addTransactionDescriptionInput.required = true;
-  adoptChild(addTransactionDescriptionLabel, addTransactionDescriptionInput);
-  addTransactionDescriptionInput.type = "text";
-  addTransactionDescriptionInput.style.margin = "1ch";
-  const addTransactionAmountLabel = document.createElement("label");
-  adoptChild(addTransactionForm, divWrapped(addTransactionAmountLabel));
-  addTransactionAmountLabel.textContent = "Amount:";
-  const addTransactionAmountInput = document.createElement("input");
-  addTransactionAmountInput.required = true;
-  adoptChild(addTransactionAmountLabel, addTransactionAmountInput);
-  addTransactionAmountInput.type = "number";
-  addTransactionAmountInput.min = "0";
-  addTransactionAmountInput.step = "any";
-  addTransactionAmountInput.style.margin = "1ch";
-  const addTransactionDateLabel = document.createElement("label");
-  adoptChild(addTransactionForm, divWrapped(addTransactionDateLabel));
-  addTransactionDateLabel.textContent = "Date:";
-  const addTransactionDateInput = document.createElement("input");
-  addTransactionDateInput.required = true;
-  adoptChild(addTransactionDateLabel, addTransactionDateInput);
-  addTransactionDateInput.type = "date";
-  addTransactionDateInput.style.margin = "1ch";
-  const addTransactionButton = document.createElement("input");
-  addTransactionButton.type = "submit";
-  adoptChild(addTransactionForm, divWrapped(addTransactionButton));
-  addTransactionButton.value = "Add";
-
-  const transferAndAllocateControls = document.createElement("section");
-  adoptChild(leftHandFormControls, transferAndAllocateControls);
-  const transferAndAllocateTitle = document.createElement("div");
-  adoptChild(transferAndAllocateControls, transferAndAllocateTitle);
-  transferAndAllocateTitle.textContent = "Transfer to/Allocate Account";
-  transferAndAllocateTitle.style.fontSize = "24px";
-  transferAndAllocateTitle.style.fontWeight = "bold";
-
+  const transferAndAllocateForm = document.createElement("form");
+  adoptChild(leftHandFormControls, transferAndAllocateForm);
   const transferAndAllocateAmountLabel = document.createElement("label");
-  adoptChild(transferAndAllocateControls, transferAndAllocateAmountLabel);
-  transferAndAllocateAmountLabel.textContent = "amount";
+  transferAndAllocateAmountLabel.textContent = "Amount:";
+  adoptChild(
+    transferAndAllocateForm,
+    divWrapped(transferAndAllocateAmountLabel),
+  );
   const transferAndAllocateInput = document.createElement("input");
-  adoptChild(transferAndAllocateAmountLabel, transferAndAllocateInput);
+  transferAndAllocateInput.required = true;
   transferAndAllocateInput.type = "number";
   transferAndAllocateInput.min = "0";
   transferAndAllocateInput.step = "any";
   transferAndAllocateInput.style.margin = "1ch";
-  const transferButton = document.createElement("button");
-  adoptChild(transferAndAllocateControls, transferButton);
-  transferButton.textContent = "transfer";
-  const allocateButton = document.createElement("button");
-  adoptChild(transferAndAllocateControls, allocateButton);
-  allocateButton.textContent = "allocate";
+  adoptChild(transferAndAllocateAmountLabel, transferAndAllocateInput);
+  const transferButton = document.createElement("input");
+  transferButton.type = "submit";
+  transferButton.value = "Transfer";
+  transferButton.name = "transfer";
+  transferButton.title = "Transfer Amount to Selected Account";
+  adoptChild(transferAndAllocateForm, transferButton);
+  const allocateButton = document.createElement("input");
+  allocateButton.type = "submit";
+  allocateButton.value = "Allocate";
+  allocateButton.name = "allocate";
+  allocateButton.title = "Allocate Amount for Selected Account";
+  adoptChild(transferAndAllocateForm, allocateButton);
+
+  const addTransactionForm = document.createElement("form");
+  adoptChild(rightHandFormControls, addTransactionForm);
+  const addTransactionDescriptionLabel = document.createElement("label");
+  addTransactionDescriptionLabel.textContent = "Description:";
+  adoptChild(addTransactionForm, divWrapped(addTransactionDescriptionLabel));
+  const addTransactionDescriptionInput = document.createElement("input");
+  addTransactionDescriptionInput.required = true;
+  addTransactionDescriptionInput.type = "text";
+  addTransactionDescriptionInput.style.margin = "1ch";
+  adoptChild(addTransactionDescriptionLabel, addTransactionDescriptionInput);
+  const addTransactionAmountLabel = document.createElement("label");
+  addTransactionAmountLabel.textContent = "Amount:";
+  adoptChild(addTransactionForm, divWrapped(addTransactionAmountLabel));
+  const addTransactionAmountInput = document.createElement("input");
+  addTransactionAmountInput.required = true;
+  addTransactionAmountInput.type = "number";
+  addTransactionAmountInput.min = "0";
+  addTransactionAmountInput.step = "any";
+  addTransactionAmountInput.style.margin = "1ch";
+  adoptChild(addTransactionAmountLabel, addTransactionAmountInput);
+  const addTransactionDateLabel = document.createElement("label");
+  addTransactionDateLabel.textContent = "Date:";
+  adoptChild(addTransactionForm, divWrapped(addTransactionDateLabel));
+  const addTransactionDateInput = document.createElement("input");
+  addTransactionDateInput.required = true;
+  addTransactionDateInput.type = "date";
+  addTransactionDateInput.style.margin = "1ch";
+  adoptChild(addTransactionDateLabel, addTransactionDateInput);
+  const addTransactionButton = document.createElement("input");
+  addTransactionButton.type = "submit";
+  addTransactionButton.value = "Add";
+  addTransactionButton.title = "Add New Transaction";
+  adoptChild(addTransactionForm, divWrapped(addTransactionButton));
 
   let selectedAccountTransactionTableBody: HTMLTableSectionElement | null =
     null;
@@ -341,6 +345,15 @@ function main() {
   websocket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     switch (message.method) {
+      case "reorder account": {
+        const row = accountSummaryTableBody.rows[message.accountIndex];
+        accountSummaryTableBody.removeChild(row);
+        const after = accountSummaryTableBody.rows[message.newIndex];
+        accountSummaryTableBody.insertBefore(row, after);
+        const [body] = accountTableBodies.splice(message.accountIndex, 1);
+        accountTableBodies.splice(message.newIndex, 0, body);
+        break;
+      }
       case "mark as saved": {
         saveButton.style.backgroundColor = "green";
         break;
@@ -428,6 +441,12 @@ function main() {
           message,
         ).cells[2].textContent = message.amount;
         break;
+      case "update account name":
+        accountSummaryRow(
+          accountSummaryTableBody,
+          message,
+        ).cells[1].textContent = message.name;
+        break;
       case "check transaction row":
         transactionRow(accountTableBodies, message).cells[4].textContent = "✅";
         break;
@@ -502,28 +521,25 @@ function main() {
       );
     },
   );
-  createAccountForm.addEventListener("submit", (event) => {
+  createOrRenameAccountForm.addEventListener("submit", (event) => {
     event.preventDefault();
+
     sendMessage(websocket, {
-      method: "create account",
-      name: newAccountNameInput.value,
+      method: `${(event.submitter as HTMLInputElement).name} account`,
+      name:
+        selectedAccountSummaryRow !== null
+          ? accountName(selectedAccountSummaryRow)
+          : "",
+      newName: newAccountNameInput.value,
     });
     newAccountNameInput.value = "";
   });
-  transferButton.addEventListener("click", () => {
+  transferAndAllocateForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
     if (selectedAccountSummaryRow !== null) {
       sendMessage(websocket, {
-        method: "transfer",
-        name: accountName(selectedAccountSummaryRow),
-        amount: transferAndAllocateInput.value,
-      });
-      transferAndAllocateInput.value = "";
-    }
-  });
-  allocateButton.addEventListener("click", () => {
-    if (selectedAccountSummaryRow !== null) {
-      sendMessage(websocket, {
-        method: "allocate",
+        method: (event.submitter as HTMLInputElement).name,
         name: accountName(selectedAccountSummaryRow),
         amount: transferAndAllocateInput.value,
       });
@@ -532,6 +548,7 @@ function main() {
   });
   addTransactionForm.addEventListener("submit", (event) => {
     event.preventDefault();
+
     if (selectedAccountSummaryRow !== null) {
       sendMessage(websocket, {
         method: "add transaction",

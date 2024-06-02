@@ -18,6 +18,8 @@ public:
   virtual void addNewAccountTable(std::string_view name,
                                   gsl::index accountIndex) = 0;
   virtual void deleteAccountTable(gsl::index accountIndex) = 0;
+  virtual void setAccountName(gsl::index accountIndex,
+                              std::string_view name) = 0;
   virtual void updateAccountAllocation(gsl::index accountIndex,
                                        std::string_view) = 0;
   virtual void updateAccountBalance(gsl::index accountIndex,
@@ -35,6 +37,7 @@ public:
                                              gsl::index transactionIndex) = 0;
   virtual void markAsSaved() = 0;
   virtual void markAsUnsaved() = 0;
+  virtual void reorderAccountIndex(gsl::index from, gsl::index to) = 0;
 };
 
 class AccountPresenter;
@@ -66,28 +69,29 @@ public:
   public:
     SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Parent);
     virtual void remove(const AccountPresenter *) = 0;
+    virtual void reorder(const AccountPresenter *,
+                         std::string_view newName) = 0;
+    virtual auto index(const AccountPresenter *) -> gsl::index = 0;
   };
 
   AccountPresenter(Account &, const std::set<View *> &, std::string_view name,
                    Parent &);
+  void notifyThatNameHasChanged(std::string_view) override;
   void notifyThatBalanceHasChanged(USD) override;
   void notifyThatAllocationHasChanged(USD) override;
   void notifyThatHasBeenAdded(ObservableTransaction &) override;
   void notifyThatWillBeRemoved() override;
   void ready(const TransactionPresenter *);
   void remove(const TransactionPresenter *);
-  [[nodiscard]] auto name() const -> std::string { return name_; }
-  void setIndex(gsl::index i) { index_ = i; }
-  [[nodiscard]] auto index() const -> gsl::index { return index_; }
   void catchUp(View *);
 
+  std::string name;
+  Parent &parent;
+
 private:
-  std::string name_;
   std::vector<std::unique_ptr<TransactionPresenter>> unorderedChildren;
   std::vector<std::unique_ptr<TransactionPresenter>> orderedChildren;
   const std::set<View *> &views;
-  Parent &parent;
-  gsl::index index_{-1};
   USD balance{};
   USD allocation{};
 };
@@ -104,13 +108,15 @@ public:
   void notifyThatHasBeenSaved() override;
   void notifyThatHasUnsavedChanges() override;
   void remove(const AccountPresenter *) override;
+  void reorder(const AccountPresenter *, std::string_view newName) override;
+  auto index(const AccountPresenter *) -> gsl::index override;
   void add(View *);
   void remove(View *);
 
 private:
-  std::vector<std::unique_ptr<AccountPresenter>> orderedChildren;
+  std::set<std::unique_ptr<AccountPresenter>, std::less<>> accounts;
   std::set<View *> views;
-  AccountPresenter incomeAccountPresenter;
+  AccountPresenter incomeAccount;
   USD netIncome{};
 };
 } // namespace sbash64::budget
