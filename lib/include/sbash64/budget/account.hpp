@@ -28,6 +28,7 @@ public:
   void verify(const Transaction &) override;
   void remove(const Transaction &) override;
   auto balance() -> USD override;
+  void rename(std::string_view) override;
 
   class Factory : public Account::Factory {
   public:

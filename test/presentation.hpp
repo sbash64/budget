@@ -15,6 +15,7 @@ void putsCheckmarkNextToVerifiedTransaction(testcpplite::TestResult &);
 void deletesRemovedTransactionRow(testcpplite::TestResult &);
 void removesSelectionFromArchivedTransaction(testcpplite::TestResult &);
 void ordersAccountsByName(testcpplite::TestResult &);
+void reordersAccountsByName(testcpplite::TestResult &);
 void formatsNetIncome(testcpplite::TestResult &);
 void marksAsSaved(testcpplite::TestResult &);
 void marksAsUnsaved(testcpplite::TestResult &);

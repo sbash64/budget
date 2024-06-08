@@ -181,8 +181,14 @@ void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {
 
 auto AccountInMemory::balance() -> USD { return budget::balance(transactions); }
 
+void AccountInMemory::rename(std::string_view name) {
+  callIfObserverExists(observer, [name](Account::Observer *observer_) {
+    observer_->notifyThatNameHasChanged(name);
+  });
+}
+
 void AccountInMemory::remove() {
-  callIfObserverExists(observer, [&](Account::Observer *observer_) {
+  callIfObserverExists(observer, [](Account::Observer *observer_) {
     observer_->notifyThatWillBeRemoved();
   });
 }

@@ -18,13 +18,15 @@ TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
 void TransactionPresenter::notifyThatIsVerified() {
   verified = true;
   for (const auto &view : views)
-    view->putCheckmarkNextToTransactionRow(parent.index(), index);
+    view->putCheckmarkNextToTransactionRow(parent.parent.index(&parent),
+                                           parent.index(this));
 }
 
 void TransactionPresenter::notifyThatIsArchived() {
   archived = true;
   for (const auto &view : views)
-    view->removeTransactionRowSelection(parent.index(), index);
+    view->removeTransactionRowSelection(parent.parent.index(&parent),
+                                        parent.index(this));
 }
 
 static auto format(USD usd) -> std::string {
@@ -46,34 +48,73 @@ void TransactionPresenter::notifyThatIs(const Transaction &t) {
 
 void TransactionPresenter::notifyThatWillBeRemoved() {
   for (const auto &view : views)
-    view->deleteTransactionRow(parent.index(), index);
+    view->deleteTransactionRow(parent.parent.index(&parent),
+                               parent.index(this));
   parent.remove(this);
 }
 
 void TransactionPresenter::catchUp(View *view) {
   if (verified)
-    view->putCheckmarkNextToTransactionRow(parent.index(), index);
+    view->putCheckmarkNextToTransactionRow(parent.parent.index(&parent),
+                                           parent.index(this));
   if (archived)
-    view->removeTransactionRowSelection(parent.index(), index);
+    view->removeTransactionRowSelection(parent.parent.index(&parent),
+                                        parent.index(this));
+}
+
+static auto operator<(const TransactionPresenter &a,
+                      const TransactionPresenter &b) -> bool {
+  if (a.get().date != b.get().date)
+    return !(a.get().date < b.get().date);
+  return a.get().description < b.get().description;
+}
+
+static auto operator<(const std::unique_ptr<TransactionPresenter> &a,
+                      const std::unique_ptr<TransactionPresenter> &b) -> bool {
+  return *a < *b;
+}
+
+static auto operator<(const std::unique_ptr<TransactionPresenter> &a,
+                      const TransactionPresenter &b) -> bool {
+  return *a < b;
+}
+
+static auto operator<(const TransactionPresenter &a,
+                      const std::unique_ptr<TransactionPresenter> &b) -> bool {
+  return a < *b;
+}
+
+static auto transactionIndex(
+    const std::set<std::unique_ptr<TransactionPresenter>, std::less<>>
+        &orderedChildren,
+    std::set<std::unique_ptr<TransactionPresenter>>::const_iterator it)
+    -> gsl::index {
+  return std::distance(orderedChildren.begin(), it);
 }
 
 AccountPresenter::AccountPresenter(Account &account,
                                    const std::set<View *> &views,
                                    std::string_view name, Parent &parent)
-    : name_{name}, views{views}, parent{parent} {
+    : name{name}, parent{parent}, views{views} {
   account.attach(this);
+}
+
+void AccountPresenter::notifyThatNameHasChanged(std::string_view name) {
+  parent.reorder(this, name);
+  for (const auto &view : views)
+    view->setAccountName(parent.index(this), name);
 }
 
 void AccountPresenter::notifyThatBalanceHasChanged(USD usd) {
   balance = usd;
   for (const auto &view : views)
-    view->updateAccountBalance(index_, format(usd));
+    view->updateAccountBalance(parent.index(this), format(usd));
 }
 
 void AccountPresenter::notifyThatAllocationHasChanged(USD usd) {
   allocation = usd;
   for (const auto &view : views)
-    view->updateAccountAllocation(index_, format(usd));
+    view->updateAccountAllocation(parent.index(this), format(usd));
 }
 
 void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
@@ -81,99 +122,82 @@ void AccountPresenter::notifyThatHasBeenAdded(ObservableTransaction &t) {
       std::make_unique<TransactionPresenter>(t, views, *this));
 }
 
-static auto newChildIndex(
-    const std::vector<std::unique_ptr<TransactionPresenter>> &orderedChildren,
-    const TransactionPresenter *child) -> gsl::index {
-  return distance(
-      orderedChildren.begin(),
-      upper_bound(orderedChildren.begin(), orderedChildren.end(), child,
-                  [](const TransactionPresenter *a,
-                     const std::unique_ptr<TransactionPresenter> &b) {
-                    if (a->get().date != b->get().date)
-                      return !(a->get().date < b->get().date);
-                    return a->get().description < b->get().description;
-                  }));
-}
-
 void AccountPresenter::ready(const TransactionPresenter *child) {
-  const auto childIndex{budget::newChildIndex(orderedChildren, child)};
   const auto unorderedChild{
       find_if(unorderedChildren.begin(), unorderedChildren.end(),
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  orderedChildren.insert(next(orderedChildren.begin(), childIndex),
-                         std::move(*unorderedChild));
-  auto i{childIndex};
-  auto it{std::next(orderedChildren.begin(), i)};
-  for (; it != orderedChildren.end(); ++it, ++i)
-    (*it)->setIndex(i);
+  auto [it, _]{orderedChildren.insert(std::move(*unorderedChild))};
   unorderedChildren.erase(unorderedChild);
   for (const auto &view : views)
-    view->addTransactionRow(index_, format(child->get().amount),
+    view->addTransactionRow(parent.index(this), format(child->get().amount),
                             date(child->get()), child->get().description,
-                            childIndex);
+                            transactionIndex(orderedChildren, it));
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
-  const auto orderedChild{
-      find_if(orderedChildren.begin(), orderedChildren.end(),
-              [child](const std::unique_ptr<TransactionPresenter> &a) {
-                return a.get() == child;
-              })};
-  auto i{distance(orderedChildren.begin(), next(orderedChild))};
-  auto it{std::next(orderedChildren.begin(), i)};
-  for (; it != orderedChildren.end(); ++it, ++i)
-    (*it)->setIndex(i - 1);
-  orderedChildren.erase(orderedChild);
+  orderedChildren.erase(orderedChildren.find(*child));
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {
   for (const auto &view : views)
-    view->deleteAccountTable(index_);
+    view->deleteAccountTable(parent.index(this));
   parent.remove(this);
 }
 
 void AccountPresenter::catchUp(View *view) {
-  view->updateAccountBalance(index_, format(balance));
-  view->updateAccountAllocation(index_, format(allocation));
-  gsl::index i{0};
+  view->updateAccountBalance(parent.index(this), format(balance));
+  view->updateAccountAllocation(parent.index(this), format(allocation));
   for (const auto &child : orderedChildren) {
-    view->addTransactionRow(index_, format(child->get().amount),
-                            date(child->get()), child->get().description, i++);
+    view->addTransactionRow(parent.index(this), format(child->get().amount),
+                            date(child->get()), child->get().description,
+                            index(child.get()));
     child->catchUp(view);
   }
 }
 
-static auto newChildIndex(
-    const std::vector<std::unique_ptr<AccountPresenter>> &orderedChildren,
-    std::string_view name) -> gsl::index {
-  return distance(orderedChildren.begin(),
-                  upper_bound(orderedChildren.begin(), orderedChildren.end(),
-                              name,
-                              [](std::string_view a,
-                                 const std::unique_ptr<AccountPresenter> &b) {
-                                return a < b->name();
-                              }));
+auto AccountPresenter::index(const TransactionPresenter *child) -> gsl::index {
+  return transactionIndex(orderedChildren, orderedChildren.find(*child));
 }
 
-BudgetPresenter::BudgetPresenter(Account &incomeAccount)
-    : incomeAccountPresenter{incomeAccount, views, incomeAccountName, *this} {
-  incomeAccountPresenter.setIndex(0);
+static auto operator<(const AccountPresenter &a, const AccountPresenter &b)
+    -> bool {
+  return a.name < b.name;
 }
+
+static auto operator<(const std::unique_ptr<AccountPresenter> &a,
+                      const std::unique_ptr<AccountPresenter> &b) -> bool {
+  return *a < *b;
+}
+
+static auto operator<(const std::unique_ptr<AccountPresenter> &a,
+                      const AccountPresenter &b) -> bool {
+  return *a < b;
+}
+
+static auto operator<(const AccountPresenter &a,
+                      const std::unique_ptr<AccountPresenter> &b) -> bool {
+  return a < *b;
+}
+
+static auto
+accountIndex(const std::set<std::unique_ptr<AccountPresenter>, std::less<>>
+                 &orderedChildren,
+             std::set<std::unique_ptr<AccountPresenter>>::const_iterator it)
+    -> gsl::index {
+  return std::distance(orderedChildren.begin(), it) + 1;
+}
+
+BudgetPresenter::BudgetPresenter(Account &account)
+    : incomeAccount{account, views, incomeAccountName, *this} {}
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
-  const auto childIndex{budget::newChildIndex(orderedChildren, name)};
-  orderedChildren.insert(
-      next(orderedChildren.begin(), childIndex),
-      std::make_unique<AccountPresenter>(account, views, name, *this));
-  auto i{childIndex};
-  auto it{std::next(orderedChildren.begin(), i)};
-  for (; it != orderedChildren.end(); ++it, ++i)
-    (*it)->setIndex(i + 1);
+  auto [it, _]{accounts.insert(
+      std::make_unique<AccountPresenter>(account, views, name, *this))};
   for (const auto &view : views)
-    view->addNewAccountTable(name, childIndex + 1);
+    view->addNewAccountTable(name, accountIndex(accounts, it));
 }
 
 void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
@@ -183,16 +207,19 @@ void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
 }
 
 void BudgetPresenter::remove(const AccountPresenter *child) {
-  const auto orderedChild{
-      find_if(orderedChildren.begin(), orderedChildren.end(),
-              [child](const std::unique_ptr<AccountPresenter> &a) {
-                return a.get() == child;
-              })};
-  auto i{distance(orderedChildren.begin(), next(orderedChild))};
-  auto it{std::next(orderedChildren.begin(), i)};
-  for (; it != orderedChildren.end(); ++it, ++i)
-    (*it)->setIndex(i);
-  orderedChildren.erase(orderedChild);
+  accounts.erase(accounts.find(*child));
+}
+
+void BudgetPresenter::reorder(const AccountPresenter *child,
+                              std::string_view newName) {
+  const auto from = accounts.find(*child);
+  const auto fromIndex{accountIndex(accounts, from)};
+  auto node{accounts.extract(from)};
+  node.value()->name = newName;
+  const auto to{accounts.insert(std::move(node))};
+  const auto toIndex{accountIndex(accounts, to.position)};
+  for (const auto &view : views)
+    view->reorderAccountIndex(fromIndex, toIndex);
 }
 
 void BudgetPresenter::notifyThatHasBeenSaved() {
@@ -208,14 +235,19 @@ void BudgetPresenter::notifyThatHasUnsavedChanges() {
 void BudgetPresenter::add(View *view) {
   view->updateNetIncome(format(netIncome));
   view->addNewAccountTable(incomeAccountName, 0);
-  incomeAccountPresenter.catchUp(view);
-  gsl::index i{0};
-  for (const auto &account : orderedChildren) {
-    view->addNewAccountTable(account->name(), ++i);
+  incomeAccount.catchUp(view);
+  for (const auto &account : accounts) {
+    view->addNewAccountTable(account->name, index(account.get()));
     account->catchUp(view);
   }
   views.insert(view);
 }
 
 void BudgetPresenter::remove(View *view) { views.erase(view); }
+
+auto BudgetPresenter::index(const AccountPresenter *account) -> gsl::index {
+  if (account == &incomeAccount)
+    return 0;
+  return accountIndex(accounts, accounts.find(*account));
+}
 } // namespace sbash64::budget

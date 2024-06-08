@@ -176,6 +176,7 @@ public:
     virtual void notifyThatAllocationHasChanged(USD) = 0;
     virtual void notifyThatHasBeenAdded(ObservableTransaction &) = 0;
     virtual void notifyThatWillBeRemoved() = 0;
+    virtual void notifyThatNameHasChanged(std::string_view) = 0;
   };
 
   virtual void attach(Observer *) = 0;
@@ -190,6 +191,7 @@ public:
   virtual void decreaseAllocationByResolvingVerifiedTransactions() = 0;
   virtual void remove() = 0;
   virtual void clear() = 0;
+  virtual void rename(std::string_view) = 0;
 
   class Factory {
   public:

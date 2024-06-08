@@ -209,6 +209,8 @@ static auto runAllTests() -> int {
         "presentation::removesSelectionFromArchivedTransaction"},
        {presentation::ordersAccountsByName,
         "presentation::ordersAccountsByName"},
+       {presentation::reordersAccountsByName,
+        "presentation::reordersAccountsByName"},
        {presentation::formatsNetIncome, "presentation::formatsNetIncome"},
        {presentation::marksAsSaved, "presentation::marksAsSaved"},
        {presentation::marksAsUnsaved, "presentation::marksAsUnsaved"}},
