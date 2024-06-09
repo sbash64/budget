@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace sbash64::budget {
@@ -66,7 +67,11 @@ static auto operator<(const TransactionPresenter &a,
                       const TransactionPresenter &b) -> bool {
   if (a.get().date != b.get().date)
     return !(a.get().date < b.get().date);
-  return a.get().description < b.get().description;
+  if (a.get().description != b.get().description)
+    return a.get().description < b.get().description;
+  if (a.get().amount != b.get().amount)
+    return a.get().amount.cents < b.get().amount.cents;
+  return &a < &b;
 }
 
 static auto operator<(const std::unique_ptr<TransactionPresenter> &a,
@@ -128,7 +133,11 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
               [child](const std::unique_ptr<TransactionPresenter> &a) {
                 return a.get() == child;
               })};
-  auto [it, _]{orderedChildren.insert(std::move(*unorderedChild))};
+  if (unorderedChild == unorderedChildren.end())
+    throw std::runtime_error{"Unable to find transaction presenter"};
+  const auto [it, success]{orderedChildren.insert(std::move(*unorderedChild))};
+  if (!success)
+    throw std::runtime_error{"Unable to insert transaction presenter"};
   unorderedChildren.erase(unorderedChild);
   for (const auto &view : views)
     view->addTransactionRow(parent.index(this), format(child->get().amount),
@@ -137,7 +146,11 @@ void AccountPresenter::ready(const TransactionPresenter *child) {
 }
 
 void AccountPresenter::remove(const TransactionPresenter *child) {
-  orderedChildren.erase(orderedChildren.find(*child));
+  const auto it = orderedChildren.find(*child);
+  if (it == orderedChildren.end())
+    throw std::runtime_error{
+        "Unable to find transaction presenter for removal"};
+  orderedChildren.erase(it);
 }
 
 void AccountPresenter::notifyThatWillBeRemoved() {
@@ -163,7 +176,9 @@ auto AccountPresenter::index(const TransactionPresenter *child) -> gsl::index {
 
 static auto operator<(const AccountPresenter &a, const AccountPresenter &b)
     -> bool {
-  return a.name < b.name;
+  if (a.name != b.name)
+    return a.name < b.name;
+  return &a < &b;
 }
 
 static auto operator<(const std::unique_ptr<AccountPresenter> &a,
@@ -194,8 +209,10 @@ BudgetPresenter::BudgetPresenter(Account &account)
 
 void BudgetPresenter::notifyThatExpenseAccountHasBeenCreated(
     Account &account, std::string_view name) {
-  auto [it, _]{accounts.insert(
+  auto [it, success]{accounts.insert(
       std::make_unique<AccountPresenter>(account, views, name, *this))};
+  if (!success)
+    throw std::runtime_error{"Unable to insert account presenter"};
   for (const auto &view : views)
     view->addNewAccountTable(name, accountIndex(accounts, it));
 }
@@ -207,12 +224,17 @@ void BudgetPresenter::notifyThatNetIncomeHasChanged(USD usd) {
 }
 
 void BudgetPresenter::remove(const AccountPresenter *child) {
-  accounts.erase(accounts.find(*child));
+  const auto it = accounts.find(*child);
+  if (it == accounts.end())
+    throw std::runtime_error{"Unable to find account presenter for removal"};
+  accounts.erase(it);
 }
 
 void BudgetPresenter::reorder(const AccountPresenter *child,
                               std::string_view newName) {
   const auto from = accounts.find(*child);
+  if (from == accounts.end())
+    throw std::runtime_error{"Unable to find account presenter for reordering"};
   const auto fromIndex{accountIndex(accounts, from)};
   auto node{accounts.extract(from)};
   node.value()->name = newName;
@@ -248,6 +270,9 @@ void BudgetPresenter::remove(View *view) { views.erase(view); }
 auto BudgetPresenter::index(const AccountPresenter *account) -> gsl::index {
   if (account == &incomeAccount)
     return 0;
-  return accountIndex(accounts, accounts.find(*account));
+  const auto it = accounts.find(*account);
+  if (it == accounts.end())
+    throw std::runtime_error{"Unable to find account presenter for index"};
+  return accountIndex(accounts, it);
 }
 } // namespace sbash64::budget
