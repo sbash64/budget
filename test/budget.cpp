@@ -429,16 +429,27 @@ void renamesAccount(testcpplite::TestResult &result) {
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         budget.renameAccount("giraffe", "zebra");
+        assertEqual(result, "zebra", giraffe->newName);
         budget.transferTo("zebra", 4_cents);
         assertEqual(result, 4_cents, giraffe->increasedAllocationAmount());
       });
 }
 
-void ignoresRenamingNonexistentAccount(testcpplite::TestResult &result) {
+void ignoresRenamingNonexistentAccount(testcpplite::TestResult &) {
   testBudgetInMemory(
-      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+      [](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         budget.renameAccount("bear", "zebra");
+      });
+}
+
+void ignoresRenameIfClobbersExisting(testcpplite::TestResult &result) {
+  testBudgetInMemory(
+      [&](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto zebra{createAccountStub(budget, factory, "zebra")};
+        budget.renameAccount("zebra", "giraffe");
+        assertFalse(result, zebra->renamed);
       });
 }
 

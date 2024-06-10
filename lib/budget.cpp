@@ -223,6 +223,8 @@ void BudgetInMemory::closeAccount(std::string_view name) {
 }
 
 void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
+  if (contains(expenseAccounts, to))
+    return;
   auto node{expenseAccounts.extract(std::string{from})};
   if (node.empty())
     return;

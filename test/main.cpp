@@ -64,6 +64,7 @@ static auto runAllTests() -> int {
        {loadsAccounts, "load loads accounts"},
        {renamesAccount, "rename account"},
        {ignoresRenamingNonexistentAccount, "ignoresRenamingNonexistentAccount"},
+       {ignoresRenameIfClobbersExisting, "ignoresRenameIfClobbersExisting"},
        {notifiesObserverOfDeserializedAccount,
         "notifies observer of new account"},
        {reducesEachAccount, "reduce reduces each account"},

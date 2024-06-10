@@ -6,7 +6,10 @@
 namespace sbash64::budget {
 class AccountStub : public virtual Account {
 public:
-  void rename(std::string_view) override {}
+  void rename(std::string_view name) override {
+    newName = name;
+    renamed = true;
+  }
 
   auto decreasedAllocationAmount() -> USD { return decreasedAllocationAmount_; }
 
@@ -93,6 +96,9 @@ public:
   auto removedTransaction() -> Transaction { return removedTransaction_; }
 
   auto observer() -> Observer * { return observer_; }
+
+  std::string newName;
+  bool renamed{};
 
 private:
   Transaction verifiedTransaction_;
