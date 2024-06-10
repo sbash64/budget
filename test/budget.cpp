@@ -434,6 +434,14 @@ void renamesAccount(testcpplite::TestResult &result) {
       });
 }
 
+void ignoresRenamingNonexistentAccount(testcpplite::TestResult &result) {
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        budget.renameAccount("bear", "zebra");
+      });
+}
+
 void verifiesExpenseForExistingAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {

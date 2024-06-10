@@ -63,6 +63,7 @@ static auto runAllTests() -> int {
        {notifiesThatHasBeenSavedWhenSaved, "save notifies that has been saved"},
        {loadsAccounts, "load loads accounts"},
        {renamesAccount, "rename account"},
+       {ignoresRenamingNonexistentAccount, "ignoresRenamingNonexistentAccount"},
        {notifiesObserverOfDeserializedAccount,
         "notifies observer of new account"},
        {reducesEachAccount, "reduce reduces each account"},

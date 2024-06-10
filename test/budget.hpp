@@ -16,6 +16,7 @@ void removesExpenseFromAccount(testcpplite::TestResult &);
 void doesNotRemoveExpenseFromNonexistentAccount(testcpplite::TestResult &);
 void removesIncomeFromAccount(testcpplite::TestResult &);
 void renamesAccount(testcpplite::TestResult &);
+void ignoresRenamingNonexistentAccount(testcpplite::TestResult &);
 void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);

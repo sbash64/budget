@@ -223,10 +223,12 @@ void BudgetInMemory::closeAccount(std::string_view name) {
 }
 
 void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
-  auto fromNode{expenseAccounts.extract(std::string{from})};
-  fromNode.key() = to;
-  fromNode.mapped()->rename(to);
-  expenseAccounts.insert(std::move(fromNode));
+  auto node{expenseAccounts.extract(std::string{from})};
+  if (node.empty())
+    return;
+  node.key() = to;
+  node.mapped()->rename(to);
+  expenseAccounts.insert(std::move(node));
 }
 
 void BudgetInMemory::removeAccount(std::string_view name) {
