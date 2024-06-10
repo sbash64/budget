@@ -231,6 +231,7 @@ void BudgetInMemory::renameAccount(std::string_view from, std::string_view to) {
   node.key() = to;
   node.mapped()->rename(to);
   expenseAccounts.insert(std::move(node));
+  notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::removeAccount(std::string_view name) {

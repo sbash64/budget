@@ -385,12 +385,14 @@ void removesExpenseFromAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenRemovingExpense(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto account{createAccountStub(budget, factory, "giraffe")};
-    budget.removeExpense("giraffe", Transaction{});
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto account{createAccountStub(budget, factory, "giraffe")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.removeExpense("giraffe", Transaction{});
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void doesNotRemoveExpenseFromNonexistentAccount(
@@ -428,8 +430,12 @@ void renamesAccount(testcpplite::TestResult &result) {
   testBudgetInMemory(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
         budget.renameAccount("giraffe", "zebra");
         assertEqual(result, "zebra", giraffe->newName);
+        assertHasUnsavedChanges(result, observer);
+
         budget.transferTo("zebra", 4_cents);
         assertEqual(result, 4_cents, giraffe->increasedAllocationAmount());
       });
@@ -466,13 +472,15 @@ void verifiesExpenseForExistingAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.verifyExpense("giraffe",
-                         {1_cents, "hi", Date{2020, Month::April, 1}});
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.verifyExpense("giraffe",
+                             {1_cents, "hi", Date{2020, Month::April, 1}});
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void verifiesIncome(testcpplite::TestResult &result) {
@@ -533,14 +541,16 @@ void reducesEachAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenReducing(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    const auto penguin{createAccountStub(budget, factory, "penguin")};
-    const auto leopard{createAccountStub(budget, factory, "leopard")};
-    budget.reduce();
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto penguin{createAccountStub(budget, factory, "penguin")};
+        const auto leopard{createAccountStub(budget, factory, "leopard")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.reduce();
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void notifiesThatNetIncomeHasChangedOnAddedIncome(
@@ -622,14 +632,16 @@ void removesAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenRemovingAccount(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    const auto penguin{createAccountStub(budget, factory, "penguin")};
-    const auto leopard{createAccountStub(budget, factory, "leopard")};
-    budget.removeAccount("giraffe");
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto penguin{createAccountStub(budget, factory, "penguin")};
+        const auto leopard{createAccountStub(budget, factory, "leopard")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.removeAccount("giraffe");
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void doesNotOverwriteExistingAccount(testcpplite::TestResult &result) {
@@ -673,14 +685,16 @@ void closesAccount(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenClosingAccount(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    const auto penguin{createAccountStub(budget, factory, "penguin")};
-    const auto leopard{createAccountStub(budget, factory, "leopard")};
-    budget.closeAccount("giraffe");
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        const auto penguin{createAccountStub(budget, factory, "penguin")};
+        const auto leopard{createAccountStub(budget, factory, "leopard")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.closeAccount("giraffe");
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void closesAccountHavingNegativeBalance(testcpplite::TestResult &result) {
@@ -707,12 +721,14 @@ void transfersAmountNeededToReachAllocation(testcpplite::TestResult &result) {
 
 void notifiesThatHasUnsavedChangesWhenAllocating(
     testcpplite::TestResult &result) {
-  testBudgetInMemory([&result](AccountFactoryStub &factory, AccountStub &,
-                               BudgetObserverStub &observer, Budget &budget) {
-    const auto giraffe{createAccountStub(budget, factory, "giraffe")};
-    budget.allocate("giraffe", 7_cents);
-    assertHasUnsavedChanges(result, observer);
-  });
+  testBudgetInMemory(
+      [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
+        const auto giraffe{createAccountStub(budget, factory, "giraffe")};
+        BudgetObserverStub observer;
+        budget.attach(&observer);
+        budget.allocate("giraffe", 7_cents);
+        assertHasUnsavedChanges(result, observer);
+      });
 }
 
 void transfersAmountFromAccountAllocatedSufficiently(
