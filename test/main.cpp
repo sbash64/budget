@@ -161,7 +161,6 @@ static auto runAllTests() -> int {
         "loadPassesSelfToDeserialization"},
        {transaction::notifiesObserverOfLoadedTransaction,
         "notifiesThatIsAfterReady"},
-       {transaction::isArchived, "transaction::isArchived"},
        {transaction::isVerified, "transaction::isVerified"},
        {transaction::notifiesObserverOfInitializedTransaction,
         "notifiesThatIsAfterInitialize"},

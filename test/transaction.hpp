@@ -16,7 +16,6 @@ void savesInitializedTransaction(testcpplite::TestResult &);
 void savesArchival(testcpplite::TestResult &);
 void observesDeserialization(testcpplite::TestResult &);
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &);
-void isArchived(testcpplite::TestResult &);
 void isVerified(testcpplite::TestResult &);
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &);
 void notifiesObserverOfLoadedArchival(testcpplite::TestResult &);

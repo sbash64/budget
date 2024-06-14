@@ -129,7 +129,6 @@ public:
   virtual auto removes(const Transaction &) -> bool = 0;
   virtual void remove() = 0;
   virtual void archive() = 0;
-  virtual auto archived() -> bool = 0;
   virtual auto amount() -> USD = 0;
 
   class Factory {

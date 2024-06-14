@@ -55,8 +55,6 @@ public:
 
   void archive() override { wasArchived_ = true; }
 
-  auto archived() -> bool override { return archived_; }
-
   void setVerified() { verified_ = true; }
 
   auto verified() -> bool override { return verified_; }

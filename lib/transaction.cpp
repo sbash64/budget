@@ -57,10 +57,6 @@ void ObservableTransactionInMemory::archive() {
   }
 }
 
-auto ObservableTransactionInMemory::archived() -> bool {
-  return archivableVerifiableTransaction.archived;
-}
-
 auto ObservableTransactionInMemory::verified() -> bool {
   return archivableVerifiableTransaction.verified;
 }

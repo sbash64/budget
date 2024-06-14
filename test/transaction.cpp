@@ -204,13 +204,6 @@ void doesNotNotifyObserverOfArchivalTwice(testcpplite::TestResult &result) {
   });
 }
 
-void isArchived(testcpplite::TestResult &result) {
-  testObservableTransactionInMemory([&result](ObservableTransaction &record) {
-    record.archive();
-    assertTrue(result, record.archived());
-  });
-}
-
 void isVerified(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     record.ready({Transaction{}, true});
