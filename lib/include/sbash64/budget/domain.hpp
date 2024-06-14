@@ -122,7 +122,7 @@ public:
     virtual void notifyThatWillBeRemoved() = 0;
   };
 
-  virtual void attach(Observer *) = 0;
+  virtual void attach(Observer &) = 0;
   virtual void initialize(const Transaction &) = 0;
   virtual auto verifies(const Transaction &) -> bool = 0;
   virtual auto verified() -> bool = 0;

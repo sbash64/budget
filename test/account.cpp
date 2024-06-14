@@ -17,7 +17,7 @@ class ObservableTransactionStub : public ObservableTransaction {
 public:
   void ready(const ArchivableVerifiableTransaction &) override {}
 
-  void attach(Observer *) override {}
+  void attach(Observer &) override {}
 
   void initialize(const Transaction &t) override {
     initializedTransaction_ = t;
@@ -372,12 +372,12 @@ void notifiesObserverThatDuplicateTransactionsAreVerified(
                                 ObservableTransactionFactoryStub &factory) {
     const auto gorilla1{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla1Observer;
-    gorilla1->attach(&gorilla1Observer);
+    gorilla1->attach(gorilla1Observer);
     add(account,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     const auto gorilla2{addObservableTransactionInMemory(factory)};
     TransactionObserverStub gorilla2Observer;
-    gorilla2->attach(&gorilla2Observer);
+    gorilla2->attach(gorilla2Observer);
     add(account,
         Transaction{456_cents, "gorilla", Date{2020, Month::January, 20}});
     account.verify(
@@ -394,7 +394,7 @@ void notifiesObserverOfVerifiedTransaction(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
-    record->attach(&observer);
+    record->attach(observer);
     add(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.verify(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.verified());
@@ -406,7 +406,7 @@ void notifiesObserverOfRemovedTransaction(testcpplite::TestResult &result) {
                                 ObservableTransactionFactoryStub &factory) {
     const auto record{addObservableTransactionInMemory(factory)};
     TransactionObserverStub observer;
-    record->attach(&observer);
+    record->attach(observer);
     add(account, Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     account.remove(Transaction{123_cents, "ape", Date{2020, Month::June, 2}});
     assertTrue(result, observer.removed());

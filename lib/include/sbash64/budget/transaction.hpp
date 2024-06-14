@@ -3,10 +3,13 @@
 
 #include "domain.hpp"
 
+#include <functional>
+#include <vector>
+
 namespace sbash64::budget {
 class ObservableTransactionInMemory : public ObservableTransaction {
 public:
-  void attach(Observer *) override;
+  void attach(Observer &) override;
   void initialize(const Transaction &) override;
   auto verifies(const Transaction &) -> bool override;
   auto removes(const Transaction &) -> bool override;
@@ -25,7 +28,7 @@ public:
 
 private:
   ArchivableVerifiableTransaction archivableVerifiableTransaction;
-  Observer *observer{};
+  std::vector<std::reference_wrapper<Observer>> observers{};
 };
 } // namespace sbash64::budget
 

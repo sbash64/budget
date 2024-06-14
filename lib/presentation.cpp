@@ -13,7 +13,7 @@ TransactionPresenter::TransactionPresenter(ObservableTransaction &transaction,
                                            const std::set<View *> &views,
                                            AccountPresenter &parent)
     : views{views}, parent{parent} {
-  transaction.attach(this);
+  transaction.attach(*this);
 }
 
 void TransactionPresenter::notifyThatIsVerified() {

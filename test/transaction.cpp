@@ -155,7 +155,7 @@ void savesArchival(testcpplite::TestResult &result) {
 void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.initialize(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     record.verifies(
@@ -167,7 +167,7 @@ void notifiesObserverOfVerificationByQuery(testcpplite::TestResult &result) {
 void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.remove();
     assertTrue(result, observer.removed());
   });
@@ -176,7 +176,7 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
 void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.initialize(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     record.removes(
@@ -188,7 +188,7 @@ void notifiesObserverOfRemovalByQuery(testcpplite::TestResult &result) {
 void notifiesObserverOfArchival(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.archive();
     assertTrue(result, observer.archived());
   });
@@ -197,7 +197,7 @@ void notifiesObserverOfArchival(testcpplite::TestResult &result) {
 void doesNotNotifyObserverOfArchivalTwice(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.archive();
     record.archive();
     assertEqual(result, 1, observer.timesArchived());
@@ -214,7 +214,7 @@ void isVerified(testcpplite::TestResult &result) {
 void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.ready(
         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
          true});
@@ -228,7 +228,7 @@ void notifiesObserverOfLoadedTransaction(testcpplite::TestResult &result) {
 void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.initialize(
         Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}});
     assertEqual(
@@ -241,7 +241,7 @@ void notifiesObserverOfInitializedTransaction(testcpplite::TestResult &result) {
 void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.ready(
         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}},
          true});
@@ -252,7 +252,7 @@ void notifiesObserverOfLoadedVerification(testcpplite::TestResult &result) {
 void notifiesObserverOfLoadedArchival(testcpplite::TestResult &result) {
   testObservableTransactionInMemory([&result](ObservableTransaction &record) {
     TransactionObserverStub observer;
-    record.attach(&observer);
+    record.attach(observer);
     record.ready(
         {Transaction{789_cents, "chimpanzee", Date{2020, Month::June, 1}}, true,
          true});

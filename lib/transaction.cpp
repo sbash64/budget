@@ -3,45 +3,37 @@
 #include <functional>
 
 namespace sbash64::budget {
-static void callIfObserverExists(
-    ObservableTransaction::Observer *observer,
-    const std::function<void(ObservableTransaction::Observer *)> &f) {
-  if (observer != nullptr)
-    f(observer);
+void ObservableTransactionInMemory::attach(Observer &a) {
+  observers.push_back(std::ref(a));
 }
-
-void ObservableTransactionInMemory::attach(Observer *a) { observer = a; }
 
 void ObservableTransactionInMemory::initialize(const Transaction &transaction) {
   static_cast<Transaction &>(archivableVerifiableTransaction) = transaction;
-  callIfObserverExists(observer, [&transaction](Observer *observer_) {
-    observer_->notifyThatIs(transaction);
-  });
+  for (auto observer : observers)
+    observer.get().notifyThatIs(transaction);
 }
 
 auto ObservableTransactionInMemory::verifies(const Transaction &match) -> bool {
   if (!archivableVerifiableTransaction.verified &&
       static_cast<Transaction &>(archivableVerifiableTransaction) == match) {
     archivableVerifiableTransaction.verified = true;
-    callIfObserverExists(observer,
-                         [](ObservableTransaction::Observer *observer_) {
-                           observer_->notifyThatIsVerified();
-                         });
+    for (auto observer : observers)
+      observer.get().notifyThatIsVerified();
     return true;
   }
   return false;
 }
 
-static void remove(ObservableTransaction::Observer *observer) {
-  callIfObserverExists(observer,
-                       [](ObservableTransaction::Observer *observer_) {
-                         observer_->notifyThatWillBeRemoved();
-                       });
+static void remove(
+    const std::vector<std::reference_wrapper<ObservableTransaction::Observer>>
+        &observers) {
+  for (auto observer : observers)
+    observer.get().notifyThatWillBeRemoved();
 }
 
 auto ObservableTransactionInMemory::removes(const Transaction &match) -> bool {
   if (static_cast<Transaction &>(archivableVerifiableTransaction) == match) {
-    budget::remove(observer);
+    budget::remove(observers);
     return true;
   }
   return false;
@@ -50,10 +42,8 @@ auto ObservableTransactionInMemory::removes(const Transaction &match) -> bool {
 void ObservableTransactionInMemory::archive() {
   if (!archivableVerifiableTransaction.archived) {
     archivableVerifiableTransaction.archived = true;
-    callIfObserverExists(observer,
-                         [](ObservableTransaction::Observer *observer_) {
-                           observer_->notifyThatIsArchived();
-                         });
+    for (auto observer : observers)
+      observer.get().notifyThatIsArchived();
   }
 }
 
@@ -61,7 +51,7 @@ auto ObservableTransactionInMemory::verified() -> bool {
   return archivableVerifiableTransaction.verified;
 }
 
-void ObservableTransactionInMemory::remove() { budget::remove(observer); }
+void ObservableTransactionInMemory::remove() { budget::remove(observers); }
 
 void ObservableTransactionInMemory::save(
     TransactionSerialization &serialization) {
@@ -80,14 +70,13 @@ auto ObservableTransactionInMemory::amount() -> USD {
 void ObservableTransactionInMemory::ready(
     const ArchivableVerifiableTransaction &loadedVerifiableTransaction) {
   archivableVerifiableTransaction = loadedVerifiableTransaction;
-  callIfObserverExists(observer,
-                       [&loadedVerifiableTransaction](Observer *observer_) {
-                         observer_->notifyThatIs(loadedVerifiableTransaction);
-                         if (loadedVerifiableTransaction.verified)
-                           observer_->notifyThatIsVerified();
-                         if (loadedVerifiableTransaction.archived)
-                           observer_->notifyThatIsArchived();
-                       });
+  for (auto observer : observers) {
+    observer.get().notifyThatIs(loadedVerifiableTransaction);
+    if (loadedVerifiableTransaction.verified)
+      observer.get().notifyThatIsVerified();
+    if (loadedVerifiableTransaction.archived)
+      observer.get().notifyThatIsArchived();
+  };
 }
 
 auto ObservableTransactionInMemory::Factory::make()
