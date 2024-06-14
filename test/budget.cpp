@@ -122,7 +122,7 @@ testBudgetInMemory(const std::function<
   AccountStub incomeAccount;
   BudgetInMemory budget{incomeAccount, factory};
   BudgetObserverStub observer;
-  budget.attach(&observer);
+  budget.attach(observer);
   f(factory, incomeAccount, observer, budget);
 }
 
@@ -389,7 +389,7 @@ void notifiesThatHasUnsavedChangesWhenRemovingExpense(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto account{createAccountStub(budget, factory, "giraffe")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.removeExpense("giraffe", Transaction{});
         assertHasUnsavedChanges(result, observer);
       });
@@ -431,7 +431,7 @@ void renamesAccount(testcpplite::TestResult &result) {
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.renameAccount("giraffe", "zebra");
         assertEqual(result, "zebra", giraffe->newName);
         assertHasUnsavedChanges(result, observer);
@@ -483,7 +483,7 @@ void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.verifyExpense("giraffe",
                              {1_cents, "hi", Date{2020, Month::April, 1}});
         assertHasUnsavedChanges(result, observer);
@@ -554,7 +554,7 @@ void notifiesThatHasUnsavedChangesWhenReducing(
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.reduce();
         assertHasUnsavedChanges(result, observer);
       });
@@ -645,7 +645,7 @@ void notifiesThatHasUnsavedChangesWhenRemovingAccount(
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.removeAccount("giraffe");
         assertHasUnsavedChanges(result, observer);
       });
@@ -698,7 +698,7 @@ void notifiesThatHasUnsavedChangesWhenClosingAccount(
         const auto penguin{createAccountStub(budget, factory, "penguin")};
         const auto leopard{createAccountStub(budget, factory, "leopard")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.closeAccount("giraffe");
         assertHasUnsavedChanges(result, observer);
       });
@@ -732,7 +732,7 @@ void notifiesThatHasUnsavedChangesWhenAllocating(
       [&result](AccountFactoryStub &factory, AccountStub &, Budget &budget) {
         const auto giraffe{createAccountStub(budget, factory, "giraffe")};
         BudgetObserverStub observer;
-        budget.attach(&observer);
+        budget.attach(observer);
         budget.allocate("giraffe", 7_cents);
         assertHasUnsavedChanges(result, observer);
       });

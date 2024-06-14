@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace sbash64::budget {
 class BudgetInMemory : public Budget {
@@ -15,7 +16,7 @@ public:
       std::map<std::string, std::shared_ptr<Account>, std::less<>>;
 
   BudgetInMemory(Account &incomeAccount, Account::Factory &);
-  void attach(Observer *) override;
+  void attach(Observer &) override;
   void addIncome(const Transaction &) override;
   void addExpense(std::string_view accountName, const Transaction &) override;
   void removeIncome(const Transaction &) override;
@@ -42,7 +43,7 @@ private:
   ExpenseAccountsType expenseAccounts;
   Account &incomeAccount;
   Account::Factory &accountFactory;
-  Observer *observer{};
+  std::vector<std::reference_wrapper<Observer>> observers{};
 };
 } // namespace sbash64::budget
 

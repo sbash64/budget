@@ -334,7 +334,7 @@ int main(int argc, char *argv[]) {
   std::filesystem::path backupDirectory{sbash64::budget::backupDirectory(
       backupParentPath, std::chrono::system_clock::now())};
   std::uintmax_t backupCount = 0;
-  budget.attach(&presenter);
+  budget.attach(presenter);
   budget.load(budgetDeserialization);
   std::filesystem::create_directory(backupDirectory);
 

@@ -238,7 +238,7 @@ public:
     virtual void notifyThatHasUnsavedChanges() = 0;
   };
 
-  virtual void attach(Observer *) = 0;
+  virtual void attach(Observer &) = 0;
   virtual void addIncome(const Transaction &) = 0;
   virtual void addExpense(std::string_view accountName,
                           const Transaction &) = 0;
