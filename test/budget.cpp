@@ -470,6 +470,13 @@ void verifiesExpenseForExistingAccount(testcpplite::TestResult &result) {
       });
 }
 
+void ignoresVerificationOfNonexistentAccount(testcpplite::TestResult &) {
+  testBudgetInMemory([](AccountFactoryStub &, AccountStub &, Budget &budget) {
+    budget.verifyExpense("giraffe",
+                         {1_cents, "hi", Date{2020, Month::April, 1}});
+  });
+}
+
 void notifiesThatHasUnsavedChangesWhenVerifyingExpense(
     testcpplite::TestResult &result) {
   testBudgetInMemory(

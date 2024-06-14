@@ -14,7 +14,7 @@ public:
   using ExpenseAccountsType =
       std::map<std::string, std::shared_ptr<Account>, std::less<>>;
 
-  explicit BudgetInMemory(Account &incomeAccount, Account::Factory &);
+  BudgetInMemory(Account &incomeAccount, Account::Factory &);
   void attach(Observer *) override;
   void addIncome(const Transaction &) override;
   void addExpense(std::string_view accountName, const Transaction &) override;

@@ -22,6 +22,7 @@ void removesAccount(testcpplite::TestResult &);
 void findsUnverifiedDebitsFromAccount(testcpplite::TestResult &);
 void findsUnverifiedCreditsFromMasterAccount(testcpplite::TestResult &);
 void verifiesExpenseForExistingAccount(testcpplite::TestResult &);
+void ignoresVerificationOfNonexistentAccount(testcpplite::TestResult &);
 void verifiesIncome(testcpplite::TestResult &);
 void notifiesObserverOfDeserializedAccount(testcpplite::TestResult &);
 void reducesEachAccount(testcpplite::TestResult &);

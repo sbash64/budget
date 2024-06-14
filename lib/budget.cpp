@@ -168,8 +168,10 @@ void BudgetInMemory::verifyIncome(const Transaction &transaction) {
 
 void BudgetInMemory::verifyExpense(std::string_view accountName,
                                    const Transaction &transaction) {
-  verify(at(expenseAccounts, accountName), transaction);
-  notifyThatHasUnsavedChanges(observer);
+  if (contains(expenseAccounts, accountName)) {
+    verify(at(expenseAccounts, accountName), transaction);
+    notifyThatHasUnsavedChanges(observer);
+  }
 }
 
 static void transfer(Account &from, Account &to, USD amount) {
