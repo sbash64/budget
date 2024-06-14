@@ -125,7 +125,7 @@ private:
 class ReadsTransactionFromStream : public TransactionDeserialization {
 public:
   explicit ReadsTransactionFromStream(std::istream &);
-  void load(Observer &) override;
+  auto load() -> ArchivableVerifiableTransaction override;
 
   class Factory : public TransactionFromStreamFactory {
   public:

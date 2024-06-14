@@ -76,7 +76,7 @@ public:
 
 class TransactionDeserializationStub : public TransactionDeserialization {
 public:
-  void load(Observer &) override {}
+  auto load() -> ArchivableVerifiableTransaction override { return {}; }
 };
 
 class TransactionFromStreamFactoryStub : public TransactionFromStreamFactory {
@@ -87,27 +87,6 @@ public:
   }
 };
 
-class TransactionDeserializationObserverStub
-    : public TransactionDeserialization::Observer {
-public:
-  auto transaction() -> ArchivableVerifiableTransaction { return transaction_; }
-
-  void ready(const ArchivableVerifiableTransaction &t) override {
-    transaction_ = t;
-    if (onReady)
-      onReady(t);
-  }
-
-  void
-  setOnReady(std::function<void(const ArchivableVerifiableTransaction &)> f) {
-    onReady = std::move(f);
-  }
-
-private:
-  ArchivableVerifiableTransaction transaction_;
-  std::function<void(const ArchivableVerifiableTransaction &)> onReady;
-};
-
 class AccountDeserializationObserverStub
     : public AccountDeserialization::Observer {
 public:
@@ -116,11 +95,7 @@ public:
 
   void notifyThatIsReady(TransactionDeserialization &) override {
     ReadsTransactionFromStream reads{stream};
-    TransactionDeserializationObserverStub observer;
-    observer.setOnReady([&](const ArchivableVerifiableTransaction &t) {
-      transactions_.push_back(t);
-    });
-    reads.load(observer);
+    transactions_.push_back(reads.load());
   }
 
   auto transactions() -> std::vector<ArchivableVerifiableTransaction> {
@@ -163,7 +138,6 @@ public:
   SavesNameTransaction(std::ostream &stream, std::string name)
       : name{std::move(name)}, stream{stream} {}
   void save(TransactionSerialization &) override { stream << name; }
-  void load(TransactionDeserialization &) override {}
 
 private:
   std::string name;
@@ -208,34 +182,28 @@ void fromArchivedVerifiedTransaction(testcpplite::TestResult &result) {
 void toTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"3.24 hyvee 2/8/2020"};
   ReadsTransactionFromStream readsTransaction{input};
-  TransactionDeserializationObserverStub observer;
-  readsTransaction.load(observer);
   assertEqual(
       result,
       {{324_cents, "hyvee", Date{2020, Month::February, 8}}, false, false},
-      observer.transaction());
+      readsTransaction.load());
 }
 
 void toVerifiedTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"^3.24 hyvee 2/8/2020"};
   ReadsTransactionFromStream readsTransaction{input};
-  TransactionDeserializationObserverStub observer;
-  readsTransaction.load(observer);
   assertEqual(
       result,
       {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true, false},
-      observer.transaction());
+      readsTransaction.load());
 }
 
 void toArchivedVerifiedTransaction(testcpplite::TestResult &result) {
   std::stringstream input{"%3.24 hyvee 2/8/2020"};
   ReadsTransactionFromStream readsTransaction{input};
-  TransactionDeserializationObserverStub observer;
-  readsTransaction.load(observer);
   assertEqual(
       result,
       {{324_cents, "hyvee", Date{2020, Month::February, 8}}, true, true},
-      observer.transaction());
+      readsTransaction.load());
 }
 
 void fromAccount(testcpplite::TestResult &result) {

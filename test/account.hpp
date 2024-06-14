@@ -19,9 +19,10 @@ void savesLoadedTransactions(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
     testcpplite::TestResult &);
-void hasTransactionsObserveDeserialization(testcpplite::TestResult &);
 void notifiesObserverThatDuplicateTransactionsAreVerified(
     testcpplite::TestResult &);
+void verifiesLoadedTransaction(testcpplite::TestResult &);
+void archivesLoadedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfVerifiedTransaction(testcpplite::TestResult &);
 void notifiesObserverOfRemovedTransaction(testcpplite::TestResult &);
 void notifiesUpdatedBalanceAfterArchivingVerified(testcpplite::TestResult &);

@@ -58,25 +58,8 @@ void ObservableTransactionInMemory::save(
   serialization.save(archivableVerifiableTransaction);
 }
 
-void ObservableTransactionInMemory::load(
-    TransactionDeserialization &deserialization) {
-  deserialization.load(*this);
-}
-
 auto ObservableTransactionInMemory::amount() -> USD {
   return archivableVerifiableTransaction.amount;
-}
-
-void ObservableTransactionInMemory::ready(
-    const ArchivableVerifiableTransaction &loadedVerifiableTransaction) {
-  archivableVerifiableTransaction = loadedVerifiableTransaction;
-  for (auto observer : observers) {
-    observer.get().notifyThatIs(loadedVerifiableTransaction);
-    if (loadedVerifiableTransaction.verified)
-      observer.get().notifyThatIsVerified();
-    if (loadedVerifiableTransaction.archived)
-      observer.get().notifyThatIsArchived();
-  };
 }
 
 auto ObservableTransactionInMemory::Factory::make()

@@ -1,6 +1,5 @@
 #include "serialization.hpp"
 
-#include <functional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -143,10 +142,8 @@ static auto date(std::string_view s) -> Date {
   return Date{year, Month{month}, day};
 }
 
-static void loadTransaction(
-    std::string &line,
-    const std::function<void(const ArchivableVerifiableTransaction &)>
-        &onDeserialization) {
+static auto loadTransaction(std::string &line)
+    -> ArchivableVerifiableTransaction {
   std::stringstream transaction{line};
   auto verified{false};
   auto archived{false};
@@ -175,16 +172,14 @@ static void loadTransaction(
     transaction >> eventuallyEndOfLine;
   }
   description << next;
-  onDeserialization(
-      {{amount, description.str(), date(eventuallyDate)}, verified, archived});
+  return {
+      {amount, description.str(), date(eventuallyDate)}, verified, archived};
 }
 
-void ReadsTransactionFromStream::load(Observer &observer) {
+auto ReadsTransactionFromStream::load() -> ArchivableVerifiableTransaction {
   std::string line;
   getline(stream, line);
-  loadTransaction(line, [&observer](const ArchivableVerifiableTransaction &t) {
-    observer.ready(t);
-  });
+  return loadTransaction(line);
 }
 
 WritesTransactionToStream::WritesTransactionToStream(std::ostream &stream)

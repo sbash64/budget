@@ -151,7 +151,11 @@ public:
 static void add(AccountStub &account, ObservableTransaction &transaction,
                 const ArchivableVerifiableTransaction &t) {
   account.observer()->notifyThatHasBeenAdded(transaction);
-  transaction.ready(t);
+  transaction.initialize(t);
+  if (t.verified)
+    transaction.verifies(t);
+  if (t.archived)
+    transaction.archive();
 }
 
 static void

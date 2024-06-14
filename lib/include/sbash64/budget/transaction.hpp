@@ -14,9 +14,7 @@ public:
   auto verifies(const Transaction &) -> bool override;
   auto removes(const Transaction &) -> bool override;
   void save(TransactionSerialization &) override;
-  void load(TransactionDeserialization &) override;
   auto amount() -> USD override;
-  void ready(const ArchivableVerifiableTransaction &) override;
   void remove() override;
   void archive() override;
   auto verified() -> bool override;

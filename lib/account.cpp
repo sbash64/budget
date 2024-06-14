@@ -41,16 +41,6 @@ make(ObservableTransaction::Factory &factory,
   return made;
 }
 
-static auto
-make(ObservableTransaction::Factory &factory,
-     const std::vector<std::reference_wrapper<Account::Observer>> &observer,
-     TransactionDeserialization &deserialization)
-    -> std::shared_ptr<ObservableTransaction> {
-  auto transaction{make(factory, observer)};
-  deserialization.load(*transaction);
-  return transaction;
-}
-
 static void notifyUpdatedBalance(
     const AccountInMemory::TransactionsType &transactions,
     const std::vector<std::reference_wrapper<Account::Observer>> &observers) {
@@ -69,10 +59,21 @@ add(AccountInMemory::TransactionsType &transactions,
 
 static void addTransaction(
     AccountInMemory::TransactionsType &transactions,
+    AccountInMemory::TransactionsType &archived,
     ObservableTransaction::Factory &factory,
     const std::vector<std::reference_wrapper<Account::Observer>> &observer,
     TransactionDeserialization &deserialization) {
-  transactions.push_back(make(factory, observer, deserialization));
+  auto transaction{make(factory, observer)};
+  auto t{deserialization.load()};
+  transaction->initialize(t);
+  if (t.verified)
+    transaction->verifies(t);
+  if (t.archived) {
+    transaction->archive();
+    archived.push_back(transaction);
+  } else {
+    transactions.push_back(transaction);
+  };
   notifyUpdatedBalance(transactions, observer);
 }
 
@@ -163,7 +164,7 @@ void AccountInMemory::load(AccountDeserialization &deserialization) {
 
 void AccountInMemory::notifyThatIsReady(
     TransactionDeserialization &deserialization) {
-  addTransaction(transactions, factory, observers, deserialization);
+  addTransaction(transactions, archived, factory, observers, deserialization);
 }
 
 void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {

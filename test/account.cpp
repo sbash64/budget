@@ -15,8 +15,6 @@ namespace sbash64::budget::account {
 namespace {
 class ObservableTransactionStub : public ObservableTransaction {
 public:
-  void ready(const ArchivableVerifiableTransaction &) override {}
-
   void attach(Observer &) override {}
 
   void initialize(const Transaction &t) override {
@@ -27,7 +25,10 @@ public:
     return initializedTransaction_;
   }
 
-  auto verifies(const Transaction &) -> bool override { return verifies_; }
+  auto verifies(const Transaction &) -> bool override {
+    verifiesed = true;
+    return verifies_;
+  }
 
   auto removes(const Transaction &t) -> bool override {
     removesed_ = true;
@@ -44,8 +45,6 @@ public:
   void setRemoves() { removes_ = true; }
 
   void save(TransactionSerialization &) override {}
-
-  void load(TransactionDeserialization &) override {}
 
   auto amount() -> USD override { return amount_; }
 
@@ -64,6 +63,7 @@ public:
   void setArchived() { archived_ = true; }
 
   bool verifies_{};
+  bool verifiesed{};
 
 private:
   Transaction initializedTransaction_;
@@ -146,12 +146,10 @@ private:
 
 class TransactionDeserializationStub : public TransactionDeserialization {
 public:
-  void load(Observer &a) override { observer_ = &a; }
-
-  auto observer() -> Observer * { return observer_; }
-
-private:
-  Observer *observer_{};
+  auto load() -> ArchivableVerifiableTransaction override {
+    return transaction;
+  }
+  ArchivableVerifiableTransaction transaction;
 };
 } // namespace
 
@@ -356,13 +354,25 @@ void observesDeserialization(testcpplite::TestResult &result) {
       });
 }
 
-void hasTransactionsObserveDeserialization(testcpplite::TestResult &result) {
+void verifiesLoadedTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     const auto mike{addObservableTransactionStub(factory)};
     TransactionDeserializationStub abel;
+    abel.transaction.verified = true;
     account.notifyThatIsReady(abel);
-    assertEqual(result, mike.get(), abel.observer());
+    assertTrue(result, mike->verifiesed);
+  });
+}
+
+void archivesLoadedTransaction(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](AccountInMemory &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto mike{addObservableTransactionStub(factory)};
+    TransactionDeserializationStub abel;
+    abel.transaction.archived = true;
+    account.notifyThatIsReady(abel);
+    assertTrue(result, mike->wasArchived());
   });
 }
 

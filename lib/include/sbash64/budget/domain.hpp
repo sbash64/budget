@@ -93,25 +93,17 @@ public:
 
 class TransactionDeserialization {
 public:
-  class Observer {
-  public:
-    SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(Observer);
-    virtual void ready(const ArchivableVerifiableTransaction &) = 0;
-  };
-
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(TransactionDeserialization);
-  virtual void load(Observer &) = 0;
+  virtual auto load() -> ArchivableVerifiableTransaction = 0;
 };
 
 class SerializableTransaction {
 public:
   SBASH64_BUDGET_INTERFACE_SPECIAL_MEMBER_FUNCTIONS(SerializableTransaction);
   virtual void save(TransactionSerialization &) = 0;
-  virtual void load(TransactionDeserialization &) = 0;
 };
 
-class ObservableTransaction : public TransactionDeserialization::Observer,
-                              public SerializableTransaction {
+class ObservableTransaction : public SerializableTransaction {
 public:
   class Observer {
   public:
