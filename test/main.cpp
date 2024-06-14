@@ -156,6 +156,8 @@ static auto runAllTests() -> int {
        {transaction::notifiesObserverOfRemoval, "notifiesObserverWhenRemoved"},
        {account::verifiesLoadedTransaction,
         "account::verifiesLoadedTransaction"},
+       {account::archivesLoadedTransaction,
+        "account::archivesLoadedTransaction"},
        {transaction::notifiesObserverOfInitializedTransaction,
         "notifiesThatIsAfterInitialize"},
        {transaction::notifiesObserverOfRemovalByQuery,
