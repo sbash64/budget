@@ -27,7 +27,7 @@ public:
     return initializedTransaction_;
   }
 
-  auto verifies(const Transaction &) -> bool override { return {}; }
+  auto verifies(const Transaction &) -> bool override { return verifies_; }
 
   auto removes(const Transaction &t) -> bool override {
     removesed_ = true;
@@ -62,6 +62,8 @@ public:
   [[nodiscard]] auto wasArchived() const -> bool { return wasArchived_; }
 
   void setArchived() { archived_ = true; }
+
+  bool verifies_{};
 
 private:
   Transaction initializedTransaction_;
@@ -253,10 +255,19 @@ void savesAllTransactionsAndAccountName(testcpplite::TestResult &result) {
     add(account);
     const auto andy{addObservableTransactionStub(factory)};
     add(account);
+    const auto ron{addObservableTransactionStub(factory)};
+    add(account);
+
+    // Archive Andy
+    andy->setVerified();
+    account.decreaseAllocationByResolvingVerifiedTransactions();
+
     account.increaseAllocationBy(1_cents);
     PersistentAccountStub persistence;
     account.save(persistence);
-    assertSaved(result, persistence, {john.get(), andy.get()});
+
+    // Archived (Andy) is last
+    assertSaved(result, persistence, {john.get(), ron.get(), andy.get()});
     assertEqual(result, 1_cents, persistence.allocation());
   });
 }
