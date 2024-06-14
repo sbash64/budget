@@ -41,6 +41,7 @@ public:
 
 private:
   TransactionsType transactions;
+  TransactionsType archived;
   Observer *observer{};
   ObservableTransaction::Factory &factory;
   USD allocation{};

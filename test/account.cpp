@@ -419,7 +419,7 @@ void notifiesUpdatedBalanceAfterArchivingVerified(
     orangutan->setAmount(1_cents);
     gorilla->setAmount(2_cents);
     chimp->setAmount(3_cents);
-    gorilla->setArchived();
+    gorilla->setVerified();
     account.increaseAllocationByResolvingVerifiedTransactions();
     assertEqual(result, 1_cents + 3_cents, account.balance());
     assertEqual(result, 1_cents + 3_cents, observer.balance());

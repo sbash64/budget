@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <numeric>
 
 namespace sbash64::budget {
@@ -17,9 +18,7 @@ static auto balance(const AccountInMemory::TransactionsType &transactions)
     -> USD {
   return accumulate(transactions.begin(), transactions.end(), USD{0},
                     [](USD total, const auto &transaction) {
-                      return total + (transaction->archived()
-                                          ? USD{0}
-                                          : transaction->amount());
+                      return total + transaction->amount();
                     });
 }
 
@@ -84,8 +83,7 @@ static void remove(AccountInMemory::TransactionsType &transactions,
                    Account::Observer *observer, const Transaction &toRemove) {
   if (const auto found = std::find_if(transactions.begin(), transactions.end(),
                                       [&toRemove](const auto &transaction) {
-                                        return !transaction->archived() &&
-                                               transaction->removes(toRemove);
+                                        return transaction->removes(toRemove);
                                       });
       found != transactions.end()) {
     transactions.erase(found);
@@ -107,24 +105,34 @@ static void notifyUpdatedAllocation(Account::Observer *observer,
 }
 
 static void resolveVerifiedTransactions(
-    const AccountInMemory::TransactionsType &transactions, USD &allocation,
+    AccountInMemory::TransactionsType &transactions,
+    AccountInMemory::TransactionsType &archived, USD &allocation,
     const std::function<void(USD &, const std::shared_ptr<ObservableTransaction>
                                         &)> &updateAllocation,
     Account::Observer *observer) {
-  for (const auto &transaction : transactions)
-    if (!transaction->archived() && transaction->verified()) {
-      updateAllocation(allocation, transaction);
-      transaction->archive();
-    }
+  const auto firstNotVerified{std::partition(
+      transactions.begin(), transactions.end(),
+      [](const auto &transaction) { return transaction->verified(); })};
+  std::for_each(transactions.begin(), firstNotVerified,
+                [&](const auto &transaction) {
+                  updateAllocation(allocation, transaction);
+                  transaction->archive();
+                });
+  archived.insert(archived.end(), std::make_move_iterator(transactions.begin()),
+                  std::make_move_iterator(firstNotVerified));
+  transactions.erase(transactions.begin(), firstNotVerified);
   notifyUpdatedAllocation(observer, allocation);
   notifyUpdatedBalance(transactions, observer);
 }
 
-static auto collect(const AccountInMemory::TransactionsType &accounts)
+static auto collect(const AccountInMemory::TransactionsType &transactions,
+                    const AccountInMemory::TransactionsType &archived)
     -> std::vector<SerializableTransaction *> {
   std::vector<SerializableTransaction *> collected;
-  collected.reserve(accounts.size());
-  for (const auto &account : accounts)
+  collected.reserve(transactions.size() + archived.size());
+  for (const auto &account : transactions)
+    collected.push_back(account.get());
+  for (const auto &account : archived)
     collected.push_back(account.get());
   return collected;
 }
@@ -147,7 +155,7 @@ void AccountInMemory::verify(const Transaction &transaction) {
 }
 
 void AccountInMemory::save(AccountSerialization &serialization) {
-  serialization.save(collect(transactions), allocation);
+  serialization.save(collect(transactions, archived), allocation);
 }
 
 void AccountInMemory::load(AccountDeserialization &deserialization) {
@@ -161,7 +169,7 @@ void AccountInMemory::notifyThatIsReady(
 
 void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
   resolveVerifiedTransactions(
-      transactions, allocation,
+      transactions, archived, allocation,
       [](USD &allocation_,
          const std::shared_ptr<ObservableTransaction> &transaction) {
         allocation_ += transaction->amount();
@@ -171,7 +179,7 @@ void AccountInMemory::increaseAllocationByResolvingVerifiedTransactions() {
 
 void AccountInMemory::decreaseAllocationByResolvingVerifiedTransactions() {
   resolveVerifiedTransactions(
-      transactions, allocation,
+      transactions, archived, allocation,
       [](USD &allocation_,
          const std::shared_ptr<ObservableTransaction> &transaction) {
         allocation_ -= transaction->amount();
@@ -195,6 +203,7 @@ void AccountInMemory::remove() {
 
 void AccountInMemory::clear() {
   budget::clear(transactions);
+  budget::clear(archived);
   allocation.cents = 0;
   notifyUpdatedAllocation(observer, allocation);
   notifyUpdatedBalance(transactions, observer);

@@ -252,7 +252,7 @@ void BudgetInMemory::save(BudgetSerialization &persistentMemory) {
 }
 
 void BudgetInMemory::load(BudgetDeserialization &persistentMemory) {
-  for (auto [name, account] : expenseAccounts)
+  for (const auto &[name, account] : expenseAccounts)
     account->remove();
   incomeAccount.clear();
   expenseAccounts.clear();
@@ -273,13 +273,13 @@ void BudgetInMemory::notifyThatExpenseAccountIsReady(
 
 void BudgetInMemory::reduce() {
   incomeAccount.increaseAllocationByResolvingVerifiedTransactions();
-  for (auto &[name, account] : expenseAccounts)
+  for (const auto &[name, account] : expenseAccounts)
     account->decreaseAllocationByResolvingVerifiedTransactions();
   notifyThatHasUnsavedChanges(observer);
 }
 
 void BudgetInMemory::restore() {
-  for (auto [name, account] : expenseAccounts) {
+  for (const auto &[name, account] : expenseAccounts) {
     const auto amount{leftoverAfterExpenses(*account)};
     if (amount.cents < 0)
       transfer(expenseAccounts, name, incomeAccount, -amount, observer);
