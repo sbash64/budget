@@ -3,6 +3,7 @@
 
 #include "domain.hpp"
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -12,7 +13,7 @@ public:
   using TransactionsType = std::vector<std::shared_ptr<ObservableTransaction>>;
 
   explicit AccountInMemory(ObservableTransaction::Factory &);
-  void attach(Observer *) override;
+  void attach(Observer &) override;
   void remove() override;
   void load(AccountDeserialization &) override;
   void clear() override;
@@ -42,7 +43,7 @@ public:
 private:
   TransactionsType transactions;
   TransactionsType archived;
-  Observer *observer{};
+  std::vector<std::reference_wrapper<Observer>> observers{};
   ObservableTransaction::Factory &factory;
   USD allocation{};
 };

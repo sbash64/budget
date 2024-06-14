@@ -178,7 +178,7 @@ public:
     virtual void notifyThatNameHasChanged(std::string_view) = 0;
   };
 
-  virtual void attach(Observer *) = 0;
+  virtual void attach(Observer &) = 0;
   virtual void add(const Transaction &) = 0;
   virtual void verify(const Transaction &) = 0;
   virtual void remove(const Transaction &) = 0;

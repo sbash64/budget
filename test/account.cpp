@@ -216,7 +216,7 @@ void notifiesObserverOfRemoval(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](AccountInMemory &account, ObservableTransactionFactoryStub &) {
         AccountObserverStub observer;
-        account.attach(&observer);
+        account.attach(observer);
         account.remove();
         assertTrue(result, observer.willBeRemoved());
       });
@@ -226,7 +226,7 @@ void notifiesObserverOfNewCredit(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto record{addObservableTransactionStub(factory)};
     add(account);
     assertEqual(result, record.get(), observer.newTransactionRecord());
@@ -238,7 +238,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     addObservableTransactionStub(factory)->setAmount(3_cents);
     add(account);
     assertBalanceEquals(result, 3_cents, observer);
@@ -329,7 +329,7 @@ void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto ape{addObservableTransactionStub(factory)};
     const auto orangutan{addObservableTransactionStub(factory)};
     const auto chimp{addObservableTransactionStub(factory)};
@@ -418,7 +418,7 @@ void notifiesUpdatedBalanceAfterArchivingVerified(
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto orangutan{addObservableTransactionStub(factory)};
     const auto gorilla{addObservableTransactionStub(factory)};
     const auto chimp{addObservableTransactionStub(factory)};
@@ -469,7 +469,7 @@ void notifiesObserverOfUpdatedBalanceOnClear(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto orangutan{addObservableTransactionStub(factory)};
     orangutan->setAmount(1_cents);
     add(account);
@@ -484,7 +484,7 @@ void increasesAllocationByAmountArchived(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto orangutan{addObservableTransactionInMemory(factory)};
     const auto gorilla{addObservableTransactionInMemory(factory)};
     const auto chimp{addObservableTransactionInMemory(factory)};
@@ -508,7 +508,7 @@ void doesNotRemoveArchivedTransaction(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto orangutan1{addObservableTransactionInMemory(factory)};
     add(account, Transaction{4_cents, "orangutan", Date{2020, Month::June, 2}});
     account.verify(
@@ -528,7 +528,7 @@ void decreasesAllocationByAmountArchived(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {
     AccountObserverStub observer;
-    account.attach(&observer);
+    account.attach(observer);
     const auto orangutan{addObservableTransactionInMemory(factory)};
     const auto gorilla{addObservableTransactionInMemory(factory)};
     const auto chimp{addObservableTransactionInMemory(factory)};
@@ -547,7 +547,7 @@ void notifiesObserverOfIncreasedAllocation(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](AccountInMemory &account, ObservableTransactionFactoryStub &) {
         AccountObserverStub observer;
-        account.attach(&observer);
+        account.attach(observer);
         account.increaseAllocationBy(1_cents);
         assertEqual(result, 1_cents, account.allocated());
         assertEqual(result, 1_cents, observer.allocation());
@@ -558,7 +558,7 @@ void notifiesObserverOfDecreasedAllocation(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](AccountInMemory &account, ObservableTransactionFactoryStub &) {
         AccountObserverStub observer;
-        account.attach(&observer);
+        account.attach(observer);
         account.decreaseAllocationBy(1_cents);
         assertEqual(result, -1_cents, account.allocated());
         assertEqual(result, -1_cents, observer.allocation());
@@ -569,7 +569,7 @@ void notifiesObserverOfLoadedAllocation(testcpplite::TestResult &result) {
   testInMemoryAccount(
       [&result](AccountInMemory &account, ObservableTransactionFactoryStub &) {
         AccountObserverStub observer;
-        account.attach(&observer);
+        account.attach(observer);
         account.notifyThatAllocatedIsReady(1_cents);
         assertEqual(result, 1_cents, account.allocated());
         assertEqual(result, 1_cents, observer.allocation());

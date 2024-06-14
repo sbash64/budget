@@ -101,7 +101,7 @@ AccountPresenter::AccountPresenter(Account &account,
                                    const std::set<View *> &views,
                                    std::string_view name, Parent &parent)
     : name{name}, parent{parent}, views{views} {
-  account.attach(this);
+  account.attach(*this);
 }
 
 void AccountPresenter::notifyThatNameHasChanged(std::string_view name) {

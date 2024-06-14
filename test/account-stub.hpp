@@ -38,7 +38,7 @@ public:
 
   auto allocated() -> USD override { return allocated_; }
 
-  void attach(Observer *a) override { observer_ = a; }
+  void attach(Observer &a) override { observer_ = &a; }
 
   void save(AccountSerialization &) override {}
 
