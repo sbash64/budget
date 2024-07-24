@@ -562,4 +562,30 @@ function main() {
       addTransactionDateInput.value = "";
     }
   });
+  document.addEventListener("keydown", (event) => {
+    switch (event.key) {
+      case ";":
+        event.preventDefault();
+        addTransactionDescriptionInput.focus();
+        break;
+      case "ArrowDown":
+        for (let i = 0; i < accountSummaryTableBody.rows.length - 1; ++i)
+          if (accountSummaryTableBody.rows[i] === selectedAccountSummaryRow) {
+            event.preventDefault();
+            accountSummaryTableBody.rows[i + 1].click();
+            break;
+          }
+        break;
+      case "ArrowUp":
+        for (let i = accountSummaryTableBody.rows.length - 1; i > 0; --i)
+          if (accountSummaryTableBody.rows[i] === selectedAccountSummaryRow) {
+            event.preventDefault();
+            accountSummaryTableBody.rows[i - 1].click();
+            break;
+          }
+        break;
+      default:
+        break;
+    }
+  });
 }
