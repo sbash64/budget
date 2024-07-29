@@ -56,13 +56,13 @@ public:
     decreasedAllocationByResolvingVerifiedTransactions_ = true;
   }
 
-  [[nodiscard]] auto increasedAllocationByResolvingVerifiedTransactions() const
-      -> bool {
+  [[nodiscard]] auto
+  increasedAllocationByResolvingVerifiedTransactions() const -> bool {
     return increasedAllocationByResolvingVerifiedTransactions_;
   }
 
-  [[nodiscard]] auto decreasedAllocationByResolvingVerifiedTransactions() const
-      -> bool {
+  [[nodiscard]] auto
+  decreasedAllocationByResolvingVerifiedTransactions() const -> bool {
     return decreasedAllocationByResolvingVerifiedTransactions_;
   }
 
@@ -79,6 +79,8 @@ public:
   void add(const Transaction &t) override { addedTransaction_ = t; }
 
   void remove(const Transaction &t) override {
+    if (throwNotFoundOnRemove)
+      throw TransactionNotFound{};
     transactionRemoved_ = true;
     removedTransaction_ = t;
   }
@@ -99,6 +101,7 @@ public:
 
   std::string newName;
   bool renamed{};
+  bool throwNotFoundOnRemove{};
 
 private:
   Transaction verifiedTransaction_;

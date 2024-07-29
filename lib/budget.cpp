@@ -28,12 +28,10 @@ static void verify(const std::shared_ptr<Account> &account,
 }
 
 static void remove(Account &account, const Transaction &transaction) {
-  account.remove(transaction);
-}
-
-static void remove(const std::shared_ptr<Account> &account,
-                   const Transaction &transaction) {
-  remove(*account, transaction);
+  try {
+    account.remove(transaction);
+  } catch (const Account::TransactionNotFound &) {
+  }
 }
 
 static auto leftoverAfterExpenses(Account &account) -> USD {
@@ -151,7 +149,7 @@ void BudgetInMemory::removeIncome(const Transaction &transaction) {
 void BudgetInMemory::removeExpense(std::string_view accountName,
                                    const Transaction &transaction) {
   if (contains(expenseAccounts, accountName)) {
-    remove(at(expenseAccounts, accountName), transaction);
+    remove(*at(expenseAccounts, accountName), transaction);
     notifyThatNetIncomeHasChanged(observers, incomeAccount, expenseAccounts);
     notifyThatHasUnsavedChanges(observers);
   }

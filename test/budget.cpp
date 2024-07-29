@@ -97,9 +97,9 @@ static void createAccount(Budget &budget, std::string_view name) {
   budget.createAccount(name);
 }
 
-static auto createAccountStub(Budget &budget, AccountFactoryStub &factory,
-                              std::string_view name)
-    -> std::shared_ptr<AccountStub> {
+static auto
+createAccountStub(Budget &budget, AccountFactoryStub &factory,
+                  std::string_view name) -> std::shared_ptr<AccountStub> {
   auto account{addAccountStub(factory, name)};
   createAccount(budget, name);
   return account;
@@ -403,6 +403,16 @@ void doesNotRemoveExpenseFromNonexistentAccount(
     budget.removeExpense("giraffe", Transaction{123_cents, "raccoon",
                                                 Date{2013, Month::April, 3}});
     assertFalse(result, account->transactionRemoved());
+  });
+}
+
+void ignoresRemovalOfNonexistentExpense(testcpplite::TestResult &) {
+  testBudgetInMemory([](AccountFactoryStub &factory, AccountStub &,
+                        Budget &budget) {
+    const auto account{createAccountStub(budget, factory, "giraffe")};
+    account->throwNotFoundOnRemove = true;
+    budget.removeExpense("giraffe", Transaction{123_cents, "raccoon",
+                                                Date{2013, Month::April, 3}});
   });
 }
 

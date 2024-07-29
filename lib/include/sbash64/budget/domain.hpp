@@ -12,8 +12,8 @@
   a() = default;                                                               \
   a(const a &) = delete;                                                       \
   a(a &&) = delete;                                                            \
-  auto operator=(const a &) -> a & = delete;                                   \
-  auto operator=(a &&) -> a & = delete
+  auto operator=(const a &)->a & = delete;                                     \
+  auto operator=(a &&)->a & = delete
 
 namespace sbash64::budget {
 struct USD {
@@ -81,8 +81,8 @@ struct ArchivableVerifiableTransaction : Transaction {
   bool verified{};
   bool archived{};
 
-  auto operator==(const ArchivableVerifiableTransaction &) const
-      -> bool = default;
+  auto
+  operator==(const ArchivableVerifiableTransaction &) const -> bool = default;
 };
 
 class TransactionSerialization {
@@ -169,6 +169,8 @@ public:
     virtual void notifyThatWillBeRemoved() = 0;
     virtual void notifyThatNameHasChanged(std::string_view) = 0;
   };
+
+  class TransactionNotFound {};
 
   virtual void attach(Observer &) = 0;
   virtual void add(const Transaction &) = 0;

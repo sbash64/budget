@@ -57,6 +57,8 @@ static auto runAllTests() -> int {
         "ignoresVerificationOfNonexistentAccount"},
        {doesNotRemoveExpenseFromNonexistentAccount,
         "does nothing when removing debit from nonexistent account"},
+       {ignoresRemovalOfNonexistentExpense,
+        "ignoresRemovalOfNonexistentExpense"},
        {removesIncomeFromAccount,
         "removes from master account when removing credit"},
        {transfersFromIncomeToExpenseAccount,

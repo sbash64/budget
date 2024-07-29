@@ -14,6 +14,7 @@ void loadsAccounts(testcpplite::TestResult &);
 void clearsOldAccounts(testcpplite::TestResult &);
 void removesExpenseFromAccount(testcpplite::TestResult &);
 void doesNotRemoveExpenseFromNonexistentAccount(testcpplite::TestResult &);
+void ignoresRemovalOfNonexistentExpense(testcpplite::TestResult &);
 void removesIncomeFromAccount(testcpplite::TestResult &);
 void renamesAccount(testcpplite::TestResult &);
 void ignoresRenamingNonexistentAccount(testcpplite::TestResult &);
