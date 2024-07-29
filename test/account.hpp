@@ -15,6 +15,7 @@ void notifiesObserverOfUpdatedBalanceAfterAddingTransactions(
     testcpplite::TestResult &);
 void savesAllTransactionsAndAccountName(testcpplite::TestResult &);
 void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &);
+void throwsTransactionNotFoundWhenRemoving(testcpplite::TestResult &);
 void savesLoadedTransactions(testcpplite::TestResult &);
 void savesRemainingTransactionsAfterRemovingSome(testcpplite::TestResult &);
 void notifiesObserverOfUpdatedBalanceAfterRemovingTransactions(

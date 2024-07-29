@@ -292,6 +292,25 @@ void attemptsToRemoveEachCreditUntilFound(testcpplite::TestResult &result) {
   });
 }
 
+void throwsTransactionNotFoundWhenRemoving(testcpplite::TestResult &result) {
+  testInMemoryAccount([&result](AccountInMemory &account,
+                                ObservableTransactionFactoryStub &factory) {
+    const auto john{addObservableTransactionStub(factory)};
+    add(account);
+    const auto andy{addObservableTransactionStub(factory)};
+    add(account);
+    const auto ron{addObservableTransactionStub(factory)};
+    add(account);
+
+    try {
+      Transaction transaction;
+      account.remove(transaction);
+      assertFalse(result, true);
+    } catch (const AccountInMemory::TransactionNotFound &) {
+    }
+  });
+}
+
 void savesLoadedTransactions(testcpplite::TestResult &result) {
   testInMemoryAccount([&result](AccountInMemory &account,
                                 ObservableTransactionFactoryStub &factory) {

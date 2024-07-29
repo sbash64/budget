@@ -7,8 +7,8 @@
 #include <numeric>
 
 namespace sbash64::budget {
-static auto balance(const AccountInMemory::TransactionsType &transactions)
-    -> USD {
+static auto
+balance(const AccountInMemory::TransactionsType &transactions) -> USD {
   return accumulate(transactions.begin(), transactions.end(), USD{0},
                     [](USD total, const auto &transaction) {
                       return total + transaction->amount();
@@ -77,20 +77,6 @@ static void addTransaction(
   notifyUpdatedBalance(transactions, observer);
 }
 
-static void
-remove(AccountInMemory::TransactionsType &transactions,
-       const std::vector<std::reference_wrapper<Account::Observer>> &observer,
-       const Transaction &toRemove) {
-  if (const auto found = std::find_if(transactions.begin(), transactions.end(),
-                                      [&toRemove](const auto &transaction) {
-                                        return transaction->removes(toRemove);
-                                      });
-      found != transactions.end()) {
-    transactions.erase(found);
-    notifyUpdatedBalance(transactions, observer);
-  }
-}
-
 static void clear(AccountInMemory::TransactionsType &records) {
   for (const auto &record : records)
     record->remove();
@@ -146,8 +132,16 @@ void AccountInMemory::add(const Transaction &transaction) {
   budget::add(transactions, factory, observers, transaction);
 }
 
-void AccountInMemory::remove(const Transaction &transaction) {
-  budget::remove(transactions, observers, transaction);
+void AccountInMemory::remove(const Transaction &t) {
+  if (const auto found = std::find_if(
+          transactions.begin(), transactions.end(),
+          [&t](const auto &transaction) { return transaction->removes(t); });
+      found != transactions.end()) {
+    transactions.erase(found);
+    notifyUpdatedBalance(transactions, observers);
+  } else {
+    throw TransactionNotFound{};
+  }
 }
 
 void AccountInMemory::verify(const Transaction &transaction) {

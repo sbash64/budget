@@ -138,6 +138,8 @@ static auto runAllTests() -> int {
        {account::returnsBalance, "returnsBalance"},
        {account::attemptsToRemoveEachCreditUntilFound,
         "attemptsToRemoveEachCreditUntilFound"},
+       {account::throwsTransactionNotFoundWhenRemoving,
+        "account::throwsTransactionNotFoundWhenRemoving"},
        {account::notifiesObserverOfRemoval,
         "account::notifiesObserverOfRemoval"},
        {account::observesDeserialization, "account::observesDeserialization"},
