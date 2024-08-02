@@ -26,7 +26,7 @@ public:
 
 private:
   ArchivableVerifiableTransaction archivableVerifiableTransaction;
-  std::vector<std::reference_wrapper<Observer>> observers{};
+  std::vector<std::reference_wrapper<Observer>> observers;
 };
 } // namespace sbash64::budget
 

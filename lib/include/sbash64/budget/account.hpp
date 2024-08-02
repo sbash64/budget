@@ -43,7 +43,7 @@ public:
 private:
   TransactionsType transactions;
   TransactionsType archived;
-  std::vector<std::reference_wrapper<Observer>> observers{};
+  std::vector<std::reference_wrapper<Observer>> observers;
   ObservableTransaction::Factory &factory;
   USD allocation{};
 };
